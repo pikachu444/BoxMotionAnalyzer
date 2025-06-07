@@ -144,6 +144,69 @@ def distance_point_to_assigned_face_surface_and_bounds(point_local, face_key, bo
     return total_distance
 
 
+def kabsch_align(P, Q):
+    """
+    Calculates the optimal rotation vector to align point set P to point set Q
+    using the Kabsch algorithm.
+
+    Args:
+        P (np.ndarray): Array of points (N, 3), e.g., local coordinates.
+        Q (np.ndarray): Array of points (N, 3), e.g., camera coordinates.
+
+    Returns:
+        np.ndarray: The rotation vector (3,) that aligns P to Q.
+                    Returns None if inputs are invalid (e.g., less than 3 points).
+    """
+    if P.shape[0] < 3 or Q.shape[0] < 3: # SVD requires at least 3 points for a meaningful 3D rotation
+        print("Warning (kabsch_align): At least 3 points are required for P and Q.")
+        return None
+    if P.shape != Q.shape:
+        print("Warning (kabsch_align): Point sets P and Q must have the same shape.")
+        return None
+
+    # 1. Calculate centroids
+    centroid_P = np.mean(P, axis=0)
+    centroid_Q = np.mean(Q, axis=0)
+
+    # 2. Center the points
+    P_centered = P - centroid_P
+    Q_centered = Q - centroid_Q
+
+    # 3. Compute the covariance matrix H
+    H = P_centered.T @ Q_centered
+
+    # 4. Perform Singular Value Decomposition (SVD)
+    try:
+        U, S, Vt = np.linalg.svd(H)
+    except np.linalg.LinAlgError:
+        print("Warning (kabsch_align): SVD computation failed.")
+        return None
+
+
+    # 5. Calculate the rotation matrix R_kabsch
+    R_kabsch = Vt.T @ U.T
+
+    # 6. Address potential reflection cases
+    if np.linalg.det(R_kabsch) < 0:
+        # print("kabsch_align: Reflection detected. Adjusting rotation matrix.")
+        Vt_corrected = Vt.copy()
+        Vt_corrected[-1, :] *= -1  # Multiply the last row (corresponding to the smallest singular value) by -1
+        R_kabsch = Vt_corrected.T @ U.T
+        # Re-check determinant, though it should be positive now
+        # if np.linalg.det(R_kabsch) < 0:
+            # print("Warning (kabsch_align): Reflection correction failed. Determinant still negative.")
+            # return None # Or handle as an error
+
+    # 7. Convert rotation matrix to rotation vector
+    try:
+        rotation_vector = R.from_matrix(R_kabsch).as_rotvec()
+    except ValueError as e:
+        print(f"Warning (kabsch_align): Error converting rotation matrix to vector: {e}")
+        return None
+
+    return rotation_vector
+
+
 def objective_function(params, frame_marker_data):
     """Cost function for optimization for a single frame's marker data."""
     T_guess = params[:3]
@@ -237,9 +300,43 @@ if __name__ == "__main__":
         observed_marker_coords_for_frame = np.array([m['cam_coords'] for m in current_frame_markers])
 
         if frame_idx == 0 or previous_optimized_T is None or previous_optimized_rot_vec is None:
-            initial_T_guess = np.mean(observed_marker_coords_for_frame, axis=0)
-            initial_rot_vec_guess = np.array([0.01, -0.01, 0.01])
-            print(f"  Using default initial guess for Frame {frame_number}.")
+            # Attempt to use Kabsch for initial rotation guess if enough face-assigned markers
+            local_points_for_kabsch = []
+            cam_points_for_kabsch = []
+
+            for marker_info in current_frame_markers:
+                face_key = marker_info['face_key']
+                if face_key and face_key in FACE_DEFINITIONS:
+                    cam_coords = marker_info['cam_coords']
+                    cam_points_for_kabsch.append(cam_coords)
+
+                    face_def = FACE_DEFINITIONS[face_key]
+                    axis_idx = face_def['axis_idx']
+                    direction = face_def['direction']
+
+                    local_coord = np.zeros(3) # Create a zero vector [0.0, 0.0, 0.0]
+                    local_coord[axis_idx] = direction * BOX_DIMS[axis_idx] / 2.0
+                    local_points_for_kabsch.append(local_coord)
+
+            if len(local_points_for_kabsch) >= 3: # Need at least 3 points for Kabsch
+                local_points_for_kabsch_np = np.array(local_points_for_kabsch)
+                cam_points_for_kabsch_np = np.array(cam_points_for_kabsch)
+                print(f"  Frame {frame_number}: Found {len(local_points_for_kabsch_np)} points for Kabsch pre-alignment.")
+
+                initial_T_guess = np.mean(observed_marker_coords_for_frame, axis=0) # T_guess remains the same
+                rot_vec_kabsch = kabsch_align(local_points_for_kabsch_np, cam_points_for_kabsch_np)
+
+                if rot_vec_kabsch is not None:
+                    initial_rot_vec_guess = rot_vec_kabsch
+                    print(f"  Frame {frame_number}: Using Kabsch alignment for initial rotation guess: {initial_rot_vec_guess}")
+                else:
+                    initial_rot_vec_guess = np.array([0.01, -0.01, 0.01]) # Default guess
+                    print(f"  Frame {frame_number}: Kabsch alignment failed. Using default initial rotation guess.")
+            else:
+                print(f"  Frame {frame_number}: Not enough face-assigned markers for Kabsch ({len(local_points_for_kabsch)} found). Using default initial guess.")
+                initial_T_guess = np.mean(observed_marker_coords_for_frame, axis=0)
+                initial_rot_vec_guess = np.array([0.01, -0.01, 0.01])
+
         else:
             initial_T_guess = previous_optimized_T
             initial_rot_vec_guess = previous_optimized_rot_vec
