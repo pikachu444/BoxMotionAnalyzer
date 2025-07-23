@@ -1,4 +1,4 @@
---- START OF FILE NewSmoothMarkerData.py ---
+# --- START OF FILE SmoothMarkerData.py ---
 import argparse
 import pandas as pd
 import numpy as np
@@ -240,4 +240,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# --- END OF FILE
+# --- END OF FILE SmoothMarkerData.py ---

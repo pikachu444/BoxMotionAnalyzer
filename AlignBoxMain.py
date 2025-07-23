@@ -1,4 +1,4 @@
-# --- START OF FILE NEWAlignBoxMain.py ---
+# --- START OF FILE AlignBoxMain.py ---
 import numpy as np
 from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation as R
@@ -357,4 +357,4 @@ if __name__ == "__main__":
     else:
         print("No pose data was generated to save.")
 
-# --- END OF FILE NEWAlignBoxMain.py ---
+# --- END OF FILE AlignBoxMain.py ---

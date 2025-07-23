@@ -1,4 +1,4 @@
-# --- START OF FILE NEWIntegrateVisualizationData.py ---
+# --- START OF FILE IntegrateVisualizationData.py ---
 import argparse
 import pandas as pd
 import sys
@@ -115,4 +115,4 @@ def integrate_data_for_visualization(kinematics_path: str, markers_path: str, tr
         print(f"   [ERROR] An unexpected error occurred while saving the file: {e}", file=sys.stderr)
         sys.exit(1)
 
-# --- END OF FILE NEWIntegrateVisualizationData.py ---
+# --- END OF FILE IntegrateVisualizationData.py ---

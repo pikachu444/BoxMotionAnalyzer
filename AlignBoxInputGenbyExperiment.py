@@ -1,4 +1,4 @@
---- START OF FILE NewAlignBoxInputGenbyExperiment.py (Modified as per original structure) ---
+#--- START OF FILE AlignBoxInputGenbyExperiment.py ---
 import csv
 import argparse
 
@@ -272,3 +272,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     parse_experiment_raw_data_all_frames(args.input_csv_path, args.output_csv_path)
+    #--- END OF FILE AlignBoxInputGenbyExperiment.py ---

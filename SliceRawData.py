@@ -1,4 +1,4 @@
-# --- START OF FILE NewSliceRawData.py ---
+# --- START OF FILE SliceRawData.py ---
 import argparse
 import os
 
@@ -134,4 +134,4 @@ if __name__ == "__main__":
         args.end_val
     )
 
-# --- END OF FILE NewSliceRawData.py ---
+# --- END OF FILE SliceRawData.py ---

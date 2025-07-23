@@ -1,4 +1,4 @@
-# --- START OF NEWrun_pipeline.py ---
+# --- START OF run_pipeline.py ---
 import os
 import subprocess
 import pandas as pd
@@ -162,97 +162,65 @@ def main():
         visualization_integrated_csv = os.path.join(dataset_output_dir, f"{dataset_name}{file_suffix}_visualization_integrated.csv")
 
         # --- Pipeline Execution ---
-        if DO_PARSING and not run_command([PYTHON_EXE, ALIGN_INPUT_GEN_SCRIPT, input_for_parsing, parsed_csv], log_file):
-            sys.exit(f"PIPELINE HALTED at Stage 1 for {dataset_name}.")
-        if DO_SMOOTH_MARKERS and not run_command([PYTHON_EXE, SMOOTH_MARKER_SCRIPT, parsed_csv, smoothed_markers_csv], log_file):
-            sys.exit(f"PIPELINE HALTED at Stage 2 for {dataset_name}.")
+        if DO_PARSING and not run_command([PYTHON_EXE, ALIGN_INPUT_GEN_SCRIPT, input_for_parsing, parsed_csv],
+                                        log_file): sys.exit(f"PIPELINE HALTED at Stage 1 for {dataset_name}.")
+        if DO_SMOOTH_MARKERS and not run_command([PYTHON_EXE, SMOOTH_MARKER_SCRIPT, parsed_csv, smoothed_markers_csv],
+                                                log_file): sys.exit(f"PIPELINE HALTED at Stage 2 for {dataset_name}.")
         if DO_POSE_OPTIMIZATION and not run_command(
             [PYTHON_EXE, ALIGN_BOX_MAIN_SCRIPT, "--input_csv", smoothed_markers_csv, "--output_csv", poses_csv],
-            log_file):
-            sys.exit(f"PIPELINE HALTED at Stage 3 for {dataset_name}.")
+            log_file): sys.exit(f"PIPELINE HALTED at Stage 3 for {dataset_name}.")
         if DO_VELOCITY_CALCULATION and not run_command(
-            [PYTHON_EXE, CALC_VELOCITY_SCRIPT, "--input_csv_path", poses_csv, "--output_csv_path", kinematics_integrated_csv],
-            log_file):
-            sys.exit(f"PIPELINE HALTED at Stage 4 for {dataset_name}.")
+            [PYTHON_EXE, CALC_VELOCITY_SCRIPT, "--input_csv_path", poses_csv, "--output_csv_path",
+            kinematics_integrated_csv], log_file): sys.exit(f"PIPELINE HALTED at Stage 4 for {dataset_name}.")
         if DO_FRAME_ANALYSIS and not run_command(
             [PYTHON_EXE, ANALYZE_FRAME_SCRIPT, "--kinematics_csv", kinematics_integrated_csv,
-             "--output_transformed_data_csv", analysis_frame_data_csv, "--frame_range"] + ANALYZE_FRAME_RANGE.split(),
-            log_file):
-            sys.exit(f"PIPELINE HALTED at Stage 5 for {dataset_name}.")
+            "--output_transformed_data_csv", analysis_frame_data_csv, "--frame_range"] + ANALYZE_FRAME_RANGE.split(),
+            log_file): sys.exit(f"PIPELINE HALTED at Stage 5 for {dataset_name}.")
 
-        # Stage 6: Data Integration
+        # [NEW] Stage 6: Data Integration
         if DO_INTEGRATE_DATA:
             print("\n[Stage 6/9] Integrating Data for Visualization...")
             cmd = [PYTHON_EXE, INTEGRATE_VIS_SCRIPT,
-                   "--kinematics_csv", kinematics_integrated_csv,
-                   "--markers_csv", smoothed_markers_csv,
-                   "--transformed_csv", analysis_frame_data_csv,
-    kinematics_integrated_csv = os.path.join(dataset_output_dir,
-                                             f"{dataset_name}{file_suffix}_kinematics_integrated.csv")
-    analysis_frame_data_csv = os.path.join(dataset_output_dir, f"{dataset_name}{file_suffix}_analysis_frame_data.csv")
-    # [NEW] The single source of truth for all visualizations
-    visualization_integrated_csv = os.path.join(dataset_output_dir,
-                                                f"{dataset_name}{file_suffix}_visualization_integrated.csv")
+                "--kinematics_csv", kinematics_integrated_csv,
+                "--markers_csv", smoothed_markers_csv,
+                "--transformed_csv", analysis_frame_data_csv,
+                "--output_csv", visualization_integrated_csv]
+            if not run_command(cmd, log_file): sys.exit(f"PIPELINE HALTED at Stage 6 for {dataset_name}.")
+        else:
+            print("\n[Stage 6/9] Integrating Data... SKIPPED")
 
-    # --- Pipeline Execution ---
-    if DO_PARSING and not run_command([PYTHON_EXE, ALIGN_INPUT_GEN_SCRIPT, input_for_parsing, parsed_csv],
-                                      log_file): sys.exit(f"PIPELINE HALTED at Stage 1 for {dataset_name}.")
-    if DO_SMOOTH_MARKERS and not run_command([PYTHON_EXE, SMOOTH_MARKER_SCRIPT, parsed_csv, smoothed_markers_csv],
-                                             log_file): sys.exit(f"PIPELINE HALTED at Stage 2 for {dataset_name}.")
-    if DO_POSE_OPTIMIZATION and not run_command(
-        [PYTHON_EXE, ALIGN_BOX_MAIN_SCRIPT, "--input_csv", smoothed_markers_csv, "--output_csv", poses_csv],
-        log_file): sys.exit(f"PIPELINE HALTED at Stage 3 for {dataset_name}.")
-    if DO_VELOCITY_CALCULATION and not run_command(
-        [PYTHON_EXE, CALC_VELOCITY_SCRIPT, "--input_csv_path", poses_csv, "--output_csv_path",
-         kinematics_integrated_csv], log_file): sys.exit(f"PIPELINE HALTED at Stage 4 for {dataset_name}.")
-    if DO_FRAME_ANALYSIS and not run_command(
-        [PYTHON_EXE, ANALYZE_FRAME_SCRIPT, "--kinematics_csv", kinematics_integrated_csv,
-         "--output_transformed_data_csv", analysis_frame_data_csv, "--frame_range"] + ANALYZE_FRAME_RANGE.split(),
-        log_file): sys.exit(f"PIPELINE HALTED at Stage 5 for {dataset_name}.")
+        # [MODIFIED] Stage 7: Matplotlib Visualization (now uses the integrated file)
+        if DO_PLOT_MATPLOTLIB_LAB:
+            print("\n[Stage 7a/9] Plotting with Matplotlib (Lab Frame)...")
+            cmd = [PYTHON_EXE, PLOT_LAB_FRAME_SCRIPT, "--input_csv", visualization_integrated_csv]
+            if not run_command(cmd, log_file): print(f"Warning: Matplotlib plot for Lab Frame was closed or failed.")
+        else:
+            print("\n[Stage 7a/9] Plotting (Lab Frame)... SKIPPED")
 
-    # [NEW] Stage 6: Data Integration
-    if DO_INTEGRATE_DATA:
-        print("\n[Stage 6/9] Integrating Data for Visualization...")
-        cmd = [PYTHON_EXE, INTEGRATE_VIS_SCRIPT,
-               "--kinematics_csv", kinematics_integrated_csv,
-               "--markers_csv", smoothed_markers_csv,
-               "--transformed_csv", analysis_frame_data_csv,
-               "--output_csv", visualization_integrated_csv]
-        if not run_command(cmd, log_file): sys.exit(f"PIPELINE HALTED at Stage 6 for {dataset_name}.")
-    else:
-        print("\n[Stage 6/9] Integrating Data... SKIPPED")
+        if DO_PLOT_MATPLOTLIB_ANALYSIS:
+            print("\n[Stage 7b/9] Plotting with Matplotlib (Analysis Frame)...")
+            cmd = [PYTHON_EXE, PLOT_ANALYSIS_FRAME_SCRIPT, "--input_csv", visualization_integrated_csv]
+            if not run_command(cmd, log_file):
+                print(f"Warning: Matplotlib plot for Analysis Frame was closed or failed.")
+        else:
+            print("\n[Stage 7b/9] Plotting (Analysis Frame)... SKIPPED")
 
-    # [MODIFIED] Stage 7: Matplotlib Visualization (now uses the integrated file)
-    if DO_PLOT_MATPLOTLIB_LAB:
-        print("\n[Stage 7a/9] Plotting with Matplotlib (Lab Frame)...")
-        cmd = [PYTHON_EXE, PLOT_LAB_FRAME_SCRIPT, "--input_csv", visualization_integrated_csv]
-        if not run_command(cmd, log_file): print(f"Warning: Matplotlib plot for Lab Frame was closed or failed.")
-    else:
-        print("\n[Stage 7a/9] Plotting (Lab Frame)... SKIPPED")
+        # Stage 8: PyVista Interactive Visualization
+        if DO_RUN_PYVISTA_VISUALIZER:
+            print("\n[Stage 8/9] Running PyVista Interactive Visualizer...")
+            cmd = [PYTHON_EXE, PYVISTA_VISUALIZER_SCRIPT, "--input_csv", visualization_integrated_csv]
+            if not run_command(cmd, log_file):
+                print(f"Warning: PyVista visualizer was closed or failed.")
+        else:
+            print("\n[Stage 8/9] Running PyVista Visualizer... SKIPPED")
 
-    if DO_PLOT_MATPLOTLIB_ANALYSIS:
-        print("\n[Stage 7b/9] Plotting with Matplotlib (Analysis Frame)...")
-        cmd = [PYTHON_EXE, PLOT_ANALYSIS_FRAME_SCRIPT, "--input_csv", visualization_integrated_csv]
-        if not run_command(cmd, log_file):
-            print(f"Warning: Matplotlib plot for Analysis Frame was closed or failed.")
-    else:
-        print("\n[Stage 7b/9] Plotting (Analysis Frame)... SKIPPED")
+        print(f"\n--- Successfully finished processing dataset: {dataset_name} ---")
 
-    # Stage 8: PyVista Interactive Visualization
-    if DO_RUN_PYVISTA_VISUALIZER:
-        print("\n[Stage 8/9] Running PyVista Interactive Visualizer...")
-        cmd = [PYTHON_EXE, PYVISTA_VISUALIZER_SCRIPT, "--input_csv", visualization_integrated_csv]
-        if not run_command(cmd, log_file):
-            print(f"Warning: PyVista visualizer was closed or failed.")
-    else:
-        print("\n[Stage 8/9] Running PyVista Visualizer... SKIPPED")
+    print("\n" + "=" * 80)
+    print("All datasets processed successfully (or halted on first error).")
+    print("=" * 80)
 
-    print(f"\n--- Successfully finished processing dataset: {dataset_name} ---")
-
-print("\n" + "=" * 80)
-print("All datasets processed successfully (or halted on first error).")
-print("=" * 80)
 if __name__ == "__main__":
     main()
 
-# --- END OF MODIFIED FILE NEWrun_pipeline.py ---
+# --- END OF MODIFIED FILE run_pipeline.py ---

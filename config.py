@@ -1,4 +1,4 @@
-# --- START OF FILE Newconfig.py (Revised based on feedback) ---
+# --- START OF FILE Newconfig.py ---
 import numpy as np
 
 # --- Project-wide Units and Coordinate System Convention ---
@@ -127,4 +127,4 @@ MARKER_PREFIX_ID = 'MRK'
 
 print(f"Config file (config.py) loaded. BOX_DIMS: {BOX_DIMS}, Floor plot half-extents: ({PLOT_FLOOR_HALF_EXTENT_1}, {PLOT_FLOOR_HALF_EXTENT_2})")
 
-# --- END OF FILE Newconfig.py (Revised based on feedback) ---
+# --- END OF FILE Newconfig.py ---
