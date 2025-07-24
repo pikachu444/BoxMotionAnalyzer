@@ -1,5 +1,6 @@
 import sys
 import os
+from unittest.mock import patch
 from PySide6.QtWidgets import QApplication
 from main_app import MainApp
 
@@ -7,89 +8,54 @@ def get_project_root():
     """스크립트의 위치를 기준으로 프로젝트 루트 디렉토리를 찾습니다."""
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-def run_test():
+@patch('PySide6.QtWidgets.QFileDialog.getOpenFileName')
+def run_test(mock_get_open_file_name):
     """
-    GUI 상호작용 없이 데이터 로딩 로직을 테스트합니다.
+    QFileDialog를 모킹하여 데이터 로딩 및 시각화/인터랙션 초기화를 테스트합니다.
     """
-    # QApplication 인스턴스가 필요합니다.
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-
-    # 메인 윈도우를 생성합니다.
+    app = QApplication.instance() or QApplication(sys.argv)
     window = MainApp()
 
-    # 테스트할 CSV 파일의 절대 경로를 구성합니다.
     project_root = get_project_root()
     test_csv_path = os.path.join(project_root, "TestSets", "VDTest_S5_001.csv")
 
-    print(f"--- 테스트 시작: {test_csv_path} 파일 로딩 ---")
+    # QFileDialog.getOpenFileName이 항상 테스트 파일 경로를 반환하도록 설정
+    mock_get_open_file_name.return_value = (test_csv_path, "CSV Files (*.csv)")
 
-    # QFileDialog를 시뮬레이션하고, open_csv_file 내부 로직을 직접 실행합니다.
-    try:
-        # 1. 데이터 로드
-        window.raw_data = window.data_loader.load_csv(test_csv_path)
+    print(f"--- 테스트 시작: open_csv_file 메서드 호출 ---")
 
-        # 2. GUI 업데이트
-        window.file_path_label.setText(test_csv_path)
-        window.statusBar().showMessage("파일 로드 성공")
-        window.log_output.append(f"[정보] {test_csv_path} 파일을 성공적으로 불러왔습니다.")
+    # "CSV 파일 불러오기" 버튼 클릭을 시뮬레이션
+    window.load_csv_button.click()
 
-        # 3. 드롭다운 메뉴 채우기
-        plottable_targets = window.data_loader.get_plottable_targets(window.raw_data)
-        window.combo_plot_data.clear()
-        window.combo_plot_data.addItems(plottable_targets)
+    # 시그널 처리를 위해 이벤트 루프를 잠시 실행
+    QApplication.processEvents()
 
-        # 4. 결과 검증 및 출력
-        print("--- 파싱된 컬럼 이름 확인 ---")
-        print(window.raw_data.columns)
-        print("--------------------------")
+    print("\n--- 테스트 결과 검증 ---")
 
-        print("--- 테스트 결과 ---")
-        print(f"파일 경로 레이블: {window.file_path_label.text()}")
-        print(f"상태바 메시지: {window.statusBar().currentMessage()}")
-        print(f"로그 출력: \n{window.log_output.toPlainText()}")
-        print("플롯 대상 드롭다운 메뉴 항목:")
+    # 1. 파일 경로 레이블 확인
+    print(f"파일 경로 레이블: {window.file_path_label.text()}")
+    assert window.file_path_label.text() == test_csv_path
 
-        items = [window.combo_plot_data.itemText(i) for i in range(window.combo_plot_data.count())]
-        for item in items:
-            print(f"- {item}")
+    # 2. 드롭다운 메뉴 확인
+    items = [window.combo_plot_data.itemText(i) for i in range(window.combo_plot_data.count())]
+    print(f"플롯 대상 항목 수: {len(items)}")
+    assert len(items) > 1
+    assert "TestBox_85 (강체 중심)" in items
 
-        # 5. 시각화 및 인터랙션 테스트
-        print("\n--- 시각화 및 인터랙션 테스트 시작 ---")
-        window.update_plot()
+    # 3. 그래프 아이템 확인
+    plot_items = window.plot_widget.getPlotItem().listDataItems()
+    print(f"그래프 아이템 수: {len(plot_items)}")
+    assert len(plot_items) > 0
 
-        plot_items = window.plot_widget.getPlotItem().listDataItems()
-        if plot_items:
-            print(f"[성공] 그래프에 {len(plot_items)}개의 데이터 아이템이 그려졌습니다.")
-        else:
-            print(f"[실패] 그래프에 데이터가 그려지지 않았습니다.")
+    # 4. 분석 구간 초기값 확인
+    start_val = window.le_slice_start.text()
+    end_val = window.le_slice_end.text()
+    print(f"분석 구간: Start={start_val}, End={end_val}")
+    assert float(start_val) > 0
+    assert float(end_val) > float(start_val)
 
-        # 인터랙션 기능 활성화 및 시그널-슬롯 연결 테스트
-        # enable_interactions()가 호출되면 LinearRegionItem이 추가되고,
-        # 초기값으로 region_changed_signal이 한번 발생해야 합니다.
-        window.plot_manager.enable_interactions()
+    print("\n[최종 성공] 모든 버그 수정 및 기능이 정상적으로 동작했습니다.")
 
-        # QLineEdit 위젯에 값이 설정되었는지 확인
-        start_val = window.le_slice_start.text()
-        end_val = window.le_slice_end.text()
-
-        if start_val and end_val:
-            print(f"[성공] 분석 구간이 초기값으로 설정되었습니다: Start={start_val}, End={end_val}")
-        else:
-            print(f"[실패] 분석 구간이 초기화되지 않았습니다.")
-
-        # 최종 성공 여부 확인
-        if len(items) > 1 and plot_items and start_val and end_val:
-             print("\n[최종 성공] 데이터 로딩, 시각화 및 기본 인터랙션 기능이 정상적으로 동작했습니다.")
-        else:
-             print("\n[최종 실패] 기능이 올바르게 동작하지 않았습니다.")
-
-    except Exception as e:
-        print(f"\n[실패] 테스트 중 예외 발생: {e}")
-        # 스택 트레이스를 포함하여 더 자세한 디버깅 정보 제공
-        import traceback
-        traceback.print_exc()
 
 if __name__ == "__main__":
     run_test()
