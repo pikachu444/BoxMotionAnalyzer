@@ -117,6 +117,7 @@ class MainApp(QMainWindow):
         # --- 시그널 연결 ---
         self.load_csv_button.clicked.connect(self.open_csv_file)
         self.run_button.clicked.connect(self.run_pipeline)
+        self.export_button.clicked.connect(self.export_results)
         self.combo_plot_data.currentIndexChanged.connect(self.update_plot)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
@@ -215,6 +216,31 @@ class MainApp(QMainWindow):
             self.statusBar().showMessage("분석 실패.")
 
         self.run_button.setEnabled(True)
+
+
+    def export_results(self):
+        """
+        분석 결과를 CSV 파일로 저장합니다.
+        """
+        if self.final_result is None or self.final_result.empty:
+            self.log_output.append("[에러] 내보낼 분석 결과가 없습니다.")
+            return
+
+        filepath, _ = QFileDialog.getSaveFileName(
+            self,
+            "결과 저장",
+            "analysis_results.csv",
+            "CSV Files (*.csv)"
+        )
+
+        if filepath:
+            try:
+                self.final_result.to_csv(filepath, index=True, float_format='%.8f')
+                self.statusBar().showMessage("결과 저장 완료")
+                self.log_output.append(f"[정보] 분석 결과를 {filepath} 에 성공적으로 저장했습니다.")
+            except Exception as e:
+                self.statusBar().showMessage("결과 저장 실패")
+                self.log_output.append(f"[에러] 파일 저장 중 오류 발생: {e}")
 
 
 if __name__ == '__main__':
