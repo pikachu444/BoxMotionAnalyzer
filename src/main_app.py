@@ -127,8 +127,11 @@ class MainApp(QMainWindow):
                 self.combo_plot_data.clear()
                 self.combo_plot_data.addItems(plottable_targets)
 
-                # [버그 수정] 로드 직후 첫 그래프를 그리기 위해 update_plot()을 명시적으로 호출합니다.
-                self.update_plot()
+                # [버그 수정] 첫 번째 항목을 프로그래매틱하게 선택하여
+                # currentIndexChanged 시그널을 발생시켜 update_plot()을 호출합니다.
+                if self.combo_plot_data.count() > 0:
+                    self.combo_plot_data.setCurrentIndex(0)
+
                 self.plot_manager.enable_interactions(self.raw_data)
 
                 # 분석 구간에 초기값을 직접 설정합니다.
@@ -149,10 +152,17 @@ class MainApp(QMainWindow):
         self.le_slice_end.setText(f"{max_x:.2f}")
 
     def update_plot(self):
-        if self.raw_data is None or self.raw_data.empty: return
+        if self.raw_data is None or self.raw_data.empty:
+            return
+
         target_name = self.combo_plot_data.currentText()
+        if not target_name: # 가드 코드 추가
+            return
+
         axis_text = self.combo_plot_axis.currentText()
-        if not target_name or not axis_text: return
+        if not axis_text:
+            return
+
         self.plot_manager.draw_plot(self.raw_data, target_name, axis_text)
 
     def run_pipeline(self):
