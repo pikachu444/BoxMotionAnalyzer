@@ -70,7 +70,7 @@ class DataLoader:
         df.set_index('Time', inplace=True)
 
         end_time = time.time()
-        print(f"[DataLoader 정보] CSV 파싱 소요 시간 (최적화): {end_time - start_time:.4f}초")
+        print(f"[DataLoader INFO] CSV parsing time: {end_time - start_time:.4f}s")
 
         return df
 
@@ -88,6 +88,6 @@ class DataLoader:
             if ':' in name:
                 final_targets.append(name)
             else:
-                final_targets.append(f"{name} (강체 중심)")
+                final_targets.append(f"{name} (Rigid Body)")
 
         return final_targets

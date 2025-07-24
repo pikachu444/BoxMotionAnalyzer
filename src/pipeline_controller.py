@@ -24,42 +24,42 @@ class PipelineController(QObject):
 
     def run_analysis(self, config, raw_data: pd.DataFrame):
         """
-        분석 파이프라인을 순차적으로 실행하는 메인 메서드.
+        Runs the analysis pipeline sequentially.
         """
         try:
-            self.log_message.emit("[1/3] 데이터 슬라이싱 시작...")
+            self.log_message.emit("[1/3] Slicing data...")
             sliced_data = self._slice(raw_data, config['slice_time_start'], config['slice_time_end'])
-            self.log_message.emit("...완료.")
+            self.log_message.emit("...Done.")
 
-            self.log_message.emit("[2/3] 데이터 스무딩 시작...")
+            self.log_message.emit("[2/3] Smoothing data...")
             smoothed_data = self._smooth(sliced_data)
-            self.log_message.emit("...완료.")
+            self.log_message.emit("...Done.")
 
-            self.log_message.emit("[3/3] 운동학 계산 시작...")
+            self.log_message.emit("[3/3] Calculating kinematics...")
             final_result = self._calculate_kinematics(smoothed_data)
-            self.log_message.emit("...완료.")
+            self.log_message.emit("...Done.")
 
-            self.log_message.emit("모든 분석이 성공적으로 완료되었습니다.")
+            self.log_message.emit("All analysis steps completed successfully.")
             self.analysis_finished.emit(final_result)
 
         except Exception as e:
             import traceback
             traceback.print_exc()
-            self.log_message.emit(f"[에러] 분석 중 오류 발생: {e}")
+            self.log_message.emit(f"[ERROR] An error occurred during analysis: {e}")
             self.analysis_finished.emit(pd.DataFrame())
 
     def _slice(self, data: pd.DataFrame, start_time: float, end_time: float) -> pd.DataFrame:
-        """데이터를 주어진 시간 범위로 자릅니다."""
-        self.log_message.emit(f"    {start_time:.2f}초 부터 {end_time:.2f}초 까지 슬라이싱...")
+        """Slices the data to the given time range."""
+        self.log_message.emit(f"    Slicing from {start_time:.2f}s to {end_time:.2f}s...")
         return data.loc[start_time:end_time].copy()
 
     def _calculate_fs(self, time_series: pd.Series) -> float:
-        """시간 데이터로부터 샘플링 주파수를 계산합니다."""
+        """Calculates sampling frequency from a time series."""
         return 1.0 / time_series.diff().mean()
 
     def _smooth(self, data: pd.DataFrame) -> pd.DataFrame:
-        """데이터에 Butterworth 로우패스 필터를 적용합니다."""
-        self.log_message.emit("    Butterworth 필터 적용...")
+        """Applies a Butterworth low-pass filter to the data."""
+        self.log_message.emit("    Applying Butterworth filter...")
 
         smoothed_data = data.copy()
         fs = self._calculate_fs(smoothed_data.index.to_series())
@@ -68,7 +68,7 @@ class PipelineController(QObject):
         filter_order = 4
 
         if fs <= 0 or not (0 < cutoff_freq < 0.5 * fs):
-            self.log_message.emit(f"    [경고] 유효하지 않은 주파수 설정 (fs={fs:.2f}, cutoff={cutoff_freq:.2f}). 스무딩을 건너뜁니다.")
+            self.log_message.emit(f"    [WARNING] Invalid frequency settings (fs={fs:.2f}, cutoff={cutoff_freq:.2f}). Skipping smoothing.")
             return data
 
         b, a = butter(filter_order, cutoff_freq / (0.5 * fs), btype='low')
@@ -82,15 +82,15 @@ class PipelineController(QObject):
         return smoothed_data
 
     def _calculate_kinematics(self, data: pd.DataFrame) -> pd.DataFrame:
-        """자세, 속도 등 운동학적 계산을 수행합니다."""
-        self.log_message.emit(f"    박스 규격 {self.box_dims} 적용하여 계산...")
+        """Calculates kinematics like pose and velocity."""
+        self.log_message.emit(f"    Calculating with box dimensions {self.box_dims}...")
 
         result_df = data.copy()
         time_s = result_df.index.values.astype(float)
 
         main_body_name = [col.replace('_X', '') for col in data.columns if '_X' in col and ':' not in col]
         if not main_body_name:
-            self.log_message.emit("[에러] 주요 강체(Rigid Body) 데이터를 찾을 수 없습니다.")
+            self.log_message.emit("[ERROR] Could not find main Rigid Body data.")
             return pd.DataFrame()
         main_body_name = main_body_name[0]
 

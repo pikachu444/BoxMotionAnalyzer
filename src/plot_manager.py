@@ -21,25 +21,24 @@ class PlotManager(QObject):
 
     def draw_plot(self, data_df: pd.DataFrame, target_names: list, axis: str):
         """
-        주어진 데이터로 Matplotlib ax에 그래프를 그립니다.
+        Draws graphs on the Matplotlib axes for the given data.
         """
         self.ax.clear()
 
         if data_df is None or data_df.empty:
-            self.ax.set_title("데이터 없음", color="r")
+            self.ax.set_title("No Data", color="r")
             self.canvas.draw()
             return
 
-        # 미리 정의된 색상 리스트
         colors = plt.get_cmap('tab10').colors
 
         for i, target_name in enumerate(target_names):
-            clean_target_name = target_name.replace(' (강체 중심)', '')
-            axis_char = axis.split('-')[0]
+            clean_target_name = target_name.replace(' (Rigid Body)', '')
+            axis_char = axis.split('-')[1] # Position-X -> X
             col_to_plot = f"{clean_target_name}_{axis_char}"
 
             if col_to_plot not in data_df.columns:
-                print(f"[경고] '{col_to_plot}' 컬럼을 찾을 수 없어 건너뜁니다.")
+                print(f"[Warning] Column '{col_to_plot}' not found, skipping.")
                 continue
 
             x_data = data_df.index.values
@@ -48,8 +47,8 @@ class PlotManager(QObject):
             color = colors[i % len(colors)]
             self.ax.plot(x_data, y_data, color=color, label=target_name)
 
-        self.ax.set_title(f"{', '.join(target_names)} - {axis} 그래프")
-        self.ax.set_xlabel("시간 (초)")
+        self.ax.set_title(f"Plot of {axis} for: {', '.join(target_names)}")
+        self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel(axis)
         self.ax.grid(True)
         if len(target_names) > 1:
