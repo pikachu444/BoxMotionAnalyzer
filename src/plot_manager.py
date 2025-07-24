@@ -71,3 +71,10 @@ class PlotManager(QObject):
     def _on_hover(self, event):
         # TODO: Implement hover logic
         pass
+
+    def set_selector_visible(self, visible):
+        """SpanSelector의 가시성을 설정합니다."""
+        if self.span_selector:
+            self.span_selector.set_visible(visible)
+            self.span_selector.set_active(visible)
+            self.canvas.draw_idle()

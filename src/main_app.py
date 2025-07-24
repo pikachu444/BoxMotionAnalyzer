@@ -3,7 +3,7 @@ from PySide6.QtCore import QThread
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QTextEdit, QStatusBar, QGridLayout,
-    QFileDialog, QListWidget, QScrollArea
+    QFileDialog, QListWidget, QScrollArea, QCheckBox
 )
 import matplotlib
 matplotlib.use('QtAgg')
@@ -58,7 +58,7 @@ class MainApp(QMainWindow):
         self.load_csv_button = QPushButton("Load CSV File...")
         bottom_layout.addWidget(self.load_csv_button, 0, 0)
         self.file_path_label = QLabel("No file selected.")
-        bottom_layout.addWidget(self.file_path_label, 0, 1, 1, 5)
+        bottom_layout.addWidget(self.file_path_label, 0, 1, 1, 6)
         bottom_layout.addWidget(QLabel("<b>Box Dimensions (mm):</b>"), 1, 0)
         bottom_layout.addWidget(QLabel("Length (L):"), 1, 1)
         self.le_box_l = QLineEdit("1578.0")
@@ -78,13 +78,21 @@ class MainApp(QMainWindow):
         self.combo_plot_axis = QComboBox()
         self.combo_plot_axis.addItems(["Position-X", "Position-Y", "Position-Z"])
         bottom_layout.addWidget(self.combo_plot_axis, 2, 5)
-        bottom_layout.addWidget(QLabel("<b>Slice Range (s):</b>"), 3, 0)
-        bottom_layout.addWidget(QLabel("Start:"), 3, 1)
+
+        self.cb_enable_slicing = QCheckBox("Enable Slicing")
+        bottom_layout.addWidget(self.cb_enable_slicing, 3, 0)
+
+        self.slice_widgets_container = QWidget()
+        slice_layout = QHBoxLayout(self.slice_widgets_container)
+        slice_layout.setContentsMargins(0,0,0,0)
+        slice_layout.addWidget(QLabel("Start:"))
         self.le_slice_start = QLineEdit()
-        bottom_layout.addWidget(self.le_slice_start, 3, 2)
-        bottom_layout.addWidget(QLabel("End:"), 3, 3)
+        slice_layout.addWidget(self.le_slice_start)
+        slice_layout.addWidget(QLabel("End:"))
         self.le_slice_end = QLineEdit()
-        bottom_layout.addWidget(self.le_slice_end, 3, 4)
+        slice_layout.addWidget(self.le_slice_end)
+        bottom_layout.addWidget(self.slice_widgets_container, 3, 1, 1, 5)
+
         run_button_layout = QHBoxLayout()
         self.run_button = QPushButton("Run Analysis")
         self.export_button = QPushButton("Export Results to CSV")
@@ -93,6 +101,7 @@ class MainApp(QMainWindow):
         run_button_layout.addWidget(self.run_button)
         run_button_layout.addWidget(self.export_button)
         bottom_layout.addLayout(run_button_layout, 4, 0, 1, 7)
+
         scroll_area.setWidget(bottom_widget)
         main_layout.addWidget(scroll_area, 3)
         self.setStatusBar(QStatusBar())
@@ -106,6 +115,14 @@ class MainApp(QMainWindow):
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
         self.pipeline_controller.log_message.connect(self.log_output.append)
         self.pipeline_controller.analysis_finished.connect(self.on_analysis_finished)
+        self.cb_enable_slicing.stateChanged.connect(self.toggle_slicing_widgets)
+
+        self.toggle_slicing_widgets()
+
+    def toggle_slicing_widgets(self):
+        is_enabled = self.cb_enable_slicing.isChecked()
+        self.slice_widgets_container.setVisible(is_enabled)
+        self.plot_manager.set_selector_visible(is_enabled)
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
@@ -125,7 +142,6 @@ class MainApp(QMainWindow):
 
                 self.update_plot()
                 self.plot_manager.enable_interactions(self.raw_data)
-
             except Exception as e:
                 self.statusBar().showMessage("File load failed.")
                 self.log_output.append(f"[ERROR] Failed to load file: {e}")
@@ -150,9 +166,17 @@ class MainApp(QMainWindow):
             self.log_output.append("[ERROR] No data loaded. Please load a CSV file first.")
             return
         try:
+            # 슬라이싱 활성화 여부에 따라 config 생성
+            if self.cb_enable_slicing.isChecked():
+                slice_start = float(self.le_slice_start.text())
+                slice_end = float(self.le_slice_end.text())
+            else:
+                slice_start = self.raw_data.index.min()
+                slice_end = self.raw_data.index.max()
+
             config = {
-                'slice_time_start': float(self.le_slice_start.text()),
-                'slice_time_end': float(self.le_slice_end.text()),
+                'slice_time_start': slice_start,
+                'slice_time_end': slice_end,
                 'box_dimensions': (
                     float(self.le_box_l.text()),
                     float(self.le_box_w.text()),

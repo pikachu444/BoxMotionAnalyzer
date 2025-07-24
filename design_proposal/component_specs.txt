@@ -1,8 +1,8 @@
 =========================================
-|    컴포넌트 및 기능 명세서 (v2)       |
+|    컴포넌트 및 기능 명세서 (v3 최종)    |
 =========================================
 
-이 문서는 Matplotlib 기반으로 전환된 애플리케이션의 주요 컴포넌트와 그 책임을 설명합니다.
+이 문서는 최종적으로 구현된 애플리케이션의 주요 컴포넌트와 그 책임을 설명합니다.
 
 ---
 ### 1. `MainApp` (GUI 애플리케이션)
@@ -11,12 +11,12 @@
 *   **사용 프레임워크:** **PySide6**, **Matplotlib**
 *   **핵심 위젯:**
     *   `Matplotlib Canvas/Toolbar`: 그래프 표시 및 제어.
-    *   `QListWidget`: 다중 데이터 선택 기능 제공.
+    *   `QListWidget` (다중 선택): 여러 데이터 계열을 선택하는 기능 제공.
+    *   `QCheckBox` ("Enable Slicing"): 분석 구간 설정을 활성화/비활성화.
     *   `QScrollArea`: 설정 패널의 스크롤 기능 제공.
 *   **핵심 기능/메서드:**
-    *   `open_csv_file()`: `DataLoader`를 통해 CSV를 로드하고, `QListWidget`에 항목을 채웁니다.
-    *   `update_plot()`: `QListWidget`에서 선택된 모든 항목의 리스트를 `PlotManager`에 전달하여 다중 그래프를 그리도록 요청합니다.
-    *   `run_pipeline()`: `QThread`를 사용하여 `PipelineController`를 비동기적으로 실행합니다.
+    *   `toggle_slicing_widgets()`: "Enable Slicing" 체크박스 상태에 따라 슬라이싱 관련 위젯과 그래프의 `SpanSelector` 가시성을 제어합니다.
+    *   `run_pipeline()`: "Enable Slicing" 체크박스 상태를 확인하여, 전체 데이터 또는 선택된 구간의 데이터에 대해서만 분석을 실행하도록 `PipelineController`에 요청합니다.
 
 ---
 ### 2. `DataLoader` (데이터 로딩 및 파싱)
@@ -28,15 +28,14 @@
 ---
 ### 3. `PlotManager` (상호작용형 시각화)
 ---
-*   **책임:** `Matplotlib Canvas`를 관리합니다. 다중 그래프를 그리고, 범례를 표시하며, 마우스 상호작용(커서 값 표시, 영역 선택)을 처리합니다.
-*   **사용 라이브러리:** **Matplotlib**
+*   **책임:** `Matplotlib Canvas`를 관리합니다. 다중 그래프, 범례, `SpanSelector`를 이용한 영역 선택을 처리합니다.
 *   **핵심 기능/메서드:**
     *   `draw_plot(target_names: list, ...)`: 여러 개의 타겟 이름을 받아, 각각 다른 색상으로 그래프를 그리고 범례를 업데이트합니다.
-    *   `enable_interactions()`: `SpanSelector`를 사용하여 영역 선택 기능을 구현하고, 'motion_notify_event'를 통해 마우스 커서 위치의 데이터 값을 표시하는 기능을 활성화합니다.
+    *   `set_selector_visible(visible: bool)`: `SpanSelector`의 가시성을 제어합니다.
 
 ---
 ### 4. `PipelineController` (백엔드 분석 로직)
 ---
 *   **책임:** `QThread`에서 실행되며, 전체 데이터 분석 워크플로우(슬라이스, 스무딩, 운동학 계산)를 제어합니다.
 *   **핵심 기능/메서드:**
-    *   `run_analysis(...)`: 기존 스크립트의 핵심 알고리즘(Butterworth 필터, Spline 미분 등)을 사용하여 데이터 처리 파이프라인을 실행하고, 시그널을 통해 진행 상황과 결과를 GUI에 보고합니다.
+    *   `run_analysis(...)`: 기존 스크립트의 핵심 알고리즘을 사용하여 데이터 처리 파이프라인을 실행하고, 시그널을 통해 진행 상황과 결과를 GUI에 보고합니다.
