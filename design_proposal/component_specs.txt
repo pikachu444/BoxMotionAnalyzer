@@ -31,15 +31,13 @@
 ---
 ### 2. `DataLoader` (데이터 로딩 및 파싱)
 ---
-*   **책임:** 원본 CSV 파일을 읽고, 유효성을 검사하며, 표준화된 인메모리(in-memory) 형식으로 파싱하는 모든 측면을 처리합니다.
+*   **책임:** 복잡한 멀티-헤더 구조의 원본 CSV 파일을 읽고, 유효성을 검사하며, 분석에 용이한 표준 Pandas DataFrame으로 변환하는 모든 측면을 처리합니다.
 *   **핵심 기능/메서드:**
     *   `load_csv(filepath: str) -> pd.DataFrame`:
-        *   파일 경로를 입력받습니다.
-        *   Pandas를 사용하여 CSV를 DataFrame으로 읽습니다.
-        *   필수 컬럼('Time', 'Position X' 등)의 존재 여부를 확인합니다.
-        *   'Time' 컬럼을 DataFrame의 인덱스로 설정합니다.
-        *   완전히 로드되고 검증된 `RawData` DataFrame을 반환합니다.
-        *   파일이 없거나 형식이 잘못된 경우 예외를 발생시킵니다.
+        *   `AlignBoxInputGenbyExperiment.py`의 검증된 파싱 로직을 기반으로 파일을 읽습니다.
+        *   파일을 한 줄씩 읽어 헤더 정보(Type, Name, Component)를 추출합니다.
+        *   실제 데이터 라인을 순회하며, 'Rigid Body' 및 'Rigid Body Marker'의 'Position' 데이터만 필터링하여 추출합니다.
+        *   추출된 데이터를 `{Name}_X`, `{Name}_Y`, `{Name}_Z` 형태의 컬럼을 가진 DataFrame으로 재구성하여 반환합니다.
     *   `get_plottable_targets(raw_data: pd.DataFrame) -> list[str]`:
         *   `RawData` DataFrame의 'Name'과 'Type' 컬럼을 스캔합니다.
         *   주요 "Rigid Body"와 모든 고유 "Marker" 이름을 식별합니다.

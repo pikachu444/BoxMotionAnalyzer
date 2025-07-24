@@ -103,6 +103,7 @@ class MainApp(QMainWindow):
         self.load_csv_button.clicked.connect(self.open_csv_file)
         self.combo_plot_data.currentIndexChanged.connect(self.update_plot)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
+        self.plot_manager.region_changed_signal.connect(self.on_region_changed)
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(
@@ -122,12 +123,21 @@ class MainApp(QMainWindow):
                 plottable_targets = self.data_loader.get_plottable_targets(self.raw_data)
                 self.combo_plot_data.clear()
                 self.combo_plot_data.addItems(plottable_targets)
-                # 첫 로드 시, 자동으로 첫 번째 항목으로 그래프를 그림
+
+                # 인터랙션 활성화 및 첫 그래프 그리기
+                self.plot_manager.enable_interactions()
                 self.update_plot()
 
             except Exception as e:
                 self.statusBar().showMessage("파일 로드 실패")
                 self.log_output.append(f"[에러] 파일 로드 실패: {e}")
+
+    def on_region_changed(self, min_x, max_x):
+        """
+        그래프에서 선택된 영역이 변경되면 호출되는 슬롯.
+        """
+        self.le_slice_start.setText(f"{min_x:.2f}")
+        self.le_slice_end.setText(f"{max_x:.2f}")
 
     def update_plot(self):
         """
