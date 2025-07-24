@@ -1,75 +1,89 @@
-import pyqtgraph as pg
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.widgets import SpanSelector
 import pandas as pd
 from PySide6.QtCore import Signal, QObject
 
 class PlotManager(QObject):
     """
-    GUI의 PyQtGraph 위젯을 관리하고, 데이터 시각화 및 인터랙션을 처리합니다.
-    QObject를 상속하여 시그널을 사용할 수 있도록 합니다.
+    GUI의 Matplotlib Canvas 위젯을 관리하고, 데이터 시각화를 처리합니다.
     """
     region_changed_signal = Signal(float, float)
 
-    def __init__(self, plot_widget: pg.PlotWidget):
+    def __init__(self, canvas: FigureCanvas, fig: Figure):
         super().__init__()
-        self.plot_widget = plot_widget
-        self.plot_widget.setBackground('w')
-        self.plot_widget.showGrid(x=True, y=True)
-        self.plot_widget.setLabel('left', 'Y-위치')
-        self.plot_widget.setLabel('bottom', '시간(초)')
-        self.region = None
+        self.canvas = canvas
+        self.fig = fig
+        self.ax = self.fig.add_subplot(111)
+        self.span_selector = None
+        self.annot = None
 
-    def draw_plot(self, data_df: pd.DataFrame, target_name: str, axis: str):
+    def draw_plot(self, data_df: pd.DataFrame, target_names: list, axis: str):
         """
-        주어진 데이터로 플롯 위젯에 그래프를 그립니다.
+        주어진 데이터로 Matplotlib ax에 그래프를 그립니다.
         """
-        self.plot_widget.clear()
+        self.ax.clear()
 
         if data_df is None or data_df.empty:
-            self.plot_widget.getPlotItem().setTitle("데이터 없음", color="r", size="12pt")
+            self.ax.set_title("데이터 없음", color="r")
+            self.canvas.draw()
             return
 
-        clean_target_name = target_name.replace(' (강체 중심)', '')
-        axis_char = axis.split('-')[0]
-        col_to_plot = f"{clean_target_name}_{axis_char}"
+        # 미리 정의된 색상 리스트
+        colors = plt.get_cmap('tab10').colors
 
-        if col_to_plot not in data_df.columns:
-            self.plot_widget.getPlotItem().setTitle(f"'{col_to_plot}' 컬럼을 찾을 수 없음", color="r", size="12pt")
-            return
+        for i, target_name in enumerate(target_names):
+            clean_target_name = target_name.replace(' (강체 중심)', '')
+            axis_char = axis.split('-')[0]
+            col_to_plot = f"{clean_target_name}_{axis_char}"
 
-        try:
+            if col_to_plot not in data_df.columns:
+                print(f"[경고] '{col_to_plot}' 컬럼을 찾을 수 없어 건너뜁니다.")
+                continue
+
             x_data = data_df.index.values
             y_data = data_df[col_to_plot].values
 
-            pen = pg.mkPen(color=(0, 0, 255), width=2)
-            self.plot_widget.plot(x_data, y_data, pen=pen)
-            self.plot_widget.getPlotItem().setTitle(f"{target_name} - {axis}", color="k", size="12pt")
-            self.plot_widget.setLabel('left', f"{axis}")
-            self.plot_widget.autoRange()
-        except Exception as e:
-            self.plot_widget.getPlotItem().setTitle(f"플롯 생성 중 오류: {e}", color="r", size="12pt")
+            color = colors[i % len(colors)]
+            self.ax.plot(x_data, y_data, color=color, label=target_name)
+
+        self.ax.set_title(f"{', '.join(target_names)} - {axis} 그래프")
+        self.ax.set_xlabel("시간 (초)")
+        self.ax.set_ylabel(axis)
+        self.ax.grid(True)
+        if len(target_names) > 1:
+            self.ax.legend()
+
+        self.canvas.draw()
 
     def enable_interactions(self, data_df: pd.DataFrame):
         """
-        그래프에 LinearRegionItem을 추가하고, 데이터프레임의 시간 축을 기반으로 초기 영역을 설정합니다.
+        그래프에 SpanSelector와 마우스 호버 이벤트를 추가합니다.
         """
-        if data_df is None or data_df.empty:
-            return
+        # 영역 선택 기능 (SpanSelector)
+        self.span_selector = SpanSelector(
+            self.ax,
+            self._on_select,
+            'horizontal',
+            useblit=True,
+            props=dict(alpha=0.3, facecolor='green'),
+            interactive=True,
+            drag_from_anywhere=True
+        )
+        # 마우스 호버 기능
+        self.annot = self.ax.annotate("", xy=(0,0), xytext=(20,20),
+                    textcoords="offset points",
+                    bbox=dict(boxstyle="round", fc="w"),
+                    arrowprops=dict(arrowstyle="->"))
+        self.annot.set_visible(False)
+        self.canvas.mpl_connect("motion_notify_event", self._on_hover)
 
-        if self.region is None:
-            min_time = data_df.index.min()
-            max_time = data_df.index.max()
-            initial_region = (min_time + (max_time - min_time) * 0.1, min_time + (max_time - min_time) * 0.2)
+    def _on_select(self, xmin: float, xmax: float):
+        """SpanSelector의 영역이 변경될 때 호출됩니다."""
+        self.region_changed_signal.emit(xmin, xmax)
 
-            self.region = pg.LinearRegionItem(values=initial_region, movable=True, brush=(0, 255, 0, 30))
-            self.region.setZValue(10)
-            self.plot_widget.addItem(self.region, ignoreBounds=True)
-            self.region.sigRegionChanged.connect(self._on_region_changed)
-            # 초기값은 MainApp에서 직접 설정하므로, 여기서는 자동 호출하지 않음
-
-    def _on_region_changed(self):
-        """
-        LinearRegionItem의 영역이 변경될 때 호출되어 시그널을 발생시킵니다.
-        """
-        if self.region:
-            min_x, max_x = self.region.getRegion()
-            self.region_changed_signal.emit(min_x, max_x)
+    def _on_hover(self, event):
+        """마우스가 그래프 위를 움직일 때 호출됩니다."""
+        # TODO: 커서 위치의 값을 찾아 툴팁(annotation)으로 보여주는 로직 구현
+        pass

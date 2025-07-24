@@ -3,9 +3,13 @@ from PySide6.QtCore import QThread
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QTextEdit, QStatusBar, QGridLayout,
-    QFileDialog
+    QFileDialog, QListWidget, QScrollArea
 )
-import pyqtgraph as pg
+import matplotlib
+matplotlib.use('QtAgg')
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
 from data_loader import DataLoader
 from plot_manager import PlotManager
 from pipeline_controller import PipelineController
@@ -41,10 +45,19 @@ class MainApp(QMainWindow):
         # --- 상단 영역: 시각화 및 로그 ---
         top_layout = QHBoxLayout()
 
-        self.plot_widget = pg.PlotWidget()
-        top_layout.addWidget(self.plot_widget, 7)
+        self.fig = Figure(figsize=(5, 4), dpi=100)
+        self.canvas = FigureCanvas(self.fig)
+        self.toolbar = NavigationToolbar(self.canvas, self)
 
-        self.plot_manager = PlotManager(self.plot_widget)
+        plot_container = QWidget()
+        plot_layout = QVBoxLayout(plot_container)
+        plot_layout.setContentsMargins(0,0,0,0)
+        plot_layout.addWidget(self.toolbar)
+        plot_layout.addWidget(self.canvas)
+
+        top_layout.addWidget(plot_container, 7)
+
+        self.plot_manager = PlotManager(self.canvas, self.fig)
 
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
@@ -54,6 +67,9 @@ class MainApp(QMainWindow):
         main_layout.addLayout(top_layout, 7)
 
         # --- 하단 영역: 설정 및 실행 ---
+        # --- 하단 영역: 설정 및 실행 (스크롤 가능) ---
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
         bottom_widget = QWidget()
         bottom_layout = QGridLayout(bottom_widget)
 
@@ -75,12 +91,14 @@ class MainApp(QMainWindow):
 
         bottom_layout.addWidget(QLabel("<b>플롯 옵션:</b>"), 2, 0)
         bottom_layout.addWidget(QLabel("데이터:"), 2, 1)
-        self.combo_plot_data = QComboBox()
-        bottom_layout.addWidget(self.combo_plot_data, 2, 2)
-        bottom_layout.addWidget(QLabel("축:"), 2, 3)
+        self.list_plot_data = QListWidget()
+        self.list_plot_data.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        bottom_layout.addWidget(self.list_plot_data, 2, 2, 1, 2)
+
+        bottom_layout.addWidget(QLabel("축:"), 2, 4)
         self.combo_plot_axis = QComboBox()
         self.combo_plot_axis.addItems(["X-위치", "Y-위치", "Z-위치"])
-        bottom_layout.addWidget(self.combo_plot_axis, 2, 4)
+        bottom_layout.addWidget(self.combo_plot_axis, 2, 5)
 
         bottom_layout.addWidget(QLabel("<b>분석 구간 (초):</b>"), 3, 0)
         bottom_layout.addWidget(QLabel("시작:"), 3, 1)
@@ -99,7 +117,8 @@ class MainApp(QMainWindow):
         run_button_layout.addWidget(self.export_button)
         bottom_layout.addLayout(run_button_layout, 4, 0, 1, 7)
 
-        main_layout.addWidget(bottom_widget, 3)
+        scroll_area.setWidget(bottom_widget)
+        main_layout.addWidget(scroll_area, 3)
 
         self.setStatusBar(QStatusBar())
         self.statusBar().showMessage("준비")
@@ -108,7 +127,7 @@ class MainApp(QMainWindow):
         self.load_csv_button.clicked.connect(self.open_csv_file)
         self.run_button.clicked.connect(self.run_pipeline)
         self.export_button.clicked.connect(self.export_results)
-        self.combo_plot_data.currentIndexChanged.connect(self.update_plot)
+        self.list_plot_data.itemSelectionChanged.connect(self.update_plot)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
         self.pipeline_controller.log_message.connect(self.log_output.append)
@@ -124,24 +143,12 @@ class MainApp(QMainWindow):
                 self.log_output.append(f"[정보] {filepath} 파일을 성공적으로 불러왔습니다.")
 
                 plottable_targets = self.data_loader.get_plottable_targets(self.raw_data)
-                self.combo_plot_data.clear()
-                self.combo_plot_data.addItems(plottable_targets)
-
-                # [버그 수정] 첫 번째 항목을 프로그래매틱하게 선택하여
-                # currentIndexChanged 시그널을 발생시켜 update_plot()을 호출합니다.
-                if self.combo_plot_data.count() > 0:
-                    self.combo_plot_data.setCurrentIndex(0)
+                self.list_plot_data.clear()
+                self.list_plot_data.addItems(plottable_targets)
+                if self.list_plot_data.count() > 0:
+                    self.list_plot_data.item(0).setSelected(True)
 
                 self.plot_manager.enable_interactions(self.raw_data)
-
-                # 분석 구간에 초기값을 직접 설정합니다.
-                if not self.raw_data.empty:
-                    min_time, max_time = self.raw_data.index.min(), self.raw_data.index.max()
-                    # LinearRegionItem의 초기값과 동일하게 설정
-                    initial_start = min_time + (max_time - min_time) * 0.1
-                    initial_end = min_time + (max_time - min_time) * 0.2
-                    self.le_slice_start.setText(f"{initial_start:.2f}")
-                    self.le_slice_end.setText(f"{initial_end:.2f}")
 
             except Exception as e:
                 self.statusBar().showMessage("파일 로드 실패")
@@ -152,18 +159,19 @@ class MainApp(QMainWindow):
         self.le_slice_end.setText(f"{max_x:.2f}")
 
     def update_plot(self):
-        if self.raw_data is None or self.raw_data.empty:
-            return
+        if self.raw_data is None or self.raw_data.empty: return
 
-        target_name = self.combo_plot_data.currentText()
-        if not target_name: # 가드 코드 추가
-            return
+        selected_items = self.list_plot_data.selectedItems()
+        target_names = [item.text() for item in selected_items]
 
         axis_text = self.combo_plot_axis.currentText()
-        if not axis_text:
+
+        if not target_names or not axis_text:
+            self.plot_manager.ax.clear()
+            self.plot_manager.canvas.draw()
             return
 
-        self.plot_manager.draw_plot(self.raw_data, target_name, axis_text)
+        self.plot_manager.draw_plot(self.raw_data, target_names, axis_text)
 
     def run_pipeline(self):
         if self.raw_data is None or self.raw_data.empty:
