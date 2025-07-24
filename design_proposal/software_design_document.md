@@ -58,12 +58,12 @@
     - **핵심 기능:** `load_csv(filepath)`는 `RawData` DataFrame을 반환.
 
 - **`PlotManager` (시각화):**
-    - **책임:** 그래프를 그리고 플롯 상호작용(호버, 드래그-슬라이스)을 처리. **PySide6**와 호환되는 라이브러리(예: **PyQtGraph**, Matplotlib) 사용.
-    * **핵심 기능:** `draw_plot()`은 데이터를 렌더링하고, 사용자가 선택한 시간 범위를 반환.
+    - **책임:** 그래프를 그리고, 사용자가 마우스로 분석 구간을 선택할 수 있는 상호작용(`LinearRegionItem`)을 제공. **PySide6**와 호환되는 라이브러리(예: **PyQtGraph**) 사용.
+    * **핵심 기능:** `draw_plot()`은 데이터를 렌더링하고, `enable_interactions()`는 구간 선택 기능을 활성화하며, `region_changed_signal`을 통해 선택된 범위를 `MainApp`에 알림.
 
 - **`PipelineController` (백엔드 로직):**
-    - **책임:** 분석 단계(슬라이스, 스무딩, 계산)를 순차적으로 실행. GUI로부터 완전히 분리됨.
-    - **핵심 기능:** `run_analysis(config, data, callback)`는 설정과 데이터를 받아 분석을 수행하고, `callback`을 통해 로그 메시지를 보고.
+    - **책임:** 분석 단계(슬라이스, 스무딩, 계산)를 순차적으로 실행. `QThread`에서 동작하여 GUI의 반응성을 보장.
+    - **핵심 기능:** `run_analysis`는 전체 파이프라인을 조율. 기존 스크립트(`SmoothMarkerData.py`, `CalculateRigidBodyVelocitySmoother.py` 등)의 핵심 알고리즘(Butterworth 필터, Spline 미분 등)을 이식하여 사용. `log_message` 시그널을 통해 처리 과정을 GUI에 실시간으로 보고.
 
 *(상세 기능 및 책임은 `component_specs.txt` 파일 참조)*
 

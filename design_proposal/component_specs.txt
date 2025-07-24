@@ -54,25 +54,26 @@
         *   `raw_data`를 필터링하여 지정된 `target_name`과 `axis`에 대한 시계열 데이터를 얻습니다.
         *   위젯에 새로운 라인 플롯을 렌더링합니다.
     *   `enable_interactions()`:
-        *   플롯의 마우스 움직임 이벤트를 (시간, 값) 툴팁을 표시하는 함수에 바인딩합니다.
-        *   마우스 드래그/선택 이벤트를 선택 구간의 시작/종료 시간을 캡처하고 GUI의 "분석 구간" 필드를 업데이트하는 함수에 바인딩합니다(콜백 사용).
-    *   `get_selected_range() -> tuple[float, float]`:
-        *   플롯 상호작용으로부터 현재 선택된 시간 범위를 반환합니다.
+        *   PyQtGraph의 `LinearRegionItem`을 생성하여 그래프에 추가합니다.
+        *   이 아이템의 `sigRegionChanged` 시그널을 `_on_region_changed` 내부 메서드에 연결합니다.
+    *   `region_changed_signal: Signal(float, float)`:
+        *   선택된 영역의 시작과 끝 시간을 외부로 보내는 커스텀 시그널입니다.
+    *   `_on_region_changed()`:
+        *   `LinearRegionItem`의 위치가 변경될 때마다 `region_changed_signal`을 발생(emit)시키는 내부 슬롯입니다.
 
 ---
 ### 4. `PipelineController` (백엔드 분석 로직)
 ---
-*   **책임:** 전체 데이터 분석 워크플로우를 제어된 순서로 실행합니다. GUI로부터 완전히 분리되어(decoupled) 있습니다.
+*   **책임:** 전체 데이터 분석 워크플로우를 제어된 순서로 실행합니다. GUI로부터 완전히 분리되어(decoupled) 있으며, `QThread`에서 실행되는 것을 상정합니다.
 *   **핵심 기능/메서드:**
-    *   `run_analysis(config: AnalysisConfig, raw_data: pd.DataFrame, log_callback: callable)`:
+    *   `log_message: Signal(str)`: 처리 단계별 로그 메시지를 GUI로 전달하는 시그널.
+    *   `analysis_finished: Signal(pd.DataFrame)`: 분석 완료 시 최종 결과 DataFrame을 전달하는 시그널.
+    *   `run_analysis(config: dict, raw_data: pd.DataFrame)`:
         *   파이프라인 실행을 시작하는 메인 진입점입니다.
-        *   각 단계 후에 `log_callback`을 호출하며 아래의 private 메서드들을 순서대로 실행합니다.
-    *   `_slice(data: pd.DataFrame, start_time: float, end_time: float) -> pd.DataFrame`:
-        *   `data` DataFrame에 시간 기반 슬라이싱을 수행하고 결과를 반환합니다.
-    *   `_smooth(data: pd.DataFrame) -> pd.DataFrame`:
-        *   데이터에 스무딩 알고리즘(예: Savitzky-Golay 필터)을 적용하고 결과를 반환합니다.
-    *   `_calculate_kinematics(data: pd.DataFrame, box_dims: tuple) -> pd.DataFrame`:
-        *   스무딩된 데이터와 박스 규격을 사용하여 핵심 물리 계산(자세, 속도 등)을 수행합니다. 최종 운동학 DataFrame을 반환합니다.
+        *   `_slice`, `_smooth`, `_calculate_kinematics` 메서드를 순차적으로 호출하며, 각 단계마다 `log_message` 시그널을 발생시킵니다.
+    *   `_slice(...)`: Pandas 시간 기반 인덱싱으로 데이터를 자릅니다.
+    *   `_smooth(...)`: `scipy.signal.butter`와 `filtfilt`를 사용하여 Butterworth 필터를 적용합니다. (`SmoothMarkerData.py` 로직 참고)
+    *   `_calculate_kinematics(...)`: `scipy.interpolate.UnivariateSpline`을 사용하여 병진 속도를 계산하고, 코너 속도를 계산합니다. (`CalculateRigidBodyVelocitySmoother.py` 로직 참고)
     *   `get_latest_result() -> pd.DataFrame`:
         *   가장 최근에 계산된 운동학 DataFrame을 반환합니다.
     *   `export_to_csv(data: pd.DataFrame, output_path: str)`:

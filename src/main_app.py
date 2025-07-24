@@ -1,4 +1,5 @@
 import sys
+from PySide6.QtCore import QThread
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QTextEdit, QStatusBar, QGridLayout,
@@ -7,6 +8,18 @@ from PySide6.QtWidgets import (
 import pyqtgraph as pg
 from data_loader import DataLoader
 from plot_manager import PlotManager
+from pipeline_controller import PipelineController
+
+class PipelineWorker(QThread):
+    """별도의 스레드에서 파이프라인을 실행하기 위한 Worker"""
+    def __init__(self, controller, config, raw_data):
+        super().__init__()
+        self.controller = controller
+        self.config = config
+        self.raw_data = raw_data
+
+    def run(self):
+        self.controller.run_analysis(self.config, self.raw_data)
 
 class MainApp(QMainWindow):
     def __init__(self):
@@ -16,7 +29,9 @@ class MainApp(QMainWindow):
 
         # --- 데이터 및 로직 핸들러 ---
         self.data_loader = DataLoader()
+        self.pipeline_controller = PipelineController()
         self.raw_data = None
+        self.final_result = None
 
         # --- 메인 위젯 및 레이아웃 ---
         central_widget = QWidget()
@@ -101,9 +116,12 @@ class MainApp(QMainWindow):
 
         # --- 시그널 연결 ---
         self.load_csv_button.clicked.connect(self.open_csv_file)
+        self.run_button.clicked.connect(self.run_pipeline)
         self.combo_plot_data.currentIndexChanged.connect(self.update_plot)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
+        self.pipeline_controller.log_message.connect(self.log_output.append)
+        self.pipeline_controller.analysis_finished.connect(self.on_analysis_finished)
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(
@@ -153,6 +171,50 @@ class MainApp(QMainWindow):
             return
 
         self.plot_manager.draw_plot(self.raw_data, target_name, axis_text)
+
+    def run_pipeline(self):
+        """
+        "분석 실행" 버튼에 연결된 슬롯. 파이프라인 워커 스레드를 시작합니다.
+        """
+        if self.raw_data is None or self.raw_data.empty:
+            self.log_output.append("[에러] 데이터가 로드되지 않았습니다. 먼저 CSV 파일을 불러오세요.")
+            return
+
+        # GUI에서 현재 설정값들을 읽어 config 딕셔너리 생성
+        try:
+            config = {
+                'slice_time_start': float(self.le_slice_start.text()),
+                'slice_time_end': float(self.le_slice_end.text()),
+                'box_dimensions': (
+                    float(self.le_box_l.text()),
+                    float(self.le_box_w.text()),
+                    float(self.le_box_h.text())
+                )
+            }
+        except ValueError:
+            self.log_output.append("[에러] 분석 구간 또는 박스 규격에 유효하지 않은 숫자 값이 있습니다.")
+            return
+
+        self.run_button.setEnabled(False)
+        self.export_button.setEnabled(False)
+        self.statusBar().showMessage("분석 실행 중...")
+
+        # 워커 스레드를 생성하고 시작
+        self.worker = PipelineWorker(self.pipeline_controller, config, self.raw_data)
+        self.worker.start()
+
+    def on_analysis_finished(self, result_df):
+        """
+        파이프라인 실행이 완료되면 호출되는 슬롯.
+        """
+        self.final_result = result_df
+        if not result_df.empty:
+            self.statusBar().showMessage("분석 완료.")
+            self.export_button.setEnabled(True)
+        else:
+            self.statusBar().showMessage("분석 실패.")
+
+        self.run_button.setEnabled(True)
 
 
 if __name__ == '__main__':
