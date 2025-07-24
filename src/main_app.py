@@ -127,6 +127,7 @@ class MainApp(QMainWindow):
                 self.combo_plot_data.clear()
                 self.combo_plot_data.addItems(plottable_targets)
 
+                # [버그 수정] 로드 직후 첫 그래프를 그리기 위해 update_plot()을 명시적으로 호출합니다.
                 self.update_plot()
                 self.plot_manager.enable_interactions(self.raw_data)
 
