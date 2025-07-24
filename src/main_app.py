@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtCore import QThread, QTimer
+from PySide6.QtCore import QThread
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QTextEdit, QStatusBar, QGridLayout,
@@ -123,15 +123,12 @@ class MainApp(QMainWindow):
                 if self.list_plot_data.count() > 0:
                     self.list_plot_data.item(0).setSelected(True)
 
-                QTimer.singleShot(0, self._initial_plot_and_setup)
+                self.update_plot()
+                self.plot_manager.enable_interactions(self.raw_data)
 
             except Exception as e:
                 self.statusBar().showMessage("File load failed.")
                 self.log_output.append(f"[ERROR] Failed to load file: {e}")
-
-    def _initial_plot_and_setup(self):
-        self.update_plot()
-        self.plot_manager.enable_interactions(self.raw_data)
 
     def on_region_changed(self, min_x, max_x):
         self.le_slice_start.setText(f"{min_x:.2f}")
