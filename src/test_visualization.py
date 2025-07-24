@@ -55,8 +55,8 @@ def run_test():
         for item in items:
             print(f"- {item}")
 
-        # 5. 시각화 테스트
-        print("\n--- 시각화 테스트 시작 ---")
+        # 5. 시각화 및 인터랙션 테스트
+        print("\n--- 시각화 및 인터랙션 테스트 시작 ---")
         window.update_plot()
 
         plot_items = window.plot_widget.getPlotItem().listDataItems()
@@ -65,9 +65,23 @@ def run_test():
         else:
             print(f"[실패] 그래프에 데이터가 그려지지 않았습니다.")
 
+        # 인터랙션 기능 활성화 및 시그널-슬롯 연결 테스트
+        # enable_interactions()가 호출되면 LinearRegionItem이 추가되고,
+        # 초기값으로 region_changed_signal이 한번 발생해야 합니다.
+        window.plot_manager.enable_interactions()
+
+        # QLineEdit 위젯에 값이 설정되었는지 확인
+        start_val = window.le_slice_start.text()
+        end_val = window.le_slice_end.text()
+
+        if start_val and end_val:
+            print(f"[성공] 분석 구간이 초기값으로 설정되었습니다: Start={start_val}, End={end_val}")
+        else:
+            print(f"[실패] 분석 구간이 초기화되지 않았습니다.")
+
         # 최종 성공 여부 확인
-        if len(items) > 1 and plot_items:
-             print("\n[최종 성공] 데이터 로딩 및 기본 시각화 기능이 정상적으로 동작했습니다.")
+        if len(items) > 1 and plot_items and start_val and end_val:
+             print("\n[최종 성공] 데이터 로딩, 시각화 및 기본 인터랙션 기능이 정상적으로 동작했습니다.")
         else:
              print("\n[최종 실패] 기능이 올바르게 동작하지 않았습니다.")
 
