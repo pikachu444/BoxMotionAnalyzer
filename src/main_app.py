@@ -116,13 +116,15 @@ class MainApp(QMainWindow):
         self.pipeline_controller.log_message.connect(self.log_output.append)
         self.pipeline_controller.analysis_finished.connect(self.on_analysis_finished)
         self.cb_enable_slicing.stateChanged.connect(self.toggle_slicing_widgets)
+        self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
+        self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
 
         self.toggle_slicing_widgets()
 
     def toggle_slicing_widgets(self):
         is_enabled = self.cb_enable_slicing.isChecked()
         self.slice_widgets_container.setVisible(is_enabled)
-        self.plot_manager.set_selector_visible(is_enabled)
+        self.plot_manager.set_selector_active(is_enabled)
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
@@ -160,6 +162,25 @@ class MainApp(QMainWindow):
             self.plot_manager.canvas.draw()
             return
         self.plot_manager.draw_plot(self.raw_data, target_names, axis_text)
+
+    def update_span_selector_from_inputs(self):
+        """
+        입력란의 값으로 그래프의 SpanSelector 위치를 업데이트합니다.
+        """
+        if not self.cb_enable_slicing.isChecked(): return
+
+        try:
+            start_val = float(self.le_slice_start.text())
+            end_val = float(self.le_slice_end.text())
+
+            view_range = self.plot_manager.ax.get_xlim()
+            start_val = max(view_range[0], start_val)
+            end_val = min(view_range[1], end_val)
+
+            if start_val < end_val:
+                self.plot_manager.set_region(start_val, end_val)
+        except (ValueError, TypeError):
+            pass
 
     def run_pipeline(self):
         if self.raw_data is None or self.raw_data.empty:

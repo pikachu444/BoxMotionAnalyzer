@@ -55,8 +55,7 @@ class PlotManager(QObject):
             props=dict(alpha=0.3, facecolor='green'), interactive=True,
             drag_from_anywhere=True
         )
-        # SpanSelector는 초기값을 직접 설정하는 API가 없으므로, 콜백을 통해 전달합니다.
-        self._on_select(initial_region[0], initial_region[1])
+        self.span_selector.extents = initial_region
 
         self.annot = self.ax.annotate("", xy=(0,0), xytext=(20,20),
                     textcoords="offset points",
@@ -72,9 +71,14 @@ class PlotManager(QObject):
         # TODO: Implement hover logic
         pass
 
-    def set_selector_visible(self, visible):
-        """SpanSelector의 가시성을 설정합니다."""
+    def set_selector_active(self, active):
+        """SpanSelector의 활성화 및 가시성을 설정합니다."""
         if self.span_selector:
-            self.span_selector.set_visible(visible)
-            self.span_selector.set_active(visible)
+            self.span_selector.set_active(active)
+            self.span_selector.visible = active
             self.canvas.draw_idle()
+
+    def set_region(self, start, end):
+        """외부에서 SpanSelector의 영역을 설정합니다."""
+        if self.span_selector:
+            self.span_selector.extents = (start, end)
