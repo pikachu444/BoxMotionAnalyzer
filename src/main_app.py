@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QThread, QTimer
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QTextEdit, QStatusBar, QGridLayout,
@@ -34,7 +34,6 @@ class MainApp(QMainWindow):
         self.raw_data = None
         self.final_result = None
         self.current_selected_targets = []
-
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
@@ -125,6 +124,8 @@ class MainApp(QMainWindow):
         self.pipeline_controller.log_message.connect(self.log_output.append)
         self.pipeline_controller.analysis_finished.connect(self.on_analysis_finished)
         self.slice_group.toggled.connect(self.toggle_slicing_widgets)
+        self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
+        self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
 
         self.toggle_slicing_widgets(False)
 
@@ -171,16 +172,26 @@ class MainApp(QMainWindow):
 
     def update_plot(self):
         if self.raw_data is None or self.raw_data.empty: return
-
         target_names = self.current_selected_targets
         axis_text = self.combo_plot_axis.currentText()
-
         if not target_names or not axis_text:
             self.plot_manager.ax.clear()
             self.plot_manager.canvas.draw()
             return
-
         self.plot_manager.draw_plot(self.raw_data, target_names, axis_text)
+
+    def update_span_selector_from_inputs(self):
+        if not self.slice_group.isChecked(): return
+        try:
+            start_val = float(self.le_slice_start.text())
+            end_val = float(self.le_slice_end.text())
+            view_range = self.plot_manager.ax.get_xlim()
+            start_val = max(view_range[0], start_val)
+            end_val = min(view_range[1], end_val)
+            if start_val < end_val:
+                self.plot_manager.set_region(start_val, end_val)
+        except (ValueError, TypeError):
+            pass
 
     def run_pipeline(self):
         if self.raw_data is None or self.raw_data.empty:
