@@ -123,7 +123,7 @@ class MainApp(QMainWindow):
 
     def toggle_slicing_widgets(self):
         is_enabled = self.cb_enable_slicing.isChecked()
-        self.slice_widgets_container.setVisible(is_enabled)
+        self.slice_widgets_container.setEnabled(is_enabled)
         self.plot_manager.set_selector_active(is_enabled)
 
     def open_csv_file(self):
