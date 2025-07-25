@@ -3,7 +3,7 @@ from PySide6.QtCore import QThread
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QTextEdit, QStatusBar, QGridLayout,
-    QFileDialog, QListWidget, QScrollArea, QCheckBox
+    QFileDialog, QListWidget, QScrollArea, QCheckBox, QGroupBox
 )
 import matplotlib
 matplotlib.use('QtAgg')
@@ -55,43 +55,48 @@ class MainApp(QMainWindow):
         scroll_area.setWidgetResizable(True)
         bottom_widget = QWidget()
         bottom_layout = QGridLayout(bottom_widget)
+
         self.load_csv_button = QPushButton("Load CSV File...")
-        bottom_layout.addWidget(self.load_csv_button, 0, 0)
+        bottom_layout.addWidget(self.load_csv_button, 0, 0, 1, 7)
         self.file_path_label = QLabel("No file selected.")
-        bottom_layout.addWidget(self.file_path_label, 0, 1, 1, 6)
-        bottom_layout.addWidget(QLabel("<b>Box Dimensions (mm):</b>"), 1, 0)
-        bottom_layout.addWidget(QLabel("Length (L):"), 1, 1)
-        self.le_box_l = QLineEdit("1578.0")
-        bottom_layout.addWidget(self.le_box_l, 1, 2)
-        bottom_layout.addWidget(QLabel("Width (W):"), 1, 3)
-        self.le_box_w = QLineEdit("930.0")
-        bottom_layout.addWidget(self.le_box_w, 1, 4)
-        bottom_layout.addWidget(QLabel("Height (H):"), 1, 5)
-        self.le_box_h = QLineEdit("142.0")
-        bottom_layout.addWidget(self.le_box_h, 1, 6)
-        bottom_layout.addWidget(QLabel("<b>Plot Options:</b>"), 2, 0)
-        bottom_layout.addWidget(QLabel("Data:"), 2, 1)
+        bottom_layout.addWidget(self.file_path_label, 1, 0, 1, 7)
+
+        plot_options_group = QGroupBox("Plot Options")
+        plot_options_layout = QGridLayout(plot_options_group)
+        plot_options_layout.addWidget(QLabel("Data:"), 0, 0)
         self.list_plot_data = QListWidget()
         self.list_plot_data.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
-        bottom_layout.addWidget(self.list_plot_data, 2, 2, 1, 2)
-        bottom_layout.addWidget(QLabel("Axis:"), 2, 4)
+        plot_options_layout.addWidget(self.list_plot_data, 1, 0, 1, 2)
+        plot_options_layout.addWidget(QLabel("Axis:"), 0, 2)
         self.combo_plot_axis = QComboBox()
         self.combo_plot_axis.addItems(["Position-X", "Position-Y", "Position-Z"])
-        bottom_layout.addWidget(self.combo_plot_axis, 2, 5)
+        plot_options_layout.addWidget(self.combo_plot_axis, 1, 2)
+        bottom_layout.addWidget(plot_options_group, 2, 0, 1, 3)
 
-        self.cb_enable_slicing = QCheckBox("Enable Slicing")
-        bottom_layout.addWidget(self.cb_enable_slicing, 3, 0)
-
-        self.slice_widgets_container = QWidget()
-        slice_layout = QHBoxLayout(self.slice_widgets_container)
-        slice_layout.setContentsMargins(0,0,0,0)
-        slice_layout.addWidget(QLabel("Start:"))
+        self.slice_group = QGroupBox("Slice Range")
+        self.slice_group.setCheckable(True)
+        self.slice_group.setChecked(False)
+        slice_group_layout = QGridLayout(self.slice_group)
+        slice_group_layout.addWidget(QLabel("Start:"), 0, 0)
         self.le_slice_start = QLineEdit()
-        slice_layout.addWidget(self.le_slice_start)
-        slice_layout.addWidget(QLabel("End:"))
+        slice_group_layout.addWidget(self.le_slice_start, 0, 1)
+        slice_group_layout.addWidget(QLabel("End:"), 1, 0)
         self.le_slice_end = QLineEdit()
-        slice_layout.addWidget(self.le_slice_end)
-        bottom_layout.addWidget(self.slice_widgets_container, 3, 1, 1, 5)
+        slice_group_layout.addWidget(self.le_slice_end, 1, 1)
+        bottom_layout.addWidget(self.slice_group, 2, 3, 1, 2)
+
+        box_dims_group = QGroupBox("Box Dimensions (mm)")
+        box_dims_layout = QGridLayout(box_dims_group)
+        box_dims_layout.addWidget(QLabel("L:"), 0, 0)
+        self.le_box_l = QLineEdit("1578.0")
+        box_dims_layout.addWidget(self.le_box_l, 0, 1)
+        box_dims_layout.addWidget(QLabel("W:"), 1, 0)
+        self.le_box_w = QLineEdit("930.0")
+        box_dims_layout.addWidget(self.le_box_w, 1, 1)
+        box_dims_layout.addWidget(QLabel("H:"), 2, 0)
+        self.le_box_h = QLineEdit("142.0")
+        box_dims_layout.addWidget(self.le_box_h, 2, 1)
+        bottom_layout.addWidget(box_dims_group, 2, 5, 1, 2)
 
         run_button_layout = QHBoxLayout()
         self.run_button = QPushButton("Run Analysis")
@@ -100,7 +105,7 @@ class MainApp(QMainWindow):
         run_button_layout.addStretch()
         run_button_layout.addWidget(self.run_button)
         run_button_layout.addWidget(self.export_button)
-        bottom_layout.addLayout(run_button_layout, 4, 0, 1, 7)
+        bottom_layout.addLayout(run_button_layout, 3, 0, 1, 7)
 
         scroll_area.setWidget(bottom_widget)
         main_layout.addWidget(scroll_area, 3)
@@ -115,16 +120,12 @@ class MainApp(QMainWindow):
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
         self.pipeline_controller.log_message.connect(self.log_output.append)
         self.pipeline_controller.analysis_finished.connect(self.on_analysis_finished)
-        self.cb_enable_slicing.stateChanged.connect(self.toggle_slicing_widgets)
-        self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
-        self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
+        self.slice_group.toggled.connect(self.toggle_slicing_widgets)
 
-        self.toggle_slicing_widgets()
+        self.toggle_slicing_widgets(False)
 
-    def toggle_slicing_widgets(self):
-        is_enabled = self.cb_enable_slicing.isChecked()
-        self.slice_widgets_container.setEnabled(is_enabled)
-        self.plot_manager.set_selector_active(is_enabled)
+    def toggle_slicing_widgets(self, is_checked):
+        self.plot_manager.set_selector_active(is_checked)
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
@@ -163,32 +164,12 @@ class MainApp(QMainWindow):
             return
         self.plot_manager.draw_plot(self.raw_data, target_names, axis_text)
 
-    def update_span_selector_from_inputs(self):
-        """
-        입력란의 값으로 그래프의 SpanSelector 위치를 업데이트합니다.
-        """
-        if not self.cb_enable_slicing.isChecked(): return
-
-        try:
-            start_val = float(self.le_slice_start.text())
-            end_val = float(self.le_slice_end.text())
-
-            view_range = self.plot_manager.ax.get_xlim()
-            start_val = max(view_range[0], start_val)
-            end_val = min(view_range[1], end_val)
-
-            if start_val < end_val:
-                self.plot_manager.set_region(start_val, end_val)
-        except (ValueError, TypeError):
-            pass
-
     def run_pipeline(self):
         if self.raw_data is None or self.raw_data.empty:
             self.log_output.append("[ERROR] No data loaded. Please load a CSV file first.")
             return
         try:
-            # 슬라이싱 활성화 여부에 따라 config 생성
-            if self.cb_enable_slicing.isChecked():
+            if self.slice_group.isChecked():
                 slice_start = float(self.le_slice_start.text())
                 slice_end = float(self.le_slice_end.text())
             else:
