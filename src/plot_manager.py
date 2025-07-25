@@ -68,8 +68,45 @@ class PlotManager(QObject):
         self.region_changed_signal.emit(xmin, xmax)
 
     def _on_hover(self, event):
-        # TODO: Implement hover logic
-        pass
+        """마우스가 그래프 위를 움직일 때 호출되어, 가장 가까운 데이터 포인트에 툴팁을 표시합니다."""
+        # 마우스가 Axes 안에 있고, 그려진 선이 있을 때만 실행
+        visible = self.annot.get_visible()
+        if event.inaxes == self.ax:
+            lines = self.ax.get_lines()
+            if not lines:
+                return
+
+            # 모든 선을 순회하며 가장 가까운 점을 찾음
+            min_dist = float('inf')
+            closest_point = None
+
+            for line in lines:
+                cont, ind = line.contains(event)
+                if cont:
+                    # 마우스와 데이터 포인트 사이의 거리를 계산
+                    x_data, y_data = line.get_data()
+                    for i in ind['ind']:
+                        dist = (x_data[i] - event.xdata)**2 + (y_data[i] - event.ydata)**2
+                        if dist < min_dist:
+                            min_dist = dist
+                            closest_point = (line, x_data[i], y_data[i])
+
+            if closest_point:
+                line, x, y = closest_point
+                # 툴팁(Annotation) 업데이트
+                self.annot.xy = (x, y)
+                self.annot.set_text(f"{line.get_label()}\nTime: {x:.2f}\nValue: {y:.2f}")
+                self.annot.get_bbox_patch().set_facecolor(line.get_color())
+                self.annot.get_bbox_patch().set_alpha(0.4)
+                self.annot.set_visible(True)
+                self.canvas.draw_idle()
+            elif visible:
+                # 가장 가까운 점이 없으면 툴팁 숨김
+                self.annot.set_visible(False)
+                self.canvas.draw_idle()
+        elif visible:
+            self.annot.set_visible(False)
+            self.canvas.draw_idle()
 
     def set_selector_active(self, active):
         """SpanSelector의 활성화 및 가시성을 설정합니다."""
