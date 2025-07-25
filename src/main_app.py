@@ -16,24 +16,27 @@ from pipeline_controller import PipelineController
 from data_selection_dialog import DataSelectionDialog
 
 class PipelineWorker(QThread):
-    def __init__(self, controller, config, raw_data):
+    def __init__(self, controller, config, header_info, raw_data):
         super().__init__()
         self.controller = controller
         self.config = config
+        self.header_info = header_info
         self.raw_data = raw_data
     def run(self):
-        self.controller.run_analysis(self.config, self.raw_data)
+        self.controller.run_analysis(self.config, self.header_info, self.raw_data)
 
 class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Box Motion Analyzer v1.0 (Matplotlib)")
+        self.setWindowTitle("Box Motion Analyzer v1.0 (Modular Pipeline)")
         self.setGeometry(100, 100, 1200, 800)
         self.data_loader = DataLoader()
         self.pipeline_controller = PipelineController()
         self.raw_data = None
+        self.header_info = None
         self.final_result = None
         self.current_selected_targets = []
+
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
@@ -50,9 +53,10 @@ class MainApp(QMainWindow):
         self.plot_manager = PlotManager(self.canvas, self.fig)
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
-        self.log_output.setPlaceholderText("[INFO] Waiting for analysis...")
+        self.log_output.setPlaceholderText("[INFO] Load a CSV file to start.")
         top_layout.addWidget(self.log_output, 3)
         main_layout.addLayout(top_layout, 7)
+
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         bottom_widget = QWidget()
@@ -72,7 +76,7 @@ class MainApp(QMainWindow):
         plot_options_layout.addWidget(self.selected_data_label, 0, 1)
         plot_options_layout.addWidget(QLabel("Axis:"), 1, 0)
         self.combo_plot_axis = QComboBox()
-        self.combo_plot_axis.addItems(["Position-X", "Position-Y", "Position-Z"])
+        self.combo_plot_axis.addItems(["Position-X", "Position-Y", "Position-Z", "Velocity-X", "Velocity-Y", "Velocity-Z"])
         plot_options_layout.addWidget(self.combo_plot_axis, 1, 1)
         bottom_layout.addWidget(plot_options_group, 2, 0, 1, 3)
 
@@ -91,13 +95,13 @@ class MainApp(QMainWindow):
         box_dims_group = QGroupBox("Box Dimensions (mm)")
         box_dims_layout = QGridLayout(box_dims_group)
         box_dims_layout.addWidget(QLabel("L:"), 0, 0)
-        self.le_box_l = QLineEdit("1578.0")
+        self.le_box_l = QLineEdit("1820.0")
         box_dims_layout.addWidget(self.le_box_l, 0, 1)
         box_dims_layout.addWidget(QLabel("W:"), 1, 0)
-        self.le_box_w = QLineEdit("930.0")
+        self.le_box_w = QLineEdit("1110.0")
         box_dims_layout.addWidget(self.le_box_w, 1, 1)
         box_dims_layout.addWidget(QLabel("H:"), 2, 0)
-        self.le_box_h = QLineEdit("142.0")
+        self.le_box_h = QLineEdit("164.0")
         box_dims_layout.addWidget(self.le_box_h, 2, 1)
         bottom_layout.addWidget(box_dims_group, 2, 5, 1, 2)
 
@@ -128,6 +132,8 @@ class MainApp(QMainWindow):
         self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
 
         self.toggle_slicing_widgets(False)
+        self.plot_manager.ax.text(0.5, 0.5, "Load a CSV file to start.", ha='center', va='center')
+        self.plot_manager.canvas.draw()
 
     def toggle_slicing_widgets(self, is_checked):
         self.plot_manager.set_selector_active(is_checked)
@@ -138,28 +144,27 @@ class MainApp(QMainWindow):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
         if filepath:
             try:
-                self.raw_data = self.data_loader.load_csv(filepath)
+                self.header_info, self.raw_data = self.data_loader.load_csv(filepath)
                 self.file_path_label.setText(filepath)
-                self.statusBar().showMessage("File loaded successfully.")
+                self.statusBar().showMessage("File loaded. Ready for analysis.")
                 self.log_output.append(f"[INFO] Successfully loaded {filepath}")
-
-                all_targets = self.data_loader.get_plottable_targets(self.raw_data)
-                if all_targets:
-                    self.current_selected_targets = [all_targets[0]]
-                    self.selected_data_label.setText(f"Selected: {all_targets[0]}")
-
-                self.update_plot()
-                self.plot_manager.enable_interactions(self.raw_data)
+                self.plot_manager.ax.clear()
+                self.plot_manager.ax.text(0.5, 0.5, "CSV loaded. Run analysis to see data.", ha='center', va='center')
+                self.plot_manager.canvas.draw()
+                self.final_result = None # 이전 결과 초기화
+                self.export_button.setEnabled(False)
             except Exception as e:
-                self.statusBar().showMessage("File load failed.")
+                self.statusBar().showMessage(f"File load failed: {e}")
                 self.log_output.append(f"[ERROR] Failed to load file: {e}")
+                self.raw_data = None
+                self.header_info = None
 
     def open_data_selection_dialog(self):
-        if self.raw_data is None:
-            self.log_output.append("[INFO] Please load a CSV file first.")
+        if self.final_result is None:
+            self.log_output.append("[INFO] Please run analysis first to select data.")
             return
 
-        all_targets = self.data_loader.get_plottable_targets(self.raw_data)
+        all_targets = self.data_loader.get_plottable_targets(self.final_result)
         dialog = DataSelectionDialog(all_targets, self.current_selected_targets, self)
         if dialog.exec():
             self.current_selected_targets = dialog.get_selected_items()
@@ -171,23 +176,24 @@ class MainApp(QMainWindow):
         self.le_slice_end.setText(f"{max_x:.2f}")
 
     def update_plot(self):
-        if self.raw_data is None or self.raw_data.empty: return
+        if self.final_result is None or self.final_result.empty: return
         target_names = self.current_selected_targets
         axis_text = self.combo_plot_axis.currentText()
         if not target_names or not axis_text:
             self.plot_manager.ax.clear()
             self.plot_manager.canvas.draw()
             return
-        self.plot_manager.draw_plot(self.raw_data, target_names, axis_text)
+        self.plot_manager.draw_plot(self.final_result, target_names, axis_text)
 
     def update_span_selector_from_inputs(self):
         if not self.slice_group.isChecked(): return
         try:
             start_val = float(self.le_slice_start.text())
             end_val = float(self.le_slice_end.text())
-            view_range = self.plot_manager.ax.get_xlim()
-            start_val = max(view_range[0], start_val)
-            end_val = min(view_range[1], end_val)
+            if self.final_result is not None:
+                view_range = self.plot_manager.ax.get_xlim()
+                start_val = max(view_range[0], start_val)
+                end_val = min(view_range[1], end_val)
             if start_val < end_val:
                 self.plot_manager.set_region(start_val, end_val)
         except (ValueError, TypeError):
@@ -198,31 +204,26 @@ class MainApp(QMainWindow):
             self.log_output.append("[ERROR] No data loaded. Please load a CSV file first.")
             return
         try:
-            if self.slice_group.isChecked():
-                slice_start = float(self.le_slice_start.text())
-                slice_end = float(self.le_slice_end.text())
-            else:
-                slice_start = self.raw_data.index.min()
-                slice_end = self.raw_data.index.max()
-
             config = {
-                'slice_time_start': slice_start,
-                'slice_time_end': slice_end,
+                'slice_filter_by': 'time',
+                'slice_start_val': float(self.le_slice_start.text()) if self.slice_group.isChecked() else self.raw_data['Time'].min(),
+                'slice_end_val': float(self.le_slice_end.text()) if self.slice_group.isChecked() else self.raw_data['Time'].max(),
                 'box_dimensions': (
                     float(self.le_box_l.text()),
                     float(self.le_box_w.text()),
                     float(self.le_box_h.text())
                 )
             }
-        except ValueError:
-            self.log_output.append("[ERROR] Invalid number in 'Slice Range' or 'Box Dimensions'.")
+        except (ValueError, KeyError) as e:
+            self.log_output.append(f"[ERROR] Invalid input value: {e}")
             return
 
         self.run_button.setEnabled(False)
         self.export_button.setEnabled(False)
+        self.log_output.clear()
         self.statusBar().showMessage("Running analysis...")
 
-        self.worker = PipelineWorker(self.pipeline_controller, config, self.raw_data)
+        self.worker = PipelineWorker(self.pipeline_controller, config, self.header_info, self.raw_data)
         self.worker.start()
 
     def on_analysis_finished(self, result_df):
@@ -230,6 +231,13 @@ class MainApp(QMainWindow):
         if not result_df.empty:
             self.statusBar().showMessage("Analysis complete.")
             self.export_button.setEnabled(True)
+            # 분석 완료 후, 플로팅 가능한 타겟 목록을 업데이트하고 첫 번째 항목으로 자동 플롯
+            all_targets = self.data_loader.get_plottable_targets(self.final_result)
+            if all_targets:
+                self.current_selected_targets = [all_targets[0]]
+                self.selected_data_label.setText(f"Selected: {all_targets[0]}")
+                self.update_plot()
+                self.plot_manager.enable_interactions(self.final_result)
         else:
             self.statusBar().showMessage("Analysis failed.")
         self.run_button.setEnabled(True)

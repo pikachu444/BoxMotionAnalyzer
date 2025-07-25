@@ -18,14 +18,14 @@ class PipelineController(QObject):
     def __init__(self):
         super().__init__()
         # 분석 모듈들을 초기화. 의존성은 config 파일에서 주입.
-        self.parser = Parser(face_prefix_map=config.FACE_PREFIX_TO_INFO)
-        self.smoother = MarkerSmoother() # 기본값 사용
+        self.parser = Parser()
+        self.smoother = MarkerSmoother()
         self.pose_optimizer = PoseOptimizer(
             box_dims=config.BOX_DIMS,
             face_definitions=getattr(config, 'FACE_DEFINITIONS', {}),
             local_box_corners=config.LOCAL_BOX_CORNERS
         )
-        self.velocity_calculator = VelocityCalculator() # 기본값 사용
+        self.velocity_calculator = VelocityCalculator()
         self.frame_analyzer = FrameAnalyzer(
             vertical_axis_idx=config.WORLD_VERTICAL_AXIS_INDEX,
             floor_level=config.FLOOR_LEVEL
