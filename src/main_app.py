@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from data_loader import DataLoader
 from plot_manager import PlotManager
 from pipeline_controller import PipelineController
+from data_selection_dialog import DataSelectionDialog
 
 class PipelineWorker(QThread):
     def __init__(self, controller, config, raw_data):
@@ -32,6 +33,8 @@ class MainApp(QMainWindow):
         self.pipeline_controller = PipelineController()
         self.raw_data = None
         self.final_result = None
+        self.current_selected_targets = []
+
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
@@ -63,14 +66,15 @@ class MainApp(QMainWindow):
 
         plot_options_group = QGroupBox("Plot Options")
         plot_options_layout = QGridLayout(plot_options_group)
-        plot_options_layout.addWidget(QLabel("Data:"), 0, 0)
-        self.list_plot_data = QListWidget()
-        self.list_plot_data.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
-        plot_options_layout.addWidget(self.list_plot_data, 1, 0, 1, 2)
-        plot_options_layout.addWidget(QLabel("Axis:"), 0, 2)
+        self.select_data_button = QPushButton("Select Data...")
+        plot_options_layout.addWidget(self.select_data_button, 0, 0)
+        self.selected_data_label = QLabel("Selected: None")
+        self.selected_data_label.setWordWrap(True)
+        plot_options_layout.addWidget(self.selected_data_label, 0, 1)
+        plot_options_layout.addWidget(QLabel("Axis:"), 1, 0)
         self.combo_plot_axis = QComboBox()
         self.combo_plot_axis.addItems(["Position-X", "Position-Y", "Position-Z"])
-        plot_options_layout.addWidget(self.combo_plot_axis, 1, 2)
+        plot_options_layout.addWidget(self.combo_plot_axis, 1, 1)
         bottom_layout.addWidget(plot_options_group, 2, 0, 1, 3)
 
         self.slice_group = QGroupBox("Slice Range")
@@ -113,9 +117,9 @@ class MainApp(QMainWindow):
         self.statusBar().showMessage("Ready")
 
         self.load_csv_button.clicked.connect(self.open_csv_file)
+        self.select_data_button.clicked.connect(self.open_data_selection_dialog)
         self.run_button.clicked.connect(self.run_pipeline)
         self.export_button.clicked.connect(self.export_results)
-        self.list_plot_data.itemSelectionChanged.connect(self.update_plot)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
         self.pipeline_controller.log_message.connect(self.log_output.append)
@@ -126,6 +130,8 @@ class MainApp(QMainWindow):
 
     def toggle_slicing_widgets(self, is_checked):
         self.plot_manager.set_selector_active(is_checked)
+        self.le_slice_start.setEnabled(is_checked)
+        self.le_slice_end.setEnabled(is_checked)
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
@@ -136,12 +142,10 @@ class MainApp(QMainWindow):
                 self.statusBar().showMessage("File loaded successfully.")
                 self.log_output.append(f"[INFO] Successfully loaded {filepath}")
 
-                plottable_targets = self.data_loader.get_plottable_targets(self.raw_data)
-                self.list_plot_data.clear()
-                self.list_plot_data.addItems(plottable_targets)
-
-                if self.list_plot_data.count() > 0:
-                    self.list_plot_data.item(0).setSelected(True)
+                all_targets = self.data_loader.get_plottable_targets(self.raw_data)
+                if all_targets:
+                    self.current_selected_targets = [all_targets[0]]
+                    self.selected_data_label.setText(f"Selected: {all_targets[0]}")
 
                 self.update_plot()
                 self.plot_manager.enable_interactions(self.raw_data)
@@ -149,19 +153,33 @@ class MainApp(QMainWindow):
                 self.statusBar().showMessage("File load failed.")
                 self.log_output.append(f"[ERROR] Failed to load file: {e}")
 
+    def open_data_selection_dialog(self):
+        if self.raw_data is None:
+            self.log_output.append("[INFO] Please load a CSV file first.")
+            return
+
+        all_targets = self.data_loader.get_plottable_targets(self.raw_data)
+        dialog = DataSelectionDialog(all_targets, self.current_selected_targets, self)
+        if dialog.exec():
+            self.current_selected_targets = dialog.get_selected_items()
+            self.selected_data_label.setText(f"Selected: {', '.join(self.current_selected_targets)}")
+            self.update_plot()
+
     def on_region_changed(self, min_x, max_x):
         self.le_slice_start.setText(f"{min_x:.2f}")
         self.le_slice_end.setText(f"{max_x:.2f}")
 
     def update_plot(self):
         if self.raw_data is None or self.raw_data.empty: return
-        selected_items = self.list_plot_data.selectedItems()
-        target_names = [item.text() for item in selected_items]
+
+        target_names = self.current_selected_targets
         axis_text = self.combo_plot_axis.currentText()
+
         if not target_names or not axis_text:
             self.plot_manager.ax.clear()
             self.plot_manager.canvas.draw()
             return
+
         self.plot_manager.draw_plot(self.raw_data, target_names, axis_text)
 
     def run_pipeline(self):
