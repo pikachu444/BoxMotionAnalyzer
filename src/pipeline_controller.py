@@ -9,15 +9,13 @@ from analysis.velocity_calculator import VelocityCalculator
 from analysis.frame_analyzer import FrameAnalyzer
 
 class PipelineController(QObject):
-    """
-    Controls the data analysis workflow by orchestrating analysis modules.
-    """
     log_message = Signal(str)
     analysis_finished = Signal(pd.DataFrame)
 
     def __init__(self):
         super().__init__()
-        # 분석 모듈들을 초기화. 의존성은 config 파일에서 주입.
+        # 파서 모듈은 MainApp에서도 사용되므로, 여기서는 초기화하지 않음.
+        # 또는, 독립적인 인스턴스를 가질 수도 있음. 여기서는 후자를 가정.
         self.parser = Parser(face_prefix_map=config.FACE_PREFIX_TO_INFO)
         self.smoother = MarkerSmoother()
         self.pose_optimizer = PoseOptimizer(
@@ -31,25 +29,34 @@ class PipelineController(QObject):
             floor_level=config.FLOOR_LEVEL
         )
 
-    def run_analysis(self, gui_config: dict, header_info: dict, raw_data: pd.DataFrame):
+    def run_analysis(self, gui_config: dict, header_info: dict, raw_data: pd.DataFrame, parsed_data: pd.DataFrame = None):
         """
-        Runs the full analysis pipeline sequentially.
+        전체 분석 파이프라인을 순차적으로 실행합니다.
+        파싱된 데이터가 있으면 재사용합니다.
         """
         try:
-            # 1. Slicer 초기화 및 실행
-            self.log_message.emit("[1/6] Slicing data...")
+            data = None
+            # 1. 파싱 단계
+            if parsed_data is not None:
+                self.log_message.emit("[1/6] Using cached parsed data...")
+                data = parsed_data
+            else:
+                self.log_message.emit("[1/6] Parsing data...")
+                data = self.parser.process(header_info, raw_data)
+            self.log_message.emit(f"    Parser output shape: {data.shape}")
+
+            # 2. 슬라이싱 단계
+            # 주의: 파서의 결과물(wide-format)을 슬라이싱해야 함
+            self.log_message.emit("[2/6] Slicing data...")
             slicer = Slicer(
                 filter_by=gui_config.get('slice_filter_by', 'time'),
                 start_val=gui_config.get('slice_start_val'),
                 end_val=gui_config.get('slice_end_val')
             )
-            data = slicer.process(raw_data)
+            # Slicer는 raw_df가 아닌, 파싱된 df를 슬라이싱해야 함.
+            # Slicer의 로직이 Time 인덱스를 사용하므로 파싱된 데이터에 적용 가능.
+            data = slicer.process(data)
             self.log_message.emit(f"    Slicer done. Shape: {data.shape}")
-
-            # 2. Parser 실행
-            self.log_message.emit("[2/6] Parsing data...")
-            data = self.parser.process(header_info, data)
-            self.log_message.emit(f"    Parser done. Shape: {data.shape}")
 
             # 3. MarkerSmoother 실행
             self.log_message.emit("[3/6] Smoothing markers...")
