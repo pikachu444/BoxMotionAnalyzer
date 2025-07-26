@@ -1,87 +1,82 @@
 import pandas as pd
 import csv
-import time
+from typing import Dict, List, Tuple
 
 class DataLoader:
-    def load_csv(self, filepath: str) -> pd.DataFrame:
+    def load_csv(self, filepath: str) -> Tuple[Dict[str, List[str]], pd.DataFrame]:
         """
-        CSV 파일을 스트리밍 방식으로 읽고, 필요한 데이터만 선별하여
-        메모리 효율적으로 파싱합니다.
+        CSV 파일을 읽어, 헤더 정보와 원본 데이터 DataFrame을 반환합니다.
+        이 메서드는 최소한의 파싱만 수행하며, 복잡한 데이터 변환은 Parser 모듈의 책임입니다.
+
+        Args:
+            filepath (str): 읽어올 CSV 파일의 경로.
+
+        Returns:
+            Tuple[Dict[str, List[str]], pd.DataFrame]:
+                - 헤더 정보를 담은 딕셔너리.
+                - 원본 데이터(8번째 줄부터)를 담은 DataFrame.
         """
-        start_time = time.time()
         try:
             with open(filepath, mode='r', encoding='utf-8-sig') as infile:
-                reader = csv.reader(infile)
-                lines = list(reader)
+                lines = infile.readlines()
         except FileNotFoundError:
             raise FileNotFoundError(f"파일을 찾을 수 없습니다: {filepath}")
 
-        if len(lines) < 9:
-            raise ValueError("CSV 파일에 헤더 정보가 부족합니다.")
+        if len(lines) < 8:
+            raise ValueError("CSV 파일에 헤더 정보(최소 7줄)와 데이터(최소 1줄)가 부족합니다.")
 
-        type_header = [h.strip() for h in lines[2]]
-        name_header = [h.strip() for h in lines[3]]
-        category_header = [h.strip() for h in lines[6]]
+        # 1. 헤더 정보 파싱 (상위 7줄)
+        header_info = {}
+        # Type, Name, ID, Parent, Category. Component는 컬럼명으로 사용되므로 별도 처리.
+        header_keys = ['type', 'name', 'id', 'parent', 'category']
+        # 라인 인덱스는 2부터 6까지 (0-based)
+        for i, key in enumerate(header_keys):
+            header_line_index = i + 2
+            header_info[key] = [h.strip() for h in lines[header_line_index].strip().rstrip(',').split(',')]
 
-        # 필요한 열의 인덱스와 새 컬럼 이름을 미리 결정합니다.
-        columns_to_keep = {} # {original_index: new_name}
-        i = 0
-        while i < len(type_header):
-            obj_type = type_header[i]
-            is_target_type = 'Rigid Body' in obj_type or 'Rigid Body Marker' in obj_type
-            is_position_data = category_header[i] == 'Position' if i < len(category_header) else False
+        # Component 정보 (라인 인덱스 7)
+        component_header = [h.strip() for h in lines[7].strip().rstrip(',').split(',')]
 
-            if is_target_type and is_position_data:
-                obj_name = name_header[i] if i < len(name_header) else ''
-                if obj_name:
-                    # X, Y, Z 축에 해당하는 인덱스와 새 이름을 저장
-                    for axis_idx, axis in enumerate(['X', 'Y', 'Z']):
-                        if (i + axis_idx) < len(lines[7]): # 헤더 길이 체크
-                             columns_to_keep[i + axis_idx] = f"{obj_name}_{axis}"
-                i += 3 # X,Y,Z를 한 그룹으로 보고 3칸 점프
-            else:
-                i += 1
+        # 2. 원본 데이터 DataFrame 생성
+        data_lines_raw = lines[8:]
 
-        processed_data = []
-        # 실제 데이터 라인(인덱스 8부터)을 순회합니다.
-        for row_data in lines[8:]:
-            if not any(row_data) or len(row_data) <= 1: continue
+        reader = csv.reader(data_lines_raw)
+        data_as_list = list(reader)
 
-            try:
-                frame_time = float(row_data[1])
-                frame_dict = {'Time': frame_time}
+        if not data_as_list:
+            return header_info, pd.DataFrame()
 
-                # 미리 선별한 열의 데이터만 추출합니다.
-                for original_idx, new_name in columns_to_keep.items():
-                    if original_idx < len(row_data):
-                        try:
-                            frame_dict[new_name] = float(row_data[original_idx])
-                        except (ValueError):
-                            frame_dict[new_name] = None # 숫자로 변환 실패 시 None 처리
+        # 데이터프레임 생성
+        num_columns = max(len(row) for row in data_as_list) if data_as_list else 0
 
-                processed_data.append(frame_dict)
-            except (ValueError, IndexError):
-                continue
+        # 컬럼명을 component_header에서 가져오되, 길이가 부족하면 col_X 형식으로 채움
+        df_cols = component_header[:num_columns]
+        df_cols += [f'col_{i}' for i in range(len(df_cols), num_columns)]
 
-        if not processed_data:
-            return pd.DataFrame()
+        raw_df = pd.DataFrame(data_as_list, columns=df_cols)
 
-        df = pd.DataFrame(processed_data)
-        df.set_index('Time', inplace=True)
+        # 첫 두 컬럼에 대한 기본 이름 부여 (Frame, Time)
+        # 원본 데이터에 Frame, Time 컬럼이 없을 수 있으므로, 예외 처리 추가
+        if len(raw_df.columns) > 1:
+            rename_map = {raw_df.columns[0]: 'Frame', raw_df.columns[1]: 'Time'}
+            raw_df.rename(columns=rename_map, inplace=True)
 
-        end_time = time.time()
-        print(f"[DataLoader INFO] CSV parsing time: {end_time - start_time:.4f}s")
+        print(f"[DataLoader INFO] CSV loaded. Headers parsed, and {len(raw_df)} data rows prepared for Parser.")
 
-        return df
+        return header_info, raw_df
 
-    def get_plottable_targets(self, raw_data: pd.DataFrame) -> list[str]:
-        if raw_data is None or raw_data.empty:
+    def get_plottable_targets(self, processed_df: pd.DataFrame) -> list[str]:
+        """
+        파싱이 완료된 "wide-format" DataFrame에서 플로팅할 대상 목록을 추출합니다.
+        """
+        if processed_df is None or processed_df.empty:
             return []
 
         targets = set()
-        for col in raw_data.columns:
-            base_name = col.rsplit('_', 1)[0]
-            targets.add(base_name)
+        for col in processed_df.columns:
+            if col.endswith(('_X', '_Y', '_Z')):
+                base_name = col.rsplit('_', 1)[0]
+                targets.add(base_name)
 
         final_targets = []
         for name in sorted(list(targets)):
