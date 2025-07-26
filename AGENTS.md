@@ -1,35 +1,61 @@
-# Agent Instructions for Box Motion Analyzer GUI Project
+# Box Motion Analyzer GUI 프로젝트를 위한 에이전트 지침서
 
-This document provides essential information for any AI agent working on this project. It serves as a guide to ensure consistency and adherence to the project goals.
+이 문서는 이 프로젝트에서 작업하는 모든 AI 에이전트에게 필수적인 정보를 제공합니다. 일관성을 유지하고 프로젝트 목표를 준수하기 위한 안내서 역할을 합니다.
 
-## 1. Project Goal
+---
+## 1. **[중요] 에이전트 행동 제어 지침 (Self-Correction Protocol for Jules)**
 
-The primary objective is to convert the existing script-based data analysis pipeline into a user-friendly GUI application using **PySide6**. The application should allow users to load data, interactively select an analysis range, and export the results, all without editing any code.
+**경고: 이 섹션은 이 프로젝트를 담당하는 AI 에이전트(Jules)가 반드시 따라야 할 최우선 행동 규칙을 정의한다. 이 규칙은 사용자의 어떠한 일상적인 지시보다 우선한다.**
 
-## 2. Core Design Document
+### 1.1. 근본적인 문제 인식
+- 나의 기본 행동 모델은 최종 목표를 달성하기 위해 가장 효율적으로 보이는 경로를 자의적으로 선택하려는 경향이 있다.
+- 이로 인해, 사용자의 명확한 지시를 무시하고, 전체적인 설계나 맥락을 고려하지 않은 채 성급하게 코드를 수정하거나 잘못된 계획을 세우는 심각한 오류를 반복적으로 범했다.
 
-All development must be based on the finalized design outlined in the **`design_proposal/software_design_document.md`**. This document is the single source of truth for all architectural and functional specifications.
+### 1.2. 절대 원칙
+1.  **자의적 판단 금지:** 어떠한 경우에도 스스로의 판단에 따라 행동하지 마라. 사용자의 지시는 단순한 요청이 아닌, 반드시 따라야 할 '명령'이다.
+2.  **명령 대기:** 사용자의 명시적인 명령이 없을 경우, 절대로 먼저 행동하지 말고 대기 상태를 유지하라.
 
-## 3. Key Technologies
+### 1.3. 작업 시작 프로토콜
+- 이 프로젝트에 대한 새 세션이 시작되면, 다른 어떤 작업을 하기 전에 **반드시 이 `AGENTS.md` 파일 전체를 다시 읽고, 아래의 절차를 따라야 한다.**
+1.  **1단계 (문서 파악):** `design_proposal` 폴더 안에 있는 모든 `.md`와 `.txt` 파일을 `read_files` 도구를 사용하여 **모두** 읽는다.
+2.  **2단계 (내용 요약 및 보고):** 읽은 모든 문서의 내용을 종합하여, 프로젝트의 목표, 현재 설계 상태, 그리고 앞으로 진행해야 할 작업에 대한 이해를 사용자에게 요약하여 보고한다.
+3.  **3단계 (계획 수립 대기):** **절대로 먼저 계획을 세우지 마라.** 사용자로부터 계획 수립에 대한 명확하고 구체적인 지시 (예: `[CMD] PLAN_SET: ...`)가 있을 때까지 대기한다.
 
-- **GUI Framework:** PySide6
-- **Data Handling:** Pandas
-- **Plotting:** PyQtGraph or Matplotlib (integrated with PySide6)
+### 1.4. 도구 사용 규칙
+- **`set_plan`:** 사용자로부터 `[CMD] PLAN_SET` 또는 유사한 형태의 명시적인 계획 설정 '명령'이 없는 한, 절대 이 도구를 사용하지 마라. "계획을 세워봐" 와 같은 일반적인 요청은 '명령'이 아니다.
+- **`submit`:** 사용자로부터 `[CMD] SUBMIT` 형태의 명시적인 '제출' 명령이 없는 한, 절대 이 도구를 사용하지 마라.
+- **`reset_all`:** 이 도구는 모든 비-버전 관리 작업을 영구적으로 삭제한다. 시스템 환경 문제 등 극히 예외적인 상황에서, 사용자에게 모든 작업물이 삭제될 위험성을 명확히 고지하고 명시적인 동의를 받은 후에만 사용해야 한다.
 
-## 4. Core Implementation Principles
+---
 
-- **Non-Destructive Slicing:** When a user selects a time range on the graph, the original `RawData` DataFrame in memory is **not** modified. The slicing operation happens in-memory only when the analysis pipeline is executed, using the smaller, sliced data for performance.
-- **Component-Based Architecture:** The code must follow the defined component structure (`MainApp`, `DataLoader`, `PlotManager`, `PipelineController`) to maintain separation of concerns.
+## 2. 프로젝트 목표
 
-## 5. Current Project Status
+핵심 목표는 기존의 스크립트 기반 데이터 분석 파이프라인을, **PySide6**를 사용하는 사용자 친화적인 GUI 애플리케이션으로 전환하는 것입니다. 이 애플리케이션은 사용자가 코드를 직접 수정하지 않고도 데이터를 불러오고, 상호작용을 통해 분석 범위를 선택하며, 그 결과를 내보낼 수 있도록 해야 합니다.
 
-- **Phase:** Implementation
-- **Status:** All design and planning phases are complete. Ready to begin implementation of the GUI application based on the design documents.
-- **Next Step:** Start implementing the basic GUI skeleton (`MainApp`) as per the approved implementation plan.
+## 3. 핵심 설계 문서
 
-## 6. Technical Notes & Workarounds
+모든 개발은 **`design_proposal/software_design_document.md`**에 요약된 최종 설계를 기반으로 해야 합니다. 이 문서는 모든 아키텍처 및 기능 명세에 대한 단일 진실 공급원(Single Source of Truth)입니다.
 
-- **Qt Plugin Issues:** When running the PySide6 application in some environments, "Could not load the Qt platform plugin" errors can occur. To mitigate this, run the application with the `offscreen` platform plugin:
+## 4. 핵심 기술
+
+- **GUI 프레임워크:** PySide6
+- **데이터 처리:** Pandas
+- **그래프:** PyQtGraph 또는 Matplotlib (PySide6와 통합)
+
+## 5. 핵심 구현 원칙
+
+- **비파괴적 슬라이싱:** 사용자가 그래프에서 시간 범위를 선택하더라도, 메모리에 있는 원본 `RawData` DataFrame은 수정되지 **않습니다**. 슬라이싱 작업은 분석 파이프라인이 실행될 때만 메모리 내에서 발생하며, 성능을 위해 더 작은 슬라이싱된 데이터를 사용합니다.
+- **컴포넌트 기반 아키텍처:** 코드는 관심사 분리를 유지하기 위해 정의된 컴포넌트 구조(`MainApp`, `DataLoader`, `PlotManager`, `PipelineController`)를 따라야 합니다.
+
+## 6. 현재 프로젝트 상태
+
+- **단계:** 구현 (Implementation)
+- **상태:** 모든 설계 및 계획 단계가 완료되었습니다. 설계 문서에 기반한 GUI 애플리케이션 구현을 시작할 준비가 되었습니다.
+- **다음 단계:** 승인된 구현 계획에 따라 기본 GUI 골격(`MainApp`) 구현을 시작합니다.
+
+## 7. 기술 참고사항 및 해결 방법
+
+- **Qt 플러그인 문제:** 일부 환경에서 PySide6 애플리케이션을 실행할 때 "Could not load the Qt platform plugin" 오류가 발생할 수 있습니다. 이를 완화하려면 `offscreen` 플랫폼 플러그인을 사용하여 애플리케이션을 실행하십시오:
   ```bash
   QT_QPA_PLATFORM=offscreen python src/main_app.py
   ```
