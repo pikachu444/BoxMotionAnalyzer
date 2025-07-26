@@ -8,8 +8,14 @@ class Parser:
     AlignBoxInputGenbyExperiment.py 스크립트의 핵심 로직을 클래스 형태로 이식한 것입니다.
     """
 
-    def __init__(self):
-        self.face_prefix_map = config.FACE_PREFIX_TO_INFO
+    def __init__(self, face_prefix_map: Dict[str, str]):
+        """
+        Parser를 초기화합니다.
+
+        Args:
+            face_prefix_map (Dict[str, str]): 마커 접두사와 면(Face) 정보를 매핑하는 딕셔너리.
+        """
+        self.face_prefix_map = face_prefix_map
 
     def process(self, header_info: Dict[str, List[str]], raw_df: pd.DataFrame) -> pd.DataFrame:
         """
