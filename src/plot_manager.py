@@ -40,27 +40,42 @@ class PlotManager(QObject):
         self.ax.grid(True)
         if len(columns_to_plot) > 1:
             self.ax.legend()
+
+        self._initialize_hover_annotation()
         self.canvas.draw()
 
     def enable_interactions(self, data_df: pd.DataFrame):
         if data_df is None or data_df.empty: return
 
+        # SpanSelector 초기화
         min_time, max_time = data_df.index.min(), data_df.index.max()
         initial_region = (min_time + (max_time - min_time) * 0.1, min_time + (max_time - min_time) * 0.2)
-
         self.span_selector = SpanSelector(
             self.ax, self._on_select, 'horizontal', useblit=True,
             props=dict(alpha=0.3, facecolor='green'), interactive=True,
             drag_from_anywhere=True
         )
         self.span_selector.extents = initial_region
-        self.set_selector_active(False) # 기본적으로 비활성화
+        self.set_selector_active(False)
+
+        # 호버 기능 초기화
+        self._initialize_hover_annotation()
+
+    def _initialize_hover_annotation(self):
+        """호버 기능에 필요한 Annotation 객체를 생성하고 이벤트를 연결합니다."""
+        # 기존 Annotation이 있다면 제거
+        if self.annot:
+            self.annot.remove()
 
         self.annot = self.ax.annotate("", xy=(0,0), xytext=(20,20),
                     textcoords="offset points",
                     bbox=dict(boxstyle="round", fc="w"),
                     arrowprops=dict(arrowstyle="->"))
         self.annot.set_visible(False)
+
+        # 이벤트 리스너가 중복 연결되지 않도록 기존 연결을 먼저 끊을 수 있지만,
+        # Matplotlib은 동일한 콜백에 대해 중복 연결을 방지하므로, 여기서는 생략 가능.
+        # self.canvas.mpl_disconnect(self.hover_cid)
         self.canvas.mpl_connect("motion_notify_event", self._on_hover)
 
     def _on_select(self, xmin: float, xmax: float):
