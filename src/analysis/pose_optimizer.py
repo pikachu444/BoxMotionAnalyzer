@@ -3,7 +3,9 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation as R
 from typing import Dict, Any, List, Tuple
-from multiprocessing import Pool, cpu_count
+
+from config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCols
+
 
 # [병렬 처리 참고]
 # 이 함수들은 PoseOptimizer 클래스 외부에 정의되어야 합니다.
@@ -109,10 +111,12 @@ class PoseOptimizer:
         for frame_index, frame_row in df.iterrows():
             # 1. 현재 프레임의 유효한 마커 데이터 추출
             markers = []
-            marker_ids = sorted(list(set([c.split('_')[0] for c in frame_row.index if c.endswith(('_X', '_FaceInfo'))])))
+            marker_ids = sorted(list(set([c.split('_')[0] for c in frame_row.index if c.endswith((RawMarkerCols.X_SUFFIX, RawMarkerCols.FACEINFO_SUFFIX))])))
             for mid in marker_ids:
-                x_col, y_col, z_col = f"{mid}_X", f"{mid}_Y", f"{mid}_Z"
-                face_col = f"{mid}_FaceInfo"
+                x_col = f"{mid}{RawMarkerCols.X_SUFFIX}"
+                y_col = f"{mid}{RawMarkerCols.Y_SUFFIX}"
+                z_col = f"{mid}{RawMarkerCols.Z_SUFFIX}"
+                face_col = f"{mid}{RawMarkerCols.FACEINFO_SUFFIX}"
                 if x_col in frame_row and pd.notna(frame_row[x_col]):
                     face_key_val = frame_row.get(face_col)
                     face_key = str(face_key_val).strip().upper() if pd.notna(face_key_val) and str(face_key_val).strip().upper() not in ["", "NONE", "NULL", "ANY"] else None
@@ -123,7 +127,7 @@ class PoseOptimizer:
                     })
 
             if not markers:
-                results.append({'Time': frame_index})
+                results.append({TimeCols.TIME: frame_index})
                 continue
 
             # 2. 최적화를 위한 초기값 설정
@@ -158,10 +162,10 @@ class PoseOptimizer:
 
             # 4. 결과 저장 및 다음 프레임을 위한 값 업데이트
             optimized_params = result.x
-            res_row = {'Time': frame_index}
-            res_row['Box_Tx'], res_row['Box_Ty'], res_row['Box_Tz'] = optimized_params[:3]
-            res_row['Box_Rx'], res_row['Box_Ry'], res_row['Box_Rz'] = optimized_params[3:]
-            res_row['Pose_Source'] = "Optimized" if result.success else "OptimizationFailed"
+            res_row = {TimeCols.TIME: frame_index}
+            res_row[PoseCols.POS_X], res_row[PoseCols.POS_Y], res_row[PoseCols.POS_Z] = optimized_params[:3]
+            res_row[PoseCols.ROT_X], res_row[PoseCols.ROT_Y], res_row[PoseCols.ROT_Z] = optimized_params[3:]
+            res_row[SourceCols.POSE] = "Optimized" if result.success else "OptimizationFailed"
             results.append(res_row)
 
             previous_optimized_params = optimized_params if result.success else None

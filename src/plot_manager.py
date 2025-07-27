@@ -16,31 +16,29 @@ class PlotManager(QObject):
         self.span_selector = None
         self.annot = None
 
-    def draw_plot(self, data_df: pd.DataFrame, target_names: list, axis: str):
+    def draw_plot(self, data_df: pd.DataFrame, columns_to_plot: list):
         self.ax.clear()
-        if data_df is None or data_df.empty:
-            self.ax.set_title("No Data", color="r")
+        if data_df is None or data_df.empty or not columns_to_plot:
+            self.ax.set_title("No Data to Plot", color="r")
             self.canvas.draw()
             return
 
         colors = plt.get_cmap('tab10').colors
-        for i, target_name in enumerate(target_names):
-            clean_target_name = target_name.replace(' (Rigid Body)', '')
-            axis_char = axis.split('-')[1]
-            col_to_plot = f"{clean_target_name}_{axis_char}"
-            if col_to_plot not in data_df.columns:
-                print(f"[Warning] Column '{col_to_plot}' not found, skipping.")
+        for i, col_name in enumerate(columns_to_plot):
+            if col_name not in data_df.columns:
+                print(f"[Warning] Column '{col_name}' not found, skipping.")
                 continue
-            x_data = data_df.index.values
-            y_data = data_df[col_to_plot].values
-            color = colors[i % len(colors)]
-            self.ax.plot(x_data, y_data, color=color, label=target_name)
 
-        self.ax.set_title(f"Plot of {axis} for: {', '.join(target_names)}")
+            x_data = data_df.index.values
+            y_data = data_df[col_name].values
+            color = colors[i % len(colors)]
+            self.ax.plot(x_data, y_data, color=color, label=col_name)
+
+        self.ax.set_title(f"Plot for: {', '.join(columns_to_plot)}")
         self.ax.set_xlabel("Time (s)")
-        self.ax.set_ylabel(axis)
+        self.ax.set_ylabel("Value")
         self.ax.grid(True)
-        if len(target_names) > 1:
+        if len(columns_to_plot) > 1:
             self.ax.legend()
         self.canvas.draw()
 

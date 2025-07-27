@@ -15,7 +15,8 @@ from plot_manager import PlotManager
 from pipeline_controller import PipelineController
 from data_selection_dialog import DataSelectionDialog
 import app_config as config
-from analysis.parser import Parser # MainApp이 직접 Parser를 사용
+from analysis.parser import Parser
+from config.data_columns import PoseCols
 
 class PipelineWorker(QThread):
     def __init__(self, controller, config, header_info, raw_data, parsed_data):
@@ -95,7 +96,9 @@ class MainApp(QMainWindow):
         plot_options_layout.addWidget(self.selected_data_label, 0, 1)
         plot_options_layout.addWidget(QLabel("Axis:"), 1, 0)
         self.combo_plot_axis = QComboBox()
-        self.combo_plot_axis.addItems(["Position-X", "Position-Y", "Position-Z"])
+        self.combo_plot_axis.addItem("Position-X", userData=PoseCols.POS_X)
+        self.combo_plot_axis.addItem("Position-Y", userData=PoseCols.POS_Y)
+        self.combo_plot_axis.addItem("Position-Z", userData=PoseCols.POS_Z)
         plot_options_layout.addWidget(self.combo_plot_axis, 1, 1)
         bottom_layout.addWidget(plot_options_group, 2, 0, 1, 3)
 
@@ -164,7 +167,7 @@ class MainApp(QMainWindow):
                 self.parsed_data = self.parser.process(self.header_info, self.raw_data)
                 self.log_output.append("[INFO] Preview parsing complete.")
 
-                self.update_plot_from_data(self.parsed_data)
+                self.update_plot()
                 self.plot_manager.enable_interactions(self.parsed_data)
                 self.statusBar().showMessage("File ready for analysis.")
                 self.final_result = None
@@ -202,22 +205,27 @@ class MainApp(QMainWindow):
         if not result_df.empty:
             self.statusBar().showMessage("Analysis complete.")
             self.export_button.setEnabled(True)
-            self.update_plot_from_data(self.final_result)
+            self.update_plot() # 변경: on_analysis_finished는 update_plot을 직접 호출
         else:
             self.statusBar().showMessage("Analysis failed.")
         self.run_button.setEnabled(True)
 
-    # ... (기타 메서드는 이전과 거의 동일)
-    def update_plot_from_data(self, df):
-        if df is None or df.empty:
-            self.plot_manager.ax.clear()
-            self.plot_manager.canvas.draw()
-            return
-        # ... (이하 동일)
-
     def update_plot(self):
-        data_to_plot = self.final_result if self.final_result is not None else self.parsed_data
-        self.update_plot_from_data(data_to_plot)
+        """현재 선택된 데이터를 기반으로 플롯을 업데이트합니다."""
+        df = self.final_result if self.final_result is not None else self.parsed_data
+        if df is None or df.empty:
+            self.plot_manager.draw_plot(None, [])
+            return
+
+        # TODO: 현재는 선택된 타겟이 없으므로, 기본으로 선택된 축 하나만 플로팅
+        # self.current_selected_targets 를 UI에서 선택하도록 구현 필요
+        selected_col = self.combo_plot_axis.currentData()
+
+        columns_to_plot = []
+        if selected_col:
+            columns_to_plot.append(selected_col)
+
+        self.plot_manager.draw_plot(df, columns_to_plot)
 
     # ... (나머지 메서드 생략)
     def open_data_selection_dialog(self, *args): pass

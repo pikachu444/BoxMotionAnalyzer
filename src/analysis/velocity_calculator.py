@@ -4,6 +4,9 @@ from scipy.interpolate import UnivariateSpline
 from scipy.spatial.transform import Rotation as R
 from typing import List, Dict, Any
 
+from config.data_columns import PoseCols, VelocityCols
+
+
 # --- Helper Functions (Module-level) ---
 
 def _ensure_quaternion_continuity(quaternions: np.ndarray) -> np.ndarray:
@@ -90,8 +93,8 @@ class VelocityCalculator:
         self.params = kwargs
 
     def _calculate_translational_velocity(self, df: pd.DataFrame, time_s: np.ndarray) -> pd.DataFrame:
-        pos_cols = ['Box_Tx', 'Box_Ty', 'Box_Tz']
-        vel_cols = ['CoM_Vx', 'CoM_Vy', 'CoM_Vz']
+        pos_cols = [PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z]
+        vel_cols = [VelocityCols.COM_VX, VelocityCols.COM_VY, VelocityCols.COM_VZ]
 
         for p_col, v_col in zip(pos_cols, vel_cols):
             series = df[p_col]
@@ -105,8 +108,8 @@ class VelocityCalculator:
         return df
 
     def _calculate_angular_velocity(self, df: pd.DataFrame, time_s: np.ndarray) -> pd.DataFrame:
-        rot_cols = ['Box_Rx', 'Box_Ry', 'Box_Rz']
-        ang_vel_cols = ['AngVel_Wx', 'AngVel_Wy', 'AngVel_Wz']
+        rot_cols = [PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]
+        ang_vel_cols = [VelocityCols.ANG_WX, VelocityCols.ANG_WY, VelocityCols.ANG_WZ]
 
         if not all(col in df.columns for col in rot_cols):
             for col in ang_vel_cols: df[col] = 0.0
@@ -151,7 +154,7 @@ class VelocityCalculator:
         return df
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
-        if df.empty or 'Box_Tx' not in df.columns:
+        if df.empty or PoseCols.POS_X not in df.columns:
             return df
 
         print(f"[VelocityCalculator INFO] Starting velocity calculation using '{self.method}' method...")

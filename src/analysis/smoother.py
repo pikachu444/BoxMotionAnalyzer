@@ -3,6 +3,9 @@ import numpy as np
 from scipy.signal import butter, filtfilt
 from typing import List
 
+from config.data_columns import RawMarkerCols
+
+
 class MarkerSmoother:
     """
     DataFrame에 포함된 마커 데이터에 스무딩 필터를 적용합니다.
@@ -62,7 +65,7 @@ class MarkerSmoother:
         smoothed_df = df.copy()
         fs = self._calculate_fs(smoothed_df.index.to_series())
 
-        marker_cols = [col for col in df.columns if col.endswith(('_X', '_Y', '_Z'))]
+        marker_cols = [col for col in df.columns if col.endswith((RawMarkerCols.X_SUFFIX, RawMarkerCols.Y_SUFFIX, RawMarkerCols.Z_SUFFIX))]
 
         for col_name in marker_cols:
             series_to_smooth = pd.to_numeric(df[col_name], errors='coerce')

@@ -3,6 +3,9 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 from typing import Dict, Any
 
+from config.data_columns import PoseCols, VelocityCols, AnalysisCols
+
+
 class FrameAnalyzer:
     """
     계산된 운동학 데이터를 분석 좌표계(Analysis Frame)로 변환합니다.
@@ -30,10 +33,10 @@ class FrameAnalyzer:
     def process_frame(self, frame_row: pd.Series) -> pd.Series:
         """단일 프레임(DataFrame의 행)을 처리하여 분석 좌표계 값을 계산합니다."""
         try:
-            T_box_lab = frame_row[['Box_Tx', 'Box_Ty', 'Box_Tz']].values.astype(float)
-            rv_box_lab = frame_row[['Box_Rx', 'Box_Ry', 'Box_Rz']].values.astype(float)
-            v_com_lab = frame_row[['CoM_Vx', 'CoM_Vy', 'CoM_Vz']].values.astype(float)
-            omega_w_lab = frame_row[['AngVel_Wx', 'AngVel_Wy', 'AngVel_Wz']].values.astype(float)
+            T_box_lab = frame_row[[PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z]].values.astype(float)
+            rv_box_lab = frame_row[[PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]].values.astype(float)
+            v_com_lab = frame_row[[VelocityCols.COM_VX, VelocityCols.COM_VY, VelocityCols.COM_VZ]].values.astype(float)
+            omega_w_lab = frame_row[[VelocityCols.ANG_WX, VelocityCols.ANG_WY, VelocityCols.ANG_WZ]].values.astype(float)
         except (KeyError, ValueError):
             return pd.Series(dtype=object)
 
@@ -47,10 +50,10 @@ class FrameAnalyzer:
         p_floor_ana = R_lab_to_ana @ (p_floor_lab - T_box_lab)
 
         result_data = {
-            'CoM_Vx_Ana': v_com_ana[0], 'CoM_Vy_Ana': v_com_ana[1], 'CoM_Vz_Ana': v_com_ana[2],
-            'AngVel_Wx_Ana': omega_ana[0], 'AngVel_Wy_Ana': omega_ana[1], 'AngVel_Wz_Ana': omega_ana[2],
-            'Floor_N_X_Ana': n_floor_ana[0], 'Floor_N_Y_Ana': n_floor_ana[1], 'Floor_N_Z_Ana': n_floor_ana[2],
-            'Floor_P_X_Ana': p_floor_ana[0], 'Floor_P_Y_Ana': p_floor_ana[1], 'Floor_P_Z_Ana': p_floor_ana[2],
+            AnalysisCols.COM_VX_ANA: v_com_ana[0], AnalysisCols.COM_VY_ANA: v_com_ana[1], AnalysisCols.COM_VZ_ANA: v_com_ana[2],
+            AnalysisCols.ANG_WX_ANA: omega_ana[0], AnalysisCols.ANG_WY_ANA: omega_ana[1], AnalysisCols.ANG_WZ_ANA: omega_ana[2],
+            AnalysisCols.FLOOR_N_X_ANA: n_floor_ana[0], AnalysisCols.FLOOR_N_Y_ANA: n_floor_ana[1], AnalysisCols.FLOOR_N_Z_ANA: n_floor_ana[2],
+            AnalysisCols.FLOOR_P_X_ANA: p_floor_ana[0], AnalysisCols.FLOOR_P_Y_ANA: p_floor_ana[1], AnalysisCols.FLOOR_P_Z_ANA: p_floor_ana[2],
         }
         return pd.Series(result_data)
 
@@ -58,7 +61,7 @@ class FrameAnalyzer:
         """
         입력된 DataFrame의 모든 프레임에 대해 좌표계 변환을 수행합니다.
         """
-        if df.empty or 'CoM_Vx' not in df.columns:
+        if df.empty or VelocityCols.COM_VX not in df.columns:
             return df
 
         transformed_data = df.apply(self.process_frame, axis=1)

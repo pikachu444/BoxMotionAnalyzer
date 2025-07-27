@@ -13,6 +13,11 @@ class RawMarkerCols:
     X_SUFFIX: str = "_X"
     Y_SUFFIX: str = "_Y"
     Z_SUFFIX: str = "_Z"
+    FACEINFO_SUFFIX: str = "_FaceInfo"
+
+@dataclass(frozen=True)
+class SourceCols:
+    POSE: str = "Pose_Source"
 
 @dataclass(frozen=True)
 class PoseCols:
@@ -43,3 +48,18 @@ class CornerVelocityCols:
     VX_SUFFIX: str = "_Vx"
     VY_SUFFIX: str = "_Vy"
     VZ_SUFFIX: str = "_Vz"
+
+@dataclass(frozen=True)
+class AnalysisCols:
+    COM_VX_ANA: str = "CoM_Vx_Ana"
+    COM_VY_ANA: str = "CoM_Vy_Ana"
+    COM_VZ_ANA: str = "CoM_Vz_Ana"
+    ANG_WX_ANA: str = "AngVel_Wx_Ana"
+    ANG_WY_ANA: str = "AngVel_Wy_Ana"
+    ANG_WZ_ANA: str = "AngVel_Wz_Ana"
+    FLOOR_N_X_ANA: str = "Floor_N_X_Ana"
+    FLOOR_N_Y_ANA: str = "Floor_N_Y_Ana"
+    FLOOR_N_Z_ANA: str = "Floor_N_Z_Ana"
+    FLOOR_P_X_ANA: str = "Floor_P_X_Ana"
+    FLOOR_P_Y_ANA: str = "Floor_P_Y_Ana"
+    FLOOR_P_Z_ANA: str = "Floor_P_Z_Ana"

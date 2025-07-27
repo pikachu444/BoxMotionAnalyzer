@@ -1,6 +1,7 @@
 import pandas as pd
 import csv
 from typing import Dict, List, Tuple
+from config.data_columns import TimeCols, RawMarkerCols
 
 class DataLoader:
     def load_csv(self, filepath: str) -> Tuple[Dict[str, List[str]], pd.DataFrame]:
@@ -58,7 +59,7 @@ class DataLoader:
         # 첫 두 컬럼에 대한 기본 이름 부여 (Frame, Time)
         # 원본 데이터에 Frame, Time 컬럼이 없을 수 있으므로, 예외 처리 추가
         if len(raw_df.columns) > 1:
-            rename_map = {raw_df.columns[0]: 'Frame', raw_df.columns[1]: 'Time'}
+            rename_map = {raw_df.columns[0]: TimeCols.FRAME, raw_df.columns[1]: TimeCols.TIME}
             raw_df.rename(columns=rename_map, inplace=True)
 
         print(f"[DataLoader INFO] CSV loaded. Headers parsed, and {len(raw_df)} data rows prepared for Parser.")
@@ -74,7 +75,7 @@ class DataLoader:
 
         targets = set()
         for col in processed_df.columns:
-            if col.endswith(('_X', '_Y', '_Z')):
+            if col.endswith((RawMarkerCols.X_SUFFIX, RawMarkerCols.Y_SUFFIX, RawMarkerCols.Z_SUFFIX)):
                 base_name = col.rsplit('_', 1)[0]
                 targets.add(base_name)
 

@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Dict, List
-import app_config as config
+from config.data_columns import TimeCols, RawMarkerCols
 
 class Parser:
     """
@@ -33,10 +33,10 @@ class Parser:
         seen_marker_ids = set()
 
         for index, row in raw_df.iterrows():
-            frame_number = row.get('Frame', str(index))
-            time_value = row.get('Time', "0.0")
+            frame_number = row.get(TimeCols.FRAME, str(index))
+            time_value = row.get(TimeCols.TIME, "0.0")
 
-            current_frame_dict = {'Frame': frame_number, 'Time': float(time_value)}
+            current_frame_dict = {TimeCols.FRAME: frame_number, TimeCols.TIME: float(time_value)}
 
             for i in range(2, len(row)):
                 col_name = f'col_{i}'
@@ -70,9 +70,9 @@ class Parser:
                             ordered_unique_marker_ids.append(marker_id)
                             seen_marker_ids.add(marker_id)
 
-                        current_frame_dict[f"{marker_id}_X"] = x_val
-                        current_frame_dict[f"{marker_id}_Y"] = y_val
-                        current_frame_dict[f"{marker_id}_Z"] = z_val
+                        current_frame_dict[f"{marker_id}{RawMarkerCols.X_SUFFIX}"] = x_val
+                        current_frame_dict[f"{marker_id}{RawMarkerCols.Y_SUFFIX}"] = y_val
+                        current_frame_dict[f"{marker_id}{RawMarkerCols.Z_SUFFIX}"] = z_val
 
                     except (ValueError, IndexError):
                         continue
@@ -84,16 +84,16 @@ class Parser:
 
         final_df = pd.DataFrame(processed_frames_data)
 
-        if 'Time' in final_df.columns:
-            final_df['Time'] = pd.to_numeric(final_df['Time'])
-            final_df.set_index('Time', inplace=True)
+        if TimeCols.TIME in final_df.columns:
+            final_df[TimeCols.TIME] = pd.to_numeric(final_df[TimeCols.TIME])
+            final_df.set_index(TimeCols.TIME, inplace=True)
 
-        if 'Frame' in final_df.columns:
-            final_df['Frame'] = pd.to_numeric(final_df['Frame'])
+        if TimeCols.FRAME in final_df.columns:
+            final_df[TimeCols.FRAME] = pd.to_numeric(final_df[TimeCols.FRAME])
 
-        cols_ordered = ['Frame']
+        cols_ordered = [TimeCols.FRAME]
         for marker_id in sorted(list(ordered_unique_marker_ids)):
-            cols_ordered.extend([f"{marker_id}_X", f"{marker_id}_Y", f"{marker_id}_Z"])
+            cols_ordered.extend([f"{marker_id}{RawMarkerCols.X_SUFFIX}", f"{marker_id}{RawMarkerCols.Y_SUFFIX}", f"{marker_id}{RawMarkerCols.Z_SUFFIX}"])
 
         final_cols = [col for col in cols_ordered if col in final_df.columns]
 
