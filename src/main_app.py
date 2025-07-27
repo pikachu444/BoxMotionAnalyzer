@@ -169,6 +169,8 @@ class MainApp(QMainWindow):
 
                 self.update_plot()
                 self.plot_manager.enable_interactions(self.parsed_data)
+                # 파일 로드 후 슬라이싱 기능 비활성화 및 selector 숨김
+                self.slice_group.setChecked(False)
                 self.statusBar().showMessage("File ready for analysis.")
                 self.final_result = None
                 self.export_button.setEnabled(False)
@@ -230,7 +232,13 @@ class MainApp(QMainWindow):
     # ... (나머지 메서드 생략)
     def open_data_selection_dialog(self, *args): pass
     def on_region_changed(self, *args): pass
-    def toggle_slicing_widgets(self, *args): pass
+
+    def toggle_slicing_widgets(self, checked: bool):
+        """'Enable Slice' 체크박스 상태에 따라 슬라이싱 관련 위젯들을 제어합니다."""
+        self.le_slice_start.setEnabled(checked)
+        self.le_slice_end.setEnabled(checked)
+        self.plot_manager.set_selector_active(checked)
+
     def update_span_selector_from_inputs(self, *args): pass
     def export_results(self, *args): pass
 

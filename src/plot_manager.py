@@ -54,6 +54,7 @@ class PlotManager(QObject):
             drag_from_anywhere=True
         )
         self.span_selector.extents = initial_region
+        self.set_selector_active(False) # 기본적으로 비활성화
 
         self.annot = self.ax.annotate("", xy=(0,0), xytext=(20,20),
                     textcoords="offset points",
