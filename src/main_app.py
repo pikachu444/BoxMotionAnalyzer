@@ -14,6 +14,7 @@ from data_loader import DataLoader
 from plot_manager import PlotManager
 from pipeline_controller import PipelineController
 from data_selection_dialog import DataSelectionDialog
+import app_config as config
 from analysis.parser import Parser # MainApp이 직접 Parser를 사용
 
 class PipelineWorker(QThread):

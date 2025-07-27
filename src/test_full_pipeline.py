@@ -30,7 +30,6 @@ def main():
     print("--- Full Pipeline Test with Caching Logic ---")
 
     # 1. 작은 테스트 CSV 파일 생성
-    # (이전과 동일한 로직, 테스트의 독립성을 위해 내장)
     large_csv_path = os.path.join(root_dir, 'TestSets', 'VDTest_S5_001.csv')
     small_csv_path = os.path.join(root_dir, 'TestSets', 'small_test.csv')
     try:
@@ -49,7 +48,7 @@ def main():
     parser = Parser(face_prefix_map=config.FACE_PREFIX_TO_INFO)
 
     header_info, raw_df = loader.load_csv(small_csv_path)
-    parsed_data_cache = parser.process(header_info, raw_df) # 파싱 결과를 캐시에 저장
+    parsed_data_cache = parser.process(header_info, raw_df)
 
     print(f"DataLoader and Parser executed for preview. Parsed data shape: {parsed_data_cache.shape}")
 
@@ -60,7 +59,6 @@ def main():
     controller.log_message.connect(print)
 
     # 4. GUI 설정값 생성 및 파이프라인 실행
-    # 이제 parsed_data_cache를 함께 전달
     gui_config = {
         'slice_filter_by': 'time',
         'slice_start_val': parsed_data_cache.index.min(),
@@ -73,8 +71,6 @@ def main():
     print("\n--- Final Result Verification ---")
     if receiver.final_df is not None:
         print(f"Final DataFrame shape: {receiver.final_df.shape}")
-        # 파이프라인이 캐시된 데이터를 사용하고, 모든 분석을 거쳐 컬럼이 추가되었는지 확인
-        # 초기 파싱 컬럼 수보다 최종 컬럼 수가 많아야 함
         if len(receiver.final_df.columns) > len(parsed_data_cache.columns):
              print("\n[SUCCESS] Pipeline seems to have executed all stages on cached data.")
         else:
