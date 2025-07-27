@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation as R
-from typing import Dict, Any, List, Tuple
+from typing import Any
 
 from config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCols
 
@@ -67,7 +67,7 @@ def _kabsch_align(P, Q):
     except ValueError:
         return None
 
-def _objective_function(params: np.ndarray, frame_markers: List[Dict[str, Any]], box_dims: np.ndarray, face_definitions: Dict[str, Any]) -> float:
+def _objective_function(params: np.ndarray, frame_markers: list[dict[str, Any]], box_dims: np.ndarray, face_definitions: dict[str, Any]) -> float:
     """최적화를 위한 비용 함수 (단일 프레임용)."""
     T_guess, rot_vec_guess = params[:3], params[3:]
     try:
@@ -94,7 +94,7 @@ class PoseOptimizer:
     """
     스무딩된 마커 데이터를 사용하여 각 프레임별로 박스의 최적 자세(위치/회전)를 순차적으로 계산합니다.
     """
-    def __init__(self, box_dims: np.ndarray, face_definitions: Dict[str, Any], local_box_corners: np.ndarray):
+    def __init__(self, box_dims: np.ndarray, face_definitions: dict[str, Any], local_box_corners: np.ndarray):
         self.box_dims = box_dims
         self.face_definitions = face_definitions
         self.local_box_corners = local_box_corners

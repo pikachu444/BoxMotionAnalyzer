@@ -1,10 +1,9 @@
 import pandas as pd
 import csv
-from typing import Dict, List, Tuple
 from config.data_columns import TimeCols, RawMarkerCols
 
 class DataLoader:
-    def load_csv(self, filepath: str) -> Tuple[Dict[str, List[str]], pd.DataFrame]:
+    def load_csv(self, filepath: str) -> tuple[dict[str, list[str]], pd.DataFrame]:
         """
         CSV 파일을 읽어, 헤더 정보와 원본 데이터 DataFrame을 반환합니다.
         이 메서드는 최소한의 파싱만 수행하며, 복잡한 데이터 변환은 Parser 모듈의 책임입니다.

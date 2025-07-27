@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from scipy.signal import butter, filtfilt
-from typing import List
 
 from config.data_columns import RawMarkerCols
 
@@ -11,14 +10,14 @@ class MarkerSmoother:
     DataFrame에 포함된 마커 데이터에 스무딩 필터를 적용합니다.
     """
 
-    def __init__(self, method_sequence: List[str] = ['butterworth'],
+    def __init__(self, method_sequence: list[str] = ['butterworth'],
                  cutoff_freq: float = 10.0, order: int = 4,
                  ma_window: int = 3):
         """
         MarkerSmoother를 초기화합니다.
 
         Args:
-            method_sequence (List[str]): 적용할 스무딩 방법의 순서.
+            method_sequence (list[str]): 적용할 스무딩 방법의 순서.
             cutoff_freq (float): Butterworth 필터의 컷오프 주파수 (Hz).
             order (int): Butterworth 필터의 차수.
             ma_window (int): 이동 평균 필터의 윈도우 크기.

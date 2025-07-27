@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from typing import Dict, Any
 
 from config.data_columns import PoseCols, VelocityCols, AnalysisCols
 

@@ -1,5 +1,4 @@
 import pandas as pd
-from typing import Dict, List
 from config.data_columns import TimeCols, RawMarkerCols
 
 class Parser:
@@ -8,16 +7,16 @@ class Parser:
     AlignBoxInputGenbyExperiment.py 스크립트의 핵심 로직을 클래스 형태로 이식한 것입니다.
     """
 
-    def __init__(self, face_prefix_map: Dict[str, str]):
+    def __init__(self, face_prefix_map: dict[str, str]):
         """
         Parser를 초기화합니다.
 
         Args:
-            face_prefix_map (Dict[str, str]): 마커 접두사와 면(Face) 정보를 매핑하는 딕셔너리.
+            face_prefix_map (dict[str, str]): 마커 접두사와 면(Face) 정보를 매핑하는 딕셔너리.
         """
         self.face_prefix_map = face_prefix_map
 
-    def process(self, header_info: Dict[str, List[str]], raw_df: pd.DataFrame) -> pd.DataFrame:
+    def process(self, header_info: dict[str, list[str]], raw_df: pd.DataFrame) -> pd.DataFrame:
         """
         원본 DataFrame을 파싱하여 wide-format DataFrame으로 변환합니다.
         """

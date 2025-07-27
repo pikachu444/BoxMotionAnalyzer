@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 from scipy.spatial.transform import Rotation as R
-from typing import List, Dict, Any
 
 from config.data_columns import PoseCols, VelocityCols
 
