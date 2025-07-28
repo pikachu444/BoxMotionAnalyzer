@@ -1,6 +1,6 @@
 import pandas as pd
 import csv
-from config.data_columns import TimeCols, RawMarkerCols
+from src.config.data_columns import TimeCols, RawMarkerCols
 
 class DataLoader:
     def load_csv(self, filepath: str) -> tuple[dict[str, list[str]], pd.DataFrame]:
@@ -62,7 +62,7 @@ class DataLoader:
             raw_df.rename(columns=rename_map, inplace=True)
 
         print(f"[DataLoader INFO] CSV loaded. Headers parsed, and {len(raw_df)} data rows prepared for Parser.")
-
+        header_info['component'] = component_header
         return header_info, raw_df
 
     def get_plottable_targets(self, processed_df: pd.DataFrame) -> list[str]:

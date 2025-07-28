@@ -1,5 +1,5 @@
 import pandas as pd
-from config.data_columns import TimeCols, RawMarkerCols, RigidBodyCols
+from src.config.data_columns import TimeCols, RawMarkerCols, RigidBodyCols
 
 class Parser:
     """
@@ -26,92 +26,100 @@ class Parser:
         type_header = header_info.get('type', [])
         name_header = header_info.get('name', [])
         parent_header = header_info.get('parent', [])
+        category_header = header_info.get('category', [])
+        component_header = header_info.get('component', [])
 
         processed_frames_data = []
-        ordered_unique_marker_ids = []
-        seen_marker_ids = set()
+        ordered_unique_marker_identifiers = []
+        seen_marker_identifiers = set()
 
         for index, row in raw_df.iterrows():
             frame_number = row.get(TimeCols.FRAME, str(index))
             time_value = row.get(TimeCols.TIME, "0.0")
 
-            current_frame_dict = {TimeCols.FRAME: frame_number, TimeCols.TIME: float(time_value)}
+            current_frame_output_dict = {'FrameNumber': frame_number, 'Time': time_value}
 
-            for i in range(2, len(row)):
-                col_name = f'col_{i}'
-                if col_name not in row or pd.isna(row[col_name]): continue
+            min_len = min(len(type_header), len(name_header),
+                          len(parent_header), len(category_header),
+                          len(component_header), len(row))
 
-                if i >= len(type_header) or i >= len(name_header) or i >= len(parent_header): continue
-
+            for i in range(min_len - 2):
                 current_type = type_header[i]
                 current_parent = parent_header[i]
                 full_marker_name = name_header[i]
 
                 is_target_marker_x = (
-                    current_type == "Rigid Body Marker" and
-                    current_parent and
-                    ':' in full_marker_name and
-                    (i + 2) < len(row)
+                        current_type == "Rigid Body Marker" and
+                        current_parent and
+                        ':' in full_marker_name and
+                        category_header[i] == "Position" and
+                        component_header[i].upper() == 'X'
                 )
 
                 if is_target_marker_x:
-                    try:
+                    is_y_component_valid = (
+                            category_header[i + 1] == "Position" and
+                            component_header[i + 1].upper() == 'Y'
+                    )
+                    is_z_component_valid = (
+                            category_header[i + 2] == "Position" and
+                            component_header[i + 2].upper() == 'Z'
+                    )
+
+                    if is_y_component_valid and is_z_component_valid:
                         name_parts = full_marker_name.split(':', 1)
-                        if len(name_parts) < 2 or not name_parts[1]: continue
+                        if len(name_parts) < 2 or not name_parts[1]:
+                            continue
 
-                        marker_id = name_parts[1].replace(" ", "_")
+                        marker_identifier = name_parts[1].replace(" ", "_")
 
-                        x_val = float(row[f'col_{i}'])
-                        y_val = float(row[f'col_{i+1}'])
-                        z_val = float(row[f'col_{i+2}'])
+                        prefix_for_face = ""
+                        if marker_identifier.startswith("FA"):
+                            prefix_for_face = "FA"
+                        elif marker_identifier.startswith("BA"):
+                            prefix_for_face = "BA"
+                        elif marker_identifier:
+                            prefix_for_face = marker_identifier[0]
 
-                        if marker_id not in seen_marker_ids:
-                            ordered_unique_marker_ids.append(marker_id)
-                            seen_marker_ids.add(marker_id)
+                        face_info = self.face_prefix_map.get(prefix_for_face.upper(), "")
 
-                        current_frame_dict[f"{marker_id}{RawMarkerCols.X_SUFFIX}"] = x_val
-                        current_frame_dict[f"{marker_id}{RawMarkerCols.Y_SUFFIX}"] = y_val
-                        current_frame_dict[f"{marker_id}{RawMarkerCols.Z_SUFFIX}"] = z_val
+                        x_val = row.iloc[i]
+                        y_val = row.iloc[i+1]
+                        z_val = row.iloc[i+2]
 
-                    except (ValueError, IndexError):
-                        continue
+                        if not x_val or not y_val or not z_val:
+                            continue
 
-                # Rigid Body의 Position 데이터를 파싱하는 로직 추가
-                is_rigid_body_pos = (
-                    current_type == "Rigid Body" and
-                    name_header[i] == "Position" and
-                    (i + 2) < len(row)
-                )
+                        col_face_name = f"{marker_identifier}_FaceInfo"
+                        col_x_name = f"{marker_identifier}_X"
+                        col_y_name = f"{marker_identifier}_Y"
+                        col_z_name = f"{marker_identifier}_Z"
 
-                if is_rigid_body_pos:
-                    try:
-                        x_val = float(row[f'col_{i}'])
-                        y_val = float(row[f'col_{i+1}'])
-                        z_val = float(row[f'col_{i+2}'])
-                        current_frame_dict[RigidBodyCols.POS_X] = x_val
-                        current_frame_dict[RigidBodyCols.POS_Y] = y_val
-                        current_frame_dict[RigidBodyCols.POS_Z] = z_val
-                    except (ValueError, IndexError):
-                        continue
+                        if marker_identifier not in seen_marker_identifiers:
+                            ordered_unique_marker_identifiers.append(marker_identifier)
+                            seen_marker_identifiers.add(marker_identifier)
 
-            processed_frames_data.append(current_frame_dict)
+                        current_frame_output_dict[col_face_name] = face_info
+                        current_frame_output_dict[col_x_name] = x_val
+                        current_frame_output_dict[col_y_name] = y_val
+                        current_frame_output_dict[col_z_name] = z_val
+
+            if len(current_frame_output_dict) > 2: # Has more than just Frame and Time
+                processed_frames_data.append(current_frame_output_dict)
 
         if not processed_frames_data:
             return pd.DataFrame()
 
-        final_df = pd.DataFrame(processed_frames_data)
+        final_output_headers = ['FrameNumber', 'Time']
+        ordered_unique_marker_identifiers.sort()
+        for marker_id in ordered_unique_marker_identifiers:
+            final_output_headers.extend([
+                f"{marker_id}_FaceInfo",
+                f"{marker_id}_X",
+                f"{marker_id}_Y",
+                f"{marker_id}_Z"
+            ])
 
-        if TimeCols.TIME in final_df.columns:
-            final_df[TimeCols.TIME] = pd.to_numeric(final_df[TimeCols.TIME])
-            final_df.set_index(TimeCols.TIME, inplace=True)
-
-        if TimeCols.FRAME in final_df.columns:
-            final_df[TimeCols.FRAME] = pd.to_numeric(final_df[TimeCols.FRAME])
-
-        cols_ordered = [TimeCols.FRAME, RigidBodyCols.POS_X, RigidBodyCols.POS_Y, RigidBodyCols.POS_Z]
-        for marker_id in sorted(list(ordered_unique_marker_ids)):
-            cols_ordered.extend([f"{marker_id}{RawMarkerCols.X_SUFFIX}", f"{marker_id}{RawMarkerCols.Y_SUFFIX}", f"{marker_id}{RawMarkerCols.Z_SUFFIX}"])
-
-        final_cols = [col for col in cols_ordered if col in final_df.columns]
-
-        return final_df[final_cols]
+        final_df = pd.DataFrame(processed_frames_data, columns=final_output_headers)
+        final_df.set_index('Time', inplace=True)
+        return final_df
