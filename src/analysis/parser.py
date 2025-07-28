@@ -91,6 +91,12 @@ class Parser:
 
         final_df = pivoted[[col for col in final_cols if col in pivoted.columns]]
         final_df.rename(columns={TimeCols.FRAME: 'FrameNumber', TimeCols.TIME: 'Time'}, inplace=True)
+
+        # Convert data types
+        final_df['Time'] = pd.to_numeric(final_df['Time'])
+        coord_cols = [col for col in final_df.columns if col.endswith(('_X', '_Y', '_Z'))]
+        final_df[coord_cols] = final_df[coord_cols].apply(pd.to_numeric)
+
         final_df.set_index('Time', inplace=True)
 
         return final_df
