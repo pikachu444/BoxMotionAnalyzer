@@ -1,5 +1,5 @@
 import pandas as pd
-from config.data_columns import TimeCols, RawMarkerCols
+from config.data_columns import TimeCols, RawMarkerCols, RigidBodyCols
 
 class Parser:
     """
@@ -76,6 +76,24 @@ class Parser:
                     except (ValueError, IndexError):
                         continue
 
+                # Rigid Body의 Position 데이터를 파싱하는 로직 추가
+                is_rigid_body_pos = (
+                    current_type == "Rigid Body" and
+                    name_header[i] == "Position" and
+                    (i + 2) < len(row)
+                )
+
+                if is_rigid_body_pos:
+                    try:
+                        x_val = float(row[f'col_{i}'])
+                        y_val = float(row[f'col_{i+1}'])
+                        z_val = float(row[f'col_{i+2}'])
+                        current_frame_dict[RigidBodyCols.POS_X] = x_val
+                        current_frame_dict[RigidBodyCols.POS_Y] = y_val
+                        current_frame_dict[RigidBodyCols.POS_Z] = z_val
+                    except (ValueError, IndexError):
+                        continue
+
             processed_frames_data.append(current_frame_dict)
 
         if not processed_frames_data:
@@ -90,7 +108,7 @@ class Parser:
         if TimeCols.FRAME in final_df.columns:
             final_df[TimeCols.FRAME] = pd.to_numeric(final_df[TimeCols.FRAME])
 
-        cols_ordered = [TimeCols.FRAME]
+        cols_ordered = [TimeCols.FRAME, RigidBodyCols.POS_X, RigidBodyCols.POS_Y, RigidBodyCols.POS_Z]
         for marker_id in sorted(list(ordered_unique_marker_ids)):
             cols_ordered.extend([f"{marker_id}{RawMarkerCols.X_SUFFIX}", f"{marker_id}{RawMarkerCols.Y_SUFFIX}", f"{marker_id}{RawMarkerCols.Z_SUFFIX}"])
 

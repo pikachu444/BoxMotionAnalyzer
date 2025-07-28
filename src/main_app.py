@@ -16,7 +16,7 @@ from pipeline_controller import PipelineController
 from data_selection_dialog import DataSelectionDialog
 import app_config as config
 from analysis.parser import Parser
-from config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols
+from config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols
 class PipelineWorker(QThread):
     def __init__(self, controller, config, header_info, raw_data, parsed_data):
         super().__init__()
@@ -214,42 +214,58 @@ class MainApp(QMainWindow):
 
     def update_plot(self):
         """현재 선택된 데이터를 기반으로 플롯을 업데이트합니다."""
-        # 이 플롯은 항상 parsed_data만 보여줍니다.
         df = self.parsed_data
         if df is None or df.empty:
             self.plot_manager.draw_plot(None, [])
             return
 
-        selected_col_generic = self.combo_plot_axis.currentData()
+        selected_axis_generic = self.combo_plot_axis.currentData()
         columns_to_plot = []
 
-        # 대표 마커를 찾아 해당 축의 컬럼을 플로팅 목록에 추가
-        # X, Y, Z가 모두 존재하는 첫번째 마커를 찾는다.
-        ref_marker_base = None
-        all_marker_bases = sorted(list(set([c.split('_')[0] for c in df.columns if c.endswith(RawMarkerCols.X_SUFFIX)])))
+        # 현재 선택된 타겟이 없으면, Rigid Body Position을 기본으로 플로팅
+        targets_to_process = self.current_selected_targets
+        if not targets_to_process and RigidBodyCols.BASE_NAME in self.data_loader.get_plottable_targets(df):
+            targets_to_process = [RigidBodyCols.BASE_NAME]
 
-        for base in all_marker_bases:
-            x_col = f"{base}{RawMarkerCols.X_SUFFIX}"
-            y_col = f"{base}{RawMarkerCols.Y_SUFFIX}"
-            z_col = f"{base}{RawMarkerCols.Z_SUFFIX}"
-            if x_col in df.columns and y_col in df.columns and z_col in df.columns:
-                ref_marker_base = base
-                break
+        # 축 이름과 타겟 이름을 조합하여 실제 컬럼 이름 생성
+        axis_map = {
+            PoseCols.POS_X: RawMarkerCols.X_SUFFIX,
+            PoseCols.POS_Y: RawMarkerCols.Y_SUFFIX,
+            PoseCols.POS_Z: RawMarkerCols.Z_SUFFIX,
+        }
+        axis_suffix = axis_map.get(selected_axis_generic)
 
-        if ref_marker_base:
-            axis_map = {
-                PoseCols.POS_X: f"{ref_marker_base}{RawMarkerCols.X_SUFFIX}",
-                PoseCols.POS_Y: f"{ref_marker_base}{RawMarkerCols.Y_SUFFIX}",
-                PoseCols.POS_Z: f"{ref_marker_base}{RawMarkerCols.Z_SUFFIX}"
-            }
-            col_to_plot = axis_map.get(selected_col_generic)
-            if col_to_plot:
-                columns_to_plot.append(col_to_plot)
+        if axis_suffix:
+            for target in targets_to_process:
+                # Rigid Body와 마커의 이름 규칙이 다르므로 분기
+                if target == RigidBodyCols.BASE_NAME:
+                    col_name = f"{target}{axis_suffix}"
+                else: # 마커의 경우
+                    # ' (Rigid Body)' 부분 제거
+                    clean_target = target.replace(' (Rigid Body)', '')
+                    col_name = f"{clean_target}{axis_suffix}"
+
+                if col_name in df.columns:
+                    columns_to_plot.append(col_name)
 
         self.plot_manager.draw_plot(df, columns_to_plot)
 
-    # ... (나머지 메서드 생략)
-    def open_data_selection_dialog(self, *args): pass
+    def open_data_selection_dialog(self):
+        """플로팅할 데이터를 선택하는 다이얼로그를 엽니다."""
+        if self.parsed_data is None:
+            return
+
+        all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
+
+        # Rigid Body Position을 별도로 추가
+        if RigidBodyCols.POS_X in self.parsed_data.columns:
+             all_targets.insert(0, RigidBodyCols.BASE_NAME)
+
+        dialog = DataSelectionDialog(all_targets, self.current_selected_targets, self)
+        if dialog.exec():
+            self.current_selected_targets = dialog.get_selected_items()
+            self.selected_data_label.setText(f"Selected: {', '.join(self.current_selected_targets)}")
+            self.update_plot()
 
     def on_region_changed(self, xmin: float, xmax: float):
         """SpanSelector의 변경사항을 QLineEdit에 반영합니다."""

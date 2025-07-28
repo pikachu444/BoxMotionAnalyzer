@@ -16,6 +16,13 @@ class RawMarkerCols:
     FACEINFO_SUFFIX: str = "_FaceInfo"
 
 @dataclass(frozen=True)
+class RigidBodyCols:
+    BASE_NAME: str = "RigidBody_Position"
+    POS_X: str = "RigidBody_Position_X"
+    POS_Y: str = "RigidBody_Position_Y"
+    POS_Z: str = "RigidBody_Position_Z"
+
+@dataclass(frozen=True)
 class SourceCols:
     POSE: str = "Pose_Source"
 
