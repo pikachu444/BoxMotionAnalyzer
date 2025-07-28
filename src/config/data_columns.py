@@ -56,6 +56,16 @@ class CornerVelocityCols:
     VY_SUFFIX: str = "_Vy"
     VZ_SUFFIX: str = "_Vz"
 
+FACE_PREFIX_TO_INFO = {
+    'F': 'Front',
+    'B': 'Back',
+    'L': 'Left',
+    'R': 'Right',
+    'T': 'Top',
+    'FA': 'Front-Aux',
+    'BA': 'Back-Aux'
+}
+
 @dataclass(frozen=True)
 class AnalysisCols:
     COM_VX_ANA: str = "CoM_Vx_Ana"

@@ -27,15 +27,17 @@ class DataLoader:
 
         # 1. 헤더 정보 파싱 (상위 7줄)
         header_info = {}
-        # Type, Name, ID, Parent, Category. Component는 컬럼명으로 사용되므로 별도 처리.
-        header_keys = ['type', 'name', 'id', 'parent', 'category']
-        # 라인 인덱스는 2부터 6까지 (0-based)
-        for i, key in enumerate(header_keys):
-            header_line_index = i + 2
-            header_info[key] = [h.strip() for h in lines[header_line_index].strip().rstrip(',').split(',')]
+        header_lines = [line.strip().rstrip(',').split(',') for line in lines[2:8]]
 
-        # Component 정보 (라인 인덱스 7)
-        component_header = [h.strip() for h in lines[7].strip().rstrip(',').split(',')]
+        max_len = max(len(line) for line in header_lines)
+
+        padded_headers = [[item.strip() for item in line] + [''] * (max_len - len(line)) for line in header_lines]
+
+        header_keys = ['type', 'name', 'id', 'parent', 'category', 'component']
+        for i, key in enumerate(header_keys):
+            header_info[key] = padded_headers[i]
+
+        component_header = header_info['component']
 
         # 2. 원본 데이터 DataFrame 생성
         data_lines_raw = lines[8:]
@@ -49,10 +51,8 @@ class DataLoader:
         # 데이터프레임 생성
         num_columns = max(len(row) for row in data_as_list) if data_as_list else 0
 
-        # 컬럼명을 component_header에서 가져오되, 길이가 부족하면 col_X 형식으로 채움
-        df_cols = component_header[:num_columns]
-        df_cols += [f'col_{i}' for i in range(len(df_cols), num_columns)]
-
+        # 컬럼명을 'col_X' 형식으로 통일
+        df_cols = [f'col_{i}' for i in range(num_columns)]
         raw_df = pd.DataFrame(data_as_list, columns=df_cols)
 
         # 첫 두 컬럼에 대한 기본 이름 부여 (Frame, Time)
