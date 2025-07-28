@@ -231,7 +231,19 @@ class MainApp(QMainWindow):
 
     # ... (나머지 메서드 생략)
     def open_data_selection_dialog(self, *args): pass
-    def on_region_changed(self, *args): pass
+
+    def on_region_changed(self, xmin: float, xmax: float):
+        """SpanSelector의 변경사항을 QLineEdit에 반영합니다."""
+        # 무한 루프 방지를 위해 시그널을 잠시 비활성화
+        self.le_slice_start.blockSignals(True)
+        self.le_slice_end.blockSignals(True)
+
+        self.le_slice_start.setText(f"{xmin:.2f}")
+        self.le_slice_end.setText(f"{xmax:.2f}")
+
+        # 다시 활성화
+        self.le_slice_start.blockSignals(False)
+        self.le_slice_end.blockSignals(False)
 
     def toggle_slicing_widgets(self, checked: bool):
         """'Enable Slice' 체크박스 상태에 따라 슬라이싱 관련 위젯들을 제어합니다."""
@@ -239,8 +251,47 @@ class MainApp(QMainWindow):
         self.le_slice_end.setEnabled(checked)
         self.plot_manager.set_selector_active(checked)
 
-    def update_span_selector_from_inputs(self, *args): pass
-    def export_results(self, *args): pass
+    def update_span_selector_from_inputs(self):
+        """QLineEdit의 값을 읽어 SpanSelector의 영역을 업데이트합니다."""
+        try:
+            start_val = float(self.le_slice_start.text())
+            end_val = float(self.le_slice_end.text())
+
+            # start_val이 end_val보다 크지 않도록 보장
+            if start_val > end_val:
+                # 예를 들어, start_val을 end_val과 같게 설정하거나, 사용자에게 경고를 표시할 수 있습니다.
+                # 여기서는 start_val을 end_val과 같게 만듭니다.
+                start_val = end_val
+                self.le_slice_start.setText(f"{start_val:.2f}")
+
+            self.plot_manager.set_region(start_val, end_val)
+        except (ValueError, TypeError):
+            # QLineEdit에 유효하지 않은 숫자(예: 문자)가 있을 경우 무시
+            pass
+
+    def export_results(self):
+        """분석 완료된 데이터를 CSV 파일로 저장합니다."""
+        if self.final_result is None or self.final_result.empty:
+            self.statusBar().showMessage("No analysis result to export.")
+            return
+
+        # QFileDialog를 사용하여 사용자에게 저장할 파일 경로를 묻습니다.
+        filepath, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Results to CSV",
+            "",  # 기본 디렉토리
+            "CSV Files (*.csv)"
+        )
+
+        if filepath:
+            try:
+                # DataFrame을 CSV로 저장합니다. index=True는 Time 인덱스를 파일에 포함시킵니다.
+                self.final_result.to_csv(filepath, index=True)
+                self.statusBar().showMessage(f"Results successfully exported to {filepath}")
+                self.log_output.append(f"[INFO] Results exported to {filepath}")
+            except Exception as e:
+                self.statusBar().showMessage(f"Error exporting file: {e}")
+                self.log_output.append(f"[ERROR] Could not export file: {e}")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
