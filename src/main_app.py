@@ -223,20 +223,27 @@ class MainApp(QMainWindow):
         selected_col_generic = self.combo_plot_axis.currentData()
         columns_to_plot = []
 
-        # 분석 전이므로, 대표 마커(첫번째 마커)의 위치를 표시
-        marker_cols = [c for c in df.columns if c.endswith(RawMarkerCols.X_SUFFIX)]
-        if marker_cols:
-            ref_marker_x = marker_cols[0]
-            ref_marker_y = ref_marker_x.replace(RawMarkerCols.X_SUFFIX, RawMarkerCols.Y_SUFFIX)
-            ref_marker_z = ref_marker_x.replace(RawMarkerCols.X_SUFFIX, RawMarkerCols.Z_SUFFIX)
+        # 대표 마커를 찾아 해당 축의 컬럼을 플로팅 목록에 추가
+        # X, Y, Z가 모두 존재하는 첫번째 마커를 찾는다.
+        ref_marker_base = None
+        all_marker_bases = sorted(list(set([c.split('_')[0] for c in df.columns if c.endswith(RawMarkerCols.X_SUFFIX)])))
 
+        for base in all_marker_bases:
+            x_col = f"{base}{RawMarkerCols.X_SUFFIX}"
+            y_col = f"{base}{RawMarkerCols.Y_SUFFIX}"
+            z_col = f"{base}{RawMarkerCols.Z_SUFFIX}"
+            if x_col in df.columns and y_col in df.columns and z_col in df.columns:
+                ref_marker_base = base
+                break
+
+        if ref_marker_base:
             axis_map = {
-                PoseCols.POS_X: ref_marker_x,
-                PoseCols.POS_Y: ref_marker_y,
-                PoseCols.POS_Z: ref_marker_z
+                PoseCols.POS_X: f"{ref_marker_base}{RawMarkerCols.X_SUFFIX}",
+                PoseCols.POS_Y: f"{ref_marker_base}{RawMarkerCols.Y_SUFFIX}",
+                PoseCols.POS_Z: f"{ref_marker_base}{RawMarkerCols.Z_SUFFIX}"
             }
             col_to_plot = axis_map.get(selected_col_generic)
-            if col_to_plot and col_to_plot in df.columns:
+            if col_to_plot:
                 columns_to_plot.append(col_to_plot)
 
         self.plot_manager.draw_plot(df, columns_to_plot)
