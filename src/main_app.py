@@ -16,8 +16,7 @@ from pipeline_controller import PipelineController
 from data_selection_dialog import DataSelectionDialog
 import app_config as config
 from analysis.parser import Parser
-from config.data_columns import PoseCols
-
+from config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols
 class PipelineWorker(QThread):
     def __init__(self, controller, config, header_info, raw_data, parsed_data):
         super().__init__()
@@ -203,29 +202,42 @@ class MainApp(QMainWindow):
         self.worker.start()
 
     def on_analysis_finished(self, result_df):
+        self.run_button.setEnabled(True)
         self.final_result = result_df
-        if not result_df.empty:
+
+        if result_df.empty:
+            self.statusBar().showMessage("Analysis failed.")
+            self.export_button.setEnabled(False)
+        else:
             self.statusBar().showMessage("Analysis complete.")
             self.export_button.setEnabled(True)
-            self.update_plot() # 변경: on_analysis_finished는 update_plot을 직접 호출
-        else:
-            self.statusBar().showMessage("Analysis failed.")
-        self.run_button.setEnabled(True)
 
     def update_plot(self):
         """현재 선택된 데이터를 기반으로 플롯을 업데이트합니다."""
-        df = self.final_result if self.final_result is not None else self.parsed_data
+        # 이 플롯은 항상 parsed_data만 보여줍니다.
+        df = self.parsed_data
         if df is None or df.empty:
             self.plot_manager.draw_plot(None, [])
             return
 
-        # TODO: 현재는 선택된 타겟이 없으므로, 기본으로 선택된 축 하나만 플로팅
-        # self.current_selected_targets 를 UI에서 선택하도록 구현 필요
-        selected_col = self.combo_plot_axis.currentData()
-
+        selected_col_generic = self.combo_plot_axis.currentData()
         columns_to_plot = []
-        if selected_col:
-            columns_to_plot.append(selected_col)
+
+        # 분석 전이므로, 대표 마커(첫번째 마커)의 위치를 표시
+        marker_cols = [c for c in df.columns if c.endswith(RawMarkerCols.X_SUFFIX)]
+        if marker_cols:
+            ref_marker_x = marker_cols[0]
+            ref_marker_y = ref_marker_x.replace(RawMarkerCols.X_SUFFIX, RawMarkerCols.Y_SUFFIX)
+            ref_marker_z = ref_marker_x.replace(RawMarkerCols.X_SUFFIX, RawMarkerCols.Z_SUFFIX)
+
+            axis_map = {
+                PoseCols.POS_X: ref_marker_x,
+                PoseCols.POS_Y: ref_marker_y,
+                PoseCols.POS_Z: ref_marker_z
+            }
+            col_to_plot = axis_map.get(selected_col_generic)
+            if col_to_plot and col_to_plot in df.columns:
+                columns_to_plot.append(col_to_plot)
 
         self.plot_manager.draw_plot(df, columns_to_plot)
 
