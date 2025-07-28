@@ -243,5 +243,7 @@ class MainApp(QMainWindow):
     def export_results(self, *args): pass
 
 if __name__ == '__main__':
-    # ... (main 함수 동일)
-    pass
+    app = QApplication(sys.argv)
+    window = MainApp()
+    window.show()
+    sys.exit(app.exec())
