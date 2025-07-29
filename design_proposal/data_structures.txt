@@ -5,39 +5,15 @@
 이 문서는 Box Motion Analyzer 애플리케이션 내부의 데이터 관리를 위한 핵심 데이터 구조를 설계합니다. 이 설계는 명확성, 관심사 분리, 효율적인 데이터 조작에 중점을 둡니다.
 
 ---
-### 1. `AnalysisConfig` 클래스
+### 1. 분석 설정 (Analysis Configuration)
 ---
 
-*   **목적:** 사용자가 GUI를 통해 설정하는 모든 값을 담는 단일 컨테이너 역할을 합니다. 이 객체 하나를 백엔드 `PipelineController`에 전달하여 모든 분석 조건을 명시합니다.
-*   **구현 제안:** 파이썬 데이터클래스(`dataclass`) 또는 간단한 사용자 정의 클래스.
-*   **필드 (속성):**
-    *   `input_csv_path: str`
-        *   설명: 사용자가 선택한 원본 CSV 파일의 절대 경로.
-        *   예시: `"C:/data/raw/BOX_65_ISTA_FULL_RAW.csv"`
-    *   `box_dimensions: tuple[float, float, float]`
-        *   설명: 박스의 물리적 규격 (길이, 너비, 높이), 단위는 밀리미터(mm).
-        *   예시: `(1578.0, 930.0, 142.0)`
-    *   `slice_time_start: float`
-        *   설명: 분석할 구간의 시작 시간 (초). 사용자가 그래프에서 선택.
-        *   예시: `142.0`
-    *   `slice_time_end: float`
-        *   설명: 분석할 구간의 종료 시간 (초). 사용자가 그래프에서 선택.
-        *   예시: `148.0`
-    *   `plotting_target: str`
-        *   설명: 그래프에 표시할 데이터 시리즈의 이름.
-        *   예시: `"강체 중심"`, `"F_Marker_1"`
-    *   `plotting_axis: str`
-        *   설명: 그래프에 표시할 특정 축 ('X', 'Y', 또는 'Z').
-        *   예시: `"Y"`
-    *   `smoothing_method: str`
-        *   설명: 사용할 스무딩 방법.
-        *   예시: `"butterworth"`, `"moving_average"`
-    *   `smoothing_cutoff: float`
-        *   설명: Butterworth 필터의 컷오프 주파수 (Hz).
-        *   예시: `10.0`
-    *   `velocity_method: str`
-        *   설명: 속도 계산 방법.
-        *   예시: `"spline"`, `"finite_difference"`
+*   **목적:** 사용자가 GUI를 통해 설정하는 모든 분석 조건을 담는 컨테이너 역할을 합니다. 현재 구현에서는 별도의 클래스 대신, `main_app.py`의 `run_pipeline` 메서드 내에서 동적으로 생성되는 **딕셔너리(dictionary)**를 사용합니다.
+*   **핵심 키-값 쌍:**
+    *   `slice_filter_by`: `'time'` 또는 `'frame'`. 현재는 `'time'`으로 고정되어 사용됩니다.
+    *   `slice_start_val`: 분석할 구간의 시작 시간 (초).
+    *   `slice_end_val`: 분석할 구간의 종료 시간 (초).
+    *   (기타 `PoseOptimizer`나 `Smoother`에 필요한 파라미터들이 향후 추가될 수 있음)
 
 ---
 ### 2. 데이터 처리 흐름: 단일 DataFrame 누적 방식

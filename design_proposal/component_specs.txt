@@ -31,12 +31,17 @@
     *   `get_selected_items()`: 사용자가 "OK"를 눌렀을 때, 현재 선택된 항목들의 리스트를 반환합니다.
 
 ---
-### 3. `DataLoader` (데이터 로딩 및 파싱)
+### 3. `DataLoader` (데이터 로딩)
 ---
-*   **책임:** CSV 파일을 스트리밍 방식으로 읽고, 필요한 데이터만 선별적으로 파싱하여 DataFrame으로 변환합니다.
+*   **책임:** CSV 파일 전체를 읽어, 헤더 정보(상위 7줄)와 원본 데이터(나머지)를 분리하여 `MainApp`에 전달합니다.
 
 ---
-### 4. `PlotManager` (상호작용형 시각화)
+### 4. `Parser` (데이터 파싱 및 변환)
+---
+*   **책임:** `DataLoader`가 전달한 원본 데이터를 분석에 용이한 'wide-format'의 `DataFrame`으로 가공합니다. `Rigid Body`와 `Rigid Body Marker`의 Position 데이터를 모두 추출하여, `PlotManager`가 사용할 수 있는 일관된 형식의 컬럼(`RigidBody_Position_X`, `B2_X` 등)을 생성합니다.
+
+---
+### 5. `PlotManager` (상호작용형 시각화)
 ---
 *   **책임:** `Matplotlib Canvas`를 관리합니다. 다중 그래프, 범례, `SpanSelector`, 마우스 커서 값 표시를 처리합니다.
 

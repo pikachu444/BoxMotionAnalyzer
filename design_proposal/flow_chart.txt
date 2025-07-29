@@ -64,10 +64,10 @@
    V
 [ 7. 파이프라인 실행 (`PipelineController`가 `Analysis Modules`를 순차 호출) ]
    |
-   +-----> [ **7a. Slicer 실행:** GUI의 "분석 구간" 설정값으로 DataFrame 슬라이싱 ]
+   +-----> [ **7a. Parser 사용:** MainApp에서 미리 파싱하여 캐싱해둔 `parsed_data`를 사용. (파싱은 파일 로드 직후 1회만 수행) ]
    |       |
    |       V
-   |       [ **7b. Parser 실행:** 원본 데이터를 분석용 포맷으로 변환 ]
+   |       [ **7b. Slicer 실행:** GUI의 "분석 구간" 설정값으로 `parsed_data` 슬라이싱 ]
    |       |
    |       V
    |       [ **7c. MarkerSmoother 실행:** 마커 데이터에 스무딩 필터 적용 ]
