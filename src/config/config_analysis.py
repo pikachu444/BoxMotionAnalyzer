@@ -14,8 +14,10 @@ MA_WINDOW_SIZE = 3
 # --- Slicing Parameters (향후 추가될 수 있음) ---
 # ...
 
-# --- Pose Optimization Parameters (향후 추가될 수 있음) ---
-# ...
+# --- Pose Optimization Parameters ---
+OPTIMIZER_MAX_ITERATIONS = 1500
+OPTIMIZER_XTOL = 1e-4
+OPTIMIZER_FATOL = 1e-4
 
 # --- Velocity Calculation Parameters (향후 추가될 수 있음) ---
 # ...
