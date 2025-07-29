@@ -64,7 +64,7 @@ class PlotManager(QObject):
     def _initialize_hover_annotation(self):
         """호버 기능에 필요한 Annotation 객체를 생성하고 이벤트를 연결합니다."""
         # 기존 Annotation이 있다면 제거
-        if self.annot:
+        if self.annot and self.annot.axes:
             self.annot.remove()
 
         self.annot = self.ax.annotate("", xy=(0,0), xytext=(20,20),
