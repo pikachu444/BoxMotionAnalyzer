@@ -15,9 +15,9 @@ MA_WINDOW_SIZE = 3
 # ...
 
 # --- Pose Optimization Parameters ---
-OPTIMIZER_MAX_ITERATIONS = 1500
-OPTIMIZER_XTOL = 1e-4
-OPTIMIZER_FATOL = 1e-4
+OPTIMIZER_MAX_ITERATIONS = 1500  # `scipy.optimize.minimize`의 최대 반복 횟수
+OPTIMIZER_XTOL = 1e-4             # 수렴 기준으로 사용되는 파라미터의 허용 오차
+OPTIMIZER_FATOL = 1e-4            # 수렴 기준으로 사용되는 비용 함수의 허용 오차
 
 # --- Velocity Calculation Parameters (향후 추가될 수 있음) ---
 # ...
