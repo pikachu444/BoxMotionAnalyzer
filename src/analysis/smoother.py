@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 from scipy.signal import butter, filtfilt
-from ..config import config_analysis
-from ..config.data_columns import RawMarkerCols
+from src.config import config_analysis
+from src.config.data_columns import RawMarkerCols
 
 class MarkerSmoother:
     """

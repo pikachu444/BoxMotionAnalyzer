@@ -1,5 +1,5 @@
 import pandas as pd
-from config.data_columns import TimeCols
+from src.config.data_columns import TimeCols
 
 class Slicer:
     """

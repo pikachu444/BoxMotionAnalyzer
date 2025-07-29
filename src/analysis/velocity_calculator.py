@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline
 from scipy.spatial.transform import Rotation as R
 
-from config.data_columns import PoseCols, VelocityCols
+from src.config.data_columns import PoseCols, VelocityCols
 
 
 # --- Helper Functions (Module-level) ---

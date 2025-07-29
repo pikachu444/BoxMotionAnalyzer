@@ -4,7 +4,7 @@ from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation as R
 from typing import Any
 
-from config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCols
+from src.config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCols
 
 
 # [병렬 처리 참고]
