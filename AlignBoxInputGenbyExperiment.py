@@ -2,8 +2,8 @@
 import csv
 import argparse
 
-import config  # Attempt to import the config file
-FACE_PREFIX_TO_INFO = config.FACE_PREFIX_TO_INFO
+from src.config import data_columns
+FACE_PREFIX_TO_INFO = data_columns.FACE_PREFIX_TO_INFO
 
 def parse_experiment_raw_data_all_frames(input_filepath, output_filepath):
     """ Parses all data frames from an experimental raw data CSV file (e.g., from a motion capture system) and converts the marker information into a "wide" format CSV file. In the output, each row represents a single frame. Columns include FrameNumber, Time, and then FaceInfo, X, Y, Z coordinates for each detected marker (e.g., M1_FaceInfo, M1_X, M1_Y, M1_Z, M2_FaceInfo, M2_X...).

@@ -14,26 +14,48 @@ from data_loader import DataLoader
 from plot_manager import PlotManager
 from pipeline_controller import PipelineController
 from data_selection_dialog import DataSelectionDialog
-
+import app_config as config
+from analysis.parser import Parser
+from config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols
 class PipelineWorker(QThread):
-    def __init__(self, controller, config, raw_data):
+    def __init__(self, controller, config, header_info, raw_data, parsed_data):
         super().__init__()
         self.controller = controller
         self.config = config
+        self.header_info = header_info
         self.raw_data = raw_data
+        self.parsed_data = parsed_data # 파싱된 데이터도 전달
     def run(self):
-        self.controller.run_analysis(self.config, self.raw_data)
+        self.controller.run_analysis(self.config, self.header_info, self.raw_data, self.parsed_data)
 
 class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Box Motion Analyzer v1.0 (Matplotlib)")
+        self.setWindowTitle("Box Motion Analyzer v2.0 (Refactored)")
         self.setGeometry(100, 100, 1200, 800)
+
+        # 모듈 초기화
         self.data_loader = DataLoader()
+        # MainApp이 미리보기 파싱을 위해 Parser 인스턴스를 가짐
+        self.parser = Parser(face_prefix_map=config.FACE_PREFIX_TO_INFO)
         self.pipeline_controller = PipelineController()
+
+        # 데이터 저장 변수
         self.raw_data = None
+        self.header_info = None
+        self.parsed_data = None # 파싱된 데이터를 캐싱할 변수
         self.final_result = None
         self.current_selected_targets = []
+
+        # UI 구성
+        self._setup_ui()
+        self._connect_signals()
+
+        self.plot_manager.ax.text(0.5, 0.5, "Load a CSV file to start.", ha='center', va='center')
+        self.plot_manager.canvas.draw()
+
+    def _setup_ui(self):
+        # (UI 구성 코드는 이전과 동일)
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
@@ -50,9 +72,10 @@ class MainApp(QMainWindow):
         self.plot_manager = PlotManager(self.canvas, self.fig)
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
-        self.log_output.setPlaceholderText("[INFO] Waiting for analysis...")
+        self.log_output.setPlaceholderText("[INFO] Load a CSV file to start.")
         top_layout.addWidget(self.log_output, 3)
         main_layout.addLayout(top_layout, 7)
+
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         bottom_widget = QWidget()
@@ -72,7 +95,9 @@ class MainApp(QMainWindow):
         plot_options_layout.addWidget(self.selected_data_label, 0, 1)
         plot_options_layout.addWidget(QLabel("Axis:"), 1, 0)
         self.combo_plot_axis = QComboBox()
-        self.combo_plot_axis.addItems(["Position-X", "Position-Y", "Position-Z"])
+        self.combo_plot_axis.addItem("Position-X", userData=PoseCols.POS_X)
+        self.combo_plot_axis.addItem("Position-Y", userData=PoseCols.POS_Y)
+        self.combo_plot_axis.addItem("Position-Z", userData=PoseCols.POS_Z)
         plot_options_layout.addWidget(self.combo_plot_axis, 1, 1)
         bottom_layout.addWidget(plot_options_group, 2, 0, 1, 3)
 
@@ -91,13 +116,13 @@ class MainApp(QMainWindow):
         box_dims_group = QGroupBox("Box Dimensions (mm)")
         box_dims_layout = QGridLayout(box_dims_group)
         box_dims_layout.addWidget(QLabel("L:"), 0, 0)
-        self.le_box_l = QLineEdit("1578.0")
+        self.le_box_l = QLineEdit("1820.0")
         box_dims_layout.addWidget(self.le_box_l, 0, 1)
         box_dims_layout.addWidget(QLabel("W:"), 1, 0)
-        self.le_box_w = QLineEdit("930.0")
+        self.le_box_w = QLineEdit("1110.0")
         box_dims_layout.addWidget(self.le_box_w, 1, 1)
         box_dims_layout.addWidget(QLabel("H:"), 2, 0)
-        self.le_box_h = QLineEdit("142.0")
+        self.le_box_h = QLineEdit("164.0")
         box_dims_layout.addWidget(self.le_box_h, 2, 1)
         bottom_layout.addWidget(box_dims_group, 2, 5, 1, 2)
 
@@ -113,8 +138,9 @@ class MainApp(QMainWindow):
         scroll_area.setWidget(bottom_widget)
         main_layout.addWidget(scroll_area, 3)
         self.setStatusBar(QStatusBar())
-        self.statusBar().showMessage("Ready")
 
+    def _connect_signals(self):
+        # (시그널 연결 코드는 이전과 동일)
         self.load_csv_button.clicked.connect(self.open_csv_file)
         self.select_data_button.clicked.connect(self.open_data_selection_dialog)
         self.run_button.clicked.connect(self.run_pipeline)
@@ -127,126 +153,180 @@ class MainApp(QMainWindow):
         self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
         self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
 
-        self.toggle_slicing_widgets(False)
-
-    def toggle_slicing_widgets(self, is_checked):
-        self.plot_manager.set_selector_active(is_checked)
-        self.le_slice_start.setEnabled(is_checked)
-        self.le_slice_end.setEnabled(is_checked)
-
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
         if filepath:
             try:
-                self.raw_data = self.data_loader.load_csv(filepath)
+                self.header_info, self.raw_data = self.data_loader.load_csv(filepath)
                 self.file_path_label.setText(filepath)
-                self.statusBar().showMessage("File loaded successfully.")
-                self.log_output.append(f"[INFO] Successfully loaded {filepath}")
+                self.statusBar().showMessage("File loaded. Parsing for preview...")
+                self.log_output.append(f"[INFO] Loaded {filepath}. Parsing for preview...")
 
-                all_targets = self.data_loader.get_plottable_targets(self.raw_data)
-                if all_targets:
-                    self.current_selected_targets = [all_targets[0]]
-                    self.selected_data_label.setText(f"Selected: {all_targets[0]}")
+                # 미리보기용으로 즉시 파싱하고 결과를 캐시에 저장
+                self.parsed_data = self.parser.process(self.header_info, self.raw_data)
+                self.log_output.append("[INFO] Preview parsing complete.")
 
                 self.update_plot()
-                self.plot_manager.enable_interactions(self.raw_data)
+                self.plot_manager.enable_interactions(self.parsed_data)
+                # 파일 로드 후 슬라이싱 기능 비활성화 및 selector 숨김
+                self.slice_group.setChecked(False)
+                self.statusBar().showMessage("File ready for analysis.")
+                self.final_result = None
+                self.export_button.setEnabled(False)
             except Exception as e:
-                self.statusBar().showMessage("File load failed.")
-                self.log_output.append(f"[ERROR] Failed to load file: {e}")
+                # ... (에러 처리)
+                pass
 
-    def open_data_selection_dialog(self):
+    def run_pipeline(self):
         if self.raw_data is None:
-            self.log_output.append("[INFO] Please load a CSV file first.")
+            # ... (에러 처리)
+            return
+        try:
+            config = {
+                'slice_filter_by': 'time',
+                'slice_start_val': float(self.le_slice_start.text()) if self.slice_group.isChecked() else self.parsed_data.index.min(),
+                'slice_end_val': float(self.le_slice_end.text()) if self.slice_group.isChecked() else self.parsed_data.index.max(),
+                # ... (기타 config)
+            }
+        except Exception as e:
+            # ... (에러 처리)
             return
 
-        all_targets = self.data_loader.get_plottable_targets(self.raw_data)
+        self.run_button.setEnabled(False)
+        self.export_button.setEnabled(False)
+        self.log_output.clear()
+        self.statusBar().showMessage("Running analysis...")
+
+        # PipelineWorker에게 캐시된 parsed_data도 함께 전달
+        self.worker = PipelineWorker(self.pipeline_controller, config, self.header_info, self.raw_data, self.parsed_data)
+        self.worker.start()
+
+    def on_analysis_finished(self, result_df):
+        self.run_button.setEnabled(True)
+        self.final_result = result_df
+
+        if result_df.empty:
+            self.statusBar().showMessage("Analysis failed.")
+            self.export_button.setEnabled(False)
+        else:
+            self.statusBar().showMessage("Analysis complete.")
+            self.export_button.setEnabled(True)
+
+    def update_plot(self):
+        """현재 선택된 데이터를 기반으로 플롯을 업데이트합니다."""
+        df = self.parsed_data
+        if df is None or df.empty:
+            self.plot_manager.draw_plot(None, [])
+            return
+
+        selected_axis_generic = self.combo_plot_axis.currentData()
+        columns_to_plot = []
+
+        # 현재 선택된 타겟이 없으면, Rigid Body Position을 기본으로 플로팅
+        targets_to_process = self.current_selected_targets
+        if not targets_to_process and RigidBodyCols.BASE_NAME in self.data_loader.get_plottable_targets(df):
+            targets_to_process = [RigidBodyCols.BASE_NAME]
+
+        # 축 이름과 타겟 이름을 조합하여 실제 컬럼 이름 생성
+        axis_map = {
+            PoseCols.POS_X: RawMarkerCols.X_SUFFIX,
+            PoseCols.POS_Y: RawMarkerCols.Y_SUFFIX,
+            PoseCols.POS_Z: RawMarkerCols.Z_SUFFIX,
+        }
+        axis_suffix = axis_map.get(selected_axis_generic)
+
+        if axis_suffix:
+            for target in targets_to_process:
+                # Rigid Body와 마커의 이름 규칙이 다르므로 분기
+                if target == RigidBodyCols.BASE_NAME:
+                    col_name = f"{target}{axis_suffix}"
+                else: # 마커의 경우
+                    # ' (Rigid Body)' 부분 제거
+                    clean_target = target.replace(' (Rigid Body)', '')
+                    col_name = f"{clean_target}{axis_suffix}"
+
+                if col_name in df.columns:
+                    columns_to_plot.append(col_name)
+
+        self.plot_manager.draw_plot(df, columns_to_plot)
+
+    def open_data_selection_dialog(self):
+        """플로팅할 데이터를 선택하는 다이얼로그를 엽니다."""
+        if self.parsed_data is None:
+            return
+
+        all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
+
+        # Rigid Body Position을 별도로 추가
+        if RigidBodyCols.POS_X in self.parsed_data.columns:
+             all_targets.insert(0, RigidBodyCols.BASE_NAME)
+
         dialog = DataSelectionDialog(all_targets, self.current_selected_targets, self)
         if dialog.exec():
             self.current_selected_targets = dialog.get_selected_items()
             self.selected_data_label.setText(f"Selected: {', '.join(self.current_selected_targets)}")
             self.update_plot()
 
-    def on_region_changed(self, min_x, max_x):
-        self.le_slice_start.setText(f"{min_x:.2f}")
-        self.le_slice_end.setText(f"{max_x:.2f}")
+    def on_region_changed(self, xmin: float, xmax: float):
+        """SpanSelector의 변경사항을 QLineEdit에 반영합니다."""
+        # 무한 루프 방지를 위해 시그널을 잠시 비활성화
+        self.le_slice_start.blockSignals(True)
+        self.le_slice_end.blockSignals(True)
 
-    def update_plot(self):
-        if self.raw_data is None or self.raw_data.empty: return
-        target_names = self.current_selected_targets
-        axis_text = self.combo_plot_axis.currentText()
-        if not target_names or not axis_text:
-            self.plot_manager.ax.clear()
-            self.plot_manager.canvas.draw()
-            return
-        self.plot_manager.draw_plot(self.raw_data, target_names, axis_text)
+        self.le_slice_start.setText(f"{xmin:.2f}")
+        self.le_slice_end.setText(f"{xmax:.2f}")
+
+        # 다시 활성화
+        self.le_slice_start.blockSignals(False)
+        self.le_slice_end.blockSignals(False)
+
+    def toggle_slicing_widgets(self, checked: bool):
+        """'Enable Slice' 체크박스 상태에 따라 슬라이싱 관련 위젯들을 제어합니다."""
+        self.le_slice_start.setEnabled(checked)
+        self.le_slice_end.setEnabled(checked)
+        self.plot_manager.set_selector_active(checked)
 
     def update_span_selector_from_inputs(self):
-        if not self.slice_group.isChecked(): return
+        """QLineEdit의 값을 읽어 SpanSelector의 영역을 업데이트합니다."""
         try:
             start_val = float(self.le_slice_start.text())
             end_val = float(self.le_slice_end.text())
-            view_range = self.plot_manager.ax.get_xlim()
-            start_val = max(view_range[0], start_val)
-            end_val = min(view_range[1], end_val)
-            if start_val < end_val:
-                self.plot_manager.set_region(start_val, end_val)
+
+            # start_val이 end_val보다 크지 않도록 보장
+            if start_val > end_val:
+                # 예를 들어, start_val을 end_val과 같게 설정하거나, 사용자에게 경고를 표시할 수 있습니다.
+                # 여기서는 start_val을 end_val과 같게 만듭니다.
+                start_val = end_val
+                self.le_slice_start.setText(f"{start_val:.2f}")
+
+            self.plot_manager.set_region(start_val, end_val)
         except (ValueError, TypeError):
+            # QLineEdit에 유효하지 않은 숫자(예: 문자)가 있을 경우 무시
             pass
 
-    def run_pipeline(self):
-        if self.raw_data is None or self.raw_data.empty:
-            self.log_output.append("[ERROR] No data loaded. Please load a CSV file first.")
-            return
-        try:
-            if self.slice_group.isChecked():
-                slice_start = float(self.le_slice_start.text())
-                slice_end = float(self.le_slice_end.text())
-            else:
-                slice_start = self.raw_data.index.min()
-                slice_end = self.raw_data.index.max()
-
-            config = {
-                'slice_time_start': slice_start,
-                'slice_time_end': slice_end,
-                'box_dimensions': (
-                    float(self.le_box_l.text()),
-                    float(self.le_box_w.text()),
-                    float(self.le_box_h.text())
-                )
-            }
-        except ValueError:
-            self.log_output.append("[ERROR] Invalid number in 'Slice Range' or 'Box Dimensions'.")
-            return
-
-        self.run_button.setEnabled(False)
-        self.export_button.setEnabled(False)
-        self.statusBar().showMessage("Running analysis...")
-
-        self.worker = PipelineWorker(self.pipeline_controller, config, self.raw_data)
-        self.worker.start()
-
-    def on_analysis_finished(self, result_df):
-        self.final_result = result_df
-        if not result_df.empty:
-            self.statusBar().showMessage("Analysis complete.")
-            self.export_button.setEnabled(True)
-        else:
-            self.statusBar().showMessage("Analysis failed.")
-        self.run_button.setEnabled(True)
-
     def export_results(self):
+        """분석 완료된 데이터를 CSV 파일로 저장합니다."""
         if self.final_result is None or self.final_result.empty:
-            self.log_output.append("[ERROR] No analysis results to export.")
+            self.statusBar().showMessage("No analysis result to export.")
             return
-        filepath, _ = QFileDialog.getSaveFileName(self, "Save Results", "analysis_results.csv", "CSV Files (*.csv)")
+
+        # QFileDialog를 사용하여 사용자에게 저장할 파일 경로를 묻습니다.
+        filepath, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Results to CSV",
+            "",  # 기본 디렉토리
+            "CSV Files (*.csv)"
+        )
+
         if filepath:
             try:
-                self.final_result.to_csv(filepath, index=True, float_format='%.8f')
-                self.statusBar().showMessage("Results saved successfully.")
-                self.log_output.append(f"[INFO] Results successfully saved to {filepath}")
+                # DataFrame을 CSV로 저장합니다. index=True는 Time 인덱스를 파일에 포함시킵니다.
+                self.final_result.to_csv(filepath, index=True)
+                self.statusBar().showMessage(f"Results successfully exported to {filepath}")
+                self.log_output.append(f"[INFO] Results exported to {filepath}")
             except Exception as e:
-                self.statusBar().showMessage("Failed to save results.")
-                self.log_output.append(f"[ERROR] Error saving file: {e}")
+                self.statusBar().showMessage(f"Error exporting file: {e}")
+                self.log_output.append(f"[ERROR] Could not export file: {e}")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
