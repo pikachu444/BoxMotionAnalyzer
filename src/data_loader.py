@@ -27,7 +27,7 @@ class DataLoader:
 
         # 1. 헤더 정보 파싱 (상위 7줄)
         header_info = {}
-        header_lines = [line.strip().rstrip(',').split(',') for line in lines[2:8]]
+        header_lines = [line.strip().split(',') for line in lines[2:8]]
 
         max_len = max(len(line) for line in header_lines)
 
@@ -49,11 +49,17 @@ class DataLoader:
             return header_info, pd.DataFrame()
 
         # 데이터프레임 생성
-        num_columns = max(len(row) for row in data_as_list) if data_as_list else 0
+        num_columns = max_len
 
-        # 컬럼명을 'col_X' 형식으로 통일
-        df_cols = [f'col_{i}' for i in range(num_columns)]
-        raw_df = pd.DataFrame(data_as_list, columns=df_cols)
+        # 컬럼명을 component_header에서 가져오되, 길이가 부족하면 col_X 형식으로 채움
+        df_cols = component_header[:num_columns]
+        df_cols += [f'col_{i}' for i in range(len(df_cols), num_columns)]
+        raw_df = pd.DataFrame(data_as_list)
+        if raw_df.shape[1] < num_columns:
+            # Add missing columns with NaN
+            for i in range(raw_df.shape[1], num_columns):
+                raw_df[i] = pd.NA
+        raw_df.columns = df_cols
 
         # 첫 두 컬럼에 대한 기본 이름 부여 (Frame, Time)
         # 원본 데이터에 Frame, Time 컬럼이 없을 수 있으므로, 예외 처리 추가

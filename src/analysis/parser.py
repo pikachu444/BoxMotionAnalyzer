@@ -1,5 +1,5 @@
 import pandas as pd
-from src.config.data_columns import TimeCols, RawMarkerCols, RigidBodyCols, FACE_PREFIX_TO_INFO
+from src.config.data_columns import TimeCols, RawMarkerCols, RigidBodyCols
 
 class Parser:
     """
@@ -8,95 +8,104 @@ class Parser:
     """
 
     def __init__(self, face_prefix_map: dict[str, str]):
-        """
-        Parser를 초기화합니다.
-
-        Args:
-            face_prefix_map (dict[str, str]): 마커 접두사와 면(Face) 정보를 매핑하는 딕셔너리.
-        """
         self.face_prefix_map = face_prefix_map
 
     def process(self, header_info: dict[str, list[str]], raw_df: pd.DataFrame) -> pd.DataFrame:
-        """
-        원본 DataFrame을 파싱하여 wide-format DataFrame으로 변환합니다.
-        """
         if raw_df.empty:
             return pd.DataFrame()
 
-        # Prepare header data for merging
-        headers = pd.DataFrame({
-            'col_index': range(len(header_info['type'])),
-            'type': header_info['type'],
-            'name': header_info['name'],
-            'parent': header_info['parent'],
-            'category': header_info['category'],
-            'component': header_info['component']
-        })
+        type_header = header_info.get('type', [])
+        name_header = header_info.get('name', [])
+        parent_header = header_info.get('parent', [])
+        category_header = header_info.get('category', [])
+        component_header = header_info.get('component', [])
 
-        # Melt the raw_df to long format
-        id_vars = [TimeCols.FRAME, TimeCols.TIME]
-        value_vars = [col for col in raw_df.columns if col not in id_vars]
-        long_df = pd.melt(raw_df, id_vars=id_vars, value_vars=value_vars, var_name='original_col', value_name='value')
+        processed_frames_data = []
 
-        # Extract column index from original_col name
-        long_df['col_index'] = long_df['original_col'].str.extract(r'col_(\d+)').astype(int)
+        # 모든 프레임에서 발견된 모든 마커 이름을 수집
+        all_marker_identifiers = set()
 
-        # Merge with headers
-        merged_df = pd.merge(long_df, headers, on='col_index')
+        header_len = len(type_header)
+        for i in range(header_len):
+            if i + 2 >= header_len: continue
+            if (type_header[i] in ["Rigid Body Marker", "Marker"] and
+                parent_header[i] and
+                ':' in name_header[i] and
+                category_header[i] == "Position" and
+                component_header[i].upper() == 'X'):
 
-        # Filter for Rigid Body Markers
-        marker_df = merged_df[
-            (merged_df['type'] == 'Rigid Body Marker') &
-            (merged_df['parent'].notna()) &
-            (merged_df['name'].str.contains(':')) &
-            (merged_df['category'] == 'Position')
-        ].copy()
+                name_parts = name_header[i].split(':', 1)
+                if len(name_parts) > 1 and name_parts[1]:
+                    marker_identifier = name_parts[1].replace(" ", "_")
+                    all_marker_identifiers.add(marker_identifier)
 
-        # Extract marker identifier
-        marker_df['marker_id'] = marker_df['name'].apply(lambda x: x.split(':', 1)[1].replace(" ", "_"))
+        for index, row in raw_df.iterrows():
+            current_frame_output_dict = {
+                TimeCols.FRAME: row.get(TimeCols.FRAME),
+                TimeCols.TIME: row.get(TimeCols.TIME)
+            }
 
-        # Pivot to wide format
-        pivoted = marker_df.pivot_table(
-            index=[TimeCols.FRAME, TimeCols.TIME],
-            columns=['marker_id', 'component'],
-            values='value',
-            aggfunc='first'
-        ).reset_index()
+            for i in range(header_len):
+                if i + 2 >= header_len: continue
+                if (type_header[i] in ["Rigid Body Marker", "Marker"] and
+                    parent_header[i] and
+                    ':' in name_header[i] and
+                    category_header[i] == "Position" and
+                    component_header[i].upper() == 'X'):
 
-        # Flatten multi-level columns
-        pivoted.columns = [f"{col[0]}_{col[1]}" if col[1] else col[0] for col in pivoted.columns]
+                    if not (category_header[i+1] == "Position" and component_header[i+1].upper() == 'Y' and
+                            category_header[i+2] == "Position" and component_header[i+2].upper() == 'Z'):
+                        continue
 
-        # Add FaceInfo
-        for marker_id in marker_df['marker_id'].unique():
-            prefix_for_face = ""
-            if marker_id.startswith("FA"):
-                prefix_for_face = "FA"
-            elif marker_id.startswith("BA"):
-                prefix_for_face = "BA"
-            elif marker_id:
-                prefix_for_face = marker_id[0]
+                    name_parts = name_header[i].split(':', 1)
+                    if len(name_parts) < 2 or not name_parts[1]:
+                        continue
 
-            face_info = self.face_prefix_map.get(prefix_for_face.upper(), "")
-            pivoted[f"{marker_id}_FaceInfo"] = face_info
+                    marker_identifier = name_parts[1].replace(" ", "_")
 
-        # Reorder columns
+                    x_val, y_val, z_val = row.iloc[i], row.iloc[i+1], row.iloc[i+2]
+
+                    if pd.isna(x_val) or pd.isna(y_val) or pd.isna(z_val):
+                        continue
+
+                    prefix_for_face = ""
+                    if marker_identifier.startswith("FA"): prefix_for_face = "FA"
+                    elif marker_identifier.startswith("BA"): prefix_for_face = "BA"
+                    elif marker_identifier: prefix_for_face = marker_identifier[0]
+
+                    face_info = self.face_prefix_map.get(prefix_for_face.upper(), "")
+
+                    current_frame_output_dict[f"{marker_identifier}_FaceInfo"] = face_info
+                    current_frame_output_dict[f"{marker_identifier}_X"] = x_val
+                    current_frame_output_dict[f"{marker_identifier}_Y"] = y_val
+                    current_frame_output_dict[f"{marker_identifier}_Z"] = z_val
+
+            processed_frames_data.append(current_frame_output_dict)
+
+        if not processed_frames_data:
+            return pd.DataFrame()
+
+        # 정의된 컬럼 순서에 따라 DataFrame 생성
         final_cols = [TimeCols.FRAME, TimeCols.TIME]
-        for marker_id in sorted(marker_df['marker_id'].unique()):
-            final_cols.extend([
-                f"{marker_id}_FaceInfo",
-                f"{marker_id}_X",
-                f"{marker_id}_Y",
-                f"{marker_id}_Z"
-            ])
+        for marker_id in sorted(list(all_marker_identifiers)):
+            final_cols.extend([f"{marker_id}_FaceInfo", f"{marker_id}_X", f"{marker_id}_Y", f"{marker_id}_Z"])
 
-        final_df = pivoted[[col for col in final_cols if col in pivoted.columns]]
-        final_df.rename(columns={TimeCols.FRAME: 'FrameNumber', TimeCols.TIME: 'Time'}, inplace=True)
+        final_df = pd.DataFrame(processed_frames_data)
 
-        # Convert data types
-        final_df['Time'] = pd.to_numeric(final_df['Time'])
+        # 누락된 컬럼 추가 (NaN으로 채움)
+        for col in final_cols:
+            if col not in final_df.columns:
+                final_df[col] = pd.NA
+
+        final_df = final_df[final_cols] # 컬럼 순서 재정렬
+
+        # 데이터 타입 변환
+        final_df[TimeCols.TIME] = pd.to_numeric(final_df[TimeCols.TIME], errors='coerce')
         coord_cols = [col for col in final_df.columns if col.endswith(('_X', '_Y', '_Z'))]
-        final_df[coord_cols] = final_df[coord_cols].apply(pd.to_numeric)
+        if coord_cols:
+            final_df[coord_cols] = final_df[coord_cols].apply(pd.to_numeric, errors='coerce')
 
-        final_df.set_index('Time', inplace=True)
+        final_df = final_df.dropna(subset=[TimeCols.TIME])
+        final_df.set_index(TimeCols.TIME, inplace=True)
 
         return final_df
