@@ -7,7 +7,7 @@ from scipy.interpolate import UnivariateSpline  # For spline fitting
 from scipy.signal import butter, filtfilt  # For Butterworth filter
 
 # --- Configuration Loading ---
-import config
+from . import config
 BOX_DIMS = config.BOX_DIMS
 LOCAL_BOX_CORNERS = config.LOCAL_BOX_CORNERS
 
