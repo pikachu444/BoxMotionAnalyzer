@@ -14,9 +14,9 @@ from data_loader import DataLoader
 from plot_manager import PlotManager
 from pipeline_controller import PipelineController
 from data_selection_dialog import DataSelectionDialog
-import app_config as config
+from src.config import config_app
 from analysis.parser import Parser
-from config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols
+from src.config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO
 class PipelineWorker(QThread):
     def __init__(self, controller, config, header_info, raw_data, parsed_data):
         super().__init__()
@@ -37,7 +37,7 @@ class MainApp(QMainWindow):
         # 모듈 초기화
         self.data_loader = DataLoader()
         # MainApp이 미리보기 파싱을 위해 Parser 인스턴스를 가짐
-        self.parser = Parser(face_prefix_map=config.FACE_PREFIX_TO_INFO)
+        self.parser = Parser(face_prefix_map=FACE_PREFIX_TO_INFO)
         self.pipeline_controller = PipelineController()
 
         # 데이터 저장 변수

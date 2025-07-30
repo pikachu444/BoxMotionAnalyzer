@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline
 from scipy.spatial.transform import Rotation as R
 from scipy.signal import butter, filtfilt
-from src.config import config_analysis, app_config
+from src.config import config_analysis, config_app
 from src.config.data_columns import PoseCols, VelocityCols, CornerVelocityCols
 
 # --- Module-level Helper Functions ---
@@ -55,7 +55,7 @@ class VelocityCalculator:
         self.use_vel_lpf = config_analysis.USE_VELOCITY_LOWPASS_FILTER
         self.vel_lpf_cutoff = config_analysis.VELOCITY_LPF_CUTOFF_HZ
         self.vel_lpf_order = config_analysis.VELOCITY_LPF_ORDER
-        self.local_box_corners = app_config.LOCAL_BOX_CORNERS
+        self.local_box_corners = config_app.LOCAL_BOX_CORNERS
 
     def _preprocess_pose_data(self, positions, quaternions, fs):
         """Pose 데이터(위치, 쿼터니언)에 필터와 스무딩을 적용합니다."""

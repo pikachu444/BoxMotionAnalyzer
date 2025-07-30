@@ -1,6 +1,7 @@
 import pandas as pd
 from PySide6.QtCore import QObject, Signal
-import app_config as config
+from src.config import config_app
+from src.config.data_columns import FACE_PREFIX_TO_INFO
 from analysis.slicer import Slicer
 from analysis.parser import Parser
 from analysis.smoother import MarkerSmoother
@@ -16,17 +17,17 @@ class PipelineController(QObject):
         super().__init__()
         # 파서 모듈은 MainApp에서도 사용되므로, 여기서는 초기화하지 않음.
         # 또는, 독립적인 인스턴스를 가질 수도 있음. 여기서는 후자를 가정.
-        self.parser = Parser(face_prefix_map=config.FACE_PREFIX_TO_INFO)
+        self.parser = Parser(face_prefix_map=FACE_PREFIX_TO_INFO)
         self.smoother = MarkerSmoother()
         self.pose_optimizer = PoseOptimizer(
-            box_dims=config.BOX_DIMS,
-            face_definitions=getattr(config, 'FACE_DEFINITIONS', {}),
-            local_box_corners=config.LOCAL_BOX_CORNERS
+            box_dims=config_app.BOX_DIMS,
+            face_definitions=getattr(config_app, 'FACE_DEFINITIONS', {}),
+            local_box_corners=config_app.LOCAL_BOX_CORNERS
         )
         self.velocity_calculator = VelocityCalculator()
         self.frame_analyzer = FrameAnalyzer(
-            vertical_axis_idx=config.WORLD_VERTICAL_AXIS_INDEX,
-            floor_level=config.FLOOR_LEVEL
+            vertical_axis_idx=config_app.WORLD_VERTICAL_AXIS_INDEX,
+            floor_level=config_app.FLOOR_LEVEL
         )
 
     def run_analysis(self, gui_config: dict, header_info: dict, raw_data: pd.DataFrame, parsed_data: pd.DataFrame = None):
