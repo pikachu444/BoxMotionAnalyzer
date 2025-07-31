@@ -38,6 +38,14 @@ CONVERSION_RULES = [
     (re.compile(f"^{VelocityCols.ANG_WX.replace('x', '')}(?P<axis>[xyz])$"),
      lambda m: (HeaderL1.VEL, HeaderL2.ANG, getattr(HeaderL3, f"W{m.group('axis').upper()}"))),
 
+    # 예시: 'CoM_Vx_Ana' -> ('Velocity', 'CoM', 'VX_Ana')
+    (re.compile(f"^{AnalysisCols.COM_VX_ANA.replace('x', '')[:-4]}(?P<axis>[xyz])_Ana$"),
+     lambda m: (HeaderL1.VEL, HeaderL2.COM, f"V{m.group('axis').upper()}_Ana")),
+
+    # 예시: 'AngVel_Wx_Ana' -> ('Velocity', 'Angular', 'WX_Ana')
+    (re.compile(f"^{AnalysisCols.ANG_WX_ANA.replace('x', '')[:-4]}(?P<axis>[xyz])_Ana$"),
+     lambda m: (HeaderL1.VEL, HeaderL2.ANG, f"W{m.group('axis').upper()}_Ana")),
+
     # 예시: 'C0_Vx' -> ('Velocity', 'C0', 'VX')
     (re.compile(r"^(?P<corner>C\d+)_V(?P<axis>[xyz])$"),
      lambda m: (HeaderL1.VEL, m.group('corner'), getattr(HeaderL3, f"V{m.group('axis').upper()}"))),
