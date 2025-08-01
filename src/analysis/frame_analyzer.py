@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from config.data_columns import PoseCols, VelocityCols, AnalysisCols
+from src.config.data_columns import PoseCols, VelocityCols, AnalysisCols
 
 
 class FrameAnalyzer:

@@ -1,0 +1,44 @@
+# CSV Export 멀티헤더 변경 계획
+
+이 문서는 기존의 단일 헤더 CSV를 3단계 멀티헤더로 변경하는 규칙을 정의합니다.
+
+## 멀티헤더 구조
+- **Level 1:** 데이터의 대분류 (예: Position, Velocity, Pose, Etc)
+- **Level 2:** 데이터의 출처 또는 대상 (예: RigidBody, B1, C0, CoM)
+- **Level 3:** 구체적인 측정값 (예: PX, PY, PZ, VX, FaceInfo)
+
+---
+
+## 변경 규칙 매핑
+
+| 원본 컬럼 Prefix/Pattern | Level 1  | Level 2          | Level 3        | 예시 (원본 -> 변경 후)                                     |
+|--------------------------|----------|------------------|----------------|------------------------------------------------------------|
+| `RigidBody_Position_`    | Position | RigidBody        | PX, PY, PZ     | `RigidBody_Position_X` -> ('Position', 'RigidBody', 'PX')    |
+| `(MarkerID)_`            | Position | (MarkerID)       | FaceInfo, PX, PY, PZ | `B1_X` -> ('Position', 'B1', 'PX')                         |
+|                          |          |                  |                | `B1_FaceInfo` -> ('Position', 'B1', 'FaceInfo')            |
+| `C(CornerID)_`           | Position | C(CornerID)      | PX, PY, PZ     | `C0_X` -> ('Position', 'C0', 'PX')                         |
+| `CoM_V`                  | Velocity | CoM              | VX, VY, VZ     | `CoM_Vx` -> ('Velocity', 'CoM', 'VX')                      |
+| `AngVel_W`               | Velocity | Angular          | WX, WY, WZ     | `AngVel_Wx` -> ('Velocity', 'Angular', 'WX')               |
+| `C(CornerID)_V`          | Velocity | C(CornerID)      | VX, VY, VZ     | `C0_Vx` -> ('Velocity', 'C0', 'VX')                      |
+| `Box_T`                  | Pose     | BoxTranslation   | TX, TY, TZ     | `Box_Tx` -> ('Pose', 'BoxTranslation', 'TX')               |
+| `Box_R`                  | Pose     | BoxRotation      | RX, RY, RZ     | `Box_Rx` -> ('Pose', 'BoxRotation', 'RX')                  |
+| `Floor_N_`               | Etc      | FloorNormal      | NX, NY, NZ     | `Floor_N_X_Ana` -> ('Etc', 'FloorNormal', 'NX')            |
+| `Floor_P_`               | Etc      | FloorPoint       | PX, PY, PZ     | `Floor_P_X_Ana` -> ('Etc', 'FloorPoint', 'PX')             |
+| `FrameNumber`            | Info     | Frame            | Number         | `FrameNumber` -> ('Info', 'Frame', 'Number')               |
+| `Time` (Index)           | Info     | Time             | s              | `Time` -> ('Info', 'Time', 's')                            |
+| `Pose_Source`            | Info     | Pose             | Source         | `Pose_Source` -> ('Info', 'Pose', 'Source')                |
+
+---
+
+## 약어 설명
+- **PX, PY, PZ:** Position X, Y, Z
+- **VX, VY, VZ:** Velocity X, Y, Z
+- **WX, WY, WZ:** Angular Velocity X, Y, Z
+- **TX, TY, TZ:** Translation X, Y, Z
+- **RX, RY, RZ:** Rotation X, Y, Z (Rotation Vector)
+- **NX, NY, NZ:** Normal Vector X, Y, Z
+
+## 구현 참고사항
+- `pandas.MultiIndex.from_tuples()`를 사용하여 튜플 리스트로부터 멀티 인덱스 컬럼을 생성할 수 있습니다.
+- 기존 컬럼명을 파싱하여 3단계 튜플로 변환하는 함수를 구현해야 합니다.
+- `main_app.py`의 `export_results` 함수에서 이 변환 로직을 적용하여 `to_csv()`를 호출합니다.

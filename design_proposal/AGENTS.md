@@ -59,3 +59,13 @@
   ```bash
   QT_QPA_PLATFORM=offscreen python src/main_app.py
   ```
+
+- **GUI 없이 Matplotlib 디버깅:** `PlotManager`와 같이 `matplotlib`에 깊이 의존하는 GUI 컴포넌트에서 런타임 오류가 발생하는 경우, GUI를 직접 실행하지 않고도 문제를 진단할 수 있습니다. `matplotlib`의 `Agg` 백엔드를 사용하면 화면에 창을 띄우지 않고 내부적으로만 플롯 객체를 생성하고 상태를 검사할 수 있습니다.
+
+  **사용법:**
+  테스트 스크립트 상단에 다음 코드를 추가하여 `Agg` 백엔드를 활성화합니다.
+  ```python
+  import matplotlib
+  matplotlib.use('Agg')
+  ```
+  이후, 테스트 코드 내에서 `PlotManager`와 같은 객체를 생성하고 관련 함수(`draw_plot` 등)를 호출하면, 실제 GUI 렌더링 없이도 객체 내부의 상태 변화(예: `self.annot` 객체의 유효성)를 추적하고 오류를 재현하여 원인을 파악할 수 있습니다. 이 방법은 코드의 논리적 흐름을 검증하고, 특히 `ax.clear()`와 같은 함수 호출 후 객체의 생명주기를 디버깅하는 데 매우 유용합니다.

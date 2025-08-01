@@ -14,9 +14,9 @@ from data_loader import DataLoader
 from plot_manager import PlotManager
 from pipeline_controller import PipelineController
 from data_selection_dialog import DataSelectionDialog
-import app_config as config
+from src.config import config_app
 from analysis.parser import Parser
-from config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols
+from src.config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO
 class PipelineWorker(QThread):
     def __init__(self, controller, config, header_info, raw_data, parsed_data):
         super().__init__()
@@ -37,7 +37,7 @@ class MainApp(QMainWindow):
         # 모듈 초기화
         self.data_loader = DataLoader()
         # MainApp이 미리보기 파싱을 위해 Parser 인스턴스를 가짐
-        self.parser = Parser(face_prefix_map=config.FACE_PREFIX_TO_INFO)
+        self.parser = Parser(face_prefix_map=FACE_PREFIX_TO_INFO)
         self.pipeline_controller = PipelineController()
 
         # 데이터 저장 변수
@@ -304,24 +304,26 @@ class MainApp(QMainWindow):
             # QLineEdit에 유효하지 않은 숫자(예: 문자)가 있을 경우 무시
             pass
 
+from src.header_converter import convert_to_multi_header
+
     def export_results(self):
-        """분석 완료된 데이터를 CSV 파일로 저장합니다."""
+        """분석 완료된 데이터를 멀티헤더 CSV 파일로 저장합니다."""
         if self.final_result is None or self.final_result.empty:
             self.statusBar().showMessage("No analysis result to export.")
             return
 
-        # QFileDialog를 사용하여 사용자에게 저장할 파일 경로를 묻습니다.
         filepath, _ = QFileDialog.getSaveFileName(
-            self,
-            "Export Results to CSV",
-            "",  # 기본 디렉토리
-            "CSV Files (*.csv)"
+            self, "Export Results to CSV", "", "CSV Files (*.csv)"
         )
 
         if filepath:
             try:
-                # DataFrame을 CSV로 저장합니다. index=True는 Time 인덱스를 파일에 포함시킵니다.
-                self.final_result.to_csv(filepath, index=True)
+                # 데이터프레임을 멀티헤더로 변환
+                export_df = convert_to_multi_header(self.final_result)
+
+                # 멀티헤더 DataFrame을 CSV로 저장
+                export_df.to_csv(filepath, index=False)
+
                 self.statusBar().showMessage(f"Results successfully exported to {filepath}")
                 self.log_output.append(f"[INFO] Results exported to {filepath}")
             except Exception as e:

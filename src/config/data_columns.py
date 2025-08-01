@@ -62,8 +62,8 @@ FACE_PREFIX_TO_INFO = {
     'L': 'Left',
     'R': 'Right',
     'T': 'Top',
-    'FA': 'Front-Aux',
-    'BA': 'Back-Aux'
+    'FA': 'Front',
+    'BA': 'Back'
 }
 
 @dataclass(frozen=True)
@@ -80,3 +80,51 @@ class AnalysisCols:
     FLOOR_P_X_ANA: str = "Floor_P_X_Ana"
     FLOOR_P_Y_ANA: str = "Floor_P_Y_Ana"
     FLOOR_P_Z_ANA: str = "Floor_P_Z_Ana"
+
+# --- Multi-Header Constants ---
+@dataclass(frozen=True)
+class HeaderL1:
+    POS: str = "Position"
+    VEL: str = "Velocity"
+    POSE: str = "Pose"
+    INFO: str = "Info"
+    ETC: str = "Etc"
+
+@dataclass(frozen=True)
+class HeaderL2:
+    RB: str = "RigidBody"
+    COM: str = "CoM"
+    ANG: str = "Angular"
+    BOX_T: str = "BoxTranslation"
+    BOX_R: str = "BoxRotation"
+    FLOOR_N: str = "FloorNormal"
+    FLOOR_P: str = "FloorPoint"
+    FRAME: str = "Frame"
+    TIME: str = "Time"
+    POSE_SRC: str = "Pose"
+    UNKNOWN: str = "Unknown"
+
+@dataclass(frozen=True)
+class HeaderL3:
+    PX: str = "PX"
+    PY: str = "PY"
+    PZ: str = "PZ"
+    VX: str = "VX"
+    VY: str = "VY"
+    VZ: str = "VZ"
+    WX: str = "WX"
+    WY: str = "WY"
+    WZ: str = "WZ"
+    TX: str = "TX"
+    TY: str = "TY"
+    TZ: str = "TZ"
+    RX: str = "RX"
+    RY: str = "RY"
+    RZ: str = "RZ"
+    NX: str = "NX"
+    NY: str = "NY"
+    NZ: str = "NZ"
+    FACE: str = "FaceInfo"
+    NUM: str = "Number"
+    SEC: str = "s"
+    SRC: str = "Source"

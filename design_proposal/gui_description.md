@@ -38,7 +38,7 @@
 여러 기능 그룹이 관련 설정들끼리 묶여 가로로 배치되어 있습니다.
 
 - **Plot Options (QGroupBox)**
-    - **`Select Data...` (QPushButton):** 분석할 특정 데이터 열을 선택하는 대화상자를 엽니다. (현재 앱에서는 플레이스홀더 기능)
+    - **`Select Data...` (QPushButton):** 그래프에 표시할 특정 마커 또는 Rigid Body Position을 선택하는 대화상자를 엽니다.
     - **선택된 데이터 (QLabel):** 선택된 데이터 열의 이름을 표시합니다.
     - **`Axis` (QComboBox):** 그래프에 표시할 기본 축을 선택합니다 (드롭다운 메뉴: `Position-X`, `Position-Y`, `Position-Z`).
 
