@@ -17,6 +17,8 @@ from data_selection_dialog import DataSelectionDialog
 from src.config import config_app
 from analysis.parser import Parser
 from src.config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO
+from src.header_converter import convert_to_multi_header
+
 class PipelineWorker(QThread):
     def __init__(self, controller, config, header_info, raw_data, parsed_data):
         super().__init__()
@@ -303,8 +305,6 @@ class MainApp(QMainWindow):
         except (ValueError, TypeError):
             # QLineEdit에 유효하지 않은 숫자(예: 문자)가 있을 경우 무시
             pass
-
-from src.header_converter import convert_to_multi_header
 
     def export_results(self):
         """분석 완료된 데이터를 멀티헤더 CSV 파일로 저장합니다."""

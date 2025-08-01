@@ -28,6 +28,9 @@ class SourceCols:
 
 @dataclass(frozen=True)
 class PoseCols:
+    T_PREFIX: str = "Box_T"
+    R_PREFIX: str = "Box_R"
+    Q_PREFIX: str = "Box_Q"
     POS_X: str = "Box_Tx"
     POS_Y: str = "Box_Ty"
     POS_Z: str = "Box_Tz"
@@ -41,6 +44,8 @@ class PoseCols:
 
 @dataclass(frozen=True)
 class VelocityCols:
+    COM_V_PREFIX: str = "CoM_V"
+    ANG_W_PREFIX: str = "AngVel_W"
     COM_VX: str = "CoM_Vx"
     COM_VY: str = "CoM_Vy"
     COM_VZ: str = "CoM_Vz"

@@ -15,12 +15,12 @@ def get_conversion_rules() -> list:
     # 1. 시스템 예약 접두사 목록 동적 생성 (마커 규칙의 예외 처리를 위해)
     # data_columns.py의 변수 값이 바뀌어도 자동으로 반영됨
     reserved_prefixes = [
-        PoseCols.POS_X.replace('x', ''),      # Box_T
-        PoseCols.ROT_X.replace('x', ''),      # Box_R
-        VelocityCols.COM_VX.replace('x', ''), # CoM_V
-        VelocityCols.ANG_WX.replace('x', ''), # AngVel_W
-        RigidBodyCols.BASE_NAME,              # RigidBody_Position
-        'C\\d+_V'                             # C0_V, C1_V...
+        PoseCols.T_PREFIX,
+        PoseCols.R_PREFIX,
+        VelocityCols.COM_V_PREFIX,
+        VelocityCols.ANG_W_PREFIX,
+        RigidBodyCols.BASE_NAME,
+        'C\\d+_V'  # Corner velocity
     ]
     # 정규식의 negative lookahead 패턴 생성: (?!Box_T|Box_R|...)
     exclusion_pattern = f"(?!{'|'.join(reserved_prefixes)})"
@@ -29,24 +29,24 @@ def get_conversion_rules() -> list:
     rules = [
         # --- Level 1: Pose ---
         # 예시: 'Box_Tx' -> ('Pose', 'BoxTranslation', 'TX')
-        (re.compile(f"^{PoseCols.POS_X.replace('x', '')}(?P<axis>[xyz])$"),
+        (re.compile(f"^{PoseCols.T_PREFIX}(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.POSE, HeaderL2.BOX_T, getattr(HeaderL3, f"T{m.group('axis').upper()}"))),
         # 예시: 'Box_Rx' -> ('Pose', 'BoxRotation', 'RX')
-        (re.compile(f"^{PoseCols.ROT_X.replace('x', '')}(?P<axis>[xyz])$"),
+        (re.compile(f"^{PoseCols.R_PREFIX}(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.POSE, HeaderL2.BOX_R, getattr(HeaderL3, f"R{m.group('axis').upper()}"))),
 
         # --- Level 1: Velocity ---
         # 예시: 'CoM_Vx' -> ('Velocity', 'CoM', 'VX')
-        (re.compile(f"^{VelocityCols.COM_VX.replace('x', '')}(?P<axis>[xyz])$"),
+        (re.compile(f"^{VelocityCols.COM_V_PREFIX}(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.VEL, HeaderL2.COM, getattr(HeaderL3, f"V{m.group('axis').upper()}"))),
         # 예시: 'AngVel_Wx' -> ('Velocity', 'Angular', 'WX')
-        (re.compile(f"^{VelocityCols.ANG_WX.replace('x', '')}(?P<axis>[xyz])$"),
+        (re.compile(f"^{VelocityCols.ANG_W_PREFIX}(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.VEL, HeaderL2.ANG, getattr(HeaderL3, f"W{m.group('axis').upper()}"))),
         # 예시: 'CoM_Vx_Ana' -> ('Velocity', 'CoM', 'VX_Ana')
-        (re.compile(f"^{AnalysisCols.COM_VX_ANA.replace('x', '')[:-4]}(?P<axis>[xyz])_Ana$"),
+        (re.compile(f"^{VelocityCols.COM_V_PREFIX}(?P<axis>[xyz])_Ana$"),
          lambda m: (HeaderL1.VEL, HeaderL2.COM, f"V{m.group('axis').upper()}_Ana")),
         # 예시: 'AngVel_Wx_Ana' -> ('Velocity', 'Angular', 'WX_Ana')
-        (re.compile(f"^{AnalysisCols.ANG_WX_ANA.replace('x', '')[:-4]}(?P<axis>[xyz])_Ana$"),
+        (re.compile(f"^{VelocityCols.ANG_W_PREFIX}(?P<axis>[xyz])_Ana$"),
          lambda m: (HeaderL1.VEL, HeaderL2.ANG, f"W{m.group('axis').upper()}_Ana")),
         # 예시: 'C0_Vx' -> ('Velocity', 'C0', 'VX')
         (re.compile(r"^(?P<corner>C\d+)_V(?P<axis>[xyz])$"),
@@ -59,13 +59,12 @@ def get_conversion_rules() -> list:
 
         # --- Level 1: Position (General Markers - with Safeguard) ---
         # 예시: 'C0_X', 'C7_Z' -> ('Position', 'C0', 'PX'), ('Position', 'C7', 'PZ')
-        # 안전장치: 'C'로 시작하고 숫자가 따라오는 형태는 시스템 예약어(C0_V 등)와 겹치지 않으므로 예외처리 불필요
         (re.compile(r"^(?P<marker>C\d+)_(?P<axis>[XYZ])$"),
          lambda m: (HeaderL1.POS, m.group('marker'), getattr(HeaderL3, f"P{m.group('axis')}"))),
-        # 예시: 'B2_X', 'F1_FaceInfo' -> ('Position', 'B2', 'PX'), ('Position', 'F1', 'FaceInfo')
-        # 안전장치: 시스템 예약어(Box_T, CoM_V 등)와 충돌 가능성이 있는 가장 일반적인 규칙.
-        # 동적으로 생성된 exclusion_pattern을 사용하여 시스템 예약어는 이 규칙에서 제외.
-        (re.compile(f"^{exclusion_pattern}(?P<marker>[A-Z0-9]+)_(?P<suffix>FaceInfo|X|Y|Z)$"),
+        # 예시: 'B2_X', 'F1_FaceInfo', 'F_Marker_3_Y'
+        # 안전장치: 시스템 예약어(Box_T 등)와 충돌하지 않도록 exclusion_pattern 사용
+        # 수정: 마커 이름에 '_'가 포함될 수 있도록 허용하고, non-greedy '.*?' 수량자를 사용하여 마지막 suffix만 구분
+        (re.compile(f"^{exclusion_pattern}(?P<marker>.*?)_(?P<suffix>FaceInfo|X|Y|Z)$"),
          lambda m: (HeaderL1.POS, m.group('marker'), HeaderL3.FACE if m.group('suffix') == 'FaceInfo' else getattr(HeaderL3, f"P{m.group('suffix')}"))),
 
         # --- Level 1: Etc ---
