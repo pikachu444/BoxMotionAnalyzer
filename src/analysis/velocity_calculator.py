@@ -150,5 +150,16 @@ class VelocityCalculator:
         for col, data in corner_velocities.items():
             result_df[col] = data
 
+        # 컬럼 순서 재배치
+        # 기존 컬럼 순서를 유지하되, norm 컬럼들을 각 벡터의 xyz 성분 뒤로 이동
+        cols = result_df.columns.tolist()
+        # COM_V_NORM 이동
+        cols.remove(VelocityCols.COM_V_NORM)
+        cols.insert(cols.index(VelocityCols.COM_VZ) + 1, VelocityCols.COM_V_NORM)
+        # ANG_W_NORM 이동
+        cols.remove(VelocityCols.ANG_W_NORM)
+        cols.insert(cols.index(VelocityCols.ANG_WZ) + 1, VelocityCols.ANG_W_NORM)
+        result_df = result_df[cols]
+
         print(f"[VelocityCalculator INFO] Finished processing {len(df)} frames.")
         return result_df

@@ -72,5 +72,17 @@ class FrameAnalyzer:
 
         result_df = df.join(transformed_data)
 
+        # 컬럼 순서 재배치
+        cols = result_df.columns.tolist()
+        # COM_V_NORM_ANA 이동
+        if AnalysisCols.COM_V_NORM_ANA in cols:
+            cols.remove(AnalysisCols.COM_V_NORM_ANA)
+            cols.insert(cols.index(AnalysisCols.COM_VZ_ANA) + 1, AnalysisCols.COM_V_NORM_ANA)
+        # ANG_W_NORM_ANA 이동
+        if AnalysisCols.ANG_W_NORM_ANA in cols:
+            cols.remove(AnalysisCols.ANG_W_NORM_ANA)
+            cols.insert(cols.index(AnalysisCols.ANG_WZ_ANA) + 1, AnalysisCols.ANG_W_NORM_ANA)
+        result_df = result_df[cols]
+
         print(f"[FrameAnalyzer INFO] Processed {len(df)} frames.")
         return result_df

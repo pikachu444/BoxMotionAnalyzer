@@ -137,4 +137,5 @@ class HeaderL3:
     NUM: str = "Number"
     SEC: str = "s"
     SRC: str = "Source"
-    NORM: str = "Norm"
+    NORM_V: str = "Norm_V"
+    NORM_W: str = "Norm_W"
