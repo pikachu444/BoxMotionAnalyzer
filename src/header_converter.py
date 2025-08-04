@@ -81,6 +81,11 @@ def get_conversion_rules() -> list:
         (re.compile(f"^{exclusion_pattern}(?P<marker>.*?)_(?P<suffix>FaceInfo|X|Y|Z)$"),
          lambda m: (HeaderL1.POS, m.group('marker'), HeaderL3.FACE if m.group('suffix') == 'FaceInfo' else getattr(HeaderL3, f"P{m.group('suffix')}"))),
 
+        # --- Level 1: Analysis ---
+        # 예시: 'C0_H_Ana' -> ('Analysis', 'C0', 'RelativeHeight')
+        (re.compile(r"^(?P<corner>C\d+)_H_Ana$"),
+         lambda m: (HeaderL1.ANALYSIS, m.group('corner'), HeaderL3.REL_H)),
+
         # --- Level 1: Etc ---
         # 예시: 'Floor_N_X_Ana' -> ('Etc', 'FloorNormal', 'NX')
         (re.compile(f"^{AnalysisCols.FLOOR_N_X_ANA.split('_')[0]}_N_(?P<axis>[XYZ])_Ana$"),

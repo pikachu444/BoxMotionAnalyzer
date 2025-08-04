@@ -7,9 +7,6 @@ class TimeCols:
 
 @dataclass(frozen=True)
 class RawMarkerCols:
-    # Example raw marker column name: F_Marker_1_X
-    # We will handle the dynamic part (e.g., "F_Marker_1") in the code,
-    # but define the suffixes.
     X_SUFFIX: str = "_X"
     Y_SUFFIX: str = "_Y"
     Z_SUFFIX: str = "_Z"
@@ -57,11 +54,36 @@ class VelocityCols:
 
 @dataclass(frozen=True)
 class CornerVelocityCols:
-    # Example corner velocity column: C0_Vx
-    # The prefix (e.g., "C0") will be generated dynamically.
     VX_SUFFIX: str = "_Vx"
     VY_SUFFIX: str = "_Vy"
     VZ_SUFFIX: str = "_Vz"
+
+@dataclass(frozen=True)
+class CornerCoordCols:
+    C0_X: str = "C0_X"
+    C0_Y: str = "C0_Y"
+    C0_Z: str = "C0_Z"
+    C1_X: str = "C1_X"
+    C1_Y: str = "C1_Y"
+    C1_Z: str = "C1_Z"
+    C2_X: str = "C2_X"
+    C2_Y: str = "C2_Y"
+    C2_Z: str = "C2_Z"
+    C3_X: str = "C3_X"
+    C3_Y: str = "C3_Y"
+    C3_Z: str = "C3_Z"
+    C4_X: str = "C4_X"
+    C4_Y: str = "C4_Y"
+    C4_Z: str = "C4_Z"
+    C5_X: str = "C5_X"
+    C5_Y: str = "C5_Y"
+    C5_Z: str = "C5_Z"
+    C6_X: str = "C6_X"
+    C6_Y: str = "C6_Y"
+    C6_Z: str = "C6_Z"
+    C7_X: str = "C7_X"
+    C7_Y: str = "C7_Y"
+    C7_Z: str = "C7_Z"
 
 FACE_PREFIX_TO_INFO = {
     'F': 'Front',
@@ -90,6 +112,17 @@ class AnalysisCols:
     FLOOR_P_Y_ANA: str = "Floor_P_Y_Ana"
     FLOOR_P_Z_ANA: str = "Floor_P_Z_Ana"
 
+@dataclass(frozen=True)
+class RelativeHeightCols:
+    C0_H_ANA: str = "C0_H_Ana"
+    C1_H_ANA: str = "C1_H_Ana"
+    C2_H_ANA: str = "C2_H_Ana"
+    C3_H_ANA: str = "C3_H_Ana"
+    C4_H_ANA: str = "C4_H_Ana"
+    C5_H_ANA: str = "C5_H_Ana"
+    C6_H_ANA: str = "C6_H_Ana"
+    C7_H_ANA: str = "C7_H_Ana"
+
 # --- Multi-Header Constants ---
 @dataclass(frozen=True)
 class HeaderL1:
@@ -98,6 +131,7 @@ class HeaderL1:
     POSE: str = "Pose"
     INFO: str = "Info"
     ETC: str = "Etc"
+    ANALYSIS: str = "Analysis"
 
 @dataclass(frozen=True)
 class HeaderL2:
@@ -139,3 +173,4 @@ class HeaderL3:
     SRC: str = "Source"
     NORM_V: str = "Norm_V"
     NORM_W: str = "Norm_W"
+    REL_H: str = "RelativeHeight"
