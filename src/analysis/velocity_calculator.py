@@ -107,9 +107,9 @@ class VelocityCalculator:
             r_world_from_com = rotations.apply(r_local)
             corner_vel = v_com + np.cross(ang_vel, r_world_from_com)
 
-            corner_velocities_data[f'C{c_idx}{CornerVelocityCols.VX_SUFFIX}'] = corner_vel[:, 0]
-            corner_velocities_data[f'C{c_idx}{CornerVelocityCols.VY_SUFFIX}'] = corner_vel[:, 1]
-            corner_velocities_data[f'C{c_idx}{CornerVelocityCols.VZ_SUFFIX}'] = corner_vel[:, 2]
+            corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.VX_SUFFIX}'] = corner_vel[:, 0]
+            corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.VY_SUFFIX}'] = corner_vel[:, 1]
+            corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.VZ_SUFFIX}'] = corner_vel[:, 2]
         return corner_velocities_data
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:

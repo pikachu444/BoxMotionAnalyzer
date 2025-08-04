@@ -4,7 +4,7 @@ from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation as R
 from typing import Any
 from src.config import config_analysis
-from src.config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCols
+from src.config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCols, CornerCoordCols
 
 # [병렬 처리 참고]
 # 이 함수들은 PoseOptimizer 클래스 외부에 정의되어야 합니다.
@@ -174,7 +174,10 @@ class PoseOptimizer:
             res_row[SourceCols.POSE] = "Optimized" if result.success else "OptimizationFailed"
 
             for i_corner, corner_coords in enumerate(world_corners):
-                res_row[f'C{i_corner}_X'], res_row[f'C{i_corner}_Y'], res_row[f'C{i_corner}_Z'] = corner_coords
+                corner_num = i_corner + 1
+                res_row[getattr(CornerCoordCols, f'C{corner_num}_X')] = corner_coords[0]
+                res_row[getattr(CornerCoordCols, f'C{corner_num}_Y')] = corner_coords[1]
+                res_row[getattr(CornerCoordCols, f'C{corner_num}_Z')] = corner_coords[2]
 
             results.append(res_row)
             previous_optimized_params = optimized_params if result.success else None

@@ -54,15 +54,33 @@ class VelocityCols:
 
 @dataclass(frozen=True)
 class CornerVelocityCols:
-    VX_SUFFIX: str = "_Vx"
-    VY_SUFFIX: str = "_Vy"
-    VZ_SUFFIX: str = "_Vz"
+    C1_VX: str = "C1_Vx"
+    C1_VY: str = "C1_Vy"
+    C1_VZ: str = "C1_Vz"
+    C2_VX: str = "C2_Vx"
+    C2_VY: str = "C2_Vy"
+    C2_VZ: str = "C2_Vz"
+    C3_VX: str = "C3_Vx"
+    C3_VY: str = "C3_Vy"
+    C3_VZ: str = "C3_Vz"
+    C4_VX: str = "C4_Vx"
+    C4_VY: str = "C4_Vy"
+    C4_VZ: str = "C4_Vz"
+    C5_VX: str = "C5_Vx"
+    C5_VY: str = "C5_Vy"
+    C5_VZ: str = "C5_Vz"
+    C6_VX: str = "C6_Vx"
+    C6_VY: str = "C6_Vy"
+    C6_VZ: str = "C6_Vz"
+    C7_VX: str = "C7_Vx"
+    C7_VY: str = "C7_Vy"
+    C7_VZ: str = "C7_Vz"
+    C8_VX: str = "C8_Vx"
+    C8_VY: str = "C8_Vy"
+    C8_VZ: str = "C8_Vz"
 
 @dataclass(frozen=True)
 class CornerCoordCols:
-    C0_X: str = "C0_X"
-    C0_Y: str = "C0_Y"
-    C0_Z: str = "C0_Z"
     C1_X: str = "C1_X"
     C1_Y: str = "C1_Y"
     C1_Z: str = "C1_Z"
@@ -84,6 +102,9 @@ class CornerCoordCols:
     C7_X: str = "C7_X"
     C7_Y: str = "C7_Y"
     C7_Z: str = "C7_Z"
+    C8_X: str = "C8_X"
+    C8_Y: str = "C8_Y"
+    C8_Z: str = "C8_Z"
 
 FACE_PREFIX_TO_INFO = {
     'F': 'Front',
@@ -114,7 +135,6 @@ class AnalysisCols:
 
 @dataclass(frozen=True)
 class RelativeHeightCols:
-    C0_H_ANA: str = "C0_H_Ana"
     C1_H_ANA: str = "C1_H_Ana"
     C2_H_ANA: str = "C2_H_Ana"
     C3_H_ANA: str = "C3_H_Ana"
@@ -122,6 +142,7 @@ class RelativeHeightCols:
     C5_H_ANA: str = "C5_H_Ana"
     C6_H_ANA: str = "C6_H_Ana"
     C7_H_ANA: str = "C7_H_Ana"
+    C8_H_ANA: str = "C8_H_Ana"
 
 # --- Multi-Header Constants ---
 @dataclass(frozen=True)
