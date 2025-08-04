@@ -48,9 +48,14 @@ class FrameAnalyzer:
         n_floor_ana = R_lab_to_ana @ n_floor_lab
         p_floor_ana = R_lab_to_ana @ (p_floor_lab - T_box_lab)
 
+        v_com_norm_ana = np.linalg.norm(v_com_ana)
+        omega_norm_ana = np.linalg.norm(omega_ana)
+
         result_data = {
             AnalysisCols.COM_VX_ANA: v_com_ana[0], AnalysisCols.COM_VY_ANA: v_com_ana[1], AnalysisCols.COM_VZ_ANA: v_com_ana[2],
             AnalysisCols.ANG_WX_ANA: omega_ana[0], AnalysisCols.ANG_WY_ANA: omega_ana[1], AnalysisCols.ANG_WZ_ANA: omega_ana[2],
+            AnalysisCols.COM_V_NORM_ANA: v_com_norm_ana,
+            AnalysisCols.ANG_W_NORM_ANA: omega_norm_ana,
             AnalysisCols.FLOOR_N_X_ANA: n_floor_ana[0], AnalysisCols.FLOOR_N_Y_ANA: n_floor_ana[1], AnalysisCols.FLOOR_N_Z_ANA: n_floor_ana[2],
             AnalysisCols.FLOOR_P_X_ANA: p_floor_ana[0], AnalysisCols.FLOOR_P_Y_ANA: p_floor_ana[1], AnalysisCols.FLOOR_P_Z_ANA: p_floor_ana[2],
         }

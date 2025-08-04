@@ -133,9 +133,15 @@ class VelocityCalculator:
         v_com, ang_vel = self._calculate_velocities(positions, quaternions, time_s)
         v_com, ang_vel = self._postprocess_velocities(v_com, ang_vel, fs)
 
+        # Norm 계산
+        com_v_norm = np.linalg.norm(v_com, axis=1)
+        ang_w_norm = np.linalg.norm(ang_vel, axis=1)
+
         # 결과를 numpy 배열로 DataFrame에 할당
         result_df[[VelocityCols.COM_VX, VelocityCols.COM_VY, VelocityCols.COM_VZ]] = v_com
         result_df[[VelocityCols.ANG_WX, VelocityCols.ANG_WY, VelocityCols.ANG_WZ]] = ang_vel
+        result_df[VelocityCols.COM_V_NORM] = com_v_norm
+        result_df[VelocityCols.ANG_W_NORM] = ang_w_norm
 
         # numpy 배열을 사용하여 꼭짓점 속도 계산
         corner_velocities = self._calculate_corner_velocities(v_com, ang_vel, quaternions)

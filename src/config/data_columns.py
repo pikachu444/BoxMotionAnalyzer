@@ -52,6 +52,8 @@ class VelocityCols:
     ANG_WX: str = "AngVel_Wx"
     ANG_WY: str = "AngVel_Wy"
     ANG_WZ: str = "AngVel_Wz"
+    COM_V_NORM: str = "CoM_V_Norm"
+    ANG_W_NORM: str = "AngVel_W_Norm"
 
 @dataclass(frozen=True)
 class CornerVelocityCols:
@@ -79,6 +81,8 @@ class AnalysisCols:
     ANG_WX_ANA: str = "AngVel_Wx_Ana"
     ANG_WY_ANA: str = "AngVel_Wy_Ana"
     ANG_WZ_ANA: str = "AngVel_Wz_Ana"
+    COM_V_NORM_ANA: str = "CoM_V_Norm_Ana"
+    ANG_W_NORM_ANA: str = "AngVel_W_Norm_Ana"
     FLOOR_N_X_ANA: str = "Floor_N_X_Ana"
     FLOOR_N_Y_ANA: str = "Floor_N_Y_Ana"
     FLOOR_N_Z_ANA: str = "Floor_N_Z_Ana"
@@ -133,3 +137,4 @@ class HeaderL3:
     NUM: str = "Number"
     SEC: str = "s"
     SRC: str = "Source"
+    NORM: str = "Norm"
