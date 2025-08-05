@@ -11,22 +11,22 @@
 
 ## 변경 규칙 매핑
 
-| 원본 컬럼 Prefix/Pattern | Level 1  | Level 2          | Level 3        | 예시 (원본 -> 변경 후)                                     |
-|--------------------------|----------|------------------|----------------|------------------------------------------------------------|
-| `RigidBody_Position_`    | Position | RigidBody        | PX, PY, PZ     | `RigidBody_Position_X` -> ('Position', 'RigidBody', 'PX')    |
+| 원본 컬럼 Prefix/Pattern    | Level 1  | Level 2          | Level 3              | 예시 (원본 -> 변경 후)                                          |
+|--------------------------|----------|------------------|----------------------|------------------------------------------------------------|
+| `RigidBody_Position_`    | Position | RigidBody        | PX, PY, PZ           | `RigidBody_Position_X` -> ('Position', 'RigidBody', 'PX')  |
 | `(MarkerID)_`            | Position | (MarkerID)       | FaceInfo, PX, PY, PZ | `B1_X` -> ('Position', 'B1', 'PX')                         |
-|                          |          |                  |                | `B1_FaceInfo` -> ('Position', 'B1', 'FaceInfo')            |
-| `C(CornerID)_`           | Position | C(CornerID)      | PX, PY, PZ     | `C0_X` -> ('Position', 'C0', 'PX')                         |
-| `CoM_V`                  | Velocity | CoM              | VX, VY, VZ     | `CoM_Vx` -> ('Velocity', 'CoM', 'VX')                      |
-| `AngVel_W`               | Velocity | Angular          | WX, WY, WZ     | `AngVel_Wx` -> ('Velocity', 'Angular', 'WX')               |
-| `C(CornerID)_V`          | Velocity | C(CornerID)      | VX, VY, VZ     | `C0_Vx` -> ('Velocity', 'C0', 'VX')                      |
-| `Box_T`                  | Pose     | BoxTranslation   | TX, TY, TZ     | `Box_Tx` -> ('Pose', 'BoxTranslation', 'TX')               |
-| `Box_R`                  | Pose     | BoxRotation      | RX, RY, RZ     | `Box_Rx` -> ('Pose', 'BoxRotation', 'RX')                  |
-| `Floor_N_`               | Etc      | FloorNormal      | NX, NY, NZ     | `Floor_N_X_Ana` -> ('Etc', 'FloorNormal', 'NX')            |
-| `Floor_P_`               | Etc      | FloorPoint       | PX, PY, PZ     | `Floor_P_X_Ana` -> ('Etc', 'FloorPoint', 'PX')             |
-| `FrameNumber`            | Info     | Frame            | Number         | `FrameNumber` -> ('Info', 'Frame', 'Number')               |
-| `Time` (Index)           | Info     | Time             | s              | `Time` -> ('Info', 'Time', 's')                            |
-| `Pose_Source`            | Info     | Pose             | Source         | `Pose_Source` -> ('Info', 'Pose', 'Source')                |
+|                          |          |                  |                      | `B1_FaceInfo` -> ('Position', 'B1', 'FaceInfo')            |
+| `C(CornerID)_`           | Position | C(CornerID)      | PX, PY, PZ           | `C0_X` -> ('Position', 'C0', 'PX')                         |
+| `CoM_V`                  | Velocity | CoM              | VX, VY, VZ           | `CoM_Vx` -> ('Velocity', 'CoM', 'VX')                      |
+| `AngVel_W`               | Velocity | Angular          | WX, WY, WZ           | `AngVel_Wx` -> ('Velocity', 'Angular', 'WX')               |
+| `C(CornerID)_V`          | Velocity | C(CornerID)      | VX, VY, VZ           | `C0_Vx` -> ('Velocity', 'C0', 'VX')                        |
+| `Box_T`                  | Pose     | BoxTranslation   | TX, TY, TZ           | `Box_Tx` -> ('Pose', 'BoxTranslation', 'TX')               |
+| `Box_R`                  | Pose     | BoxRotation      | RX, RY, RZ           | `Box_Rx` -> ('Pose', 'BoxRotation', 'RX')                  |
+| `Floor_N_`               | Etc      | FloorNormal      | NX, NY, NZ           | `Floor_N_X_Ana` -> ('Etc', 'FloorNormal', 'NX')            |
+| `Floor_P_`               | Etc      | FloorPoint       | PX, PY, PZ           | `Floor_P_X_Ana` -> ('Etc', 'FloorPoint', 'PX')             |
+| `FrameNumber`            | Info     | Frame            | Number               | `FrameNumber` -> ('Info', 'Frame', 'Number')               |
+| `Time` (Index)           | Info     | Time             | s                    | `Time` -> ('Info', 'Time', 's')                            |
+| `Pose_Source`            | Info     | Pose             | Source               | `Pose_Source` -> ('Info', 'Pose', 'Source')                |
 
 ---
 
