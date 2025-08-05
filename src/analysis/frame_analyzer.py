@@ -16,10 +16,15 @@ class FrameAnalyzer:
         """
         self.vertical_axis_idx = vertical_axis_idx
         self.floor_level = floor_level
-        # C1..C8에 대한 수직축 컬럼 이름 리스트를 동적으로 생성
+
+        # --- 상대 높이 계산에 필요한 컬럼 이름 리스트를 동적으로 생성 ---
+        # 수직축에 해당하는 suffix (_X, _Y, _Z)를 가져옴
         axis_suffix = [CornerCoordCols.X_SUFFIX, CornerCoordCols.Y_SUFFIX, CornerCoordCols.Z_SUFFIX][self.vertical_axis_idx]
+        # 8개 코너의 수직 좌표 컬럼 이름 목록 (예: ['C1_Y', 'C2_Y', ...])
         self.corner_vertical_coord_cols = [f'C{i+1}{axis_suffix}' for i in range(8)]
+        # 8개 코너의 상대 높이 결과 컬럼 이름 목록 (예: ['C1_H_Ana', 'C2_H_Ana', ...])
         self.relative_height_cols = [f'C{i+1}{RelativeHeightCols.H_ANA_SUFFIX}' for i in range(8)]
+
 
     def _transform_coordinates(self, frame_row: pd.Series, R_lab_to_ana: R, T_box_lab: np.ndarray) -> dict:
         """기존의 운동학 데이터를 분석 좌표계로 변환합니다."""
@@ -54,10 +59,8 @@ class FrameAnalyzer:
         min_corner_height = np.min(vertical_coords)
 
         if min_corner_height <= self.floor_level:
-            # 박스가 바닥에 닿거나 파고든 경우: 가장 낮은 지점을 0으로 하는 상대 높이
             relative_heights = vertical_coords - min_corner_height
         else:
-            # 박스가 바닥 위에 완전히 떠 있는 경우: 원래의 절대 높이
             relative_heights = vertical_coords
 
         return dict(zip(self.relative_height_cols, relative_heights))
@@ -71,12 +74,9 @@ class FrameAnalyzer:
         except (KeyError, ValueError):
             return pd.Series(dtype=object)
 
-        # 1. 좌표계 변환
         transformed_data = self._transform_coordinates(frame_row, R_lab_to_ana, T_box_lab)
-        # 2. 상대 높이 계산
         relative_height_data = self._calculate_relative_heights(frame_row)
 
-        # 3. 결과 병합
         all_results = {**transformed_data, **relative_height_data}
         return pd.Series(all_results)
 
@@ -86,17 +86,25 @@ class FrameAnalyzer:
         """
         # --- 입력 데이터 검증 (Guard Clause) ---
         # 이 분석 모듈이 실행되기 위해 필요한 모든 컬럼이 데이터프레임에 있는지 동적으로 확인합니다.
-        # data_columns.py에 정의된 클래스들을 순회하며, '_SUFFIX'나 '_PREFIX'로 끝나지 않는
-        # 실제 컬럼 이름들만 추출하여 필수 컬럼 리스트를 생성합니다.
         required_cols = []
-        for col_class in [PoseCols, VelocityCols, CornerCoordCols]:
+        # 1. Pose와 Velocity 컬럼 추가 (헬퍼 변수 제외)
+        for col_class in [PoseCols, VelocityCols]:
             for attr_name in col_class.__annotations__:
                 if not attr_name.endswith(('_PREFIX', '_SUFFIX')):
                     required_cols.append(getattr(col_class, attr_name))
 
+        # 2. 24개의 코너 좌표 컬럼 이름 동적 생성 및 추가
+        for i in range(8):
+            corner_num = i + 1
+            required_cols.append(f'C{corner_num}{CornerCoordCols.X_SUFFIX}')
+            required_cols.append(f'C{corner_num}{CornerCoordCols.Y_SUFFIX}')
+            required_cols.append(f'C{corner_num}{CornerCoordCols.Z_SUFFIX}')
+
+        # 3. 필수 컬럼 중 실제 데이터프레임에 없는 컬럼들을 찾음
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
-            print(f"[FrameAnalyzer ERROR] Missing required input columns: {missing_cols}")
+            # 누락된 컬럼이 있으면, 명확한 에러 메시지를 출력하고 분석을 중단
+            print(f"[FrameAnalyzer ERROR] Missing required input columns: {sorted(missing_cols)}")
             return df
 
         # `apply`를 사용하여 각 행에 대해 process_frame 함수를 실행
