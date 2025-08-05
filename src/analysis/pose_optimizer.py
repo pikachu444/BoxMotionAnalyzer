@@ -175,9 +175,9 @@ class PoseOptimizer:
 
             for i_corner, corner_coords in enumerate(world_corners):
                 corner_num = i_corner + 1
-                res_row[getattr(CornerCoordCols, f'C{corner_num}_X')] = corner_coords[0]
-                res_row[getattr(CornerCoordCols, f'C{corner_num}_Y')] = corner_coords[1]
-                res_row[getattr(CornerCoordCols, f'C{corner_num}_Z')] = corner_coords[2]
+                res_row[f'C{corner_num}{CornerCoordCols.X_SUFFIX}'] = corner_coords[0]
+                res_row[f'C{corner_num}{CornerCoordCols.Y_SUFFIX}'] = corner_coords[1]
+                res_row[f'C{corner_num}{CornerCoordCols.Z_SUFFIX}'] = corner_coords[2]
 
             results.append(res_row)
             previous_optimized_params = optimized_params if result.success else None

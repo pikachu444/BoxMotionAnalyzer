@@ -16,8 +16,10 @@ class FrameAnalyzer:
         """
         self.vertical_axis_idx = vertical_axis_idx
         self.floor_level = floor_level
-        self.corner_coord_cols = [getattr(CornerCoordCols, f) for f in dir(CornerCoordCols) if f.startswith('C')]
-        self.relative_height_cols = [getattr(RelativeHeightCols, f) for f in dir(RelativeHeightCols) if f.startswith('C')]
+        # C1..C8에 대한 수직축 컬럼 이름 리스트를 동적으로 생성
+        axis_suffix = [CornerCoordCols.X_SUFFIX, CornerCoordCols.Y_SUFFIX, CornerCoordCols.Z_SUFFIX][self.vertical_axis_idx]
+        self.corner_vertical_coord_cols = [f'C{i+1}{axis_suffix}' for i in range(8)]
+        self.relative_height_cols = [f'C{i+1}{RelativeHeightCols.H_ANA_SUFFIX}' for i in range(8)]
 
     def _transform_coordinates(self, frame_row: pd.Series, R_lab_to_ana: R, T_box_lab: np.ndarray) -> dict:
         """기존의 운동학 데이터를 분석 좌표계로 변환합니다."""
@@ -48,8 +50,7 @@ class FrameAnalyzer:
 
     def _calculate_relative_heights(self, frame_row: pd.Series) -> dict:
         """8개 코너의 상대 높이를 계산합니다."""
-        corner_coords = frame_row[self.corner_coord_cols].values.reshape(8, 3)
-        vertical_coords = corner_coords[:, self.vertical_axis_idx]
+        vertical_coords = frame_row[self.corner_vertical_coord_cols].values.astype(float)
         min_corner_height = np.min(vertical_coords)
 
         if min_corner_height <= self.floor_level:
