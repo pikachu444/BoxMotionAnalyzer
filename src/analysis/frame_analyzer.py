@@ -84,7 +84,19 @@ class FrameAnalyzer:
         """
         입력된 DataFrame의 모든 프레임에 대해 분석을 수행합니다.
         """
-        if df.empty or VelocityCols.COM_VX not in df.columns or CornerCoordCols.C7_Z not in df.columns:
+        # --- 입력 데이터 검증 (Guard Clause) ---
+        # 이 분석 모듈이 실행되기 위해 필요한 모든 컬럼이 데이터프레임에 있는지 동적으로 확인합니다.
+        # data_columns.py에 정의된 클래스들을 순회하며, '_SUFFIX'나 '_PREFIX'로 끝나지 않는
+        # 실제 컬럼 이름들만 추출하여 필수 컬럼 리스트를 생성합니다.
+        required_cols = []
+        for col_class in [PoseCols, VelocityCols, CornerCoordCols]:
+            for attr_name in col_class.__annotations__:
+                if not attr_name.endswith(('_PREFIX', '_SUFFIX')):
+                    required_cols.append(getattr(col_class, attr_name))
+
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            print(f"[FrameAnalyzer ERROR] Missing required input columns: {missing_cols}")
             return df
 
         # `apply`를 사용하여 각 행에 대해 process_frame 함수를 실행
