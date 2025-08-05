@@ -27,17 +27,12 @@ class SourceCols:
 class PoseCols:
     T_PREFIX: str = "Box_T"
     R_PREFIX: str = "Box_R"
-    Q_PREFIX: str = "Box_Q"
     POS_X: str = "Box_Tx"
     POS_Y: str = "Box_Ty"
     POS_Z: str = "Box_Tz"
     ROT_X: str = "Box_Rx"
     ROT_Y: str = "Box_Ry"
     ROT_Z: str = "Box_Rz"
-    QUAT_X: str = "Box_Qx"
-    QUAT_Y: str = "Box_Qy"
-    QUAT_Z: str = "Box_Qz"
-    QUAT_W: str = "Box_Qw"
 
 @dataclass(frozen=True)
 class VelocityCols:

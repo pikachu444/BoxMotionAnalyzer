@@ -2,7 +2,9 @@ import pandas as pd
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from src.config.data_columns import PoseCols, VelocityCols, AnalysisCols, CornerCoordCols, RelativeHeightCols
+from src.config.data_columns import (
+    PoseCols, VelocityCols, AnalysisCols, CornerCoordCols, RelativeHeightCols
+)
 
 
 class FrameAnalyzer:
@@ -87,7 +89,7 @@ class FrameAnalyzer:
         # --- 입력 데이터 검증 (Guard Clause) ---
         # 이 분석 모듈이 실행되기 위해 필요한 모든 컬럼이 데이터프레임에 있는지 동적으로 확인합니다.
         required_cols = []
-        # 1. Pose와 Velocity 컬럼 추가 (헬퍼 변수 제외)
+        # 1. Pose(위치/회전)와 Velocity 컬럼 추가 (헬퍼 변수는 제외)
         for col_class in [PoseCols, VelocityCols]:
             for attr_name in col_class.__annotations__:
                 if not attr_name.endswith(('_PREFIX', '_SUFFIX')):
