@@ -16,7 +16,10 @@ from src.pipeline_controller import PipelineController
 from src.data_selection_dialog import DataSelectionDialog
 from src.config import config_app
 from src.analysis.parser import Parser
-from src.config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO
+from src.config.data_columns import (
+    PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO,
+    DisplayNames
+)
 from src.header_converter import convert_to_multi_header
 
 class PipelineWorker(QThread):
@@ -174,14 +177,13 @@ class MainApp(QMainWindow):
                 # -----------------------------------------------------------------
                 # 1. 플로팅 가능한 전체 대상 목록을 가져옵니다.
                 all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
-                default_target = "Rigid Body Center"
 
-                # 2. 방어 코드: 기본 선택 대상이 목록에 있는지 확인합니다.
-                if default_target in all_targets:
+                # 2. 방어 코드: 기본 선택 대상(DisplayNames.RB_CENTER)이 목록에 있는지 확인합니다.
+                if DisplayNames.RB_CENTER in all_targets:
                     # 3. 기본 대상을 현재 선택된 항목으로 설정하고, UI 라벨도 업데이트합니다.
-                    self.current_selected_targets = [default_target]
-                    self.selected_data_label.setText(f"Selected: {default_target}")
-                    self.log_output.append(f"[INFO] Default target '{default_target}' selected for plotting.")
+                    self.current_selected_targets = [DisplayNames.RB_CENTER]
+                    self.selected_data_label.setText(f"Selected: {DisplayNames.RB_CENTER}")
+                    self.log_output.append(f"[INFO] Default target '{DisplayNames.RB_CENTER}' selected for plotting.")
                 # =================================================================
 
                 self.update_plot()
@@ -258,15 +260,12 @@ class MainApp(QMainWindow):
                 # 사용자가 선택한 '표시용 이름'을 데이터프레임의 실제 '기본 이름'으로 역변환합니다.
                 # 이 로직은 data_loader.get_plottable_targets의 이름 생성 규칙과 반드시 동기화되어야 합니다.
                 base_name = None
-                rb_center_name = "Rigid Body Center"
-                marker_prefix = "Marker "
-
-                if target == rb_center_name:
+                if target == DisplayNames.RB_CENTER:
                     # 'Rigid Body Center' -> 'RigidBody_Position'
                     base_name = RigidBodyCols.BASE_NAME
-                elif target.startswith(marker_prefix):
+                elif target.startswith(DisplayNames.MARKER_PREFIX):
                     # 'Marker B1' -> 'B1'
-                    base_name = target.replace(marker_prefix, '')
+                    base_name = target.replace(DisplayNames.MARKER_PREFIX, '')
                 else:
                     # 기타 (예: 레거시 이름)는 그대로 사용
                     base_name = target

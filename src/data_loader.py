@@ -1,6 +1,6 @@
 import pandas as pd
 import csv
-from src.config.data_columns import TimeCols, RawMarkerCols
+from src.config.data_columns import TimeCols, RawMarkerCols, RigidBodyCols, DisplayNames
 
 class DataLoader:
     def load_csv(self, filepath: str) -> tuple[dict[str, list[str]], pd.DataFrame]:
@@ -91,13 +91,9 @@ class DataLoader:
         final_targets = []
 
         # 2a. 'RigidBody_Position'이 있으면, 'Rigid Body Center'로 이름을 바꿔 최상단에 위치시킵니다.
-        #     'RigidBodyCols.BASE_NAME'은 'RigidBody_Position' 상수를 가리킵니다.
-        rb_center_name = "Rigid Body Center"
-        rb_base_name = "RigidBody_Position" # data_columns에 정의된 상수 대신 문자열 리터럴 사용
-
-        if rb_base_name in base_names:
-            final_targets.append(rb_center_name)
-            base_names.remove(rb_base_name) # 나머지 마커 목록과 중복되지 않도록 제거
+        if RigidBodyCols.BASE_NAME in base_names:
+            final_targets.append(DisplayNames.RB_CENTER)
+            base_names.remove(RigidBodyCols.BASE_NAME) # 나머지 마커 목록과 중복되지 않도록 제거
 
         # 2b. 나머지 타겟(마커)들은 이름 앞에 'Marker '를 붙이고, 알파벳 순으로 정렬합니다.
         #     ':'가 포함된 이름은 레거시 또는 다른 종류의 마커일 수 있으므로, 예외적으로 그대로 둡니다.
@@ -106,7 +102,7 @@ class DataLoader:
             if ':' in name:
                 marker_targets.append(name)
             else:
-                marker_targets.append(f"Marker {name}")
+                marker_targets.append(f"{DisplayNames.MARKER_PREFIX}{name}")
 
         # 2c. 'Rigid Body Center'와 정렬된 마커 목록을 합칩니다.
         final_targets.extend(marker_targets)

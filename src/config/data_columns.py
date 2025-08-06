@@ -90,6 +90,12 @@ class AnalysisCols:
 class RelativeHeightCols:
     H_ANA_SUFFIX: str = "_H_Ana"
 
+# --- GUI Display Name Constants ---
+@dataclass(frozen=True)
+class DisplayNames:
+    RB_CENTER: str = "Rigid Body Center"
+    MARKER_PREFIX: str = "Marker "
+
 # --- Multi-Header Constants ---
 @dataclass(frozen=True)
 class HeaderL1:
