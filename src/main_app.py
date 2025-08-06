@@ -10,12 +10,12 @@ matplotlib.use('QtAgg')
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from data_loader import DataLoader
-from plot_manager import PlotManager
-from pipeline_controller import PipelineController
-from data_selection_dialog import DataSelectionDialog
+from src.data_loader import DataLoader
+from src.plot_manager import PlotManager
+from src.pipeline_controller import PipelineController
+from src.data_selection_dialog import DataSelectionDialog
 from src.config import config_app
-from analysis.parser import Parser
+from src.analysis.parser import Parser
 from src.config.data_columns import PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO
 from src.header_converter import convert_to_multi_header
 
@@ -167,6 +167,22 @@ class MainApp(QMainWindow):
                 # 미리보기용으로 즉시 파싱하고 결과를 캐시에 저장
                 self.parsed_data = self.parser.process(self.header_info, self.raw_data)
                 self.log_output.append("[INFO] Preview parsing complete.")
+
+                # =================================================================
+                # UX 개선: CSV 로드 후, 기본값으로 'Rigid Body Center'를 자동 선택하여 플로팅합니다.
+                # 이렇게 하면 사용자가 파일을 로드한 직후 빈 그래프를 보지 않게 됩니다.
+                # -----------------------------------------------------------------
+                # 1. 플로팅 가능한 전체 대상 목록을 가져옵니다.
+                all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
+                default_target = "Rigid Body Center"
+
+                # 2. 방어 코드: 기본 선택 대상이 목록에 있는지 확인합니다.
+                if default_target in all_targets:
+                    # 3. 기본 대상을 현재 선택된 항목으로 설정하고, UI 라벨도 업데이트합니다.
+                    self.current_selected_targets = [default_target]
+                    self.selected_data_label.setText(f"Selected: {default_target}")
+                    self.log_output.append(f"[INFO] Default target '{default_target}' selected for plotting.")
+                # =================================================================
 
                 self.update_plot()
                 self.plot_manager.enable_interactions(self.parsed_data)
