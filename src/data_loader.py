@@ -73,22 +73,42 @@ class DataLoader:
 
     def get_plottable_targets(self, processed_df: pd.DataFrame) -> list[str]:
         """
-        파싱이 완료된 "wide-format" DataFrame에서 플로팅할 대상 목록을 추출합니다.
+        파싱이 완료된 "wide-format" DataFrame에서 플로팅할 대상의 '표시용 이름' 목록을 생성합니다.
+        사용자 요구사항에 따라 특정 이름으로 변환하고 정렬 순서를 조정합니다.
         """
         if processed_df is None or processed_df.empty:
             return []
 
-        targets = set()
+        # 1. 데이터프레임의 모든 컬럼을 순회하며, '_X', '_Y', '_Z'로 끝나는 컬럼의 기본 이름을 추출합니다.
+        #    'set'을 사용하여 중복을 자동으로 제거합니다. (예: 'B1_X', 'B1_Y' -> 'B1')
+        base_names = set()
         for col in processed_df.columns:
             if col.endswith((RawMarkerCols.X_SUFFIX, RawMarkerCols.Y_SUFFIX, RawMarkerCols.Z_SUFFIX)):
                 base_name = col.rsplit('_', 1)[0]
-                targets.add(base_name)
+                base_names.add(base_name)
 
+        # 2. 요구사항에 따라 표시용 이름으로 변환하고 정렬합니다.
         final_targets = []
-        for name in sorted(list(targets)):
+
+        # 2a. 'RigidBody_Position'이 있으면, 'Rigid Body Center'로 이름을 바꿔 최상단에 위치시킵니다.
+        #     'RigidBodyCols.BASE_NAME'은 'RigidBody_Position' 상수를 가리킵니다.
+        rb_center_name = "Rigid Body Center"
+        rb_base_name = "RigidBody_Position" # data_columns에 정의된 상수 대신 문자열 리터럴 사용
+
+        if rb_base_name in base_names:
+            final_targets.append(rb_center_name)
+            base_names.remove(rb_base_name) # 나머지 마커 목록과 중복되지 않도록 제거
+
+        # 2b. 나머지 타겟(마커)들은 이름 앞에 'Marker '를 붙이고, 알파벳 순으로 정렬합니다.
+        #     ':'가 포함된 이름은 레거시 또는 다른 종류의 마커일 수 있으므로, 예외적으로 그대로 둡니다.
+        marker_targets = []
+        for name in sorted(list(base_names)):
             if ':' in name:
-                final_targets.append(name)
+                marker_targets.append(name)
             else:
-                final_targets.append(f"{name} (Rigid Body)")
+                marker_targets.append(f"Marker {name}")
+
+        # 2c. 'Rigid Body Center'와 정렬된 마커 목록을 합칩니다.
+        final_targets.extend(marker_targets)
 
         return final_targets

@@ -239,13 +239,25 @@ class MainApp(QMainWindow):
 
         if axis_suffix:
             for target in targets_to_process:
-                # Rigid Body와 마커의 이름 규칙이 다르므로 분기
-                if target == RigidBodyCols.BASE_NAME:
-                    col_name = f"{target}{axis_suffix}"
-                else: # 마커의 경우
-                    # ' (Rigid Body)' 부분 제거
-                    clean_target = target.replace(' (Rigid Body)', '')
-                    col_name = f"{clean_target}{axis_suffix}"
+                # 사용자가 선택한 '표시용 이름'을 데이터프레임의 실제 '기본 이름'으로 역변환합니다.
+                # 이 로직은 data_loader.get_plottable_targets의 이름 생성 규칙과 반드시 동기화되어야 합니다.
+                base_name = None
+                rb_center_name = "Rigid Body Center"
+                marker_prefix = "Marker "
+
+                if target == rb_center_name:
+                    # 'Rigid Body Center' -> 'RigidBody_Position'
+                    base_name = RigidBodyCols.BASE_NAME
+                elif target.startswith(marker_prefix):
+                    # 'Marker B1' -> 'B1'
+                    base_name = target.replace(marker_prefix, '')
+                else:
+                    # 기타 (예: 레거시 이름)는 그대로 사용
+                    base_name = target
+
+                # 기본 이름과 축 접미사를 조합하여 최종 컬럼명을 만듭니다.
+                # 예: 'B1' + '_X' -> 'B1_X'
+                col_name = f"{base_name}{axis_suffix}"
 
                 if col_name in df.columns:
                     columns_to_plot.append(col_name)
