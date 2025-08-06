@@ -259,10 +259,6 @@ class MainApp(QMainWindow):
 
         all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
 
-        # Rigid Body Position을 별도로 추가
-        if RigidBodyCols.POS_X in self.parsed_data.columns:
-             all_targets.insert(0, RigidBodyCols.BASE_NAME)
-
         dialog = DataSelectionDialog(all_targets, self.current_selected_targets, self)
         if dialog.exec():
             self.current_selected_targets = dialog.get_selected_items()
