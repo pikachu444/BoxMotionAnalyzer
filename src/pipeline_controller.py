@@ -2,12 +2,12 @@ import pandas as pd
 from PySide6.QtCore import QObject, Signal
 from src.config import config_app
 from src.config.data_columns import FACE_PREFIX_TO_INFO
-from analysis.slicer import Slicer
-from analysis.parser import Parser
-from analysis.smoother import MarkerSmoother
-from analysis.pose_optimizer import PoseOptimizer
-from analysis.velocity_calculator import VelocityCalculator
-from analysis.frame_analyzer import FrameAnalyzer
+from src.analysis.slicer import Slicer
+from src.analysis.parser import Parser
+from src.analysis.smoother import MarkerSmoother
+from src.analysis.pose_optimizer import PoseOptimizer
+from src.analysis.velocity_calculator import VelocityCalculator
+from src.analysis.frame_analyzer import FrameAnalyzer
 
 class PipelineController(QObject):
     log_message = Signal(str)

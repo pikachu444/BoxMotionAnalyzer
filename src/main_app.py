@@ -166,8 +166,42 @@ class MainApp(QMainWindow):
 
         # --- 3. 결과 컨트롤 패널 ---
         self.result_controls_group = QGroupBox("Result Analyzer")
-        # 이 부분은 다음 단계에서 채워집니다.
-        self.result_controls_group.setLayout(QVBoxLayout())
+        result_controls_main_layout = QVBoxLayout(self.result_controls_group)
+
+        # 3a. 상단 컨트롤 (데이터 선택 + 파일 브라우저)
+        top_controls_layout = QHBoxLayout()
+
+        # 데이터 선택 (Tree View)
+        self.result_data_tree = QTreeWidget()
+        self.result_data_tree.setHeaderLabel("Select Data to Plot")
+        self.result_data_tree.setEnabled(False) # 초기는 비활성화
+        top_controls_layout.addWidget(self.result_data_tree, 2) # 좌측 (비중 2)
+
+        # 파일 브라우저
+        file_browser_layout = QVBoxLayout()
+        file_browser_controls_layout = QHBoxLayout()
+        self.select_result_folder_button = QPushButton("Select Result Folder...")
+        self.recent_files_combo = QComboBox()
+        self.recent_files_combo.addItem("Recent Files...")
+        file_browser_controls_layout.addWidget(self.select_result_folder_button)
+        file_browser_controls_layout.addWidget(self.recent_files_combo)
+        file_browser_layout.addLayout(file_browser_controls_layout)
+
+        self.result_folder_path_label = QLabel("No folder selected.")
+        file_browser_layout.addWidget(self.result_folder_path_label)
+
+        self.result_file_list = QListWidget()
+        file_browser_layout.addWidget(self.result_file_list)
+
+        top_controls_layout.addLayout(file_browser_layout, 3) # 우측 (비중 3)
+
+        result_controls_main_layout.addLayout(top_controls_layout)
+
+        # 3b. 하단 Plot 버튼
+        self.plot_results_button = QPushButton("Plot Selected Results")
+        self.plot_results_button.setEnabled(False) # 초기는 비활성화
+        result_controls_main_layout.addWidget(self.plot_results_button, 0, Qt.AlignRight)
+
         main_layout.addWidget(self.result_controls_group)
 
         # 전체 레이아웃 비율 조정
@@ -189,6 +223,120 @@ class MainApp(QMainWindow):
         self.slice_group.toggled.connect(self.toggle_slicing_widgets)
         self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
         self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
+
+        # Result Analyzer signals
+        self.select_result_folder_button.clicked.connect(self.select_result_folder)
+        self.result_file_list.itemClicked.connect(self.on_result_file_selected)
+        self.plot_results_button.clicked.connect(self.plot_selected_results)
+
+    def plot_selected_results(self):
+        """
+        Traverses the result data tree to find all checked items and plots them
+        on the second graph canvas.
+        """
+        if self.result_data is None:
+            return
+
+        checked_columns = []
+        root = self.result_data_tree.invisibleRootItem()
+        for i in range(root.childCount()):
+            top_item = root.child(i) # e.g., 'Position'
+            for j in range(top_item.childCount()):
+                mid_item = top_item.child(j) # e.g., 'RigidBody'
+                for k in range(mid_item.childCount()):
+                    leaf_item = mid_item.child(k) # e.g., 'PX'
+                    if leaf_item.checkState(0) == Qt.Checked:
+                        # Reconstruct the multi-level column name
+                        column_tuple = (top_item.text(0), mid_item.text(0), leaf_item.text(0))
+                        checked_columns.append(column_tuple)
+
+        self.log_output.append(f"[INFO] Plotting {len(checked_columns)} result columns...")
+
+        # We need to extract the data for the selected columns.
+        # The 'Time' column is in the 'Info' category, so we need to get it.
+        time_col_tuple = ('Info', 'Time', 's')
+        if time_col_tuple not in self.result_data.columns:
+            self.log_output.append("[ERROR] Could not find time column in result data.")
+            return
+
+        # Create a new DataFrame for plotting containing only the time and selected data
+        plot_df = self.result_data[checked_columns + [time_col_tuple]].copy()
+        # Set time as the index for plotting
+        plot_df.set_index(time_col_tuple, inplace=True)
+        # The columns to plot are now just the list of tuples, as the draw_plot function
+        # can handle a DataFrame with MultiIndex columns.
+
+        self.plot_manager2.draw_plot(plot_df, checked_columns)
+
+    def select_result_folder(self):
+        """Opens a dialog to select a folder containing result CSVs."""
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Result Folder")
+        if folder_path:
+            self.result_folder_path_label.setText(folder_path)
+            self.result_file_list.clear()
+            self.result_data_tree.clear()
+            self.result_data_tree.setEnabled(False)
+            self.plot_results_button.setEnabled(False)
+
+            try:
+                files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
+                self.result_file_list.addItems(files)
+                self.log_output.append(f"[INFO] Found {len(files)} CSV files in {folder_path}")
+            except Exception as e:
+                self.log_output.append(f"[ERROR] Failed to read folder: {e}")
+
+    def on_result_file_selected(self, item):
+        """Loads the selected result CSV and prepares the data selection tree."""
+        folder_path = self.result_folder_path_label.text()
+        file_path = os.path.join(folder_path, item.text())
+
+        try:
+            self.log_output.append(f"[INFO] Loading result file: {file_path}")
+            self.result_data = self.data_loader.load_result_csv(file_path)
+            self.statusBar().showMessage("Result file loaded.")
+
+            # Populate the tree widget with the columns from the loaded data
+            self.populate_result_tree(self.result_data)
+
+            self.result_data_tree.setEnabled(True)
+            self.plot_results_button.setEnabled(True)
+            self.log_output.append("[INFO] Result data loaded. Please select data to plot.")
+        except Exception as e:
+            self.log_output.append(f"[ERROR] Failed to load result file: {e}")
+            self.statusBar().showMessage(f"Error: {e}")
+            self.result_data_tree.clear()
+            self.result_data_tree.setEnabled(False)
+            self.plot_results_button.setEnabled(False)
+
+    def populate_result_tree(self, df):
+        """Populates the QTreeWidget with a hierarchy from the DataFrame's multi-level columns."""
+        self.result_data_tree.clear()
+
+        # A dictionary to hold top-level items (L1 headers)
+        top_level_items = {}
+
+        for l1, l2, l3 in df.columns:
+            # Get or create the top-level item (e.g., 'Position')
+            if l1 not in top_level_items:
+                top_item = QTreeWidgetItem(self.result_data_tree, [l1])
+                top_level_items[l1] = {'item': top_item, 'children': {}}
+
+            top_level_node = top_level_items[l1]
+
+            # Get or create the second-level item (e.g., 'RigidBody')
+            if l2 not in top_level_node['children']:
+                mid_item = QTreeWidgetItem(top_level_node['item'], [l2])
+                top_level_node['children'][l2] = mid_item
+
+            mid_item = top_level_node['children'][l2]
+
+            # Create the third-level item (e.g., 'PX')
+            leaf_item = QTreeWidgetItem(mid_item, [l3])
+            leaf_item.setFlags(leaf_item.flags() | Qt.ItemIsUserCheckable)
+            leaf_item.setCheckState(0, Qt.Unchecked)
+
+        self.result_data_tree.expandAll()
+
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
