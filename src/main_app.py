@@ -37,7 +37,7 @@ class PipelineWorker(QThread):
 class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Box Motion Analyzer v2.1")
+        self.setWindowTitle("Box Motion Analyzer v2.2")
         self.setGeometry(100, 100, 1200, 900)
 
         self.data_loader = DataLoader()
@@ -66,24 +66,21 @@ class MainApp(QMainWindow):
         # 1a. 상단 플롯 및 재구성된 우측 패널
         top_layout = QHBoxLayout()
 
-        # 좌측: 그래프
         plot_container1 = QWidget()
         plot_layout1 = QVBoxLayout(plot_container1)
         plot_layout1.setContentsMargins(0,0,0,0)
         self.fig1 = Figure(figsize=(5, 4), dpi=100)
+        self.fig1.subplots_adjust(left=0.08, right=0.98, bottom=0.1, top=0.95)
         self.canvas1 = FigureCanvas(self.fig1)
         self.toolbar1 = NavigationToolbar(self.canvas1, self)
         plot_layout1.addWidget(self.toolbar1)
         plot_layout1.addWidget(self.canvas1)
-        top_layout.addWidget(plot_container1, 7) # 그래프가 7의 비율 차지
 
         self.plot_manager1 = PlotManager(self.canvas1, self.fig1)
         self.plot_manager1.ax.text(0.5, 0.5, "Load a CSV file to start.", ha='center', va='center')
         self.plot_manager1.canvas.draw()
 
-        # 우측: 재구성된 컨트롤/로그 패널
         right_panel_layout = QVBoxLayout()
-
         self.load_csv_button = QPushButton("Load CSV File...")
         right_panel_layout.addWidget(self.load_csv_button)
         self.file_path_label = QLabel("No file selected.")
@@ -107,18 +104,14 @@ class MainApp(QMainWindow):
         self.log_output.setPlaceholderText("[INFO] Load a CSV file to start.")
         right_panel_layout.addWidget(self.log_output) # 남은 공간을 로그가 채움
 
-        top_layout.addLayout(right_panel_layout, 3) # 우측 패널이 3의 비율 차지
-        original_layout.addLayout(top_layout, 5) # 상단 전체가 5의 비율
+        top_layout.addWidget(plot_container1, 8)
+        top_layout.addLayout(right_panel_layout, 2)
+        original_layout.addLayout(top_layout)
 
         # 1b. 하단 원본 컨트롤 (공간 효율적으로 재배치)
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
         original_controls_widget = QWidget()
-
-        # 메인 그리드 대신 수평 레이아웃 사용
         h_controls_layout = QHBoxLayout(original_controls_widget)
 
-        # Plot Options (한 줄로 변경)
         plot_options_group = QGroupBox("Plot Options")
         plot_options_h_layout = QHBoxLayout(plot_options_group)
         self.select_data_button = QPushButton("Select Data...")
@@ -134,7 +127,6 @@ class MainApp(QMainWindow):
         plot_options_h_layout.addWidget(self.combo_plot_axis)
         h_controls_layout.addWidget(plot_options_group)
 
-        # Slice Range (한 줄로 변경)
         self.slice_group = QGroupBox("Slice Range")
         self.slice_group.setCheckable(True)
         self.slice_group.setChecked(False)
@@ -147,7 +139,6 @@ class MainApp(QMainWindow):
         slice_h_layout.addWidget(self.le_slice_end)
         h_controls_layout.addWidget(self.slice_group)
 
-        # 실행 버튼
         run_button_layout = QVBoxLayout()
         self.run_button = QPushButton("Run Analysis")
         self.export_button = QPushButton("Export Results to CSV")
@@ -156,30 +147,28 @@ class MainApp(QMainWindow):
         run_button_layout.addWidget(self.export_button)
         h_controls_layout.addLayout(run_button_layout)
 
-        scroll_area.setWidget(original_controls_widget)
-        original_layout.addWidget(scroll_area, 1) # 하단 컨트롤이 1의 비율
-
+        original_layout.addWidget(original_controls_widget)
         main_layout.addWidget(original_analysis_group)
 
-        # --- 2. 결과 분석 그래프 영역 ---
-        result_plot_group = QGroupBox("Result Data Plot")
-        result_plot_layout = QVBoxLayout(result_plot_group)
-        self.fig2 = Figure(figsize=(5, 2), dpi=100)
+        # --- 2. 결과 분석 영역 (그래프와 컨트롤을 좌우로 배치) ---
+        result_analysis_group = QGroupBox("Result Analyzer")
+        result_analysis_layout = QHBoxLayout(result_analysis_group)
+
+        # 2a. 좌측: 결과 그래프
+        result_plot_container = QWidget()
+        result_plot_layout = QVBoxLayout(result_plot_container)
+        self.fig2 = Figure(figsize=(5, 4), dpi=100)
+        self.fig2.subplots_adjust(left=0.08, right=0.98, bottom=0.1, top=0.95)
         self.canvas2 = FigureCanvas(self.fig2)
         self.toolbar2 = NavigationToolbar(self.canvas2, self)
         result_plot_layout.addWidget(self.toolbar2)
         result_plot_layout.addWidget(self.canvas2)
         self.plot_manager2 = PlotManager(self.canvas2, self.fig2)
-        main_layout.addWidget(result_plot_group)
+        result_analysis_layout.addWidget(result_plot_container, 6) # 그래프가 6의 비율
 
-        # --- 3. 결과 컨트롤 패널 ---
-        self.result_controls_group = QGroupBox("Result Analyzer")
-        result_controls_main_layout = QVBoxLayout(self.result_controls_group)
-        top_controls_layout = QHBoxLayout()
-        self.result_data_tree = QTreeWidget()
-        self.result_data_tree.setHeaderLabel("Select Data to Plot")
-        self.result_data_tree.setEnabled(False)
-        top_controls_layout.addWidget(self.result_data_tree, 1)
+        # 2b. 우측: 결과 컨트롤
+        result_controls_container = QWidget()
+        result_controls_main_layout = QVBoxLayout(result_controls_container)
 
         file_browser_layout = QVBoxLayout()
         file_browser_controls_layout = QHBoxLayout()
@@ -193,17 +182,25 @@ class MainApp(QMainWindow):
         file_browser_layout.addWidget(self.result_folder_path_label)
         self.result_file_list = QListWidget()
         file_browser_layout.addWidget(self.result_file_list)
-        top_controls_layout.addLayout(file_browser_layout, 1)
 
-        result_controls_main_layout.addLayout(top_controls_layout)
+        self.result_data_tree = QTreeWidget()
+        self.result_data_tree.setHeaderLabel("Select Data to Plot")
+        self.result_data_tree.setEnabled(False)
+
+        plot_button_layout = QHBoxLayout()
+        plot_button_layout.addStretch()
         self.plot_results_button = QPushButton("Plot Selected Results")
         self.plot_results_button.setEnabled(False)
-        result_controls_main_layout.addWidget(self.plot_results_button, 0, Qt.AlignRight)
-        main_layout.addWidget(self.result_controls_group)
+        plot_button_layout.addWidget(self.plot_results_button)
 
-        main_layout.setStretch(0, 5)
-        main_layout.setStretch(1, 3)
-        main_layout.setStretch(2, 4)
+        result_controls_main_layout.addLayout(file_browser_layout)
+        result_controls_main_layout.addWidget(self.result_data_tree)
+        result_controls_main_layout.addLayout(plot_button_layout)
+        result_analysis_layout.addWidget(result_controls_container, 4) # 컨트롤이 4의 비율
+
+        main_layout.addWidget(result_analysis_group)
+        main_layout.setStretch(0, 4)
+        main_layout.setStretch(1, 6)
 
         self.setStatusBar(QStatusBar())
 
