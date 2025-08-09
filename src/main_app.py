@@ -276,9 +276,14 @@ class MainApp(QMainWindow):
             self.plot_results_button.setEnabled(False)
 
     def populate_result_tree(self, df):
+        """Populates the QTreeWidget with a hierarchy from the DataFrame's multi-level columns."""
         self.result_data_tree.clear()
         top_level_items = {}
-        for l1, l2, l3 in df.columns:
+
+        # X축으로 사용되는 'Info' 카테고리의 컬럼은 트리 뷰에서 제외합니다.
+        columns_to_plot = [col for col in df.columns if col[0] != 'Info']
+
+        for l1, l2, l3 in columns_to_plot:
             if l1 not in top_level_items:
                 top_item = QTreeWidgetItem(self.result_data_tree, [l1])
                 top_level_items[l1] = {'item': top_item, 'children': {}}
