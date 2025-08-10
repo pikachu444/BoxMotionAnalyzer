@@ -234,7 +234,7 @@ class MainApp(QMainWindow):
                         column_tuple = (top_item.text(0), mid_item.text(0), leaf_item.text(0))
                         checked_columns.append(column_tuple)
         self.log_output.append(f"[INFO] Plotting {len(checked_columns)} result columns...")
-        time_col_tuple = ('Info', 'Time', 's')
+        time_col_tuple = ('Info', 'Time', 'Time')
         if time_col_tuple not in self.result_data.columns:
             self.log_output.append("[ERROR] Could not find time column in result data.")
             return
