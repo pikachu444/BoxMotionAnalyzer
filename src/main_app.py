@@ -19,7 +19,7 @@ from src.config import config_app
 from src.analysis.parser import Parser
 from src.config.data_columns import (
     PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO,
-    DisplayNames
+    DisplayNames, RESULT_TIME_COL, DISPLAY_RESULT_COLUMNS
 )
 from src.header_converter import convert_to_multi_header
 
@@ -234,9 +234,9 @@ class MainApp(QMainWindow):
                         column_tuple = (top_item.text(0), mid_item.text(0), leaf_item.text(0))
                         checked_columns.append(column_tuple)
         self.log_output.append(f"[INFO] Plotting {len(checked_columns)} result columns...")
-        time_col_tuple = ('Info', 'Time', 'Time')
+        time_col_tuple = RESULT_TIME_COL
         if time_col_tuple not in self.result_data.columns:
-            self.log_output.append("[ERROR] Could not find time column in result data.")
+            self.log_output.append(f"[ERROR] Could not find time column {time_col_tuple} in result data.")
             return
         plot_df = self.result_data[checked_columns + [time_col_tuple]].copy()
         plot_df.set_index(time_col_tuple, inplace=True)
@@ -280,8 +280,9 @@ class MainApp(QMainWindow):
         self.result_data_tree.clear()
         top_level_items = {}
 
-        # X축으로 사용되는 'Info' 카테고리의 컬럼은 트리 뷰에서 제외합니다.
-        columns_to_plot = [col for col in df.columns if col[0] != 'Info']
+        # 표시할 컬럼을 DISPLAY_RESULT_COLUMNS 리스트를 기준으로 필터링합니다.
+        # 데이터프레임에 실제로 존재하는 컬럼만 선택합니다.
+        columns_to_plot = [col for col in df.columns if col in DISPLAY_RESULT_COLUMNS]
 
         for l1, l2, l3 in columns_to_plot:
             if l1 not in top_level_items:

@@ -100,7 +100,7 @@ def get_conversion_rules() -> list:
          lambda m: (HeaderL1.INFO, HeaderL2.FRAME, HeaderL2.FRAME)),
         # 예시: 'Time' -> ('Info', 'Time', 'Time')
         (re.compile(f"^{TimeCols.TIME}$"),
-         lambda m: (HeaderL1.INFO, HeaderL2.TIME, HeaderL2.TIME)),
+         lambda m: (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)),
         # 예시: 'Pose_Source' -> ('Info', 'Pose', 'Source')
         (re.compile(r"^Pose_Source$"),
          lambda m: (HeaderL1.INFO, HeaderL2.POSE_SRC, HeaderL3.SRC)),
