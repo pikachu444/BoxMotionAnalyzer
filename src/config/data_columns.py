@@ -168,7 +168,6 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.VEL, HeaderL2.COM, f"{HeaderL3.NORM_W}_Ana"),
 
     # Relative Height for each of the 8 corners
-    (HeaderL1.ANALYSIS, "C0", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C2", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C3", HeaderL3.REL_H),
@@ -176,9 +175,10 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.ANALYSIS, "C5", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C6", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C7", HeaderL3.REL_H),
+    (HeaderL1.ANALYSIS, "C8", HeaderL3.REL_H),
 
-    # Corner Velocities (Example for Corner 0, could be expanded)
-    (HeaderL1.VEL, "C0", HeaderL3.VX),
-    (HeaderL1.VEL, "C0", HeaderL3.VY),
-    (HeaderL1.VEL, "C0", HeaderL3.VZ),
+    # Corner Velocities (Example for Corner 1, could be expanded)
+    (HeaderL1.VEL, "C1", HeaderL3.VX),
+    (HeaderL1.VEL, "C1", HeaderL3.VY),
+    (HeaderL1.VEL, "C1", HeaderL3.VZ),
 ]

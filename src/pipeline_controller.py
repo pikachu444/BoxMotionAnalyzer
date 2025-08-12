@@ -1,6 +1,6 @@
 import pandas as pd
 from PySide6.QtCore import QObject, Signal
-from src.config import config_app
+from src.config import config_app, config_analysis
 from src.config.data_columns import FACE_PREFIX_TO_INFO
 from src.analysis.slicer import Slicer
 from src.analysis.parser import Parser
@@ -46,36 +46,63 @@ class PipelineController(QObject):
                 data = self.parser.process(header_info, raw_data)
             self.log_message.emit(f"    Parser output shape: {data.shape}")
 
-            # 2. 슬라이싱 단계
-            # 주의: 파서의 결과물(wide-format)을 슬라이싱해야 함
-            self.log_message.emit("[2/6] Slicing data...")
-            slicer = Slicer(
+            # 2. 슬라이싱 단계 (패딩을 위해 확장된 범위로)
+            self.log_message.emit("[2/6] Slicing data with padding...")
+
+            original_start = gui_config.get('slice_start_val')
+            original_end = gui_config.get('slice_end_val')
+
+            # 패딩 사이즈 계산 (시간 단위로 변환)
+            padding_size_frames = config_analysis.SMOOTHING_PADDING_SIZE
+            time_index = pd.Series(data.index)
+            # fs = 1.0 / time_index.diff().mean() if len(time_index) > 1 else 0
+            time_diffs = time_index.diff().dropna()
+            mean_delta_t = time_diffs.mean() if not time_diffs.empty else 0
+            time_padding = padding_size_frames * mean_delta_t if mean_delta_t > 0 else 0
+
+            # 패딩 적용 및 경계 처리
+            padded_start = max(original_start - time_padding, time_index.min())
+            padded_end = min(original_end + time_padding, time_index.max())
+
+            self.log_message.emit(f"    Original slice: {original_start:.2f}s - {original_end:.2f}s")
+            self.log_message.emit(f"    Padding: {padding_size_frames} frames ({time_padding:.3f}s)")
+            self.log_message.emit(f"    Padded slice for smoothing: {padded_start:.2f}s - {padded_end:.2f}s")
+
+            slicer_for_padding = Slicer(
                 filter_by=gui_config.get('slice_filter_by', 'time'),
-                start_val=gui_config.get('slice_start_val'),
-                end_val=gui_config.get('slice_end_val')
+                start_val=padded_start,
+                end_val=padded_end
             )
-            # Slicer는 raw_df가 아닌, 파싱된 df를 슬라이싱해야 함.
-            # Slicer의 로직이 Time 인덱스를 사용하므로 파싱된 데이터에 적용 가능.
-            data = slicer.process(data)
-            self.log_message.emit(f"    Slicer done. Shape: {data.shape}")
+            padded_data = slicer_for_padding.process(data)
+            self.log_message.emit(f"    Padded slicer done. Shape: {padded_data.shape}")
 
             # 3. MarkerSmoother 실행
             self.log_message.emit("[3/6] Smoothing markers...")
-            data = self.smoother.process(data)
-            self.log_message.emit(f"    Smoother done. Shape: {data.shape}")
+            smoothed_padded_data = self.smoother.process(padded_data)
+            self.log_message.emit(f"    Smoother done. Shape: {smoothed_padded_data.shape}")
 
-            # 4. PoseOptimizer 실행
-            self.log_message.emit("[4/6] Optimizing pose...")
+            # 4. 패딩 제거 (원본 슬라이스로 다시 자르기)
+            self.log_message.emit("[4/6] Trimming padding from smoothed data...")
+            slicer_for_trimming = Slicer(
+                filter_by=gui_config.get('slice_filter_by', 'time'),
+                start_val=original_start,
+                end_val=original_end
+            )
+            data = slicer_for_trimming.process(smoothed_padded_data)
+            self.log_message.emit(f"    Trimming done. Final shape for analysis: {data.shape}")
+
+            # 5. PoseOptimizer 실행
+            self.log_message.emit("[5/7] Optimizing pose...")
             data = self.pose_optimizer.process(data)
             self.log_message.emit(f"    PoseOptimizer done. Shape: {data.shape}")
 
-            # 5. VelocityCalculator 실행
-            self.log_message.emit("[5/6] Calculating velocity...")
+            # 6. VelocityCalculator 실행
+            self.log_message.emit("[6/7] Calculating velocity...")
             data = self.velocity_calculator.process(data)
             self.log_message.emit(f"    VelocityCalculator done. Shape: {data.shape}")
 
-            # 6. FrameAnalyzer 실행
-            self.log_message.emit("[6/6] Analyzing frames...")
+            # 7. FrameAnalyzer 실행
+            self.log_message.emit("[7/7] Analyzing frames...")
             final_result = self.frame_analyzer.process(data)
             self.log_message.emit(f"    FrameAnalyzer done. Shape: {final_result.shape}")
 

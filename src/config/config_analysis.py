@@ -11,6 +11,10 @@ BUTTERWORTH_CUTOFF_FREQ_HZ = 10.0
 BUTTERWORTH_ORDER = 4
 MA_WINDOW_SIZE = 3
 
+# 스무딩 시 경계 효과를 줄이기 위한 패딩 사이즈.
+# scipy.signal.filtfilt의 기본 패딩 길이(3 * (order+1))를 따름.
+SMOOTHING_PADDING_SIZE = 3 * (BUTTERWORTH_ORDER + 1)
+
 # --- Slicing Parameters (향후 추가될 수 있음) ---
 # ...
 
