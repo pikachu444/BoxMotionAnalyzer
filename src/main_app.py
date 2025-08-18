@@ -50,6 +50,7 @@ class MainApp(QMainWindow):
         self.final_result = None
         self.current_selected_targets = []
         self.result_data = None
+        self.last_selected_result_columns = set()
 
         self._setup_ui()
         self._connect_signals()
@@ -222,6 +223,7 @@ class MainApp(QMainWindow):
 
     def plot_selected_results(self):
         if self.result_data is None: return
+        self.last_selected_result_columns.clear()
         checked_columns = []
         root = self.result_data_tree.invisibleRootItem()
         for i in range(root.childCount()):
@@ -233,11 +235,20 @@ class MainApp(QMainWindow):
                     if leaf_item.checkState(0) == Qt.Checked:
                         column_tuple = (top_item.text(0), mid_item.text(0), leaf_item.text(0))
                         checked_columns.append(column_tuple)
+                        self.last_selected_result_columns.add(column_tuple)
+
         self.log_output.append(f"[INFO] Plotting {len(checked_columns)} result columns...")
+        self.log_output.append(f"[INFO] Stored {len(self.last_selected_result_columns)} selections for next load.")
+
         time_col_tuple = RESULT_TIME_COL
         if time_col_tuple not in self.result_data.columns:
             self.log_output.append(f"[ERROR] Could not find time column {time_col_tuple} in result data.")
             return
+
+        if not checked_columns:
+            self.plot_manager2.clear_plot()
+            return
+
         plot_df = self.result_data[checked_columns + [time_col_tuple]].copy()
         plot_df.set_index(time_col_tuple, inplace=True)
         self.plot_manager2.draw_plot(plot_df, checked_columns)
@@ -289,13 +300,22 @@ class MainApp(QMainWindow):
                 top_item = QTreeWidgetItem(self.result_data_tree, [l1])
                 top_level_items[l1] = {'item': top_item, 'children': {}}
             top_level_node = top_level_items[l1]
+
             if l2 not in top_level_node['children']:
                 mid_item = QTreeWidgetItem(top_level_node['item'], [l2])
                 top_level_node['children'][l2] = mid_item
             mid_item = top_level_node['children'][l2]
+
             leaf_item = QTreeWidgetItem(mid_item, [l3])
             leaf_item.setFlags(leaf_item.flags() | Qt.ItemIsUserCheckable)
-            leaf_item.setCheckState(0, Qt.Unchecked)
+
+            # Re-apply the last selection state
+            column_tuple = (l1, l2, l3)
+            if column_tuple in self.last_selected_result_columns:
+                leaf_item.setCheckState(0, Qt.Checked)
+            else:
+                leaf_item.setCheckState(0, Qt.Unchecked)
+
         self.result_data_tree.expandAll()
 
     def open_csv_file(self):
