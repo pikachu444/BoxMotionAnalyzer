@@ -304,6 +304,8 @@ class MainApp(QMainWindow):
         self.selected_point_info['index'] = closest_index
         self.selected_point_info['time'] = self.result_data.index[closest_index]
 
+        # Explicitly enable the button here to be certain.
+        self.export_point_button.setEnabled(True)
         self.update_point_selection_ui()
 
     def on_find_max_click(self):

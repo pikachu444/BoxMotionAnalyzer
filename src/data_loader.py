@@ -57,6 +57,20 @@ class DataLoader:
         try:
             # 멀티헤더(3줄)를 올바르게 읽기 위해 header=[0, 1, 2] 옵션을 사용합니다.
             df = pd.read_csv(filepath, header=[0, 1, 2])
+
+            # 'Time' 컬럼을 찾아서 인덱스로 설정합니다.
+            # 결과 CSV의 Time 컬럼은 ('Time', 'Time', 'Time') 튜플 형태의 멀티레벨 헤더를 가집니다.
+            time_col_tuple = (TimeCols.TIME, TimeCols.TIME, TimeCols.TIME)
+            if time_col_tuple in df.columns:
+                df.set_index(time_col_tuple, inplace=True)
+                df.index.name = TimeCols.TIME # 인덱스 이름 재설정
+            else:
+                # 하위 호환성 또는 다른 형식의 결과 파일을 위해 단일 'Time' 컬럼도 확인
+                if TimeCols.TIME in df.columns:
+                    df.set_index(TimeCols.TIME, inplace=True)
+                else:
+                    self.log_message.emit(f"[WARNING] '{TimeCols.TIME}' column not found in {filepath}. Using default integer index.")
+
             print(f"[DataLoader INFO] Result CSV loaded successfully from {filepath}")
             return df
         except FileNotFoundError:
