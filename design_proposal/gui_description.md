@@ -55,12 +55,17 @@
 
 - **결과 그래프 (Result Plot Area):**
     - **설명:** 선택된 결과 데이터들을 시각적으로 보여주는 두 번째 Matplotlib 그래프입니다.
-- **결과 컨트롤 패널 (Result Controls):**
-    - **`Select Result Folder...` (QPushButton):** 결과 파일들이 저장된 폴더를 선택합니다.
-    - **Recent Files (QComboBox):** 최근에 사용한 파일 목록을 보여줍니다.
-    - **Result File List (QListWidget):** 선택된 폴더 내의 CSV 파일 목록을 표시합니다.
-    - **Select Data to Plot (QTreeWidget):** 로드된 결과 파일의 데이터 컬럼들을 계층 구조로 보여주며, 사용자가 플롯할 데이터를 선택(체크)할 수 있습니다.
-    - **`Plot Selected Results` (QPushButton):** 트리에서 선택된 데이터들을 결과 그래프에 그립니다.
+- **결과 컨트롤 패널 (Result Controls):** 이 패널은 파일 선택 부분과 지점 분석 부분으로 나뉩니다.
+    - **파일 및 데이터 선택:**
+        - **`Select Result Folder...` (QPushButton):** 결과 파일들이 저장된 폴더를 선택합니다.
+        - **Result File List (QListWidget):** 선택된 폴더 내의 CSV 파일 목록을 표시합니다.
+        - **Select Data to Plot (QTreeWidget):** 로드된 결과 파일의 데이터 컬럼들을 계층 구조로 보여주며, 사용자가 플롯할 데이터를 선택(체크)할 수 있습니다.
+        - **`Plot Selected Results` (QPushButton):** 트리에서 선택된 데이터들을 결과 그래프에 그립니다.
+    - **지점 분석 (Point Analysis) (QGroupBox):**
+        - **선택 지점 정보 (QLabel):** 그래프에서 선택된 지점의 시간과 값 정보를 표시합니다.
+        - **대상 데이터 (QComboBox):** 최대값을 찾을 데이터 시리즈를 선택합니다. 이 콤보박스는 현재 그래프에 그려진 데이터 목록으로 채워집니다.
+        - **`Find Max` (QPushButton):** '대상 데이터'로 지정된 시리즈의 최대값 지점을 찾아 그래프에 커서로 표시합니다.
+        - **`Export Point Data...` (QPushButton):** 현재 선택된 단일 시점의 전체 데이터 행을 CSV 파일로 내보냅니다.
 
 ---
 
@@ -76,8 +81,12 @@
 4. 사용자가 **`Run Analysis`** 버튼을 누르면, 백그라운드에서 분석이 시작되고 진행 상황이 **로그 출력** 창에 표시됩니다.
 5. 분석이 완료되면, **`Export Results to CSV`** 버튼이 활성화되며, 사용자는 결과를 파일로 저장할 수 있습니다.
 
-### 결과 데이터 분석 흐름
-1. 사용자가 **`Select Result Folder...`** 버튼을 눌러 이전에 저장된 결과 파일들이 있는 폴더를 선택합니다.
-2. **Result File List**에 해당 폴더의 CSV 파일들이 표시됩니다.
-3. 사용자가 목록에서 특정 파일을 선택하면, 해당 파일의 데이터 구조가 **Select Data to Plot** 트리에 로드됩니다.
-4. 사용자는 트리에서 원하는 데이터 항목들을 체크하고 **`Plot Selected Results`** 버튼을 눌러 **결과 그래프**에서 시각적으로 확인합니다.
+### 결과 데이터 분석 및 지점 추출 흐름
+1. 사용자가 **`Select Result Folder...`** 버튼을 눌러 결과 파일들이 있는 폴더를 선택합니다.
+2. **Result File List**에서 특정 파일을 선택하면, 데이터 구조가 **Select Data to Plot** 트리에 로드됩니다.
+3. 사용자는 트리에서 원하는 데이터들을 체크하고 **`Plot Selected Results`** 버튼을 눌러 그래프를 확인합니다. (이전 선택 항목은 유지됩니다.)
+4. **(지점 분석)** 사용자는 다음 두 가지 방법으로 특정 시점을 선택합니다:
+    - **수동:** 그래프를 직접 마우스로 클릭합니다.
+    - **자동:** '대상 데이터'를 선택하고 **`Find Max`** 버튼을 누릅니다.
+5. 선택된 시점은 그래프의 수직선 커서와 정보 레이블을 통해 시각적으로 확인됩니다.
+6. 사용자는 **`Export Point Data...`** 버튼을 눌러, 현재 선택된 단일 시점의 **전체 데이터 행**을 CSV 파일로 저장합니다.

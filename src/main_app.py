@@ -51,6 +51,8 @@ class MainApp(QMainWindow):
         self.current_selected_targets = []
         self.result_data = None
         self.last_selected_result_columns = set()
+        self.selected_point_info = {'time': None, 'index': None}
+        self.result_point_cursor = None
 
         self._setup_ui()
         self._connect_signals()
@@ -197,6 +199,31 @@ class MainApp(QMainWindow):
         result_controls_main_layout.addLayout(file_browser_layout)
         result_controls_main_layout.addWidget(self.result_data_tree)
         result_controls_main_layout.addLayout(plot_button_layout)
+
+        # Point Analysis GroupBox
+        point_analysis_group = QGroupBox("지점 분석 (Point Analysis)")
+        point_analysis_layout = QVBoxLayout(point_analysis_group)
+
+        self.selected_point_label = QLabel("Selected: None")
+        point_analysis_layout.addWidget(self.selected_point_label)
+
+        find_max_layout = QHBoxLayout()
+        find_max_layout.addWidget(QLabel("Target:"))
+        self.find_max_target_combo = QComboBox()
+        find_max_layout.addWidget(self.find_max_target_combo)
+        self.find_max_button = QPushButton("Find Max")
+        find_max_layout.addWidget(self.find_max_button)
+        point_analysis_layout.addLayout(find_max_layout)
+
+        export_point_layout = QHBoxLayout()
+        export_point_layout.addStretch()
+        self.export_point_button = QPushButton("Export Point Data...")
+        self.export_point_button.setEnabled(False)
+        export_point_layout.addWidget(self.export_point_button)
+        point_analysis_layout.addLayout(export_point_layout)
+
+        result_controls_main_layout.addWidget(point_analysis_group)
+
         result_analysis_layout.addWidget(result_controls_container, 4) # 컨트롤이 4의 비율
 
         main_layout.addWidget(result_analysis_group)
@@ -220,6 +247,9 @@ class MainApp(QMainWindow):
         self.select_result_folder_button.clicked.connect(self.select_result_folder)
         self.result_file_list.itemClicked.connect(self.on_result_file_selected)
         self.plot_results_button.clicked.connect(self.plot_selected_results)
+        self.canvas2.mpl_connect('button_press_event', self.on_result_plot_click)
+        self.find_max_button.clicked.connect(self.on_find_max_click)
+        self.export_point_button.clicked.connect(self.on_export_point_data_click)
 
     def plot_selected_results(self):
         if self.result_data is None: return
@@ -240,6 +270,11 @@ class MainApp(QMainWindow):
         self.log_output.append(f"[INFO] Plotting {len(checked_columns)} result columns...")
         self.log_output.append(f"[INFO] Stored {len(self.last_selected_result_columns)} selections for next load.")
 
+        # Update the 'Find Max' target combobox
+        self.find_max_target_combo.clear()
+        for col in checked_columns:
+            self.find_max_target_combo.addItem(f"{col[0]}/{col[1]}/{col[2]}", userData=col)
+
         time_col_tuple = RESULT_TIME_COL
         if time_col_tuple not in self.result_data.columns:
             self.log_output.append(f"[ERROR] Could not find time column {time_col_tuple} in result data.")
@@ -247,11 +282,95 @@ class MainApp(QMainWindow):
 
         if not checked_columns:
             self.plot_manager2.clear_plot()
+            self.selected_point_info = {'time': None, 'index': None}
+            self.update_point_selection_ui()
             return
 
         plot_df = self.result_data[checked_columns + [time_col_tuple]].copy()
         plot_df.set_index(time_col_tuple, inplace=True)
         self.plot_manager2.draw_plot(plot_df, checked_columns)
+        self.selected_point_info = {'time': None, 'index': None}
+        self.update_point_selection_ui()
+
+    def on_result_plot_click(self, event):
+        if event.inaxes != self.plot_manager2.ax:
+            return
+        if self.result_data is None or self.result_data.empty:
+            return
+
+        time_val = event.xdata
+        # Find the closest index in the dataframe
+        closest_index = self.result_data.index.get_loc(time_val, method='nearest')
+        self.selected_point_info['index'] = closest_index
+        self.selected_point_info['time'] = self.result_data.index[closest_index]
+
+        self.update_point_selection_ui()
+
+    def on_find_max_click(self):
+        if self.result_data is None or self.result_data.empty:
+            return
+
+        target_column = self.find_max_target_combo.currentData()
+        if target_column is None:
+            self.log_output.append("[WARNING] No target data selected for 'Find Max'.")
+            return
+
+        try:
+            max_index = self.result_data[target_column].idxmax()
+            max_value = self.result_data.loc[max_index, target_column]
+
+            self.selected_point_info['index'] = self.result_data.index.get_loc(max_index)
+            self.selected_point_info['time'] = max_index
+
+            self.update_point_selection_ui(value=max_value)
+            self.log_output.append(f"[INFO] Found max value for '{'/'.join(target_column)}': {max_value:.4f} at T={max_index:.3f}s")
+        except Exception as e:
+            self.log_output.append(f"[ERROR] Could not find max value: {e}")
+
+    def update_point_selection_ui(self, value=None):
+        if self.result_point_cursor:
+            try:
+                self.result_point_cursor.remove()
+            except:
+                pass
+        self.result_point_cursor = None
+
+        if self.selected_point_info.get('time') is not None:
+            time = self.selected_point_info['time']
+            self.result_point_cursor = self.plot_manager2.ax.axvline(x=time, color='r', linestyle='--', linewidth=1)
+            self.plot_manager2.canvas.draw()
+
+            if value is not None:
+                self.selected_point_label.setText(f"Selected: T={time:.3f}s, Value={value:.4f}")
+            else:
+                self.selected_point_label.setText(f"Selected: T={time:.3f}s")
+            self.export_point_button.setEnabled(True)
+        else:
+            self.selected_point_label.setText("Selected: None")
+            self.export_point_button.setEnabled(False)
+            self.plot_manager2.canvas.draw()
+
+    def on_export_point_data_click(self):
+        if self.result_data is None or self.selected_point_info.get('index') is None:
+            self.log_output.append("[ERROR] No point selected to export.")
+            return
+
+        selected_index = self.selected_point_info['index']
+        point_data = self.result_data.iloc[[selected_index]].copy()
+
+        # Suggest a filename
+        time_str = f"{self.selected_point_info['time']:.3f}".replace('.', '_')
+        current_file = os.path.basename(self.result_file_list.currentItem().text())
+        suggested_filename = f"{os.path.splitext(current_file)[0]}_point_at_{time_str}s.csv"
+
+        filepath, _ = QFileDialog.getSaveFileName(self, "Export Point Data to CSV", suggested_filename, "CSV Files (*.csv)")
+
+        if filepath:
+            try:
+                point_data.to_csv(filepath, index=True)
+                self.log_output.append(f"[INFO] Point data successfully exported to {filepath}")
+            except Exception as e:
+                self.log_output.append(f"[ERROR] Could not export point data: {e}")
 
     def select_result_folder(self):
         folder_path = QFileDialog.getExistingDirectory(self, "Select Result Folder")
