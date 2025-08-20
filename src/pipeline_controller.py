@@ -33,33 +33,40 @@ class PipelineController(QObject):
     def run_analysis(self, gui_config: dict, header_info: dict, raw_data: pd.DataFrame, parsed_data: pd.DataFrame = None):
         """
         전체 분석 파이프라인을 순차적으로 실행합니다.
-        TRIMMING_STRATEGY 설정에 따라 다른 순서로 실행될 수 있습니다.
+        파싱된 데이터가 있으면 재사용합니다.
         """
         try:
+            data = None
             # 1. 파싱 단계
             if parsed_data is not None:
-                self.log_message.emit("[1/N] Using cached parsed data...")
+                self.log_message.emit("[1/6] Using cached parsed data...")
                 data = parsed_data
             else:
-                self.log_message.emit("[1/N] Parsing data...")
+                self.log_message.emit("[1/6] Parsing data...")
                 data = self.parser.process(header_info, raw_data)
             self.log_message.emit(f"    Parser output shape: {data.shape}")
 
-            # 2. 패딩된 슬라이스 생성
-            self.log_message.emit("[2/N] Slicing data with padding...")
+            # 2. 슬라이싱 단계 (패딩을 위해 확장된 범위로)
+            self.log_message.emit("[2/6] Slicing data with padding...")
+
             original_start = gui_config.get('slice_start_val')
             original_end = gui_config.get('slice_end_val')
+
+            # 패딩 사이즈 계산 (시간 단위로 변환)
             padding_size_frames = config_analysis.SMOOTHING_PADDING_SIZE
             time_index = pd.Series(data.index)
+            # fs = 1.0 / time_index.diff().mean() if len(time_index) > 1 else 0
             time_diffs = time_index.diff().dropna()
             mean_delta_t = time_diffs.mean() if not time_diffs.empty else 0
             time_padding = padding_size_frames * mean_delta_t if mean_delta_t > 0 else 0
+
+            # 패딩 적용 및 경계 처리
             padded_start = max(original_start - time_padding, time_index.min())
             padded_end = min(original_end + time_padding, time_index.max())
 
             self.log_message.emit(f"    Original slice: {original_start:.2f}s - {original_end:.2f}s")
             self.log_message.emit(f"    Padding: {padding_size_frames} frames ({time_padding:.3f}s)")
-            self.log_message.emit(f"    Padded slice for processing: {padded_start:.2f}s - {padded_end:.2f}s")
+            self.log_message.emit(f"    Padded slice for smoothing: {padded_start:.2f}s - {padded_end:.2f}s")
 
             slicer_for_padding = Slicer(
                 filter_by=gui_config.get('slice_filter_by', 'time'),
@@ -69,47 +76,35 @@ class PipelineController(QObject):
             padded_data = slicer_for_padding.process(data)
             self.log_message.emit(f"    Padded slicer done. Shape: {padded_data.shape}")
 
-            # 3. 스무딩
-            self.log_message.emit("[3/N] Smoothing markers...")
-            data_to_process = self.smoother.process(padded_data)
-            self.log_message.emit(f"    Smoother done. Shape: {data_to_process.shape}")
+            # 3. MarkerSmoother 실행
+            self.log_message.emit("[3/6] Smoothing markers...")
+            smoothed_padded_data = self.smoother.process(padded_data)
+            self.log_message.emit(f"    Smoother done. Shape: {smoothed_padded_data.shape}")
 
-            # --- 전략적 분기점 ---
-            trimming_strategy = config_analysis.TRIMMING_STRATEGY
-            self.log_message.emit(f"\n[INFO] Using Trimming Strategy: '{trimming_strategy}'")
-
+            # 4. 패딩 제거 (원본 슬라이스로 다시 자르기)
+            self.log_message.emit("[4/6] Trimming padding from smoothed data...")
             slicer_for_trimming = Slicer(
                 filter_by=gui_config.get('slice_filter_by', 'time'),
                 start_val=original_start,
                 end_val=original_end
             )
+            data = slicer_for_trimming.process(smoothed_padded_data)
+            self.log_message.emit(f"    Trimming done. Final shape for analysis: {data.shape}")
 
-            if trimming_strategy == 'early':
-                # 4. 조기 트리밍 (Early Trimming)
-                self.log_message.emit("[4/N] Trimming data early (before pose/velocity)...")
-                data_to_process = slicer_for_trimming.process(data_to_process)
-                self.log_message.emit(f"    Trimming done. Shape for analysis: {data_to_process.shape}")
+            # 5. PoseOptimizer 실행
+            self.log_message.emit("[5/7] Optimizing pose...")
+            data = self.pose_optimizer.process(data)
+            self.log_message.emit(f"    PoseOptimizer done. Shape: {data.shape}")
 
-            # 5. 자세 최적화
-            self.log_message.emit("[5/N] Optimizing pose...")
-            data_to_process = self.pose_optimizer.process(data_to_process)
-            self.log_message.emit(f"    PoseOptimizer done. Shape: {data_to_process.shape}")
+            # 6. VelocityCalculator 실행
+            self.log_message.emit("[6/7] Calculating velocity...")
+            data = self.velocity_calculator.process(data)
+            self.log_message.emit(f"    VelocityCalculator done. Shape: {data.shape}")
 
-            # 6. 속도 계산
-            self.log_message.emit("[6/N] Calculating velocity...")
-            data_to_process = self.velocity_calculator.process(data_to_process)
-            self.log_message.emit(f"    VelocityCalculator done. Shape: {data_to_process.shape}")
-
-            # 7. 최종 프레임 분석
-            self.log_message.emit("[7/N] Analyzing frames...")
-            final_result = self.frame_analyzer.process(data_to_process)
+            # 7. FrameAnalyzer 실행
+            self.log_message.emit("[7/7] Analyzing frames...")
+            final_result = self.frame_analyzer.process(data)
             self.log_message.emit(f"    FrameAnalyzer done. Shape: {final_result.shape}")
-
-            if trimming_strategy == 'late':
-                # 8. 후기 트리밍 (Late Trimming)
-                self.log_message.emit("[8/N] Trimming data late (after all calculations)...")
-                final_result = slicer_for_trimming.process(final_result)
-                self.log_message.emit(f"    Trimming done. Final shape: {final_result.shape}")
 
             self.log_message.emit("\nAnalysis pipeline completed successfully.")
             self.analysis_finished.emit(final_result)

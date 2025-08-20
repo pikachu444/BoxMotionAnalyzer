@@ -47,10 +47,3 @@ FD_ANGULAR_METHOD = 'quaternion' # 'matrix' 또는 'quaternion'
 USE_VELOCITY_LOWPASS_FILTER = False
 VELOCITY_LPF_CUTOFF_HZ = 8.0
 VELOCITY_LPF_ORDER = 4
-
-
-# --- Pipeline Strategy Parameters ---
-# 파이프라인에서 최종 데이터 슬라이스를 어느 시점에 할지 결정합니다.
-# - 'early': 스무딩 직후. 후속 계산(자세/속도)은 더 작은 데이터셋에서 수행되어 빠르지만, 경계면 정확도가 낮을 수 있음.
-# - 'late': 모든 계산(자세/속도 포함)이 끝난 마지막에 수행. 계산 시간은 더 걸리지만 경계면 정확도가 높음.
-TRIMMING_STRATEGY = 'late'  # 'early' 또는 'late'
