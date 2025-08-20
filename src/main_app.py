@@ -292,56 +292,6 @@ class MainApp(QMainWindow):
         self.selected_point_info = {'time': None, 'index': None}
         self.update_point_selection_ui()
 
-    def on_result_file_selected(self, item):
-        folder_path = self.result_folder_path_label.text()
-        file_path = os.path.join(folder_path, item.text())
-        try:
-            self.log_output.append(f"[INFO] Loading result file: {file_path}")
-            self.result_data = self.data_loader.load_result_csv(file_path)
-            self.statusBar().showMessage("Result file loaded.")
-            self.populate_result_tree(self.result_data)
-            self.result_data_tree.setEnabled(True)
-            self.plot_results_button.setEnabled(True)
-            self.log_output.append("[INFO] Result data loaded. Please select data to plot.")
-        except Exception as e:
-            self.log_output.append(f"[ERROR] Failed to load result file: {e}")
-            self.statusBar().showMessage(f"Error: {e}")
-            self.result_data_tree.clear()
-            self.result_data_tree.setEnabled(False)
-            self.plot_results_button.setEnabled(False)
-
-    def populate_result_tree(self, df):
-        """Populates the QTreeWidget with a hierarchy from the DataFrame's multi-level columns."""
-        self.result_data_tree.clear()
-        top_level_items = {}
-
-        # 표시할 컬럼을 DISPLAY_RESULT_COLUMNS 리스트를 기준으로 필터링합니다.
-        # 데이터프레임에 실제로 존재하는 컬럼만 선택합니다.
-        columns_to_plot = [col for col in df.columns if col in DISPLAY_RESULT_COLUMNS]
-
-        for l1, l2, l3 in columns_to_plot:
-            if l1 not in top_level_items:
-                top_item = QTreeWidgetItem(self.result_data_tree, [l1])
-                top_level_items[l1] = {'item': top_item, 'children': {}}
-            top_level_node = top_level_items[l1]
-
-            if l2 not in top_level_node['children']:
-                mid_item = QTreeWidgetItem(top_level_node['item'], [l2])
-                top_level_node['children'][l2] = mid_item
-            mid_item = top_level_node['children'][l2]
-
-            leaf_item = QTreeWidgetItem(mid_item, [l3])
-            leaf_item.setFlags(leaf_item.flags() | Qt.ItemIsUserCheckable)
-
-            # Re-apply the last selection state
-            column_tuple = (l1, l2, l3)
-            if column_tuple in self.last_selected_result_columns:
-                leaf_item.setCheckState(0, Qt.Checked)
-            else:
-                leaf_item.setCheckState(0, Qt.Unchecked)
-
-        self.result_data_tree.expandAll()
-
     def on_result_plot_click(self, event):
         if event.inaxes != self.plot_manager2.ax:
             return
@@ -354,6 +304,8 @@ class MainApp(QMainWindow):
         self.selected_point_info['index'] = closest_index
         self.selected_point_info['time'] = self.result_data.index[closest_index]
 
+        # Explicitly enable the button here to be certain.
+        self.export_point_button.setEnabled(True)
         self.update_point_selection_ui()
 
     def on_find_max_click(self):
@@ -421,6 +373,71 @@ class MainApp(QMainWindow):
                 self.log_output.append(f"[INFO] Point data successfully exported to {filepath}")
             except Exception as e:
                 self.log_output.append(f"[ERROR] Could not export point data: {e}")
+
+    def select_result_folder(self):
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Result Folder")
+        if folder_path:
+            self.result_folder_path_label.setText(folder_path)
+            self.result_file_list.clear()
+            self.result_data_tree.clear()
+            self.result_data_tree.setEnabled(False)
+            self.plot_results_button.setEnabled(False)
+            try:
+                files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
+                self.result_file_list.addItems(files)
+                self.log_output.append(f"[INFO] Found {len(files)} CSV files in {folder_path}")
+            except Exception as e:
+                self.log_output.append(f"[ERROR] Failed to read folder: {e}")
+
+    def on_result_file_selected(self, item):
+        folder_path = self.result_folder_path_label.text()
+        file_path = os.path.join(folder_path, item.text())
+        try:
+            self.log_output.append(f"[INFO] Loading result file: {file_path}")
+            self.result_data = self.data_loader.load_result_csv(file_path)
+            self.statusBar().showMessage("Result file loaded.")
+            self.populate_result_tree(self.result_data)
+            self.result_data_tree.setEnabled(True)
+            self.plot_results_button.setEnabled(True)
+            self.log_output.append("[INFO] Result data loaded. Please select data to plot.")
+        except Exception as e:
+            self.log_output.append(f"[ERROR] Failed to load result file: {e}")
+            self.statusBar().showMessage(f"Error: {e}")
+            self.result_data_tree.clear()
+            self.result_data_tree.setEnabled(False)
+            self.plot_results_button.setEnabled(False)
+
+    def populate_result_tree(self, df):
+        """Populates the QTreeWidget with a hierarchy from the DataFrame's multi-level columns."""
+        self.result_data_tree.clear()
+        top_level_items = {}
+
+        # 표시할 컬럼을 DISPLAY_RESULT_COLUMNS 리스트를 기준으로 필터링합니다.
+        # 데이터프레임에 실제로 존재하는 컬럼만 선택합니다.
+        columns_to_plot = [col for col in df.columns if col in DISPLAY_RESULT_COLUMNS]
+
+        for l1, l2, l3 in columns_to_plot:
+            if l1 not in top_level_items:
+                top_item = QTreeWidgetItem(self.result_data_tree, [l1])
+                top_level_items[l1] = {'item': top_item, 'children': {}}
+            top_level_node = top_level_items[l1]
+
+            if l2 not in top_level_node['children']:
+                mid_item = QTreeWidgetItem(top_level_node['item'], [l2])
+                top_level_node['children'][l2] = mid_item
+            mid_item = top_level_node['children'][l2]
+
+            leaf_item = QTreeWidgetItem(mid_item, [l3])
+            leaf_item.setFlags(leaf_item.flags() | Qt.ItemIsUserCheckable)
+
+            # Re-apply the last selection state
+            column_tuple = (l1, l2, l3)
+            if column_tuple in self.last_selected_result_columns:
+                leaf_item.setCheckState(0, Qt.Checked)
+            else:
+                leaf_item.setCheckState(0, Qt.Unchecked)
+
+        self.result_data_tree.expandAll()
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")

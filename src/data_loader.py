@@ -69,7 +69,7 @@ class DataLoader:
                 if TimeCols.TIME in df.columns:
                     df.set_index(TimeCols.TIME, inplace=True)
                 else:
-                    print(f"[DataLoader WARNING] '{TimeCols.TIME}' column not found in {filepath}. Using default integer index.")
+                    self.log_message.emit(f"[WARNING] '{TimeCols.TIME}' column not found in {filepath}. Using default integer index.")
 
             print(f"[DataLoader INFO] Result CSV loaded successfully from {filepath}")
             return df
