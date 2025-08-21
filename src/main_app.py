@@ -19,7 +19,7 @@ from src.config import config_app
 from src.analysis.parser import Parser
 from src.config.data_columns import (
     PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO,
-    DisplayNames, RESULT_TIME_COL, DISPLAY_RESULT_COLUMNS
+    DisplayNames, RESULT_TIME_COL, DISPLAY_RESULT_COLUMNS, TimeCols
 )
 from src.header_converter import convert_to_multi_header
 
@@ -396,6 +396,11 @@ class MainApp(QMainWindow):
             self.log_output.append(f"[INFO] Loading result file: {file_path}")
             self.result_data = self.data_loader.load_result_csv(file_path)
             self.statusBar().showMessage("Result file loaded.")
+
+            # 'Time' 컬럼이 인덱스로 설정되었는지 확인하고, 그렇지 않으면 경고를 로깅합니다.
+            if self.result_data.index.name != TimeCols.TIME:
+                self.log_output.append(f"[WARNING] '{TimeCols.TIME}' column not found in {item.text()}. Using default integer index for plotting.")
+
             self.populate_result_tree(self.result_data)
             self.result_data_tree.setEnabled(True)
             self.plot_results_button.setEnabled(True)

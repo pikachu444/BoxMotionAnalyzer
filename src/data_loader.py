@@ -64,12 +64,9 @@ class DataLoader:
             if time_col_tuple in df.columns:
                 df.set_index(time_col_tuple, inplace=True)
                 df.index.name = TimeCols.TIME # 인덱스 이름 재설정
-            else:
+            elif TimeCols.TIME in df.columns:
                 # 하위 호환성 또는 다른 형식의 결과 파일을 위해 단일 'Time' 컬럼도 확인
-                if TimeCols.TIME in df.columns:
-                    df.set_index(TimeCols.TIME, inplace=True)
-                else:
-                    self.log_message.emit(f"[WARNING] '{TimeCols.TIME}' column not found in {filepath}. Using default integer index.")
+                df.set_index(TimeCols.TIME, inplace=True)
 
             print(f"[DataLoader INFO] Result CSV loaded successfully from {filepath}")
             return df
