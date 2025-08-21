@@ -275,19 +275,15 @@ class MainApp(QMainWindow):
         for col in checked_columns:
             self.find_max_target_combo.addItem(f"{col[0]}/{col[1]}/{col[2]}", userData=col)
 
-        time_col_tuple = RESULT_TIME_COL
-        if time_col_tuple not in self.result_data.columns:
-            self.log_output.append(f"[ERROR] Could not find time column {time_col_tuple} in result data.")
-            return
-
         if not checked_columns:
             self.plot_manager2.clear_plot()
             self.selected_point_info = {'time': None, 'index': None}
             self.update_point_selection_ui()
             return
 
-        plot_df = self.result_data[checked_columns + [time_col_tuple]].copy()
-        plot_df.set_index(time_col_tuple, inplace=True)
+        # The DataFrame self.result_data should already have the correct index.
+        # We no longer need to check for the time column or set the index here.
+        plot_df = self.result_data[checked_columns].copy()
         self.plot_manager2.draw_plot(plot_df, checked_columns)
         self.selected_point_info = {'time': None, 'index': None}
         self.update_point_selection_ui()
@@ -396,6 +392,15 @@ class MainApp(QMainWindow):
             self.log_output.append(f"[INFO] Loading result file: {file_path}")
             self.result_data = self.data_loader.load_result_csv(file_path)
             self.statusBar().showMessage("Result file loaded.")
+
+            # Set the time index on the main dataframe immediately after loading.
+            time_col_tuple = RESULT_TIME_COL
+            if time_col_tuple in self.result_data.columns:
+                self.result_data.set_index(time_col_tuple, inplace=True)
+                self.result_data.index.name = TimeCols.TIME
+            elif TimeCols.TIME in self.result_data.columns:
+                self.result_data.set_index(TimeCols.TIME, inplace=True)
+                self.result_data.index.name = TimeCols.TIME
 
             # 'Time' 컬럼이 인덱스로 설정되었는지 확인하고, 그렇지 않으면 경고를 로깅합니다.
             if self.result_data.index.name != TimeCols.TIME:

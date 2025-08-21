@@ -60,13 +60,15 @@ class DataLoader:
 
             # 'Time' 컬럼을 찾아서 인덱스로 설정합니다.
             # 결과 CSV의 Time 컬럼은 ('Time', 'Time', 'Time') 튜플 형태의 멀티레벨 헤더를 가집니다.
+            # 'Time' 컬럼을 찾아서 인덱스로 설정합니다.
+            # 멀티레벨 헤더의 ('Time', 'Time', 'Time') 또는 단일 'Time' 컬럼을 순차적으로 확인합니다.
             time_col_tuple = (TimeCols.TIME, TimeCols.TIME, TimeCols.TIME)
             if time_col_tuple in df.columns:
                 df.set_index(time_col_tuple, inplace=True)
-                df.index.name = TimeCols.TIME # 인덱스 이름 재설정
+                df.index.name = TimeCols.TIME
             elif TimeCols.TIME in df.columns:
-                # 하위 호환성 또는 다른 형식의 결과 파일을 위해 단일 'Time' 컬럼도 확인
                 df.set_index(TimeCols.TIME, inplace=True)
+                df.index.name = TimeCols.TIME
 
             print(f"[DataLoader INFO] Result CSV loaded successfully from {filepath}")
             return df
