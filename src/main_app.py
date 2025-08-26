@@ -295,8 +295,9 @@ class MainApp(QMainWindow):
             return
 
         time_val = event.xdata
-        # Find the closest index in the dataframe
-        closest_index = self.result_data.index.get_loc(time_val, method='nearest')
+        # Find the closest index in the dataframe using the modern pandas API
+        indexer = self.result_data.index.get_indexer([time_val], method='nearest')
+        closest_index = indexer[0]
         self.selected_point_info['index'] = closest_index
         self.selected_point_info['time'] = self.result_data.index[closest_index]
 
