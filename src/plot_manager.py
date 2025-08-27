@@ -53,6 +53,24 @@ class PlotManager(QObject):
         self._initialize_hover_annotation()
         self.canvas.draw()
 
+    def clear_plot(self):
+        """Clears only the data lines and legend, preserving axis limits."""
+        if not self.ax.lines:
+            return
+
+        # Iterate over a copy of the list of lines to avoid modification issues
+        for line in list(self.ax.lines):
+            line.remove()
+
+        # Remove the legend if it exists
+        if hasattr(self.ax, 'legend_') and self.ax.legend_ is not None:
+            self.ax.legend_.remove()
+            # It's good practice to also nullify the reference
+            self.ax.legend_ = None
+
+        self.ax.set_title("")
+        self.canvas.draw()
+
     def enable_interactions(self, data_df: pd.DataFrame):
         if data_df is None or data_df.empty: return
 
