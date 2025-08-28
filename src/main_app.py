@@ -279,12 +279,22 @@ class MainApp(QMainWindow):
             self.plot_manager2.clear_plot()
             self.selected_point_info = {'time': None, 'index': None}
             self.update_point_selection_ui()
+            # Reset the navigation toolbar's history to set the new "Home" state
+            self.toolbar2._views.clear()
+            self.toolbar2._positions.clear()
+            self.toolbar2.push_current()
             return
 
         # The DataFrame self.result_data should already have the correct index.
         # We no longer need to check for the time column or set the index here.
         plot_df = self.result_data[checked_columns].copy()
         self.plot_manager2.draw_plot(plot_df, checked_columns)
+
+        # Reset the navigation toolbar's history to set the new "Home" state
+        self.toolbar2._views.clear()
+        self.toolbar2._positions.clear()
+        self.toolbar2.push_current()
+
         self.selected_point_info = {'time': None, 'index': None}
         self.update_point_selection_ui()
 
