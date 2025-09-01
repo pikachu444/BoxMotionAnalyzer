@@ -25,10 +25,10 @@
         *   `QPushButton` ('Find Max', 'Export Point Data...'): 기능 실행 버튼.
 *   **핵심 기능/메서드:**
     *   `open_data_selection_dialog()`: 원본 데이터 플롯을 위한 데이터 선택 대화상자를 생성하고, 그 결과를 받아 그래프 업데이트를 트리거합니다.
-    *   `run_pipeline()`: `PipelineController`를 별도 스레드에서 실행하여 분석을 시작합니다.
-    *   `on_result_file_selected()`: 결과 파일 목록에서 특정 파일이 선택되었을 때, 해당 파일을 로드하고 데이터 선택 트리를 채웁니다.
-    *   `plot_selected_results()`: 데이터 선택 트리에서 사용자가 체크한 항목들을 결과 그래프에 플로팅하고, '최대값 찾기 대상' 콤보박스를 업데이트합니다.
-    *   `on_result_plot_click()`: 결과 그래프 클릭 시, 해당 지점 정보를 UI에 업데이트합니다.
+    *   `run_pipeline()`: `PipelineController`를 별도 스레드에서 실행하여 분석을 시작하고, 실행 시점의 `Box Dimensions`를 전역 설정에 업데이트합니다.
+    *   `on_result_file_selected()`: 결과 파일 목록에서 특정 파일이 선택되었을 때, 해당 파일을 로드하고 'Time' 컬럼을 인덱스로 설정하여 데이터 일관성을 확보한 뒤, 데이터 선택 트리를 채웁니다.
+    *   `plot_selected_results()`: 데이터 선택 트리에서 사용자가 체크한 항목들을 결과 그래프에 플로팅하고, '최대값 찾기 대상' 콤보박스를 업데이트합니다. 또한, 그래프를 새로 그린 후 툴바의 '홈' 상태를 재설정하여 올바르게 동작하도록 보장합니다.
+    *   `on_result_plot_click()`: 결과 그래프 클릭 시, `get_indexer`를 사용하여 가장 가까운 데이터 지점을 찾아 그 정보를 UI에 업데이트합니다.
     *   `on_find_max_click()`: '대상 데이터'의 최대값 지점을 찾아 UI에 업데이트합니다.
     *   `on_export_point_data_click()`: 현재 선택된 지점의 전체 데이터 행을 파일로 내보냅니다.
 
