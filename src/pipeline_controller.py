@@ -20,7 +20,6 @@ class PipelineController(QObject):
         self.parser = Parser(face_prefix_map=FACE_PREFIX_TO_INFO)
         self.smoother = MarkerSmoother()
         self.pose_optimizer = PoseOptimizer(
-            box_dims=config_app.BOX_DIMS,
             face_definitions=getattr(config_app, 'FACE_DEFINITIONS', {}),
             local_box_corners=config_app.LOCAL_BOX_CORNERS
         )
@@ -36,6 +35,7 @@ class PipelineController(QObject):
         TRIMMING_STRATEGY 설정에 따라 다른 순서로 실행될 수 있습니다.
         """
         try:
+            self.log_message.emit(f"[INFO] Using Box Dimensions (L,W,H): {config_app.BOX_DIMS}")
             # 1. 파싱 단계
             if parsed_data is not None:
                 self.log_message.emit("[1/N] Using cached parsed data...")

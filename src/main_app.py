@@ -488,6 +488,12 @@ class MainApp(QMainWindow):
     def run_pipeline(self):
         if self.raw_data is None: return
         try:
+            # Update box dimensions globally before starting the pipeline
+            l = float(self.le_box_l.text())
+            w = float(self.le_box_w.text())
+            h = float(self.le_box_h.text())
+            config_app.BOX_DIMS = [l, w, h]
+
             config = {
                 'slice_filter_by': 'time',
                 'slice_start_val': float(self.le_slice_start.text()) if self.slice_group.isChecked() else self.parsed_data.index.min(),
