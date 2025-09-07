@@ -176,11 +176,12 @@ class MainApp(QMainWindow):
         file_browser_layout = QVBoxLayout()
         file_browser_controls_layout = QHBoxLayout()
         self.select_result_folder_button = QPushButton("Select Result Folder...")
-        self.recent_files_combo = QComboBox()
-        self.recent_files_combo.addItem("Recent Files...")
+        self.plot_results_button = QPushButton("Plot Selected Results")
+        self.plot_results_button.setEnabled(False)
         file_browser_controls_layout.addWidget(self.select_result_folder_button)
-        file_browser_controls_layout.addWidget(self.recent_files_combo)
+        file_browser_controls_layout.addWidget(self.plot_results_button)
         file_browser_layout.addLayout(file_browser_controls_layout)
+
         self.result_folder_path_label = QLabel("No folder selected.")
         file_browser_layout.addWidget(self.result_folder_path_label)
         self.result_file_list = QListWidget()
@@ -190,15 +191,8 @@ class MainApp(QMainWindow):
         self.result_data_tree.setHeaderLabel("Select Data to Plot")
         self.result_data_tree.setEnabled(False)
 
-        plot_button_layout = QHBoxLayout()
-        plot_button_layout.addStretch()
-        self.plot_results_button = QPushButton("Plot Selected Results")
-        self.plot_results_button.setEnabled(False)
-        plot_button_layout.addWidget(self.plot_results_button)
-
         result_controls_main_layout.addLayout(file_browser_layout)
         result_controls_main_layout.addWidget(self.result_data_tree)
-        result_controls_main_layout.addLayout(plot_button_layout)
 
         # Point Analysis GroupBox
         point_analysis_group = QGroupBox("지점 분석 (Point Analysis)")
