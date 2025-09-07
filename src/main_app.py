@@ -181,25 +181,25 @@ class MainApp(QMainWindow):
         file_browser_controls_layout.addWidget(self.select_result_folder_button)
         file_browser_controls_layout.addWidget(self.plot_results_button)
         file_browser_layout.addLayout(file_browser_controls_layout)
-
         self.result_folder_path_label = QLabel("No folder selected.")
         file_browser_layout.addWidget(self.result_folder_path_label)
+
+        # New horizontal layout for the list and tree
+        list_tree_layout = QHBoxLayout()
         self.result_file_list = QListWidget()
-        file_browser_layout.addWidget(self.result_file_list)
+        list_tree_layout.addWidget(self.result_file_list)
 
         self.result_data_tree = QTreeWidget()
         self.result_data_tree.setHeaderLabel("Select Data to Plot")
         self.result_data_tree.setEnabled(False)
+        list_tree_layout.addWidget(self.result_data_tree)
 
         result_controls_main_layout.addLayout(file_browser_layout)
-        result_controls_main_layout.addWidget(self.result_data_tree)
+        result_controls_main_layout.addLayout(list_tree_layout)
 
         # Point Analysis GroupBox
         point_analysis_group = QGroupBox("지점 분석 (Point Analysis)")
         point_analysis_layout = QVBoxLayout(point_analysis_group)
-
-        self.selected_point_label = QLabel("Selected: None")
-        point_analysis_layout.addWidget(self.selected_point_label)
 
         find_max_layout = QHBoxLayout()
         find_max_layout.addWidget(QLabel("Target:"))
@@ -209,12 +209,14 @@ class MainApp(QMainWindow):
         find_max_layout.addWidget(self.find_max_button)
         point_analysis_layout.addLayout(find_max_layout)
 
-        export_point_layout = QHBoxLayout()
-        export_point_layout.addStretch()
+        selected_export_layout = QHBoxLayout()
+        self.selected_point_label = QLabel("Selected: None")
+        selected_export_layout.addWidget(self.selected_point_label)
+        selected_export_layout.addStretch()
         self.export_point_button = QPushButton("Export Point Data...")
         self.export_point_button.setEnabled(False)
-        export_point_layout.addWidget(self.export_point_button)
-        point_analysis_layout.addLayout(export_point_layout)
+        selected_export_layout.addWidget(self.export_point_button)
+        point_analysis_layout.addLayout(selected_export_layout)
 
         result_controls_main_layout.addWidget(point_analysis_group)
 
