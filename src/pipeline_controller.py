@@ -35,8 +35,8 @@ class PipelineController(QObject):
         """
         try:
             self.log_message.emit(f"[INFO] Using Box Dimensions (L,W,H): {config_app.BOX_DIMS}")
-        #파싱된 데이터가 있으면 재사용하고, 스무딩을 위해 패딩/트리밍을 수행합니다.
-        try:
+            # 파싱된 데이터가 있으면 재사용하고, 스무딩을 위해 패딩/트리밍을 수행합니다.
+
             # 1. 파싱 단계
             if parsed_data is not None:
                 self.log_message.emit("[1/8] Using cached parsed data...")
