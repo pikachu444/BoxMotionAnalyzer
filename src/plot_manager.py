@@ -24,17 +24,26 @@ class PlotManager(QObject):
             return
 
         colors = plt.get_cmap('tab10').colors
+        # 컬럼 이름이 튜플(멀티헤더)일 수도, 문자열일 수도 있으므로, 레이블용 문자열 리스트를 별도로 생성합니다.
+        labels_to_plot = []
         for i, col_name in enumerate(columns_to_plot):
             if col_name not in data_df.columns:
                 print(f"[Warning] Column '{col_name}' not found, skipping.")
                 continue
 
+            # 튜플인 경우, 제목과 범례에 사용할 문자열 레이블을 생성합니다.
+            if isinstance(col_name, tuple):
+                label = '.'.join(map(str, col_name))
+            else:
+                label = col_name
+            labels_to_plot.append(label)
+
             x_data = data_df.index.values
             y_data = data_df[col_name].values
             color = colors[i % len(colors)]
-            self.ax.plot(x_data, y_data, color=color, label=col_name)
+            self.ax.plot(x_data, y_data, color=color, label=label)
 
-        self.ax.set_title(f"Plot for: {', '.join(columns_to_plot)}")
+        self.ax.set_title(f"Plot for: {', '.join(labels_to_plot)}")
         self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel("Value")
         self.ax.grid(True)
@@ -42,6 +51,24 @@ class PlotManager(QObject):
             self.ax.legend()
 
         self._initialize_hover_annotation()
+        self.canvas.draw()
+
+    def clear_plot(self):
+        """Clears only the data lines and legend, preserving axis limits."""
+        if not self.ax.lines:
+            return
+
+        # Iterate over a copy of the list of lines to avoid modification issues
+        for line in list(self.ax.lines):
+            line.remove()
+
+        # Remove the legend if it exists
+        if hasattr(self.ax, 'legend_') and self.ax.legend_ is not None:
+            self.ax.legend_.remove()
+            # It's good practice to also nullify the reference
+            self.ax.legend_ = None
+
+        self.ax.set_title("")
         self.canvas.draw()
 
     def enable_interactions(self, data_df: pd.DataFrame):

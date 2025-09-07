@@ -143,7 +143,42 @@ class HeaderL3:
     FACE: str = "FaceInfo"
     NUM: str = "Number"
     SEC: str = "s"
+    TIME: str = "Time"
     SRC: str = "Source"
     NORM_V: str = "Norm_V"
     NORM_W: str = "Norm_W"
     REL_H: str = "RelativeHeight"
+
+# --- Result File Column Constants ---
+RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
+
+# List of columns to be displayed in the result analyzer's selection tree.
+# This helps to avoid cluttering the view with too many options.
+DISPLAY_RESULT_COLUMNS = [
+    # Analysis results for Center of Mass (CoM) Velocity
+    (HeaderL1.VEL, HeaderL2.COM, "VX_Ana"),
+    (HeaderL1.VEL, HeaderL2.COM, "VY_Ana"),
+    (HeaderL1.VEL, HeaderL2.COM, "VZ_Ana"),
+    (HeaderL1.VEL, HeaderL2.COM, f"{HeaderL3.NORM_V}_Ana"),
+
+    # Analysis results for Angular Velocity
+    (HeaderL1.VEL, HeaderL2.COM, "WX_Ana"),
+    (HeaderL1.VEL, HeaderL2.COM, "WY_Ana"),
+    (HeaderL1.VEL, HeaderL2.COM, "WZ_Ana"),
+    (HeaderL1.VEL, HeaderL2.COM, f"{HeaderL3.NORM_W}_Ana"),
+
+    # Relative Height for each of the 8 corners
+    (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
+    (HeaderL1.ANALYSIS, "C2", HeaderL3.REL_H),
+    (HeaderL1.ANALYSIS, "C3", HeaderL3.REL_H),
+    (HeaderL1.ANALYSIS, "C4", HeaderL3.REL_H),
+    (HeaderL1.ANALYSIS, "C5", HeaderL3.REL_H),
+    (HeaderL1.ANALYSIS, "C6", HeaderL3.REL_H),
+    (HeaderL1.ANALYSIS, "C7", HeaderL3.REL_H),
+    (HeaderL1.ANALYSIS, "C8", HeaderL3.REL_H),
+
+    # Corner Velocities (Example for Corner 1, could be expanded)
+    (HeaderL1.VEL, "C1", HeaderL3.VX),
+    (HeaderL1.VEL, "C1", HeaderL3.VY),
+    (HeaderL1.VEL, "C1", HeaderL3.VZ),
+]

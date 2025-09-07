@@ -1,35 +1,36 @@
 =========================================
-|    컴포넌트 및 기능 명세서 (v7)         |
+|    컴포넌트 및 기능 명세서 (v7 기준)    |
 =========================================
 
-이 문서는 v7 아키텍처를 기반으로 구현된 애플리케이션의 주요 컴포넌트와 그 책임을 상세히 설명합니다.
-
----
-### *. 아키텍처 원칙: 중앙 설정 관리
----
-*   **설명:** 코드 전체에서 사용되는 데이터 컬럼 이름, 키워드 등의 문자열 리터럴을 하드코딩하는 것을 방지하기 위해, `src/config/` 디렉토리 내에서 모든 주요 상수를 중앙 관리합니다.
-*   **구현:** `dataclasses`를 사용하여 `PoseCols`, `VelocityCols` 와 같이 관련된 상수들을 그룹화하여, 코드의 안정성과 유지보수성을 향상시킵니다.
+이 문서는 v7 아키텍처를 기준으로 애플리케이션의 주요 컴포넌트와 그 책임을 설명합니다.
 
 ---
 ### 1. `MainApp` (GUI 애플리케이션)
 ---
 *   **책임:**
-    *   메인 GUI 창과 모든 위젯을 관리하고, 사용자 상호작용을 처리합니다.
-    *   `DataLoader`, `PlotManager`, `PipelineController` 등 다른 컴포넌트들을 초기화하고 조정합니다.
-    *   **(v7 신규)** 성능 최적화를 위해 파일을 로드할 때 파싱을 미리 실행하고 그 결과를 캐시에 저장하여, UI 미리보기와 실제 분석 파이프라인에서 재사용하도록 합니다.
-*   **핵심 위젯:**
-    *   `Matplotlib Canvas/Toolbar`: 그래프 표시 및 제어.
-    *   `QScrollArea`: 하단 컨트롤 패널의 스크롤 기능을 제공합니다.
-    *   `QGroupBox`: 연관된 위젯들을 시각적으로 그룹화합니다 (`Plot Options`, `Slice Range` 등).
-    *   `QPushButton` ("Select Data..."): `DataSelectionDialog`를 띄웁니다.
-    *   `QCheckBox` ("Enable Slicing"): 분석 구간 설정을 활성화/비활성화합니다.
+    *   **Original Data Analysis:** 메인 GUI 창과 원본 데이터 분석에 관련된 모든 위젯을 관리하고, 사용자 상호작용을 처리합니다. 데이터 선택을 위한 팝업 대화상자를 생성하고 관리합니다.
+    *   **Result Analyzer:** 이전에 분석된 결과 파일을 로드하고, 사용자가 그 안의 데이터를 선택하여 시각화할 수 있는 '결과 분석기' UI 전체를 관리합니다.
+*   **핵심 위젯 (Original Data Analysis):**
+    *   `Matplotlib Canvas/Toolbar`: 원본 데이터 그래프 표시 및 제어.
+    *   `QPushButton` ("Load CSV File...", "Select Data...", "Run Analysis", "Export Results"): 핵심 기능 실행 버튼.
+    *   `QCheckBox` ("Enable Slicing"): 분석 구간 설정을 활성화/비활성화.
+    *   `QGroupBox`: 연관된 위젯들을 시각적으로 그룹화.
+*   **핵심 위젯 (Result Analyzer):**
+    *   두 번째 `Matplotlib Canvas/Toolbar`: 결과 비교용 그래프 표시.
+    *   `QListWidget`: 폴더 내 결과 파일 목록 표시.
+    *   `QTreeWidget`: 결과 파일 내 데이터 컬럼을 계층적으로 표시하고 선택 기능 제공.
+    *   `QGroupBox` ('Point Analysis'): 지점 분석 관련 위젯들을 그룹화.
+        *   `QLabel`: 선택된 지점의 정보(시간/값) 표시.
+        *   `QComboBox`: 최대값을 찾을 대상 데이터 선택.
+        *   `QPushButton` ('Find Max', 'Export Point Data...'): 기능 실행 버튼.
 *   **핵심 기능/메서드:**
-    *   `open_csv_file()`: 파일을 로드하고, `Parser`를 호출하여 데이터 파싱 및 캐싱을 수행한 후, `update_plot()`을 호출합니다.
-    *   `run_pipeline()`: `PipelineController`를 백그라운드 스레드에서 실행시키며, 캐시된 `parsed_data`를 전달합니다.
-    *   `open_data_selection_dialog()`: `DataSelectionDialog`를 생성하고, 사용자가 선택한 항목들을 받아와 그래프 업데이트를 트리거합니다.
-    *   `toggle_slicing_widgets()`: "Enable Slicing" 체크박스 상태에 따라 슬라이싱 관련 위젯(QLineEdit)들의 활성화 상태를 제어합니다.
-    *   `update_span_selector_from_inputs()`: "Slice Range" 입력란의 값이 변경되면 `SpanSelector`의 위치를 업데이트하여 양방향 동기화를 구현합니다.
-    *   `on_region_changed()`: `SpanSelector`의 변경 사항을 "Slice Range" 입력란에 반영합니다.
+    *   `open_data_selection_dialog()`: 원본 데이터 플롯을 위한 데이터 선택 대화상자를 생성하고, 그 결과를 받아 그래프 업데이트를 트리거합니다.
+    *   `run_pipeline()`: `PipelineController`를 별도 스레드에서 실행하여 분석을 시작하고, 실행 시점의 `Box Dimensions`를 전역 설정에 업데이트합니다.
+    *   `on_result_file_selected()`: 결과 파일 목록에서 특정 파일이 선택되었을 때, 해당 파일을 로드하고 'Time' 컬럼을 인덱스로 설정하여 데이터 일관성을 확보한 뒤, 데이터 선택 트리를 채웁니다.
+    *   `plot_selected_results()`: 데이터 선택 트리에서 사용자가 체크한 항목들을 결과 그래프에 플로팅하고, '최대값 찾기 대상' 콤보박스를 업데이트합니다. 또한, 그래프를 새로 그린 후 툴바의 '홈' 상태를 재설정하여 올바르게 동작하도록 보장합니다.
+    *   `on_result_plot_click()`: 결과 그래프 클릭 시, `get_indexer`를 사용하여 가장 가까운 데이터 지점을 찾아 그 정보를 UI에 업데이트합니다.
+    *   `on_find_max_click()`: '대상 데이터'의 최대값 지점을 찾아 UI에 업데이트합니다.
+    *   `on_export_point_data_click()`: 현재 선택된 지점의 전체 데이터 행을 파일로 내보냅니다.
 
 ---
 ### 2. `DataSelectionDialog` (데이터 선택 대화상자)
@@ -48,14 +49,7 @@
 *   **책임:** CSV 파일 전체를 읽어, 헤더 정보(상위 7줄)와 원본 데이터(나머지)를 분리하여 `MainApp`에 전달합니다.
 
 ---
-### 4. `Parser` (데이터 파싱 및 변환)
----
-*   **책임:** `DataLoader`가 전달한 원본 데이터를 분석에 용이한 'wide-format'의 `DataFrame`으로 가공합니다. 이 컴포넌트는 **두 가지 맥락에서 사용**됩니다:
-    1.  `MainApp`에서 UI 미리보기를 위해 최초 한 번 호출됩니다.
-    2.  (캐시가 없는 경우) `PipelineController` 내에서 파이프라인의 일부로 호출될 수 있습니다.
-
----
-### 5. `PlotManager` (상호작용형 시각화)
+### 4. `PlotManager` (상호작용형 시각화)
 ---
 *   **책임:** `Matplotlib Canvas`를 관리합니다. 다중 그래프, 범례, `SpanSelector`, 마우스 커서 값 표시를 처리합니다.
 
@@ -72,7 +66,7 @@
 *   **책임:** 각각의 독립적인 분석 기능을 수행하는 클래스들의 집합입니다. 각 모듈은 `DataFrame`을 입력받아 특정 분석을 수행한 뒤, 결과가 추가/수정된 `DataFrame`을 반환하는 일관된 인터페이스(`process(dataframe)`)를 가집니다.
 *   **핵심 모듈:**
     *   `Slicer`: 시간 또는 프레임 기준으로 데이터를 슬라이싱합니다.
-    *   `Parser`: (캐시가 없을 경우) 원본 데이터를 분석에 용이한 포맷으로 파싱합니다.
+    *   `Parser`: 원본 데이터를 분석에 용이한 'wide-format'의 DataFrame으로 가공하고, GUI 미리보기용 데이터 캐싱에도 사용됩니다.
     *   `MarkerSmoother`: 마커 데이터에 스무딩 필터를 적용합니다.
     *   `PoseOptimizer`: 마커 위치를 기반으로 강체의 자세(위치/회전)를 계산합니다.
     *   `VelocityCalculator`: 자세 데이터를 기반으로 속도/가속도를 계산합니다.

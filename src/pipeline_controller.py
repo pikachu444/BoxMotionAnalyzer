@@ -20,7 +20,6 @@ class PipelineController(QObject):
         self.parser = Parser(face_prefix_map=FACE_PREFIX_TO_INFO)
         self.smoother = MarkerSmoother()
         self.pose_optimizer = PoseOptimizer(
-            box_dims=config_app.BOX_DIMS,
             face_definitions=getattr(config_app, 'FACE_DEFINITIONS', {}),
             local_box_corners=config_app.LOCAL_BOX_CORNERS
         )
@@ -33,60 +32,88 @@ class PipelineController(QObject):
     def run_analysis(self, gui_config: dict, header_info: dict, raw_data: pd.DataFrame, parsed_data: pd.DataFrame = None):
         """
         전체 분석 파이프라인을 순차적으로 실행합니다.
-        파싱된 데이터가 있으면 재사용하고, 스무딩을 위해 패딩/트리밍을 수행합니다.
         """
         try:
+            self.log_message.emit(f"[INFO] Using Box Dimensions (L,W,H): {config_app.BOX_DIMS}")
+        #파싱된 데이터가 있으면 재사용하고, 스무딩을 위해 패딩/트리밍을 수행합니다.
+        try:
             # 1. 파싱 단계
-            self.log_message.emit("[1/7] Parsing data...")
             if parsed_data is not None:
+                self.log_message.emit("[1/8] Using cached parsed data...")
                 data = parsed_data
-                self.log_message.emit("    Using cached parsed data.")
             else:
+                self.log_message.emit("[1/8] Parsing data...")
                 data = self.parser.process(header_info, raw_data)
             self.log_message.emit(f"    Parser output shape: {data.shape}")
 
-            # 2. 패딩을 포함한 슬라이싱 단계
-            self.log_message.emit("[2/7] Slicing data with padding...")
-            padding_size = config_analysis.BUTTERWORTH_PAD_SIZE
-            slicer_with_padding = Slicer(
+            # 2. 패딩된 슬라이스 생성
+            self.log_message.emit("[2/8] Slicing data with padding...")
+            original_start = gui_config.get('slice_start_val')
+            original_end = gui_config.get('slice_end_val')
+            padding_size_frames = config_analysis.SMOOTHING_PADDING_SIZE
+            time_index = pd.Series(data.index)
+            time_diffs = time_index.diff().dropna()
+            mean_delta_t = time_diffs.mean() if not time_diffs.empty else 0
+            time_padding = padding_size_frames * mean_delta_t if mean_delta_t > 0 else 0
+            padded_start = max(original_start - time_padding, time_index.min())
+            padded_end = min(original_end + time_padding, time_index.max())
+
+            self.log_message.emit(f"    Original slice: {original_start:.2f}s - {original_end:.2f}s")
+            self.log_message.emit(f"    Padding: {padding_size_frames} frames ({time_padding:.3f}s)")
+            self.log_message.emit(f"    Padded slice for processing: {padded_start:.2f}s - {padded_end:.2f}s")
+
+            slicer_for_padding = Slicer(
                 filter_by=gui_config.get('slice_filter_by', 'time'),
-                start_val=gui_config.get('slice_start_val'),
-                end_val=gui_config.get('slice_end_val'),
-                padding_size=padding_size
+                start_val=padded_start,
+                end_val=padded_end
             )
-            padded_data = slicer_with_padding.process(data)
-            self.log_message.emit(f"    Padded slice shape: {padded_data.shape}")
+            padded_data = slicer_for_padding.process(data)
+            self.log_message.emit(f"    Padded slicer done. Shape: {padded_data.shape}")
 
-            # 3. MarkerSmoother 실행 (패딩된 데이터에 적용)
-            self.log_message.emit("[3/7] Smoothing markers on padded data...")
-            smoothed_padded_data = self.smoother.process(padded_data)
-            self.log_message.emit(f"    Smoother output shape: {smoothed_padded_data.shape}")
+            # 3. 스무딩
+            self.log_message.emit("[3/8] Smoothing markers...")
+            data_to_process = self.smoother.process(padded_data)
+            self.log_message.emit(f"    Smoother done. Shape: {data_to_process.shape}")
 
-            # 4. 트리밍 단계 (패딩 제거)
-            self.log_message.emit("[4/7] Trimming data to original slice...")
-            slicer_without_padding = Slicer(
+            # --- 전략적 분기점 ---
+            trimming_strategy = config_analysis.TRIMMING_STRATEGY
+            self.log_message.emit(f"\n[INFO] Using Trimming Strategy: '{trimming_strategy}'")
+
+            slicer_for_trimming = Slicer(
                 filter_by=gui_config.get('slice_filter_by', 'time'),
-                start_val=gui_config.get('slice_start_val'),
-                end_val=gui_config.get('slice_end_val'),
-                padding_size=0  # 패딩 없음
+                start_val=original_start,
+                end_val=original_end
             )
-            data = slicer_without_padding.process(smoothed_padded_data)
-            self.log_message.emit(f"    Trimmed data shape: {data.shape}")
 
-            # 5. PoseOptimizer 실행
-            self.log_message.emit("[5/7] Optimizing pose...")
-            data = self.pose_optimizer.process(data)
-            self.log_message.emit(f"    PoseOptimizer done. Shape: {data.shape}")
+            if trimming_strategy == 'early':
+                # 4. 조기 트리밍 (Early Trimming)
+                self.log_message.emit("[4/8] Trimming data early (before pose/velocity)...")
+                data_to_process = slicer_for_trimming.process(data_to_process)
+                self.log_message.emit(f"    Trimming done. Shape for analysis: {data_to_process.shape}")
+            else :
+              # 5. 후기 트리밍 (Late Trimming)
+                self.log_message.emit("[4/8] data will be trimmed after all calculations...")
+            
+            # 5. 자세 최적화
+            self.log_message.emit("[5/8] Optimizing pose...")
+            data_to_process = self.pose_optimizer.process(data_to_process)
+            self.log_message.emit(f"    PoseOptimizer done. Shape: {data_to_process.shape}")
 
-            # 6. VelocityCalculator 실행
-            self.log_message.emit("[6/7] Calculating velocity...")
-            data = self.velocity_calculator.process(data)
-            self.log_message.emit(f"    VelocityCalculator done. Shape: {data.shape}")
+            # 6. 속도 계산
+            self.log_message.emit("[6/8] Calculating velocity...")
+            data_to_process = self.velocity_calculator.process(data_to_process)
+            self.log_message.emit(f"    VelocityCalculator done. Shape: {data_to_process.shape}")
 
-            # 7. FrameAnalyzer 실행
-            self.log_message.emit("[7/7] Analyzing frames...")
-            final_result = self.frame_analyzer.process(data)
-            self.log_message.emit(f"    FrameAnalyzer done. Shape: {final_result.shape}")
+            # 7. 최종 프레임 분석
+            self.log_message.emit("[7/8] Analyzing frames...")
+            final_result = self.frame_analyzer.process(data_to_process)
+            self.log_message.emit(f"    Parser output shape: {data.shape}")
+
+            if trimming_strategy == 'late':
+                # 8. 후기 트리밍 (Late Trimming)
+                self.log_message.emit("[8/8] Trimming data late (after all calculations)...")
+                final_result = slicer_for_trimming.process(final_result)
+                self.log_message.emit(f"    Trimming done. Final shape: {final_result.shape}")
 
             self.log_message.emit("\nAnalysis pipeline completed successfully.")
             self.analysis_finished.emit(final_result)

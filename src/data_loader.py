@@ -5,16 +5,7 @@ from src.config.data_columns import TimeCols, RawMarkerCols, RigidBodyCols, Disp
 class DataLoader:
     def load_csv(self, filepath: str) -> tuple[dict[str, list[str]], pd.DataFrame]:
         """
-        CSV 파일을 읽어, 헤더 정보와 원본 데이터 DataFrame을 반환합니다.
-        이 메서드는 최소한의 파싱만 수행하며, 복잡한 데이터 변환은 Parser 모듈의 책임입니다.
-
-        Args:
-            filepath (str): 읽어올 CSV 파일의 경로.
-
-        Returns:
-            Tuple[Dict[str, List[str]], pd.DataFrame]:
-                - 헤더 정보를 담은 딕셔너리.
-                - 원본 데이터(8번째 줄부터)를 담은 DataFrame.
+        원본 CSV 파일을 읽어, 헤더 정보와 원본 데이터 DataFrame을 반환합니다.
         """
         try:
             with open(filepath, mode='r', encoding='utf-8-sig') as infile:
@@ -25,44 +16,32 @@ class DataLoader:
         if len(lines) < 8:
             raise ValueError("CSV 파일에 헤더 정보(최소 7줄)와 데이터(최소 1줄)가 부족합니다.")
 
-        # 1. 헤더 정보 파싱 (상위 7줄)
         header_info = {}
         header_lines = [line.strip().split(',') for line in lines[2:8]]
-
         max_len = max(len(line) for line in header_lines)
-
         padded_headers = [[item.strip() for item in line] + [''] * (max_len - len(line)) for line in header_lines]
-
         header_keys = ['type', 'name', 'id', 'parent', 'category', 'component']
         for i, key in enumerate(header_keys):
             header_info[key] = padded_headers[i]
 
         component_header = header_info['component']
-
-        # 2. 원본 데이터 DataFrame 생성
         data_lines_raw = lines[8:]
-
         reader = csv.reader(data_lines_raw)
         data_as_list = list(reader)
 
         if not data_as_list:
             return header_info, pd.DataFrame()
 
-        # 데이터프레임 생성
         num_columns = max_len
-
-        # 컬럼명을 component_header에서 가져오되, 길이가 부족하면 col_X 형식으로 채움
         df_cols = component_header[:num_columns]
         df_cols += [f'col_{i}' for i in range(len(df_cols), num_columns)]
         raw_df = pd.DataFrame(data_as_list)
+
         if raw_df.shape[1] < num_columns:
-            # Add missing columns with NaN
             for i in range(raw_df.shape[1], num_columns):
                 raw_df[i] = pd.NA
         raw_df.columns = df_cols
 
-        # 첫 두 컬럼에 대한 기본 이름 부여 (Frame, Time)
-        # 원본 데이터에 Frame, Time 컬럼이 없을 수 있으므로, 예외 처리 추가
         if len(raw_df.columns) > 1:
             rename_map = {raw_df.columns[0]: TimeCols.FRAME, raw_df.columns[1]: TimeCols.TIME}
             raw_df.rename(columns=rename_map, inplace=True)
@@ -71,10 +50,36 @@ class DataLoader:
         header_info['component'] = component_header
         return header_info, raw_df
 
+    def load_result_csv(self, filepath: str) -> pd.DataFrame:
+        """
+        분석 완료 후 Export된, 멀티헤더를 가진 결과 CSV 파일을 읽어 DataFrame으로 반환합니다.
+        """
+        try:
+            # 멀티헤더(3줄)를 올바르게 읽기 위해 header=[0, 1, 2] 옵션을 사용합니다.
+            df = pd.read_csv(filepath, header=[0, 1, 2])
+
+            # 'Time' 컬럼을 찾아서 인덱스로 설정합니다.
+            # 결과 CSV의 Time 컬럼은 ('Time', 'Time', 'Time') 튜플 형태의 멀티레벨 헤더를 가집니다.
+            # 'Time' 컬럼을 찾아서 인덱스로 설정합니다.
+            # 멀티레벨 헤더의 ('Time', 'Time', 'Time') 또는 단일 'Time' 컬럼을 순차적으로 확인합니다.
+            time_col_tuple = (TimeCols.TIME, TimeCols.TIME, TimeCols.TIME)
+            if time_col_tuple in df.columns:
+                df.set_index(time_col_tuple, inplace=True)
+                df.index.name = TimeCols.TIME
+            elif TimeCols.TIME in df.columns:
+                df.set_index(TimeCols.TIME, inplace=True)
+                df.index.name = TimeCols.TIME
+
+            print(f"[DataLoader INFO] Result CSV loaded successfully from {filepath}")
+            return df
+        except FileNotFoundError:
+            raise FileNotFoundError(f"결과 파일을 찾을 수 없습니다: {filepath}")
+        except Exception as e:
+            raise ValueError(f"결과 파일을 읽는 중 오류가 발생했습니다: {e}")
+
     def get_plottable_targets(self, processed_df: pd.DataFrame) -> list[str]:
         """
         파싱이 완료된 "wide-format" DataFrame에서 플로팅할 대상의 '표시용 이름' 목록을 생성합니다.
-        사용자 요구사항에 따라 특정 이름으로 변환하고 정렬 순서를 조정합니다.
         """
         if processed_df is None or processed_df.empty:
             return []
@@ -88,8 +93,7 @@ class DataLoader:
                 base_names.add(base_name)
 
         # 2. 요구사항에 따라 표시용 이름으로 변환하고 정렬합니다.
-        final_targets = []
-
+        final_targets = []        
         # 2a. 'RigidBody_Position'이 있으면, 'Rigid Body Center'로 이름을 바꿔 최상단에 위치시킵니다.
         if RigidBodyCols.BASE_NAME in base_names:
             final_targets.append(DisplayNames.RB_CENTER)
@@ -106,5 +110,5 @@ class DataLoader:
 
         # 2c. 'Rigid Body Center'와 정렬된 마커 목록을 합칩니다.
         final_targets.extend(marker_targets)
-
+        
         return final_targets

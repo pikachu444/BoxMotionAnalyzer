@@ -3,7 +3,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation as R
 from typing import Any
-from src.config import config_analysis
+from src.config import config_app, config_analysis
 from src.config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCols, CornerCoordCols
 
 # [병렬 처리 참고]
@@ -95,8 +95,7 @@ class PoseOptimizer:
     """
     스무딩된 마커 데이터를 사용하여 각 프레임별로 박스의 최적 자세(위치/회전)를 순차적으로 계산합니다.
     """
-    def __init__(self, box_dims: np.ndarray, face_definitions: dict[str, Any], local_box_corners: np.ndarray):
-        self.box_dims = box_dims
+    def __init__(self, face_definitions: dict[str, Any], local_box_corners: np.ndarray):
         self.face_definitions = face_definitions
         self.local_box_corners = local_box_corners
         # 최적화 설정을 외부 config 파일에서 로드
@@ -109,6 +108,9 @@ class PoseOptimizer:
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         if df.empty:
             return df
+
+        # 분석 시점의 전역 box_dims 값을 가져옵니다.
+        box_dims = np.array(config_app.BOX_DIMS)
 
         print(f"[PoseOptimizer INFO] Starting sequential optimization for {len(df)} frames...")
         results = []
@@ -145,7 +147,7 @@ class PoseOptimizer:
                     if m['face_key'] in self.face_definitions:
                         face_def = self.face_definitions[m['face_key']]
                         local_coord = np.zeros(3)
-                        local_coord[face_def['axis_idx']] = face_def['direction'] * self.box_dims[face_def['axis_idx']] / 2.0
+                        local_coord[face_def['axis_idx']] = face_def['direction'] * box_dims[face_def['axis_idx']] / 2.0
                         local_pts.append(local_coord)
                         cam_pts.append(m['cam_coords'])
 
@@ -159,7 +161,7 @@ class PoseOptimizer:
             # 3. SciPy를 사용한 최적화 실행
             result = minimize(
                 _objective_function, initial_params,
-                args=(markers, self.box_dims, self.face_definitions),
+                args=(markers, box_dims, self.face_definitions),
                 method='Nelder-Mead',
                 options=self.optimizer_options
             )

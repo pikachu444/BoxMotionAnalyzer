@@ -46,7 +46,8 @@ class MarkerSmoother:
                 wn = self.cutoff_freq / nyquist_freq
                 try:
                     b, a = butter(self.order, wn, btype='low', analog=False)
-                    filtered_values = filtfilt(b, a, smoothed.astype(np.float64).values)
+                    # 상위 컨트롤러에서 이미 패딩된 데이터가 들어오므로, filtfilt 자체의 패딩은 비활성화(padlen=0)
+                    filtered_values = filtfilt(b, a, smoothed.astype(np.float64).values, padlen=0)
                     smoothed = pd.Series(filtered_values, index=series.index, name=series.name)
                 except ValueError:
                     continue # 오류 발생 시 원본 데이터 유지

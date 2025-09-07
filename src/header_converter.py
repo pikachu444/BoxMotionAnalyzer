@@ -95,12 +95,12 @@ def get_conversion_rules() -> list:
          lambda m: (HeaderL1.ETC, HeaderL2.FLOOR_P, getattr(HeaderL3, f"P{m.group('axis')}"))),
 
         # --- Level 1: Info ---
-        # 예시: 'FrameNumber' -> ('Info', 'Frame', 'Number')
+        # 예시: 'Frame' -> ('Info', 'Frame', 'Frame')
         (re.compile(f"^{TimeCols.FRAME}$"),
-         lambda m: (HeaderL1.INFO, HeaderL2.FRAME, HeaderL3.NUM)),
-        # 예시: 'Time' -> ('Info', 'Time', 's')
+         lambda m: (HeaderL1.INFO, HeaderL2.FRAME, HeaderL2.FRAME)),
+        # 예시: 'Time' -> ('Info', 'Time', 'Time')
         (re.compile(f"^{TimeCols.TIME}$"),
-         lambda m: (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.SEC)),
+         lambda m: (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)),
         # 예시: 'Pose_Source' -> ('Info', 'Pose', 'Source')
         (re.compile(r"^Pose_Source$"),
          lambda m: (HeaderL1.INFO, HeaderL2.POSE_SRC, HeaderL3.SRC)),
