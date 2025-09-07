@@ -280,8 +280,7 @@ class MainApp(QMainWindow):
             self.selected_point_info = {'time': None, 'index': None}
             self.update_point_selection_ui()
             # Reset the navigation toolbar's history to set the new "Home" state
-            self.toolbar2._views.clear()
-            self.toolbar2._positions.clear()
+            self.toolbar2.update()
             self.toolbar2.push_current()
             return
 
@@ -291,8 +290,7 @@ class MainApp(QMainWindow):
         self.plot_manager2.draw_plot(plot_df, checked_columns)
 
         # Reset the navigation toolbar's history to set the new "Home" state
-        self.toolbar2._views.clear()
-        self.toolbar2._positions.clear()
+        self.toolbar2.update()
         self.toolbar2.push_current()
 
         self.selected_point_info = {'time': None, 'index': None}
