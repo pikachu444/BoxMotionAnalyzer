@@ -9,6 +9,9 @@
 SMOOTHING_METHOD_SEQUENCE = ['butterworth', 'moving_average']
 BUTTERWORTH_CUTOFF_FREQ_HZ = 10.0
 BUTTERWORTH_ORDER = 4
+# Butterworth 필터의 경계 효과를 줄이기 위한 패딩 사이즈.
+# Scipy의 filtfilt 기본값인 3 * (order + 1)을 따름.
+BUTTERWORTH_PAD_SIZE = 3 * (BUTTERWORTH_ORDER + 1)
 MA_WINDOW_SIZE = 3
 
 # 스무딩 시 경계 효과를 줄이기 위한 패딩 사이즈.

@@ -84,17 +84,23 @@ class DataLoader:
         if processed_df is None or processed_df.empty:
             return []
 
+        # 1. 데이터프레임의 모든 컬럼을 순회하며, '_X', '_Y', '_Z'로 끝나는 컬럼의 기본 이름을 추출합니다.
+        #    'set'을 사용하여 중복을 자동으로 제거합니다. (예: 'B1_X', 'B1_Y' -> 'B1')
         base_names = set()
         for col in processed_df.columns:
             if col.endswith((RawMarkerCols.X_SUFFIX, RawMarkerCols.Y_SUFFIX, RawMarkerCols.Z_SUFFIX)):
                 base_name = col.rsplit('_', 1)[0]
                 base_names.add(base_name)
 
-        final_targets = []
+        # 2. 요구사항에 따라 표시용 이름으로 변환하고 정렬합니다.
+        final_targets = []        
+        # 2a. 'RigidBody_Position'이 있으면, 'Rigid Body Center'로 이름을 바꿔 최상단에 위치시킵니다.
         if RigidBodyCols.BASE_NAME in base_names:
             final_targets.append(DisplayNames.RB_CENTER)
-            base_names.remove(RigidBodyCols.BASE_NAME)
+            base_names.remove(RigidBodyCols.BASE_NAME) # 나머지 마커 목록과 중복되지 않도록 제거
 
+        # 2b. 나머지 타겟(마커)들은 이름 앞에 'Marker '를 붙이고, 알파벳 순으로 정렬합니다.
+        #     ':'가 포함된 이름은 레거시 또는 다른 종류의 마커일 수 있으므로, 예외적으로 그대로 둡니다.
         marker_targets = []
         for name in sorted(list(base_names)):
             if ':' in name:
@@ -102,5 +108,7 @@ class DataLoader:
             else:
                 marker_targets.append(f"{DisplayNames.MARKER_PREFIX}{name}")
 
+        # 2c. 'Rigid Body Center'와 정렬된 마커 목록을 합칩니다.
         final_targets.extend(marker_targets)
+        
         return final_targets

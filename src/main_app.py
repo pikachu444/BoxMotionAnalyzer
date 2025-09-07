@@ -475,6 +475,21 @@ class MainApp(QMainWindow):
                     self.current_selected_targets = [DisplayNames.RB_CENTER]
                     self.selected_data_label.setText(f"Selected: {DisplayNames.RB_CENTER}")
                     self.log_output.append(f"[INFO] Default target '{DisplayNames.RB_CENTER}' selected for plotting.")
+                
+                # =================================================================
+                # UX 개선: CSV 로드 후, 기본값으로 'Rigid Body Center'를 자동 선택하여 플로팅합니다.
+                # 이렇게 하면 사용자가 파일을 로드한 직후 빈 그래프를 보지 않게 됩니다.
+                # -----------------------------------------------------------------
+                # 1. 플로팅 가능한 전체 대상 목록을 가져옵니다.
+                all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
+
+                # 2. 방어 코드: 기본 선택 대상(DisplayNames.RB_CENTER)이 목록에 있는지 확인합니다.
+                if DisplayNames.RB_CENTER in all_targets:
+                    # 3. 기본 대상을 현재 선택된 항목으로 설정하고, UI 라벨도 업데이트합니다.
+                    self.current_selected_targets = [DisplayNames.RB_CENTER]
+                    self.selected_data_label.setText(f"Selected: {DisplayNames.RB_CENTER}")
+                    self.log_output.append(f"[INFO] Default target '{DisplayNames.RB_CENTER}' selected for plotting.")
+                
                 self.update_plot()
                 self.plot_manager1.enable_interactions(self.parsed_data)
                 self.slice_group.setChecked(False)
@@ -539,14 +554,22 @@ class MainApp(QMainWindow):
         axis_suffix = axis_map.get(selected_axis_generic)
         if axis_suffix:
             for target in targets_to_process:
+                # 사용자가 선택한 '표시용 이름'을 데이터프레임의 실제 '기본 이름'으로 역변환합니다.
+                # 이 로직은 data_loader.get_plottable_targets의 이름 생성 규칙과 반드시 동기화되어야 합니다.
                 base_name = None
                 if target == DisplayNames.RB_CENTER:
+                    # 'Rigid Body Center' -> 'RigidBody_Position'
                     base_name = RigidBodyCols.BASE_NAME
                 elif target.startswith(DisplayNames.MARKER_PREFIX):
+                    # 'Marker B1' -> 'B1'
                     base_name = target.replace(DisplayNames.MARKER_PREFIX, '')
                 else:
+                    # 기타 (예: 레거시 이름)는 그대로 사용
                     base_name = target
-                col_name = f"{base_name}{axis_suffix}"
+
+                # 기본 이름과 축 접미사를 조합하여 최종 컬럼명을 만듭니다.
+                # 예: 'B1' + '_X' -> 'B1_X'
+                col_name = f"{base_name}{axis_suffix}"                
                 if col_name in df.columns:
                     columns_to_plot.append(col_name)
         self.plot_manager1.draw_plot(df, columns_to_plot)
