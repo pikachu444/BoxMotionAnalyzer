@@ -205,7 +205,7 @@ class MainApp(QMainWindow):
         find_max_layout.addWidget(QLabel("Target:"))
         self.find_max_target_combo = QComboBox()
         find_max_layout.addWidget(self.find_max_target_combo)
-        self.find_max_button = QPushButton("Find Max")
+        self.find_max_button = QPushButton("Find Abs. Max")
         find_max_layout.addWidget(self.find_max_button)
         point_analysis_layout.addLayout(find_max_layout)
 
@@ -317,7 +317,7 @@ class MainApp(QMainWindow):
             return
 
         try:
-            max_index = self.result_data[target_column].idxmax()
+            max_index = self.result_data[target_column].abs().idxmax()
             max_value = self.result_data.loc[max_index, target_column]
 
             self.selected_point_info['index'] = self.result_data.index.get_loc(max_index)
