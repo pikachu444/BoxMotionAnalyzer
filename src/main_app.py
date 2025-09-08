@@ -220,6 +220,29 @@ class MainApp(QMainWindow):
 
         result_controls_main_layout.addWidget(point_analysis_group)
 
+        # Analysis Scenario Output GroupBox
+        analysis_scenario_group = QGroupBox("해석 시나리오 출력")
+        analysis_scenario_layout = QVBoxLayout(analysis_scenario_group)
+
+        self.offset_manual_checkbox = QCheckBox("수동 오프셋 선택")
+        analysis_scenario_layout.addWidget(self.offset_manual_checkbox)
+
+        self.offset_combos = []
+        for i in range(3):
+            offset_layout = QHBoxLayout()
+            offset_layout.addWidget(QLabel(f"오프셋{i}:"))
+            combo = QComboBox()
+            combo.addItems([f"C{j+1}" for j in range(8)])
+            combo.setEnabled(False)
+            offset_layout.addWidget(combo)
+            self.offset_combos.append(combo)
+            analysis_scenario_layout.addLayout(offset_layout)
+
+        self.export_scenario_button = QPushButton("Export analysis input")
+        analysis_scenario_layout.addWidget(self.export_scenario_button)
+
+        result_controls_main_layout.addWidget(analysis_scenario_group)
+
         result_analysis_layout.addWidget(result_controls_container, 4) # 컨트롤이 4의 비율
 
         main_layout.addWidget(result_analysis_group)
@@ -246,6 +269,49 @@ class MainApp(QMainWindow):
         self.canvas2.mpl_connect('button_press_event', self.on_result_plot_click)
         self.find_max_button.clicked.connect(self.on_find_max_click)
         self.export_point_button.clicked.connect(self.on_export_point_data_click)
+
+        # Connections for Analysis Scenario Output
+        self.offset_manual_checkbox.toggled.connect(self._on_offset_checkbox_toggled)
+        for combo in self.offset_combos:
+            combo.currentIndexChanged.connect(self._update_offset_choices)
+
+    def _on_offset_checkbox_toggled(self, checked):
+        """Enable/disable offset comboboxes based on checkbox state."""
+        for combo in self.offset_combos:
+            combo.setEnabled(checked)
+        if not checked:
+            # Optional: Reset to default state when unchecked
+            self._update_offset_choices()
+
+    def _update_offset_choices(self):
+        """Update dropdown choices to prevent duplicate selections."""
+        all_options = [f"C{i+1}" for i in range(8)]
+        selected_options = [combo.currentText() for combo in self.offset_combos if combo.isEnabled()]
+
+        for i, combo in enumerate(self.offset_combos):
+            if not combo.isEnabled():
+                continue
+
+            current_selection = combo.currentText()
+            other_selections = [opt for j, opt in enumerate(selected_options) if i != j]
+
+            # Temporarily disconnect signal to prevent recursion
+            combo.blockSignals(True)
+
+            combo.clear()
+
+            # Add the currently selected item first
+            combo.addItem(current_selection)
+
+            # Add other available options
+            for option in all_options:
+                if option != current_selection and option not in other_selections:
+                    combo.addItem(option)
+
+            combo.setCurrentText(current_selection)
+
+            # Reconnect signal
+            combo.blockSignals(False)
 
     def plot_selected_results(self):
         if self.result_data is None: return
