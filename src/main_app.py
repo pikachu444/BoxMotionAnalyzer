@@ -4,7 +4,8 @@ from PySide6.QtCore import QThread, QTimer, Qt
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QTextEdit, QStatusBar, QGridLayout,
-    QFileDialog, QListWidget, QScrollArea, QCheckBox, QGroupBox, QTreeWidget, QTreeWidgetItem
+    QFileDialog, QListWidget, QScrollArea, QCheckBox, QGroupBox, QTreeWidget, QTreeWidgetItem,
+    QFormLayout
 )
 import matplotlib
 matplotlib.use('QtAgg')
@@ -237,6 +238,15 @@ class MainApp(QMainWindow):
             offset_layout.addWidget(combo)
             self.offset_combos.append(combo)
             analysis_scenario_layout.addLayout(offset_layout)
+
+        scenario_form_layout = QFormLayout()
+        self.le_run_time = QLineEdit("0.1")
+        self.le_time_step = QLineEdit("1e-7")
+        self.le_scene_name = QLineEdit("")
+        scenario_form_layout.addRow("analysis run time:", self.le_run_time)
+        scenario_form_layout.addRow("critical time step:", self.le_time_step)
+        scenario_form_layout.addRow("drop scene name:", self.le_scene_name)
+        analysis_scenario_layout.addLayout(scenario_form_layout)
 
         self.export_scenario_button = QPushButton("Export analysis input")
         analysis_scenario_layout.addWidget(self.export_scenario_button)
