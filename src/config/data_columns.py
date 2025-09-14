@@ -185,10 +185,31 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.ANALYSIS, "C7", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C8", HeaderL3.REL_H),
 
-    # Corner Velocities (Example for Corner 1, could be expanded)
+    # Corner Velocities for each of the 8 corners
     (HeaderL1.VEL, "C1", HeaderL3.VX),
     (HeaderL1.VEL, "C1", HeaderL3.VY),
     (HeaderL1.VEL, "C1", HeaderL3.VZ),
+    (HeaderL1.VEL, "C2", HeaderL3.VX),
+    (HeaderL1.VEL, "C2", HeaderL3.VY),
+    (HeaderL1.VEL, "C2", HeaderL3.VZ),
+    (HeaderL1.VEL, "C3", HeaderL3.VX),
+    (HeaderL1.VEL, "C3", HeaderL3.VY),
+    (HeaderL1.VEL, "C3", HeaderL3.VZ),
+    (HeaderL1.VEL, "C4", HeaderL3.VX),
+    (HeaderL1.VEL, "C4", HeaderL3.VY),
+    (HeaderL1.VEL, "C4", HeaderL3.VZ),
+    (HeaderL1.VEL, "C5", HeaderL3.VX),
+    (HeaderL1.VEL, "C5", HeaderL3.VY),
+    (HeaderL1.VEL, "C5", HeaderL3.VZ),
+    (HeaderL1.VEL, "C6", HeaderL3.VX),
+    (HeaderL1.VEL, "C6", HeaderL3.VY),
+    (HeaderL1.VEL, "C6", HeaderL3.VZ),
+    (HeaderL1.VEL, "C7", HeaderL3.VX),
+    (HeaderL1.VEL, "C7", HeaderL3.VY),
+    (HeaderL1.VEL, "C7", HeaderL3.VZ),
+    (HeaderL1.VEL, "C8", HeaderL3.VX),
+    (HeaderL1.VEL, "C8", HeaderL3.VY),
+    (HeaderL1.VEL, "C8", HeaderL3.VZ),
 
     # Analysis Input Height for each of the 8 corners
     (HeaderL1.ANALYSIS_SCENARIO, "C1", HeaderL3.ANALYSIS_INPUT_H),
