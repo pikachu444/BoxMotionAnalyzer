@@ -107,7 +107,7 @@ class PipelineController(QObject):
             # 7. 최종 프레임 분석
             self.log_message.emit("[7/8] Analyzing frames...")
             final_result = self.frame_analyzer.process(data_to_process)
-            self.log_message.emit(f"    Parser output shape: {data.shape}")
+            self.log_message.emit(f"    FrameAnalyzer done. Shape: {final_result.shape}")
 
             if trimming_strategy == 'late':
                 # 8. 후기 트리밍 (Late Trimming)

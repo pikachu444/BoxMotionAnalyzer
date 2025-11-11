@@ -1,5 +1,6 @@
 import sys
 import os
+import pandas as pd
 from PySide6.QtCore import QThread, QTimer, Qt
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -20,7 +21,8 @@ from src.config import config_app
 from src.analysis.parser import Parser
 from src.config.data_columns import (
     PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO,
-    DisplayNames, RESULT_TIME_COL, DISPLAY_RESULT_COLUMNS, TimeCols
+    DisplayNames, RESULT_TIME_COL, DISPLAY_RESULT_COLUMNS, TimeCols, HeaderL1, HeaderL2, HeaderL3,
+    CORNER_NAME_MAP
 )
 from src.header_converter import convert_to_multi_header
 
@@ -284,6 +286,137 @@ class MainApp(QMainWindow):
         self.offset_manual_checkbox.toggled.connect(self._on_offset_checkbox_toggled)
         for combo in self.offset_combos:
             combo.currentIndexChanged.connect(self._update_offset_choices)
+        self.export_scenario_button.clicked.connect(self.export_analysis_scenario)
+
+    def export_analysis_scenario(self):
+        """'해석 시나리오 출력' 그룹의 설정값과 분석 데이터를 조합하여 지정된 포맷의 CSV로 저장합니다."""
+        # 1. 유효성 검사: 분석 결과 및 선택된 시간 지점이 있는지 확인
+        if self.result_data is None or self.selected_point_info.get('time') is None:
+            self.log_output.append("[ERROR] No data point selected. Please click on the result graph to select a time point.")
+            self.statusBar().showMessage("Error: No data point selected.")
+            return
+
+        selected_time = self.selected_point_info['time']
+        time_point_data = self.result_data.loc[selected_time]
+
+        # 2. 오프셋 데이터 가져오기 (자동/수동 분기)
+        is_manual_offset = self.offset_manual_checkbox.isChecked()
+        if is_manual_offset:
+            offset_data = self._get_manual_offset_data(time_point_data)
+        else:
+            offset_data = self._get_automatic_offset_data(time_point_data)
+
+        if not offset_data or len(offset_data) < 3:
+            self.log_output.append("[ERROR] Could not determine 3 offset points. Aborting export.")
+            return
+
+        # 3. 속도 및 기타 데이터 가져오기
+        vel_cols = {
+            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX),
+            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
+            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ),
+            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
+            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY),
+            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
+        }
+        velocities = {key: time_point_data.get(col, 0.0) for key, col in vel_cols.items()}
+
+        # 4. 최종 CSV 데이터 리스트 구성
+        output_data = [
+            ('1', 'Left'), ('2', 'Right'), ('3', 'Bottom'),
+            ('4', 'Top'), ('5', 'Rear'), ('6', 'Front'),
+            ('cat', 'Corner_Drop_2nd'),
+            ('drop_name', self.le_scene_name.text()),
+        ]
+
+        # 오프셋 데이터 추가
+        for i, (corner_name, corner_value) in enumerate(offset_data):
+            variable_name = CORNER_NAME_MAP.get(corner_name, "Unknown")
+            output_data.append((f'variable_{i+1}', variable_name))
+            output_data.append((f'value_{i+1}', f'{corner_value:.6f}'))
+
+        output_data.extend([
+            ('variable_4', 'OFFSET'), ('value_4', '0.0'),
+            ('variable_5', 'ANG_VEL_X'), ('value_5', f"{velocities['ANG_VEL_X']:.6f}"),
+            ('variable_6', 'ANG_VEL_Y'), ('value_6', f"{velocities['ANG_VEL_Y']:.6f}"),
+            ('variable_7', 'ANG_VEL_Z'), ('value_7', f"{velocities['ANG_VEL_Z']:.6f}"),
+            ('variable_8', 'TRA_VEL_X'), ('value_8', f"{velocities['TRA_VEL_X']:.6f}"),
+            ('variable_9', 'TRA_VEL_Y'), ('value_9', f"{velocities['TRA_VEL_Y']:.6f}"),
+            ('variable_10', 'TRA_VEL_Z'), ('value_10', f"{velocities['TRA_VEL_Z']:.6f}"),
+            ('variable_11', 'POSI_FROM_CENT_X'), ('value_11', '0.0'),
+            ('variable_12', 'POSI_FROM_CENT_Y'), ('value_12', '0.0'),
+            ('variable_13', 'POSI_FROM_CENT_Z'), ('value_13', '0.0'),
+            ('run_time', self.le_run_time.text()),
+            ('tmin', self.le_time_step.text()),
+        ])
+
+        # 5. 파일 저장
+        suggested_filename = f"scenario_{self.le_scene_name.text()}.csv" if self.le_scene_name.text() else "analysis_scenario.csv"
+        filepath, _ = QFileDialog.getSaveFileName(self, "Export Analysis Scenario", suggested_filename, "CSV Files (*.csv)")
+
+        if filepath:
+            try:
+                # 새로운 포맷에 맞게 문자열 생성
+                # 첫 6개 아이템은 줄바꿈으로, 나머지는 쉼표로 연결
+                lines = [f"{key},{value}" for key, value in output_data[:6]]
+                last_line = ",".join([f"{key},{value}" for key, value in output_data[6:]])
+                csv_string = "\n".join(lines) + "\n" + last_line
+
+                with open(filepath, 'w') as f:
+                    f.write(csv_string)
+                self.log_output.append(f"[SUCCESS] Analysis scenario exported to {filepath}")
+                self.statusBar().showMessage(f"Scenario exported to {filepath}")
+            except Exception as e:
+                self.log_output.append(f"[ERROR] Could not export scenario: {e}")
+                self.statusBar().showMessage(f"Error exporting scenario: {e}")
+
+    def _get_automatic_offset_data(self, time_point_data):
+        """자동 오프셋 계산 로직을 수행합니다."""
+        height_cols = [(HeaderL1.ANALYSIS_SCENARIO, f'C{i+1}', HeaderL3.ANALYSIS_INPUT_H) for i in range(8)]
+
+        # 1. 8개 코너의 높이 값 추출
+        corner_heights = {}
+        for i, col in enumerate(height_cols):
+            if col in time_point_data:
+                corner_heights[f'C{i+1}'] = time_point_data[col]
+            else:
+                self.log_output.append(f"[WARNING] Automatic offset calculation: Column {col} not found in data.")
+                return []
+
+        if not corner_heights:
+            return []
+
+        # 2. 가장 낮은 높이의 코너 찾기
+        min_corner = min(corner_heights, key=corner_heights.get)
+
+        # 3. 그룹 식별 및 정렬
+        min_corner_num = int(min_corner[1:])
+        group1 = {f'C{i}': corner_heights[f'C{i}'] for i in range(1, 5)}
+        group2 = {f'C{i}': corner_heights[f'C{i}'] for i in range(5, 9)}
+
+        target_group = group1 if 1 <= min_corner_num <= 4 else group2
+
+        # 4. 동일 그룹 내에서 높이가 낮은 순으로 정렬하여 상위 3개 선택
+        sorted_corners = sorted(target_group.items(), key=lambda item: item[1])
+
+        # 5. 결과 반환 (코너 이름, 높이 값)
+        return sorted_corners[:3]
+
+    def _get_manual_offset_data(self, time_point_data):
+        """수동 오프셋 계산 로직을 수행합니다."""
+        selected_corners = [combo.currentText() for combo in self.offset_combos]
+
+        offset_data = []
+        for corner_name in selected_corners:
+            height_col = (HeaderL1.ANALYSIS_SCENARIO, corner_name, HeaderL3.ANALYSIS_INPUT_H)
+            if height_col in time_point_data:
+                offset_data.append((corner_name, time_point_data[height_col]))
+            else:
+                self.log_output.append(f"[WARNING] Manual offset selection: Column {height_col} not found in data.")
+                # 데이터를 찾을 수 없는 경우, 값으로 0 또는 None을 사용할 수 있습니다. 여기서는 0.0을 사용합니다.
+                offset_data.append((corner_name, 0.0))
+
+        return offset_data
 
     def _on_offset_checkbox_toggled(self, checked):
         """Enable/disable offset comboboxes based on checkbox state."""
