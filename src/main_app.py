@@ -823,8 +823,3 @@ class MainApp(QMainWindow):
                 self.statusBar().showMessage(f"Error exporting file: {e}")
                 self.log_output.append(f"[ERROR] Could not export file: {e}")
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MainApp()
-    window.show()
-    sys.exit(app.exec())
