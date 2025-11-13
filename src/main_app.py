@@ -372,7 +372,7 @@ class MainApp(QMainWindow):
 
     def _get_automatic_offset_data(self, time_point_data):
         """자동 오프셋 계산 로직을 수행합니다."""
-        height_cols = [(HeaderL1.ANALYSIS_SCENARIO, f'C{i+1}', HeaderL3.ANALYSIS_INPUT_H) for i in range(8)]
+        height_cols = [(HeaderL1.ANALYSIS, f'C{i+1}', HeaderL3.REL_H) for i in range(8)]
 
         # 1. 8개 코너의 높이 값 추출
         corner_heights = {}
@@ -408,7 +408,7 @@ class MainApp(QMainWindow):
 
         offset_data = []
         for corner_name in selected_corners:
-            height_col = (HeaderL1.ANALYSIS_SCENARIO, corner_name, HeaderL3.ANALYSIS_INPUT_H)
+            height_col = (HeaderL1.ANALYSIS, corner_name, HeaderL3.REL_H)
             if height_col in time_point_data:
                 offset_data.append((corner_name, time_point_data[height_col]))
             else:

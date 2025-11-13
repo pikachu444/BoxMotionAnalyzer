@@ -37,7 +37,7 @@ class TestScenarioExport(unittest.TestCase):
 
     def _create_test_result_data(self, heights, velocities):
         """테스트용 result_data DataFrame을 생성하는 헬퍼 메서드"""
-        height_cols = [(HeaderL1.ANALYSIS_SCENARIO, f'C{i+1}', HeaderL3.ANALYSIS_INPUT_H) for i in range(8)]
+        height_cols = [(HeaderL1.ANALYSIS, f'C{i+1}', HeaderL3.REL_H) for i in range(8)]
         vel_cols = [
             (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX),
             (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
@@ -163,6 +163,42 @@ class TestScenarioExport(unittest.TestCase):
         expected_string = "\n".join(expected_lines)
 
         self.assertEqual(written_string, expected_string)
+
+    def test_auto_offset_with_missing_columns(self):
+        """자동 모드 계산 시 일부 높이 컬럼이 누락된 경우를 테스트합니다."""
+        # --- 설정 ---
+        # C3와 C8 높이 컬럼이 의도적으로 누락된 불완전한 데이터 생성
+        incomplete_heights = [10, 20, 30, 40, 50, 60] # 6개 값만 존재
+        velocities = [0.1, 0.2, 0.3, 100, 200, 300]
+
+        height_cols = [
+            (HeaderL1.ANALYSIS, 'C1', HeaderL3.REL_H),
+            (HeaderL1.ANALYSIS, 'C2', HeaderL3.REL_H),
+            (HeaderL1.ANALYSIS, 'C4', HeaderL3.REL_H),
+            (HeaderL1.ANALYSIS, 'C5', HeaderL3.REL_H),
+            (HeaderL1.ANALYSIS, 'C6', HeaderL3.REL_H),
+            (HeaderL1.ANALYSIS, 'C7', HeaderL3.REL_H),
+        ]
+        vel_cols = [
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX), (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ), (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY), (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
+        ]
+
+        data = np.array([incomplete_heights + velocities])
+        columns = pd.MultiIndex.from_tuples(height_cols + vel_cols)
+        df = pd.DataFrame(data, columns=columns, index=[1.0])
+        df.index.name = 'Time'
+
+        time_point_data = df.loc[1.0]
+
+        # --- 실행 및 검증 ---
+        # _get_automatic_offset_data가 빈 리스트를 반환해야 함
+        result = self.app._get_automatic_offset_data(time_point_data)
+        self.assertEqual(result, [])
+
+        # WARNING 로그가 (적어도 한번) 출력되었는지 확인
+        self.app.log_output.append.assert_any_call("[WARNING] Automatic offset calculation: Column ('Analysis', 'C3', 'RelativeHeight') not found in data.")
 
 if __name__ == '__main__':
     unittest.main()
