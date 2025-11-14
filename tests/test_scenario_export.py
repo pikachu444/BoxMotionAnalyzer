@@ -30,7 +30,9 @@ class TestScenarioExport(unittest.TestCase):
         self.app.statusBar = MagicMock()
 
         self.app.offset_manual_checkbox = MagicMock()
+        self.app.manual_height_checkbox = MagicMock()
         self.app.offset_combos = [MagicMock(), MagicMock(), MagicMock()]
+        self.app.manual_height_inputs = [MagicMock(), MagicMock(), MagicMock()]
         self.app.le_run_time = MagicMock()
         self.app.le_time_step = MagicMock()
         self.app.le_scene_name = MagicMock()
@@ -39,18 +41,17 @@ class TestScenarioExport(unittest.TestCase):
         """테스트용 result_data DataFrame을 생성하는 헬퍼 메서드"""
         height_cols = [(HeaderL1.ANALYSIS, f'C{i+1}', HeaderL3.REL_H) for i in range(8)]
         vel_cols = [
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX),
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ),
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY),
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX), (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ), (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY), (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
         ]
 
-        data = np.array([heights + velocities])
-        columns = pd.MultiIndex.from_tuples(height_cols + vel_cols)
+        all_cols = height_cols + vel_cols
+        all_data = heights + velocities
 
-        df = pd.DataFrame(data, columns=columns, index=[1.0])
+        data_dict = {col: [val] for col, val in zip(all_cols, all_data)}
+
+        df = pd.DataFrame(data_dict, index=[1.0])
         df.index.name = 'Time'
         return df
 
@@ -134,7 +135,7 @@ class TestScenarioExport(unittest.TestCase):
         mock_file_handle = MagicMock()
         mock_open.return_value.__enter__.return_value = mock_file_handle
 
-        heights = [10, 20, 30, 40, 50, 60, 70, 80]
+        heights = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0]
         velocities = [0.7, 0.8, 0.9, 700, 800, 900]
         self.app.result_data = self._create_test_result_data(heights, velocities)
         self.app.selected_point_info = {'time': 1.0, 'index': 0}
@@ -199,6 +200,49 @@ class TestScenarioExport(unittest.TestCase):
 
         # WARNING 로그가 (적어도 한번) 출력되었는지 확인
         self.app.log_output.append.assert_any_call("[WARNING] Automatic offset calculation: Column ('Analysis', 'C3', 'RelativeHeight') not found in data.")
+
+    @patch('builtins.open')
+    @patch('src.main_app.QFileDialog.getSaveFileName')
+    def test_export_scenario_manual_mode_with_manual_height(self, mock_get_save_file_name, mock_open):
+        """수동 모드에서 높이 값을 직접 입력하는 경우를 테스트합니다."""
+        # --- 설정 ---
+        mock_get_save_file_name.return_value = ('/fake/path/scenario4.csv', None)
+        mock_file_handle = MagicMock()
+        mock_open.return_value.__enter__.return_value = mock_file_handle
+
+        # 수동 높이 입력 모드에서는 result_data가 필요 없음
+        self.app.result_data = pd.DataFrame()
+        self.app.selected_point_info = {'time': 1.0, 'index': 0}
+
+        # UI 위젯 값 설정
+        self.app.offset_manual_checkbox.isChecked.return_value = True
+        self.app.manual_height_checkbox.isChecked.return_value = True # 높이 값 직접 지정 활성화
+
+        self.app.offset_combos[0].currentText.return_value = 'C1'
+        self.app.offset_combos[1].currentText.return_value = 'C8'
+        self.app.offset_combos[2].currentText.return_value = 'C4'
+
+        # 높이 값 직접 입력
+        self.app.manual_height_inputs[0].text.return_value = "123.45"
+        self.app.manual_height_inputs[1].text.return_value = "67.8"
+        self.app.manual_height_inputs[2].text.return_value = "invalid" # 잘못된 입력값
+
+        self.app.le_scene_name.text.return_value = "ManualHeightTest"
+
+        # --- 실행 ---
+        self.app.export_analysis_scenario()
+
+        # --- 검증 ---
+        written_string = mock_file_handle.write.call_args[0][0]
+
+        # 직접 입력한 값이 올바르게 반영되었는지, 잘못된 입력은 0.0으로 처리되었는지 확인
+        self.assertIn("variable_1,LeftBottomRear,value_1,123.450000", written_string)
+        self.assertIn("variable_2,LeftTopFront,value_2,67.800000", written_string)
+        self.assertIn("variable_3,LeftTopRear,value_3,0.000000", written_string)
+
+        # 잘못된 입력에 대한 경고 로그가 출력되었는지 확인
+        self.app.log_output.append.assert_any_call("[WARNING] Invalid manual height input for Offset 2: 'invalid'. Using 0.0 as default.")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -47,6 +47,7 @@ class MainApp(QMainWindow):
         self.parser = Parser(face_prefix_map=FACE_PREFIX_TO_INFO)
         self.pipeline_controller = PipelineController()
 
+        self.manual_height_inputs = []
         self.raw_data = None
         self.header_info = None
         self.parsed_data = None
@@ -230,16 +231,29 @@ class MainApp(QMainWindow):
         self.offset_manual_checkbox = QCheckBox("수동 오프셋 선택")
         analysis_scenario_layout.addWidget(self.offset_manual_checkbox)
 
+        self.manual_height_checkbox = QCheckBox("높이 값 직접 지정")
+        self.manual_height_checkbox.setEnabled(False) # 초기는 비활성화
+        analysis_scenario_layout.addWidget(self.manual_height_checkbox)
+
         self.offset_combos = []
+        self.manual_height_inputs = []
+        offsets_layout = QGridLayout()
         for i in range(3):
-            offset_layout = QHBoxLayout()
-            offset_layout.addWidget(QLabel(f"오프셋{i}:"))
+            offsets_layout.addWidget(QLabel(f"오프셋{i}:"), i, 0)
+
             combo = QComboBox()
             combo.addItems([f"C{j+1}" for j in range(8)])
             combo.setEnabled(False)
-            offset_layout.addWidget(combo)
+            offsets_layout.addWidget(combo, i, 1)
             self.offset_combos.append(combo)
-            analysis_scenario_layout.addLayout(offset_layout)
+
+            height_input = QLineEdit()
+            height_input.setPlaceholderText("Height Value")
+            height_input.setEnabled(False)
+            offsets_layout.addWidget(height_input, i, 2)
+            self.manual_height_inputs.append(height_input)
+
+        analysis_scenario_layout.addLayout(offsets_layout)
 
         scenario_form_layout = QFormLayout()
         self.le_run_time = QLineEdit("0.1")
@@ -284,6 +298,7 @@ class MainApp(QMainWindow):
 
         # Connections for Analysis Scenario Output
         self.offset_manual_checkbox.toggled.connect(self._on_offset_checkbox_toggled)
+        self.manual_height_checkbox.toggled.connect(self._on_manual_height_checkbox_toggled)
         for combo in self.offset_combos:
             combo.currentIndexChanged.connect(self._update_offset_choices)
         self.export_scenario_button.clicked.connect(self.export_analysis_scenario)
@@ -297,12 +312,18 @@ class MainApp(QMainWindow):
             return
 
         selected_time = self.selected_point_info['time']
-        time_point_data = self.result_data.loc[selected_time]
+
+        # 수동 높이 입력 모드가 아닐 때만 result_data에서 데이터를 가져옴
+        time_point_data = None
+        if not (self.offset_manual_checkbox.isChecked() and self.manual_height_checkbox.isChecked()):
+            time_point_data = self.result_data.loc[selected_time]
 
         # 2. 오프셋 데이터 가져오기 (자동/수동 분기)
         is_manual_offset = self.offset_manual_checkbox.isChecked()
         if is_manual_offset:
-            offset_data = self._get_manual_offset_data(time_point_data)
+            # 수동 높이 입력 모드일 경우, time_point_data가 필요 없음
+            data_for_manual = time_point_data if not self.manual_height_checkbox.isChecked() else None
+            offset_data = self._get_manual_offset_data(data_for_manual)
         else:
             offset_data = self._get_automatic_offset_data(time_point_data)
 
@@ -319,7 +340,10 @@ class MainApp(QMainWindow):
             'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY),
             'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
         }
-        velocities = {key: time_point_data.get(col, 0.0) for key, col in vel_cols.items()}
+        if time_point_data is not None:
+            velocities = {key: time_point_data.get(col, 0.0) for key, col in vel_cols.items()}
+        else:
+            velocities = {key: 0.0 for key in vel_cols.keys()}
 
         # 4. 최종 CSV 데이터 리스트 구성
         output_data = [
@@ -405,26 +429,54 @@ class MainApp(QMainWindow):
     def _get_manual_offset_data(self, time_point_data):
         """수동 오프셋 계산 로직을 수행합니다."""
         selected_corners = [combo.currentText() for combo in self.offset_combos]
-
         offset_data = []
-        for corner_name in selected_corners:
-            height_col = (HeaderL1.ANALYSIS, corner_name, HeaderL3.REL_H)
-            if height_col in time_point_data:
-                offset_data.append((corner_name, time_point_data[height_col]))
+
+        use_manual_heights = self.manual_height_checkbox.isChecked()
+
+        for i, corner_name in enumerate(selected_corners):
+            height_value = 0.0
+            if use_manual_heights:
+                try:
+                    height_value = float(self.manual_height_inputs[i].text())
+                except ValueError:
+                    self.log_output.append(f"[WARNING] Invalid manual height input for Offset {i}: '{self.manual_height_inputs[i].text()}'. Using 0.0 as default.")
+                    height_value = 0.0
             else:
-                self.log_output.append(f"[WARNING] Manual offset selection: Column {height_col} not found in data.")
-                # 데이터를 찾을 수 없는 경우, 값으로 0 또는 None을 사용할 수 있습니다. 여기서는 0.0을 사용합니다.
-                offset_data.append((corner_name, 0.0))
+                if time_point_data is not None:
+                    height_col = (HeaderL1.ANALYSIS, corner_name, HeaderL3.REL_H)
+                    if height_col in time_point_data:
+                        height_value = time_point_data[height_col]
+                    else:
+                        self.log_output.append(f"[WARNING] Manual offset selection: Column {height_col} not found in data. Using 0.0 as default.")
+                        height_value = 0.0
+                else:
+                    # Should not happen if manual height is not checked, but as a fallback
+                    height_value = 0.0
+
+            offset_data.append((corner_name, height_value))
 
         return offset_data
 
     def _on_offset_checkbox_toggled(self, checked):
-        """Enable/disable offset comboboxes based on checkbox state."""
+        """'수동 오프셋 선택' 체크박스 상태에 따라 관련 위젯들을 활성화/비활성화합니다."""
+        self.manual_height_checkbox.setEnabled(checked)
         for combo in self.offset_combos:
             combo.setEnabled(checked)
+
+        # '수동 오프셋'이 꺼지면, '높이 값 직접 지정'도 함께 끄고 관련 위젯도 비활성화
         if not checked:
-            # Optional: Reset to default state when unchecked
+            self.manual_height_checkbox.setChecked(False)
             self._update_offset_choices()
+        else:
+            # '수동 오프셋'이 켜지면, '높이 값 직접 지정'의 현재 상태에 따라 입력 필드를 제어
+            self._on_manual_height_checkbox_toggled(self.manual_height_checkbox.isChecked())
+
+    def _on_manual_height_checkbox_toggled(self, checked):
+        """'높이 값 직접 지정' 체크박스 상태에 따라 높이 입력 필드를 활성화/비활성화합니다."""
+        # 이 기능은 '수동 오프셋 선택'이 켜져 있을 때만 의미가 있음
+        is_manual_offset_enabled = self.offset_manual_checkbox.isChecked()
+        for height_input in self.manual_height_inputs:
+            height_input.setEnabled(is_manual_offset_enabled and checked)
 
     def _update_offset_choices(self):
         """Update dropdown choices to prevent duplicate selections."""
