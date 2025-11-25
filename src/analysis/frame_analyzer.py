@@ -3,7 +3,8 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 from src.config.data_columns import (
-    PoseCols, VelocityCols, AnalysisCols, CornerCoordCols, RelativeHeightCols
+    PoseCols, VelocityCols, AnalysisCols, CornerCoordCols, RelativeHeightCols,
+    AnalysisInputHeightCols
 )
 
 
@@ -26,6 +27,7 @@ class FrameAnalyzer:
         self.corner_vertical_coord_cols = [f'C{i+1}{axis_suffix}' for i in range(8)]
         # 8개 코너의 상대 높이 결과 컬럼 이름 목록 (예: ['C1_H_Ana', 'C2_H_Ana', ...])
         self.relative_height_cols = [f'C{i+1}{RelativeHeightCols.H_ANA_SUFFIX}' for i in range(8)]
+        self.analysis_input_height_cols = [f'C{i+1}{AnalysisInputHeightCols.AIH_ANA_SUFFIX}' for i in range(8)]
 
 
     def _transform_coordinates(self, frame_row: pd.Series, R_lab_to_ana: R, T_box_lab: np.ndarray) -> dict:
@@ -67,6 +69,18 @@ class FrameAnalyzer:
 
         return dict(zip(self.relative_height_cols, relative_heights))
 
+    def _calculate_analysis_input_heights(self, frame_row: pd.Series) -> dict:
+        """8개 코너의 해석 시나리오 입력 높이를 계산합니다. (현재는 상대 높이와 동일)"""
+        vertical_coords = frame_row[self.corner_vertical_coord_cols].values.astype(float)
+        min_corner_height = np.min(vertical_coords)
+
+        if min_corner_height <= self.floor_level:
+            analysis_input_heights = vertical_coords - min_corner_height
+        else:
+            analysis_input_heights = vertical_coords
+
+        return dict(zip(self.analysis_input_height_cols, analysis_input_heights))
+
     def process_frame(self, frame_row: pd.Series) -> pd.Series:
         """단일 프레임(DataFrame의 행)을 처리하여 모든 분석 값을 계산합니다."""
         try:
@@ -78,8 +92,9 @@ class FrameAnalyzer:
 
         transformed_data = self._transform_coordinates(frame_row, R_lab_to_ana, T_box_lab)
         relative_height_data = self._calculate_relative_heights(frame_row)
+        analysis_input_height_data = self._calculate_analysis_input_heights(frame_row)
 
-        all_results = {**transformed_data, **relative_height_data}
+        all_results = {**transformed_data, **relative_height_data, **analysis_input_height_data}
         return pd.Series(all_results)
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:

@@ -85,6 +85,9 @@ def get_conversion_rules() -> list:
         # 예시: 'C1_H_Ana' -> ('Analysis', 'C1', 'RelativeHeight')
         (re.compile(r"^(?P<corner>C\d+)_H_Ana$"),
          lambda m: (HeaderL1.ANALYSIS, m.group('corner'), HeaderL3.REL_H)),
+        # 예시: 'C1_AIH_Ana' -> ('Analysis Scenario', 'C1', 'AnalysisInputHeight')
+        (re.compile(r"^(?P<corner>C\d+)_AIH_Ana$"),
+         lambda m: (HeaderL1.ANALYSIS_SCENARIO, m.group('corner'), HeaderL3.ANALYSIS_INPUT_H)),
 
         # --- Level 1: Etc ---
         # 예시: 'Floor_N_X_Ana' -> ('Etc', 'FloorNormal', 'NX')

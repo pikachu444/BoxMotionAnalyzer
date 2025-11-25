@@ -1,10 +1,12 @@
 import sys
 import os
+import pandas as pd
 from PySide6.QtCore import QThread, QTimer, Qt
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QLineEdit, QComboBox, QTextEdit, QStatusBar, QGridLayout,
-    QFileDialog, QListWidget, QScrollArea, QCheckBox, QGroupBox, QTreeWidget, QTreeWidgetItem
+    QFileDialog, QListWidget, QScrollArea, QCheckBox, QGroupBox, QTreeWidget, QTreeWidgetItem,
+    QFormLayout
 )
 import matplotlib
 matplotlib.use('QtAgg')
@@ -19,7 +21,8 @@ from src.config import config_app
 from src.analysis.parser import Parser
 from src.config.data_columns import (
     PoseCols, RawMarkerCols, VelocityCols, AnalysisCols, RigidBodyCols, FACE_PREFIX_TO_INFO,
-    DisplayNames, RESULT_TIME_COL, DISPLAY_RESULT_COLUMNS, TimeCols
+    DisplayNames, RESULT_TIME_COL, DISPLAY_RESULT_COLUMNS, TimeCols, HeaderL1, HeaderL2, HeaderL3,
+    CORNER_NAME_MAP
 )
 from src.header_converter import convert_to_multi_header
 
@@ -44,6 +47,7 @@ class MainApp(QMainWindow):
         self.parser = Parser(face_prefix_map=FACE_PREFIX_TO_INFO)
         self.pipeline_controller = PipelineController()
 
+        self.manual_height_inputs = []
         self.raw_data = None
         self.header_info = None
         self.parsed_data = None
@@ -176,53 +180,94 @@ class MainApp(QMainWindow):
         file_browser_layout = QVBoxLayout()
         file_browser_controls_layout = QHBoxLayout()
         self.select_result_folder_button = QPushButton("Select Result Folder...")
-        self.recent_files_combo = QComboBox()
-        self.recent_files_combo.addItem("Recent Files...")
+        self.plot_results_button = QPushButton("Plot Selected Results")
+        self.plot_results_button.setEnabled(False)
         file_browser_controls_layout.addWidget(self.select_result_folder_button)
-        file_browser_controls_layout.addWidget(self.recent_files_combo)
+        file_browser_controls_layout.addWidget(self.plot_results_button)
         file_browser_layout.addLayout(file_browser_controls_layout)
         self.result_folder_path_label = QLabel("No folder selected.")
         file_browser_layout.addWidget(self.result_folder_path_label)
+
+        # New horizontal layout for the list and tree
+        list_tree_layout = QHBoxLayout()
         self.result_file_list = QListWidget()
-        file_browser_layout.addWidget(self.result_file_list)
+        list_tree_layout.addWidget(self.result_file_list)
 
         self.result_data_tree = QTreeWidget()
         self.result_data_tree.setHeaderLabel("Select Data to Plot")
         self.result_data_tree.setEnabled(False)
-
-        plot_button_layout = QHBoxLayout()
-        plot_button_layout.addStretch()
-        self.plot_results_button = QPushButton("Plot Selected Results")
-        self.plot_results_button.setEnabled(False)
-        plot_button_layout.addWidget(self.plot_results_button)
+        list_tree_layout.addWidget(self.result_data_tree)
 
         result_controls_main_layout.addLayout(file_browser_layout)
-        result_controls_main_layout.addWidget(self.result_data_tree)
-        result_controls_main_layout.addLayout(plot_button_layout)
+        result_controls_main_layout.addLayout(list_tree_layout)
 
         # Point Analysis GroupBox
         point_analysis_group = QGroupBox("지점 분석 (Point Analysis)")
         point_analysis_layout = QVBoxLayout(point_analysis_group)
 
-        self.selected_point_label = QLabel("Selected: None")
-        point_analysis_layout.addWidget(self.selected_point_label)
-
         find_max_layout = QHBoxLayout()
         find_max_layout.addWidget(QLabel("Target:"))
         self.find_max_target_combo = QComboBox()
         find_max_layout.addWidget(self.find_max_target_combo)
-        self.find_max_button = QPushButton("Find Max")
+        self.find_max_button = QPushButton("Find Abs. Max")
         find_max_layout.addWidget(self.find_max_button)
         point_analysis_layout.addLayout(find_max_layout)
 
-        export_point_layout = QHBoxLayout()
-        export_point_layout.addStretch()
+        selected_export_layout = QHBoxLayout()
+        self.selected_point_label = QLabel("Selected: None")
+        selected_export_layout.addWidget(self.selected_point_label)
+        selected_export_layout.addStretch()
         self.export_point_button = QPushButton("Export Point Data...")
         self.export_point_button.setEnabled(False)
-        export_point_layout.addWidget(self.export_point_button)
-        point_analysis_layout.addLayout(export_point_layout)
+        selected_export_layout.addWidget(self.export_point_button)
+        point_analysis_layout.addLayout(selected_export_layout)
 
         result_controls_main_layout.addWidget(point_analysis_group)
+
+        # Analysis Scenario Output GroupBox
+        analysis_scenario_group = QGroupBox("해석 시나리오 출력")
+        analysis_scenario_layout = QVBoxLayout(analysis_scenario_group)
+
+        self.offset_manual_checkbox = QCheckBox("수동 오프셋 선택")
+        analysis_scenario_layout.addWidget(self.offset_manual_checkbox)
+
+        self.manual_height_checkbox = QCheckBox("높이 값 직접 지정")
+        self.manual_height_checkbox.setEnabled(False) # 초기는 비활성화
+        analysis_scenario_layout.addWidget(self.manual_height_checkbox)
+
+        self.offset_combos = []
+        self.manual_height_inputs = []
+        offsets_layout = QGridLayout()
+        for i in range(3):
+            offsets_layout.addWidget(QLabel(f"오프셋{i}:"), i, 0)
+
+            combo = QComboBox()
+            combo.addItems([f"C{j+1}" for j in range(8)])
+            combo.setEnabled(False)
+            offsets_layout.addWidget(combo, i, 1)
+            self.offset_combos.append(combo)
+
+            height_input = QLineEdit()
+            height_input.setPlaceholderText("Height Value")
+            height_input.setEnabled(False)
+            offsets_layout.addWidget(height_input, i, 2)
+            self.manual_height_inputs.append(height_input)
+
+        analysis_scenario_layout.addLayout(offsets_layout)
+
+        scenario_form_layout = QFormLayout()
+        self.le_run_time = QLineEdit("0.1")
+        self.le_time_step = QLineEdit("1e-7")
+        self.le_scene_name = QLineEdit("")
+        scenario_form_layout.addRow("analysis run time:", self.le_run_time)
+        scenario_form_layout.addRow("critical time step:", self.le_time_step)
+        scenario_form_layout.addRow("drop scene name:", self.le_scene_name)
+        analysis_scenario_layout.addLayout(scenario_form_layout)
+
+        self.export_scenario_button = QPushButton("Export analysis input")
+        analysis_scenario_layout.addWidget(self.export_scenario_button)
+
+        result_controls_main_layout.addWidget(analysis_scenario_group)
 
         result_analysis_layout.addWidget(result_controls_container, 4) # 컨트롤이 4의 비율
 
@@ -250,6 +295,218 @@ class MainApp(QMainWindow):
         self.canvas2.mpl_connect('button_press_event', self.on_result_plot_click)
         self.find_max_button.clicked.connect(self.on_find_max_click)
         self.export_point_button.clicked.connect(self.on_export_point_data_click)
+
+        # Connections for Analysis Scenario Output
+        self.offset_manual_checkbox.toggled.connect(self._on_offset_checkbox_toggled)
+        self.manual_height_checkbox.toggled.connect(self._on_manual_height_checkbox_toggled)
+        for combo in self.offset_combos:
+            combo.currentIndexChanged.connect(self._update_offset_choices)
+        self.export_scenario_button.clicked.connect(self.export_analysis_scenario)
+
+    def export_analysis_scenario(self):
+        """'해석 시나리오 출력' 그룹의 설정값과 분석 데이터를 조합하여 지정된 포맷의 CSV로 저장합니다."""
+        # 1. 유효성 검사: 분석 결과 및 선택된 시간 지점이 있는지 확인
+        if self.result_data is None or self.selected_point_info.get('time') is None:
+            self.log_output.append("[ERROR] No data point selected. Please click on the result graph to select a time point.")
+            self.statusBar().showMessage("Error: No data point selected.")
+            return
+
+        selected_time = self.selected_point_info['time']
+
+        # 수동 높이 입력 모드가 아닐 때만 result_data에서 데이터를 가져옴
+        time_point_data = None
+        if not (self.offset_manual_checkbox.isChecked() and self.manual_height_checkbox.isChecked()):
+            time_point_data = self.result_data.loc[selected_time]
+
+        # 2. 오프셋 데이터 가져오기 (자동/수동 분기)
+        is_manual_offset = self.offset_manual_checkbox.isChecked()
+        if is_manual_offset:
+            # 수동 높이 입력 모드일 경우, time_point_data가 필요 없음
+            data_for_manual = time_point_data if not self.manual_height_checkbox.isChecked() else None
+            offset_data = self._get_manual_offset_data(data_for_manual)
+        else:
+            offset_data = self._get_automatic_offset_data(time_point_data)
+
+        if not offset_data or len(offset_data) < 3:
+            self.log_output.append("[ERROR] Could not determine 3 offset points. Aborting export.")
+            return
+
+        # 3. 속도 및 기타 데이터 가져오기
+        vel_cols = {
+            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX),
+            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
+            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ),
+            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
+            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY),
+            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
+        }
+        if time_point_data is not None:
+            velocities = {key: time_point_data.get(col, 0.0) for key, col in vel_cols.items()}
+        else:
+            velocities = {key: 0.0 for key in vel_cols.keys()}
+
+        # 4. 최종 CSV 데이터 리스트 구성
+        output_data = [
+            ('1', 'Left'), ('2', 'Right'), ('3', 'Bottom'),
+            ('4', 'Top'), ('5', 'Rear'), ('6', 'Front'),
+            ('cat', 'Corner_Drop_2nd'),
+            ('drop_name', self.le_scene_name.text()),
+        ]
+
+        # 오프셋 데이터 추가
+        for i, (corner_name, corner_value) in enumerate(offset_data):
+            variable_name = CORNER_NAME_MAP.get(corner_name, "Unknown")
+            output_data.append((f'variable_{i+1}', variable_name))
+            output_data.append((f'value_{i+1}', f'{corner_value:.6f}'))
+
+        output_data.extend([
+            ('variable_4', 'OFFSET'), ('value_4', '0.0'),
+            ('variable_5', 'ANG_VEL_X'), ('value_5', f"{velocities['ANG_VEL_X']:.6f}"),
+            ('variable_6', 'ANG_VEL_Y'), ('value_6', f"{velocities['ANG_VEL_Y']:.6f}"),
+            ('variable_7', 'ANG_VEL_Z'), ('value_7', f"{velocities['ANG_VEL_Z']:.6f}"),
+            ('variable_8', 'TRA_VEL_X'), ('value_8', f"{velocities['TRA_VEL_X']:.6f}"),
+            ('variable_9', 'TRA_VEL_Y'), ('value_9', f"{velocities['TRA_VEL_Y']:.6f}"),
+            ('variable_10', 'TRA_VEL_Z'), ('value_10', f"{velocities['TRA_VEL_Z']:.6f}"),
+            ('variable_11', 'POSI_FROM_CENT_X'), ('value_11', '0.0'),
+            ('variable_12', 'POSI_FROM_CENT_Y'), ('value_12', '0.0'),
+            ('variable_13', 'POSI_FROM_CENT_Z'), ('value_13', '0.0'),
+            ('run_time', self.le_run_time.text()),
+            ('tmin', self.le_time_step.text()),
+        ])
+
+        # 5. 파일 저장
+        suggested_filename = f"scenario_{self.le_scene_name.text()}.csv" if self.le_scene_name.text() else "analysis_scenario.csv"
+        filepath, _ = QFileDialog.getSaveFileName(self, "Export Analysis Scenario", suggested_filename, "CSV Files (*.csv)")
+
+        if filepath:
+            try:
+                # 새로운 포맷에 맞게 문자열 생성
+                # 첫 6개 아이템은 줄바꿈으로, 나머지는 쉼표로 연결
+                lines = [f"{key},{value}" for key, value in output_data[:6]]
+                last_line = ",".join([f"{key},{value}" for key, value in output_data[6:]])
+                csv_string = "\n".join(lines) + "\n" + last_line
+
+                with open(filepath, 'w') as f:
+                    f.write(csv_string)
+                self.log_output.append(f"[SUCCESS] Analysis scenario exported to {filepath}")
+                self.statusBar().showMessage(f"Scenario exported to {filepath}")
+            except Exception as e:
+                self.log_output.append(f"[ERROR] Could not export scenario: {e}")
+                self.statusBar().showMessage(f"Error exporting scenario: {e}")
+
+    def _get_automatic_offset_data(self, time_point_data):
+        """자동 오프셋 계산 로직을 수행합니다."""
+        height_cols = [(HeaderL1.ANALYSIS, f'C{i+1}', HeaderL3.REL_H) for i in range(8)]
+
+        # 1. 8개 코너의 높이 값 추출
+        corner_heights = {}
+        for i, col in enumerate(height_cols):
+            if col in time_point_data:
+                corner_heights[f'C{i+1}'] = time_point_data[col]
+            else:
+                self.log_output.append(f"[WARNING] Automatic offset calculation: Column {col} not found in data.")
+                return []
+
+        if not corner_heights:
+            return []
+
+        # 2. 가장 낮은 높이의 코너 찾기
+        min_corner = min(corner_heights, key=corner_heights.get)
+
+        # 3. 그룹 식별 및 정렬
+        min_corner_num = int(min_corner[1:])
+        group1 = {f'C{i}': corner_heights[f'C{i}'] for i in range(1, 5)}
+        group2 = {f'C{i}': corner_heights[f'C{i}'] for i in range(5, 9)}
+
+        target_group = group1 if 1 <= min_corner_num <= 4 else group2
+
+        # 4. 동일 그룹 내에서 높이가 낮은 순으로 정렬하여 상위 3개 선택
+        sorted_corners = sorted(target_group.items(), key=lambda item: item[1])
+
+        # 5. 결과 반환 (코너 이름, 높이 값)
+        return sorted_corners[:3]
+
+    def _get_manual_offset_data(self, time_point_data):
+        """수동 오프셋 계산 로직을 수행합니다."""
+        selected_corners = [combo.currentText() for combo in self.offset_combos]
+        offset_data = []
+
+        use_manual_heights = self.manual_height_checkbox.isChecked()
+
+        for i, corner_name in enumerate(selected_corners):
+            height_value = 0.0
+            if use_manual_heights:
+                try:
+                    height_value = float(self.manual_height_inputs[i].text())
+                except ValueError:
+                    self.log_output.append(f"[WARNING] Invalid manual height input for Offset {i}: '{self.manual_height_inputs[i].text()}'. Using 0.0 as default.")
+                    height_value = 0.0
+            else:
+                if time_point_data is not None:
+                    height_col = (HeaderL1.ANALYSIS, corner_name, HeaderL3.REL_H)
+                    if height_col in time_point_data:
+                        height_value = time_point_data[height_col]
+                    else:
+                        self.log_output.append(f"[WARNING] Manual offset selection: Column {height_col} not found in data. Using 0.0 as default.")
+                        height_value = 0.0
+                else:
+                    # Should not happen if manual height is not checked, but as a fallback
+                    height_value = 0.0
+
+            offset_data.append((corner_name, height_value))
+
+        return offset_data
+
+    def _on_offset_checkbox_toggled(self, checked):
+        """'수동 오프셋 선택' 체크박스 상태에 따라 관련 위젯들을 활성화/비활성화합니다."""
+        self.manual_height_checkbox.setEnabled(checked)
+        for combo in self.offset_combos:
+            combo.setEnabled(checked)
+
+        # '수동 오프셋'이 꺼지면, '높이 값 직접 지정'도 함께 끄고 관련 위젯도 비활성화
+        if not checked:
+            self.manual_height_checkbox.setChecked(False)
+            self._update_offset_choices()
+        else:
+            # '수동 오프셋'이 켜지면, '높이 값 직접 지정'의 현재 상태에 따라 입력 필드를 제어
+            self._on_manual_height_checkbox_toggled(self.manual_height_checkbox.isChecked())
+
+    def _on_manual_height_checkbox_toggled(self, checked):
+        """'높이 값 직접 지정' 체크박스 상태에 따라 높이 입력 필드를 활성화/비활성화합니다."""
+        # 이 기능은 '수동 오프셋 선택'이 켜져 있을 때만 의미가 있음
+        is_manual_offset_enabled = self.offset_manual_checkbox.isChecked()
+        for height_input in self.manual_height_inputs:
+            height_input.setEnabled(is_manual_offset_enabled and checked)
+
+    def _update_offset_choices(self):
+        """Update dropdown choices to prevent duplicate selections."""
+        all_options = [f"C{i+1}" for i in range(8)]
+        selected_options = [combo.currentText() for combo in self.offset_combos if combo.isEnabled()]
+
+        for i, combo in enumerate(self.offset_combos):
+            if not combo.isEnabled():
+                continue
+
+            current_selection = combo.currentText()
+            other_selections = [opt for j, opt in enumerate(selected_options) if i != j]
+
+            # Temporarily disconnect signal to prevent recursion
+            combo.blockSignals(True)
+
+            combo.clear()
+
+            # Add the currently selected item first
+            combo.addItem(current_selection)
+
+            # Add other available options
+            for option in all_options:
+                if option != current_selection and option not in other_selections:
+                    combo.addItem(option)
+
+            combo.setCurrentText(current_selection)
+
+            # Reconnect signal
+            combo.blockSignals(False)
 
     def plot_selected_results(self):
         if self.result_data is None: return
@@ -280,8 +537,7 @@ class MainApp(QMainWindow):
             self.selected_point_info = {'time': None, 'index': None}
             self.update_point_selection_ui()
             # Reset the navigation toolbar's history to set the new "Home" state
-            self.toolbar2._views.clear()
-            self.toolbar2._positions.clear()
+            self.toolbar2.update()
             self.toolbar2.push_current()
             return
 
@@ -291,8 +547,7 @@ class MainApp(QMainWindow):
         self.plot_manager2.draw_plot(plot_df, checked_columns)
 
         # Reset the navigation toolbar's history to set the new "Home" state
-        self.toolbar2._views.clear()
-        self.toolbar2._positions.clear()
+        self.toolbar2.update()
         self.toolbar2.push_current()
 
         self.selected_point_info = {'time': None, 'index': None}
@@ -325,7 +580,7 @@ class MainApp(QMainWindow):
             return
 
         try:
-            max_index = self.result_data[target_column].idxmax()
+            max_index = self.result_data[target_column].abs().idxmax()
             max_value = self.result_data.loc[max_index, target_column]
 
             self.selected_point_info['index'] = self.result_data.index.get_loc(max_index)
@@ -620,8 +875,3 @@ class MainApp(QMainWindow):
                 self.statusBar().showMessage(f"Error exporting file: {e}")
                 self.log_output.append(f"[ERROR] Could not export file: {e}")
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MainApp()
-    window.show()
-    sys.exit(app.exec())

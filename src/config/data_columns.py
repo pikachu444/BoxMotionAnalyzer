@@ -90,6 +90,12 @@ class AnalysisCols:
 class RelativeHeightCols:
     H_ANA_SUFFIX: str = "_H_Ana"
 
+
+@dataclass(frozen=True)
+class AnalysisInputHeightCols:
+    AIH_ANA_SUFFIX: str = "_AIH_Ana"
+
+
 # --- GUI Display Name Constants ---
 @dataclass(frozen=True)
 class DisplayNames:
@@ -105,6 +111,7 @@ class HeaderL1:
     INFO: str = "Info"
     ETC: str = "Etc"
     ANALYSIS: str = "Analysis"
+    ANALYSIS_SCENARIO: str = "Analysis Scenario"
 
 @dataclass(frozen=True)
 class HeaderL2:
@@ -148,6 +155,7 @@ class HeaderL3:
     NORM_V: str = "Norm_V"
     NORM_W: str = "Norm_W"
     REL_H: str = "RelativeHeight"
+    ANALYSIS_INPUT_H: str = "AnalysisInputHeight"
 
 # --- Result File Column Constants ---
 RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
@@ -177,8 +185,45 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.ANALYSIS, "C7", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C8", HeaderL3.REL_H),
 
-    # Corner Velocities (Example for Corner 1, could be expanded)
+    # Corner Velocities for each of the 8 corners
     (HeaderL1.VEL, "C1", HeaderL3.VX),
     (HeaderL1.VEL, "C1", HeaderL3.VY),
     (HeaderL1.VEL, "C1", HeaderL3.VZ),
+    (HeaderL1.VEL, "C2", HeaderL3.VX),
+    (HeaderL1.VEL, "C2", HeaderL3.VY),
+    (HeaderL1.VEL, "C2", HeaderL3.VZ),
+    (HeaderL1.VEL, "C3", HeaderL3.VX),
+    (HeaderL1.VEL, "C3", HeaderL3.VY),
+    (HeaderL1.VEL, "C3", HeaderL3.VZ),
+    (HeaderL1.VEL, "C4", HeaderL3.VX),
+    (HeaderL1.VEL, "C4", HeaderL3.VY),
+    (HeaderL1.VEL, "C4", HeaderL3.VZ),
+    (HeaderL1.VEL, "C5", HeaderL3.VX),
+    (HeaderL1.VEL, "C5", HeaderL3.VY),
+    (HeaderL1.VEL, "C5", HeaderL3.VZ),
+    (HeaderL1.VEL, "C6", HeaderL3.VX),
+    (HeaderL1.VEL, "C6", HeaderL3.VY),
+    (HeaderL1.VEL, "C6", HeaderL3.VZ),
+    (HeaderL1.VEL, "C7", HeaderL3.VX),
+    (HeaderL1.VEL, "C7", HeaderL3.VY),
+    (HeaderL1.VEL, "C7", HeaderL3.VZ),
+    (HeaderL1.VEL, "C8", HeaderL3.VX),
+    (HeaderL1.VEL, "C8", HeaderL3.VY),
+    (HeaderL1.VEL, "C8", HeaderL3.VZ),
+
+    # Analysis Input Height for each of the 8 corners
+    (HeaderL1.ANALYSIS_SCENARIO, "C1", HeaderL3.ANALYSIS_INPUT_H),
+    (HeaderL1.ANALYSIS_SCENARIO, "C2", HeaderL3.ANALYSIS_INPUT_H),
+    (HeaderL1.ANALYSIS_SCENARIO, "C3", HeaderL3.ANALYSIS_INPUT_H),
+    (HeaderL1.ANALYSIS_SCENARIO, "C4", HeaderL3.ANALYSIS_INPUT_H),
+    (HeaderL1.ANALYSIS_SCENARIO, "C5", HeaderL3.ANALYSIS_INPUT_H),
+    (HeaderL1.ANALYSIS_SCENARIO, "C6", HeaderL3.ANALYSIS_INPUT_H),
+    (HeaderL1.ANALYSIS_SCENARIO, "C7", HeaderL3.ANALYSIS_INPUT_H),
+    (HeaderL1.ANALYSIS_SCENARIO, "C8", HeaderL3.ANALYSIS_INPUT_H),
 ]
+
+# --- Corner Name Mapping ---
+CORNER_NAME_MAP = {
+    'C1': 'LeftBottomRear', 'C2': 'RightBottomRear', 'C3': 'RightTopRear', 'C4': 'LeftTopRear',
+    'C5': 'LeftBottomFront', 'C6': 'RightBottomFront', 'C7': 'RightTopFront', 'C8': 'LeftTopFront'
+}
