@@ -8,10 +8,12 @@ from src.analysis.smoother import MarkerSmoother
 from src.analysis.pose_optimizer import PoseOptimizer
 from src.analysis.velocity_calculator import VelocityCalculator
 from src.analysis.frame_analyzer import FrameAnalyzer
+from src.analysis.validator import DataValidator
 
 class PipelineController(QObject):
     log_message = Signal(str)
     analysis_finished = Signal(pd.DataFrame)
+    analysis_failed = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -45,6 +47,15 @@ class PipelineController(QObject):
                 self.log_message.emit("[1/8] Parsing data...")
                 data = self.parser.process(header_info, raw_data)
             self.log_message.emit(f"    Parser output shape: {data.shape}")
+
+            # 1.5 데이터 검증
+            self.log_message.emit("[1.5/8] Validating data...")
+            DataValidator.validate_data_sufficiency(data, min_rows=50)
+            
+            # Rigid Body 필수 컬럼 검증
+            from src.config.data_columns import PoseCols, TimeCols
+            required_rb_cols = [TimeCols.TIME, PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z]
+            DataValidator.validate_required_columns(data, required_rb_cols)
 
             # 2. 패딩된 슬라이스 생성
             self.log_message.emit("[2/8] Slicing data with padding...")
@@ -120,6 +131,8 @@ class PipelineController(QObject):
 
         except Exception as e:
             import traceback
-            self.log_message.emit(f"[ERROR] An error occurred in the pipeline: {e}")
+            error_msg = f"[ERROR] An error occurred in the pipeline: {e}"
+            self.log_message.emit(error_msg)
             self.log_message.emit(f"Traceback: {traceback.format_exc()}")
             self.analysis_finished.emit(pd.DataFrame())
+            self.analysis_failed.emit(str(e))
