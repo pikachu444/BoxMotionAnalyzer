@@ -3,3 +3,5 @@ scipy
 PySide6
 matplotlib
 numpy
+pyvista
+pyvistaqt

@@ -6,8 +6,8 @@ from PySide6.QtWidgets import QApplication
 from src.ui.widget_results_analyzer import WidgetResultsAnalyzer
 from src.config.data_columns import HeaderL1, HeaderL2, HeaderL3
 
-# QApplication is required for QWidget
-app = QApplication([])
+# Check if QApplication already exists, otherwise create it
+app = QApplication.instance() or QApplication([])
 
 class TestWidgetResultsAnalyzer(unittest.TestCase):
     def setUp(self):
