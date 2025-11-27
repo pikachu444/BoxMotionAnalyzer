@@ -5,13 +5,14 @@
 # 1. config.py의 좌표계/인덱스/라벨/사이즈 등 기준 100% 준수
 # 2. 3D rigid transformation: 각 프레임마다 박스가 x축을 기준으로 넘어지는 모션
 #    (회전행렬 R, 병진벡터 t)
-# 3. 마커는 각 면에 균등/예시로 배치 (면 중심 등)
-# 4. wide-format csv로 저장, 컬럼명/라벨 config.py와 일치
+# 3. Multi-Header CSV 생성 (HeaderL1, HeaderL2, HeaderL3 준수)
 # =============================================
 
 import numpy as np
 import pandas as pd
-import config
+import os
+from src.visualization import config
+from src.config.data_columns import HeaderL1, HeaderL2, HeaderL3
 
 def box_local_corners():
     # (minX, minY, minZ) ~ (maxX, maxY, maxZ)
@@ -29,8 +30,7 @@ def box_local_corners():
 
 def generate_marker_local_positions():
     """
-    Generates marker positions evenly distributed INSIDE each face of the box,
-    avoiding the corners and edges.
+    Generates marker positions evenly distributed INSIDE each face of the box.
     """
     corners = box_local_corners()
     all_marker_positions = []
@@ -43,12 +43,9 @@ def generate_marker_local_positions():
         v_vec = p3 - p0  # Height direction
 
         face_positions = []
-
         if n_markers == 0:
             continue
 
-        # Determine grid size (e.g., 8 markers -> 4x2 grid)
-        # This is a simple heuristic to make the distribution reasonable
         if n_markers <= 3:
             grid_u, grid_v = n_markers, 1
         elif n_markers == 4:
@@ -57,11 +54,9 @@ def generate_marker_local_positions():
             grid_u, grid_v = 3, 2
         elif n_markers <= 8:
             grid_u, grid_v = 4, 2
-        else: # for n_markers > 8
+        else:
             grid_u, grid_v = int(np.ceil(np.sqrt(n_markers))), int(np.round(np.sqrt(n_markers)))
 
-        # Generate points on a normalized grid (0 to 1) and scale them
-        # We add a margin (e.g., 0.2) to keep points away from the edges
         margin = 0.2
         u_steps = np.linspace(margin, 1.0 - margin, grid_u)
         v_steps = np.linspace(margin, 1.0 - margin, grid_v)
@@ -69,13 +64,10 @@ def generate_marker_local_positions():
         for v in v_steps:
             for u in u_steps:
                 if len(face_positions) < n_markers:
-                    # Calculate point position using local axes and center it
                     point = p0 + u * u_vec + v * v_vec
                     face_positions.append(point)
 
-        # Ensure the exact number of markers is added for this face
         while len(face_positions) < n_markers:
-            # If grid logic is imperfect, fill with center point
             face_positions.append(p0 + 0.5 * u_vec + 0.5 * v_vec)
 
         all_marker_positions.extend(face_positions[:n_markers])
@@ -83,7 +75,6 @@ def generate_marker_local_positions():
     return np.array(all_marker_positions)
 
 def rotation_matrix_x(theta):
-    # x축 회전
     c, s = np.cos(theta), np.sin(theta)
     return np.array([
         [1, 0,  0],
@@ -102,17 +93,43 @@ def main():
     z0 = 500
 
     # --- Create MultiIndex Columns ---
-    k = config
+    # We need to construct a list of (Level1, Level2, Level3) tuples
     header_tuples = []
-    # Level 0: data_type (pos/vel), Level 1: object_id, Level 2: axis (x/y/z)
-    for data_type in [k.MH_VAL_POSITION, k.MH_VAL_VELOCITY]:
-        for obj_label in k.BOX_CORNERS_LABELS + k.MARKER_LABELS:
-            for axis in ['x', 'y', 'z']:
-                header_tuples.append((data_type, obj_label, axis))
+
+    # Define objects: Corners + Markers
+    # Note: config.BOX_CORNERS_LABELS are "C1"..."C8"
+    objects = config.BOX_CORNERS_LABELS + config.MARKER_LABELS
+
+    # 1. Info Columns (Frame, Time)
+    # These must be included in the MultiIndex to maintain structure
+    # Frame -> (Info, Frame, Number)
+    header_tuples.append((HeaderL1.INFO, HeaderL2.FRAME, HeaderL3.NUM))
+    # Time -> (Info, Time, s) (Using 's' as per changeheader.txt/data_columns.py or 'Time'?)
+    # data_columns.py: RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
+    # But HeaderL3.TIME is "Time". HeaderL3.SEC is "s".
+    # changeheader.txt says: `Time` -> ('Info', 'Time', 's')
+    # Let's check src/config/data_columns.py again.
+    # RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME) -> ('Info', 'Time', 'Time')
+    # Wait, in data_columns.py: HeaderL3.TIME = "Time".
+    # Let's stick to RESULT_TIME_COL constant if possible, but we are building the list manually.
+    # I will use HeaderL3.TIME based on RESULT_TIME_COL definition in data_columns.py
+    header_tuples.append((HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME))
+
+    # 2. Position & Velocity Columns for each object
+    for obj_label in objects:
+        # Position: PX, PY, PZ
+        header_tuples.append((HeaderL1.POS, obj_label, HeaderL3.PX))
+        header_tuples.append((HeaderL1.POS, obj_label, HeaderL3.PY))
+        header_tuples.append((HeaderL1.POS, obj_label, HeaderL3.PZ))
+
+        # Velocity: VX, VY, VZ
+        header_tuples.append((HeaderL1.VEL, obj_label, HeaderL3.VX))
+        header_tuples.append((HeaderL1.VEL, obj_label, HeaderL3.VY))
+        header_tuples.append((HeaderL1.VEL, obj_label, HeaderL3.VZ))
 
     columns = pd.MultiIndex.from_tuples(
         header_tuples,
-        names=[k.MH_LEVEL_DATATYPE, k.MH_LEVEL_OBJECT_ID, k.MH_LEVEL_AXIS]
+        names=[config.MH_LEVEL_DATATYPE, config.MH_LEVEL_OBJECT_ID, config.MH_LEVEL_AXIS]
     )
 
     # --- Generate Frame Data ---
@@ -145,25 +162,49 @@ def main():
         prev_corners_world = corners_world.copy()
         prev_markers_world = markers_world.copy()
 
-        # Flatten all data for this frame into a single row
-        frame_data = np.concatenate([
-            corners_world.flatten(),
-            markers_world.flatten(),
-            corners_vel.flatten(),
-            markers_vel.flatten()
-        ])
-        all_frames_data.append(frame_data)
+        # Build row data in the exact order of header_tuples
+        row_data = []
+
+        # Info
+        row_data.append(frame_idx) # Frame
+        row_data.append(t)         # Time
+
+        # Objects
+        # corner indices: 0..7
+        # marker indices: 0..M-1
+
+        # We need to iterate objects in the same order as header loop
+        # objects = corners + markers
+
+        # Helper to get P and V for an object index
+        # Corners first
+        for i, _ in enumerate(config.BOX_CORNERS_LABELS):
+            p = corners_world[i]
+            v = corners_vel[i]
+            row_data.extend([p[0], p[1], p[2]]) # PX, PY, PZ
+            row_data.extend([v[0], v[1], v[2]]) # VX, VY, VZ
+
+        # Markers next
+        for i, _ in enumerate(config.MARKER_LABELS):
+            p = markers_world[i]
+            v = markers_vel[i]
+            row_data.extend([p[0], p[1], p[2]]) # PX, PY, PZ
+            row_data.extend([v[0], v[1], v[2]]) # VX, VY, VZ
+
+        all_frames_data.append(row_data)
 
     # --- Create and Save DataFrame ---
     df = pd.DataFrame(all_frames_data, columns=columns)
 
-    # Add frame and time columns at the beginning
-    df.insert(0, 'time', np.arange(N) * dt)
-    df.insert(0, 'frame', np.arange(N))
+    # Ensure output directory exists
+    output_dir = os.path.dirname(config.TEST_CSV_PATH)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    # Pandas automatically handles writing multi-level headers
-    df.to_csv(config.TEST_CSV_PATH, index=False)
+    df.to_csv(config.TEST_CSV_PATH, index=False) # index=False because Frame/Time are columns
     print(f"✓ Multi-header test data generated: {config.TEST_CSV_PATH}")
+    print(f"  Shape: {df.shape}")
+    print(f"  Columns Levels: {df.columns.nlevels}")
 
 if __name__ == '__main__':
     main()
