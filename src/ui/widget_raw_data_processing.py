@@ -20,6 +20,7 @@ class WidgetRawDataProcessing(QWidget):
     file_loaded = Signal(dict, object, object) # header_info, raw_data, parsed_data
     analysis_requested = Signal(dict) # config
     export_requested = Signal()
+    export_vis_requested = Signal()
     log_message = Signal(str)
 
     def __init__(self, data_loader, parser):
@@ -137,8 +138,11 @@ class WidgetRawDataProcessing(QWidget):
         self.run_button = QPushButton("Run Analysis")
         self.export_button = QPushButton("Export Results to CSV")
         self.export_button.setEnabled(False)
+        self.export_vis_button = QPushButton("Export for Visualization")
+        self.export_vis_button.setEnabled(False)
         run_button_layout.addWidget(self.run_button)
         run_button_layout.addWidget(self.export_button)
+        run_button_layout.addWidget(self.export_vis_button)
         h_controls_layout.addLayout(run_button_layout)
 
         group_layout.addWidget(controls_widget)
@@ -149,6 +153,7 @@ class WidgetRawDataProcessing(QWidget):
         self.select_data_button.clicked.connect(self.open_data_selection_dialog)
         self.run_button.clicked.connect(self.emit_run_analysis)
         self.export_button.clicked.connect(self.export_requested.emit)
+        self.export_vis_button.clicked.connect(self.export_vis_requested.emit)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
         self.slice_group.toggled.connect(self.toggle_slicing_widgets)
@@ -277,6 +282,7 @@ class WidgetRawDataProcessing(QWidget):
             self.analysis_requested.emit(config)
             self.run_button.setEnabled(False)
             self.export_button.setEnabled(False)
+            self.export_vis_button.setEnabled(False)
             self.log_output.clear()
             self.append_log("[INFO] Starting analysis...")
             
@@ -286,6 +292,7 @@ class WidgetRawDataProcessing(QWidget):
     def on_analysis_finished(self, success: bool):
         self.run_button.setEnabled(True)
         self.export_button.setEnabled(success)
+        self.export_vis_button.setEnabled(success)
         if success:
             self.append_log("[INFO] Analysis completed successfully.")
         else:
