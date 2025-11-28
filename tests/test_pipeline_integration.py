@@ -42,11 +42,9 @@ class TestPipelineIntegration(unittest.TestCase):
             TimeCols.FRAME: frames,
             TimeCols.TIME: times,
             # Rigid Body Position (Required by Validator)
-            # Validator asks for PoseCols (Box_Tx) but Parser produces RigidBodyCols (RigidBody_Position_X).
-            # We supply what Validator demands to pass the pipeline check.
-            PoseCols.POS_X: np.zeros(n_frames),
-            PoseCols.POS_Y: np.zeros(n_frames),
-            PoseCols.POS_Z: np.zeros(n_frames),
+            RigidBodyCols.POS_X: np.zeros(n_frames),
+            RigidBodyCols.POS_Y: np.zeros(n_frames),
+            RigidBodyCols.POS_Z: np.zeros(n_frames),
             # VelocityCalculator needs Rotation columns too
             PoseCols.ROT_X: np.zeros(n_frames),
             PoseCols.ROT_Y: np.zeros(n_frames),

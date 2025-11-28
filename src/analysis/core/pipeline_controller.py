@@ -53,8 +53,8 @@ class PipelineController(QObject):
             DataValidator.validate_data_sufficiency(data, min_rows=50)
             
             # Rigid Body 필수 컬럼 검증
-            from src.config.data_columns import PoseCols, TimeCols
-            required_rb_cols = [TimeCols.TIME, PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z]
+            from src.config.data_columns import RigidBodyCols, TimeCols
+            required_rb_cols = [TimeCols.TIME, RigidBodyCols.POS_X, RigidBodyCols.POS_Y, RigidBodyCols.POS_Z]
             DataValidator.validate_required_columns(data, required_rb_cols)
 
             # 2. 패딩된 슬라이스 생성
