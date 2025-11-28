@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout
 from pyvistaqt import QtInteractor
 import numpy as np
 import pandas as pd
-from . import config
+from src.config import config_visualization as config
 from .data_handler import DataHandler
 
 class VistaWidget(QWidget):

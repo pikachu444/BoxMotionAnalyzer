@@ -6,7 +6,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtCore import QTimer, Qt
 import numpy as np
 
-from . import config
+from src.config import config_visualization as config
 from .data_handler import DataHandler
 from .vista_widget import VistaWidget
 from .control_panel import ControlPanel
