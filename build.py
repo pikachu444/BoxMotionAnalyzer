@@ -43,6 +43,9 @@ def build(mode):
     # 이전 빌드 정리
     clean_previous_builds(dist_path)
 
+    # Determine the absolute path to the entry point
+    entry_point = os.path.join('src', 'main.py')
+
     cmd = [
         sys.executable, '-m', 'PyInstaller',
         '--name', 'BoxMotionAnalyzer',
@@ -50,7 +53,9 @@ def build(mode):
         '--noconfirm', # 덮어쓰기 확인 안 함
         '--clean',     # 캐시 정리
         '--distpath', dist_path, # 출력 경로 지정
-        'run.py'       # 진입점
+        # Add src to python path so imports inside main.py work
+        '--paths', 'src',
+        entry_point    # 진입점
     ]
 
     if mode == 'onefile':

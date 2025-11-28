@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.visualization import config
+from src.config import config_visualization as config
 from src.config.data_columns import HeaderL1, HeaderL2, HeaderL3
 
 class DataHandler:

@@ -11,7 +11,7 @@
 import numpy as np
 import pandas as pd
 import os
-from src.visualization import config
+from src.config import config_visualization as config
 from src.config.data_columns import HeaderL1, HeaderL2, HeaderL3
 
 def box_local_corners():

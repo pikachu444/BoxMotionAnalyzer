@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QSpinBox
 )
 from PySide6.QtCore import Qt, Signal
-from . import config
+from src.config import config_visualization as config
 
 class ControlPanel(QWidget):
     frame_changed = Signal(int)

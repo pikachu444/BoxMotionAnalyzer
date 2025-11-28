@@ -10,7 +10,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
-from src.plot_manager import PlotManager
+from src.analysis.core.plot_manager import PlotManager
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS, RESULT_TIME_COL, TimeCols, HeaderL1, HeaderL2, HeaderL3,
     CORNER_NAME_MAP

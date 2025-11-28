@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QGroupBox, QVBoxLayout, QHBoxLayout, QCheckBox, QTableWidget,
     QHeaderView, QTableWidgetItem
 )
-from . import config
+from src.config import config_visualization as config
 
 class InfoLogWidget(QGroupBox):
     """A widget to display detailed information about selected objects in a table."""

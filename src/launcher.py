@@ -13,9 +13,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, QSize
 
-from src.visualization import config
+from src.config import config_visualization as config
 from src.visualization.main_window import MainWindow
-from src.main_app import MainApp
+from src.analysis.main_window import MainApp
 
 class LauncherWindow(QMainWindow):
     def __init__(self):
