@@ -49,13 +49,14 @@ class PipelineController(QObject):
             self.log_message.emit(f"    Parser output shape: {data.shape}")
 
             # 1.5 데이터 검증
-            self.log_message.emit("[1.5/8] Validating data...")
+            # - Raw Data 검증은 DataLoader 단계에서 이미 수행됨 (Time/Frame 존재 여부 등)
+            # - 여기서는 데이터 길이(Rows) 등 분석 가능 여부만 최소한으로 확인
+            self.log_message.emit("[1.5/8] Validating data sufficiency...")
             DataValidator.validate_data_sufficiency(data, min_rows=50)
             
-            # Rigid Body 필수 컬럼 검증
-            from src.config.data_columns import RigidBodyCols, TimeCols
-            required_rb_cols = [TimeCols.TIME, RigidBodyCols.POS_X, RigidBodyCols.POS_Y, RigidBodyCols.POS_Z]
-            DataValidator.validate_required_columns(data, required_rb_cols)
+            # Note: 파서(Parser) 결과에 대한 컬럼 검증은 제거함.
+            # 원본 데이터에 필수 컬럼이 있다면 Parser가 처리해야 하며,
+            # 여기서 에러를 내면 사용자에게 원본 파일 문제로 오인될 수 있음.
 
             # 2. 패딩된 슬라이스 생성
             self.log_message.emit("[2/8] Slicing data with padding...")

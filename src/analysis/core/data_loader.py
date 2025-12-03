@@ -47,8 +47,30 @@ class DataLoader:
             raw_df.rename(columns=rename_map, inplace=True)
 
         print(f"[DataLoader INFO] CSV loaded. Headers parsed, and {len(raw_df)} data rows prepared for Parser.")
+
+        # Validate Raw Data Structure immediately
+        self.validate_raw_data(raw_df)
+
         header_info['component'] = component_header
         return header_info, raw_df
+
+    def validate_raw_data(self, raw_df: pd.DataFrame) -> None:
+        """
+        Validates that the raw DataFrame contains essential columns like 'Time'.
+        Performs a fuzzy check (case-insensitive, substring).
+        """
+        if raw_df is None or raw_df.empty:
+            return # Let Parser handle empty data or empty check logic elsewhere
+
+        # Check for Time column
+        # Matches: "Time", "time", "Time (Seconds)", "Frame", "frame", etc.
+        has_time = any("time" in str(col).lower() for col in raw_df.columns)
+        has_frame = any("frame" in str(col).lower() for col in raw_df.columns)
+
+        if not has_time and not has_frame:
+            # Check for standard constants just in case fuzzy match failed (unlikely)
+            if TimeCols.TIME not in raw_df.columns and TimeCols.FRAME not in raw_df.columns:
+                raise ValueError("Invalid CSV format: Missing 'Time' or 'Frame' column in raw data headers.")
 
     def load_result_csv(self, filepath: str) -> pd.DataFrame:
         """
