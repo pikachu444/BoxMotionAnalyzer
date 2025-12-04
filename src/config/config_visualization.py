@@ -41,6 +41,7 @@ import numpy as np
 from src.config.data_columns import (
     RigidBodyCols, TimeCols, HeaderL3
 )
+from src.config import config_app
 
 # 1. Box Geometry & Labels
 # -----------------------------------------
@@ -92,7 +93,8 @@ FPS = 30
 # -----------------------------------------
 STYLE = {
     "ground": {
-        "center": [0, 0, -1], # A bit lower than the box
+        # Center and Direction are now dynamic based on WORLD_VERTICAL_AXIS_INDEX
+        # But we keep size/color here.
         "size": [5000, 5000],
         "color": "white",
         "opacity": 0.5

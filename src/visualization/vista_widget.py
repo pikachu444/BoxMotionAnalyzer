@@ -4,6 +4,7 @@ from pyvistaqt import QtInteractor
 import numpy as np
 import pandas as pd
 from src.config import config_visualization as config
+from src.config import config_app
 from .data_handler import DataHandler
 
 class VistaWidget(QWidget):
@@ -34,9 +35,24 @@ class VistaWidget(QWidget):
         self.plotter.set_background(s[k.SK_GROUND][k.SK_COLOR])
         self.plotter.add_axes(interactive=False)
 
+        # Determine Up Axis from Global Config
+        # WORLD_VERTICAL_AXIS_INDEX: 1 (Y-up) or 2 (Z-up)
+        up_axis_idx = getattr(config_app, 'WORLD_VERTICAL_AXIS_INDEX', 2)
+
+        if up_axis_idx == 1:
+            # Y-Up
+            ground_direction = (0, 1, 0)
+            ground_center = (0, -1, 0) # Slightly below origin along Y
+            self.plotter.camera.up = (0, 1, 0)
+        else:
+            # Z-Up (Default)
+            ground_direction = (0, 0, 1)
+            ground_center = (0, 0, -1) # Slightly below origin along Z
+            self.plotter.camera.up = (0, 0, 1)
+
         ground = pv.Plane(
-            center=s[k.SK_GROUND][k.SK_CENTER],
-            direction=(0, 0, 1),
+            center=ground_center,
+            direction=ground_direction,
             i_size=s[k.SK_GROUND][k.SK_SIZE][0],
             j_size=s[k.SK_GROUND][k.SK_SIZE][1]
         )
