@@ -103,10 +103,33 @@ class VistaWidget(QWidget):
                 self.polydata[k.SK_ACTOR_BOX].Modified()
                 self._update_polydata_points(self.polydata[k.SK_ACTOR_LABELS], k.SK_ACTOR_BOX, box_points)
 
-        # --- Update Markers (per face) ---
-        for face_info in k.BOX_FACES:
-            face_name = face_info[k.SK_FACE_LABEL]
-            marker_ids = [m for m in k.MARKER_LABELS if f"MK_{face_name}" in m]
+        # --- Update Markers (Dynamic) ---
+        # 1. Identify all available objects in the data
+        all_object_ids = self.data_handler.get_object_ids()
+        # 2. Filter out Box Corners (C1~C8)
+        all_marker_ids = [mid for mid in all_object_ids if mid not in k.BOX_CORNERS_LABELS]
+
+        # 3. Group markers by Face based on FACE_KEYWORD_MAP
+        grouped_markers = {}
+        for mid in all_marker_ids:
+            face_found = "ETC"
+            mid_upper = mid.upper()
+
+            # Check prefixes defined in FACE_KEYWORD_MAP
+            for face_key, prefixes in k.FACE_KEYWORD_MAP.items():
+                for prefix in prefixes:
+                    if mid_upper.startswith(prefix):
+                        face_found = face_key
+                        break
+                if face_found != "ETC":
+                    break
+
+            if face_found not in grouped_markers:
+                grouped_markers[face_found] = []
+            grouped_markers[face_found].append(mid)
+
+        # 4. Render each group
+        for face_name, marker_ids in grouped_markers.items():
             marker_points = self._get_points_for_ids(frame_df, marker_ids)
 
             if marker_points is not None:

@@ -64,6 +64,17 @@ BOX_FACES = [
     {"label": "RIGHT",  "corner_indices": [1, 2, 6, 5]},
 ]
 
+# Face Keyword Map for dynamic marker coloring
+# Matches marker ID prefixes to face labels.
+FACE_KEYWORD_MAP = {
+    "TOP":    ["TOP", "T"],
+    "BOTTOM": ["BOTTOM", "BTM", "M"],
+    "FRONT":  ["FRONT", "FA", "F"],
+    "BACK":   ["BACK", "BA", "B"],
+    "LEFT":   ["LEFT", "L"],
+    "RIGHT":  ["RIGHT", "R"]
+}
+
 # 2. Marker Geometry & Labels
 # -----------------------------------------
 # Number of markers on each face (in the order of BOX_FACES)
@@ -116,7 +127,8 @@ STYLE = {
             "FRONT": "green",
             "BACK": "yellow",
             "LEFT": "purple",
-            "RIGHT": "orange"
+            "RIGHT": "orange",
+            "ETC": "grey" # Default color for unmatched markers
         }
     }
 }

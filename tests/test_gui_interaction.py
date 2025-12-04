@@ -44,9 +44,10 @@ class TestGuiInteraction(unittest.TestCase):
         frames = np.arange(n_frames)
         times = frames * 0.01
 
-        # Objects: C1~C8 (Box) + MK_1~MK_6 (Markers)
+        # Objects: C1~C8 (Box) + Various Markers to test dynamic grouping
         corners = [f"C{i}" for i in range(1, 9)]
-        markers = [f"MK_{i}" for i in range(1, 7)]
+        # Mix of prefixes: F1, B2, MK_1(ETC), LEFT_1
+        markers = ["F1", "B2", "MK_1", "LEFT_1", "T_Marker"]
         object_ids = corners + markers
 
         dfs = []
@@ -102,7 +103,7 @@ class TestGuiInteraction(unittest.TestCase):
     def test_object_selection_and_plotting(self):
         print("\n[Test] Object Selection & Plotting (Multiple Objects)")
 
-        # Select C1 and MK_1
+        # Select C1 and F1
         list_widget = self.window.control_panel.object_list
 
         # Clear any pre-existing selection
@@ -110,10 +111,10 @@ class TestGuiInteraction(unittest.TestCase):
 
         # Find items
         c1_item = list_widget.findItems("C1", Qt.MatchExactly)[0]
-        mk1_item = list_widget.findItems("MK_1", Qt.MatchExactly)[0]
+        f1_item = list_widget.findItems("F1", Qt.MatchExactly)[0]
 
         c1_item.setSelected(True)
-        mk1_item.setSelected(True)
+        f1_item.setSelected(True)
 
         # Trigger update
         self.window.update_plot_with_multiple_objects()
@@ -122,7 +123,7 @@ class TestGuiInteraction(unittest.TestCase):
         plot_args = self.window.plot_widget.current_plot_args
         self.assertEqual(len(plot_args), 2, "Should plot 2 lines")
         labels = sorted([arg['label'] for arg in plot_args])
-        self.assertEqual(labels, ['C1', 'MK_1'])
+        self.assertEqual(labels, ['C1', 'F1'])
 
         # Check Info Log
         self.window.update_info_log()
@@ -136,7 +137,7 @@ class TestGuiInteraction(unittest.TestCase):
         # headers[0] is 'Property'
         self.assertEqual(headers[0], config.LBL_PROPERTY)
         # Remaining headers should be objects
-        self.assertEqual(sorted(headers[1:]), ['C1', 'MK_1'])
+        self.assertEqual(sorted(headers[1:]), ['C1', 'F1'])
 
     def test_visibility_toggle(self):
         print("\n[Test] Visibility Toggle")
