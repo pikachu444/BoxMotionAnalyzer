@@ -89,6 +89,8 @@ class MainWindow(QMainWindow):
 
     def _create_menu_bar(self):
         menu_bar = self.menuBar()
+
+        # File Menu
         file_menu = menu_bar.addMenu("&File")
         open_action = QAction("&Open Visualization CSV...", self)
         open_action.triggered.connect(self.open_csv_file)
@@ -97,6 +99,36 @@ class MainWindow(QMainWindow):
         exit_action = QAction("&Exit", self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
+
+        # View Menu
+        view_menu = menu_bar.addMenu("&View")
+
+        reset_view_action = QAction("&Reset Camera (Fit)", self)
+        reset_view_action.setShortcut("R")
+        reset_view_action.triggered.connect(self.vista_widget.reset_camera_view)
+        view_menu.addAction(reset_view_action)
+
+        view_menu.addSeparator()
+
+        view_xy_action = QAction("View &XY Plane (Alt+1)", self)
+        view_xy_action.setShortcut("Alt+1")
+        view_xy_action.triggered.connect(self.vista_widget.view_xy_plane)
+        view_menu.addAction(view_xy_action)
+
+        view_xz_action = QAction("View X&Z Plane (Alt+2)", self)
+        view_xz_action.setShortcut("Alt+2")
+        view_xz_action.triggered.connect(self.vista_widget.view_xz_plane)
+        view_menu.addAction(view_xz_action)
+
+        view_yz_action = QAction("View &YZ Plane (Alt+3)", self)
+        view_yz_action.setShortcut("Alt+3")
+        view_yz_action.triggered.connect(self.vista_widget.view_yz_plane)
+        view_menu.addAction(view_yz_action)
+
+        view_iso_action = QAction("View &Isometric (Alt+4)", self)
+        view_iso_action.setShortcut("Alt+4")
+        view_iso_action.triggered.connect(self.vista_widget.view_isometric)
+        view_menu.addAction(view_iso_action)
 
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Open CSV", "", "CSV Files (*.csv)")
@@ -114,6 +146,8 @@ class MainWindow(QMainWindow):
                 self.control_panel.end_frame_spinbox.setValue(max_frame)
 
                 self.set_frame(0)
+                # Auto-fit camera to scene
+                self.vista_widget.reset_camera_view()
                 self.statusBar().showMessage("File loaded successfully.", 5000)
             else:
                 self.statusBar().showMessage("Failed to load file.", 5000)
@@ -144,12 +178,6 @@ class MainWindow(QMainWindow):
         key = event.key()
         if key == Qt.Key.Key_Q:
             self.close()
-        elif key == Qt.Key.Key_1:
-            self.vista_widget.plotter.camera_position = 'xy'
-        elif key == Qt.Key.Key_2:
-            self.vista_widget.plotter.camera_position = 'yz'
-        elif key == Qt.Key.Key_3:
-            self.vista_widget.plotter.camera_position = 'xz'
         else:
             super().keyPressEvent(event)
 

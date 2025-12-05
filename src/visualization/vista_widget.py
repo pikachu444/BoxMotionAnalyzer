@@ -153,6 +153,45 @@ class VistaWidget(QWidget):
 
         self.plotter.render()
 
+    # --- View Control Methods ---
+    def reset_camera_view(self):
+        """Resets the camera to fit all actors in the view."""
+        if self.plotter:
+            self.plotter.reset_camera()
+
+    def view_xy_plane(self):
+        """Sets view to XY plane (Looking along Z axis)."""
+        if self.plotter:
+            self.plotter.view_xy()
+            self._adjust_camera_up()
+
+    def view_xz_plane(self):
+        """Sets view to XZ plane (Looking along Y axis)."""
+        if self.plotter:
+            self.plotter.view_xz()
+            self._adjust_camera_up()
+
+    def view_yz_plane(self):
+        """Sets view to YZ plane (Looking along X axis)."""
+        if self.plotter:
+            self.plotter.view_yz()
+            self._adjust_camera_up()
+
+    def view_isometric(self):
+        """Sets view to Isometric."""
+        if self.plotter:
+            self.plotter.view_isometric()
+            self._adjust_camera_up()
+
+    def _adjust_camera_up(self):
+        """Ensures the camera's up vector matches the configured vertical axis."""
+        up_axis_idx = getattr(config_app, 'WORLD_VERTICAL_AXIS_INDEX', 2)
+        if up_axis_idx == 1: # Y-Up
+            self.plotter.camera.up = (0, 1, 0)
+        else: # Z-Up
+            self.plotter.camera.up = (0, 0, 1)
+        self.plotter.render()
+
     def _get_points_for_ids(self, df, ids):
         # Using .copy() to avoid SettingWithCopyWarning
         points_df = df[df[config.DF_OBJECT_ID].isin(ids)].copy()
