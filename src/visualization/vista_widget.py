@@ -184,12 +184,42 @@ class VistaWidget(QWidget):
             self._adjust_camera_up()
 
     def _adjust_camera_up(self):
-        """Ensures the camera's up vector matches the configured vertical axis."""
+        """
+        Ensures the camera's up vector matches the configured vertical axis.
+        Handles singularity cases where View Direction is parallel to Up Vector.
+        """
+        if self.plotter is None:
+            return
+
         up_axis_idx = getattr(config_app, 'WORLD_VERTICAL_AXIS_INDEX', 2)
+
+        # 1. Determine Desired World Up Vector
         if up_axis_idx == 1: # Y-Up
-            self.plotter.camera.up = (0, 1, 0)
-        else: # Z-Up
-            self.plotter.camera.up = (0, 0, 1)
+            desired_up = np.array([0.0, 1.0, 0.0])
+            secondary_up = np.array([0.0, 0.0, 1.0]) # Fallback (Z)
+        else: # Z-Up (Default)
+            desired_up = np.array([0.0, 0.0, 1.0])
+            secondary_up = np.array([0.0, 1.0, 0.0]) # Fallback (Y)
+
+        # 2. Check Parallelism with View Direction
+        # View Direction = Focal Point - Position
+        pos = np.array(self.plotter.camera.position)
+        focal = np.array(self.plotter.camera.focal_point)
+        view_vec = focal - pos
+        norm = np.linalg.norm(view_vec)
+
+        if norm > 0:
+            view_vec = view_vec / norm
+            dot_product = np.dot(view_vec, desired_up)
+
+            # If parallel (dot product close to 1 or -1), use secondary up
+            if abs(dot_product) > 0.95:
+                self.plotter.camera.up = tuple(secondary_up)
+            else:
+                self.plotter.camera.up = tuple(desired_up)
+        else:
+            self.plotter.camera.up = tuple(desired_up)
+
         self.plotter.render()
 
     def _get_points_for_ids(self, df, ids):
