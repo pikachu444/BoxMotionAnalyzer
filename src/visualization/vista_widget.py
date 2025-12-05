@@ -178,10 +178,42 @@ class VistaWidget(QWidget):
             self._adjust_camera_up()
 
     def view_isometric(self):
-        """Sets view to Isometric."""
-        if self.plotter:
+        """
+        Sets view to Isometric.
+        Manually sets camera position and up vector to avoid double rendering (flickering).
+        """
+        if self.plotter is None:
+            return
+
+        up_axis_idx = getattr(config_app, 'WORLD_VERTICAL_AXIS_INDEX', 2)
+
+        # Calculate isometric position based on World Up
+        # Standard Isometric: View from (1, 1, 1) normalized
+        if up_axis_idx == 1: # Y-Up
+            # For Y-Up, "Standard" Iso look might be from (+X, +Y, +Z)
+            # PyVista's default view_isometric() sets position to (1, 1, 1) and up to (0, 0, 1)
+            # We want position (1, 1, 1) but Up (0, 1, 0) if Y is up.
+
+            # Use current focal point to maintain center of interest
+            focal = np.array(self.plotter.camera.focal_point)
+            distance = self.plotter.camera.distance
+
+            # Direction vector for Isometric view (looking from positive octant)
+            # Normalized direction: (1, 1, 1) / sqrt(3)
+            direction = np.array([1.0, 1.0, 1.0])
+            direction = direction / np.linalg.norm(direction)
+
+            new_pos = focal + direction * distance
+
+            self.plotter.camera.position = tuple(new_pos)
+            self.plotter.camera.up = (0.0, 1.0, 0.0) # Y-Up
+
+        else: # Z-Up (Default)
+            # PyVista Default behavior
             self.plotter.view_isometric()
-            self._adjust_camera_up()
+            # self.plotter.camera.up = (0, 0, 1) # view_isometric does this already
+
+        self.plotter.render()
 
     def _adjust_camera_up(self):
         """
