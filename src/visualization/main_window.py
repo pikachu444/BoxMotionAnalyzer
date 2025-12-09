@@ -200,7 +200,9 @@ class MainWindow(QMainWindow):
             return
 
         object_ids = [item.text() for item in selected_items]
-        data_to_plot = self.control_panel.plot_data_combobox.currentText()
+        # Retrieve the internal column name (e.g., 'pos_x' or 'RigidBody_Position_X')
+        # stored in the UserData of the combobox items.
+        data_to_plot = self.control_panel.plot_data_combobox.currentData()
 
         plot_args = []
         for obj_id in object_ids:

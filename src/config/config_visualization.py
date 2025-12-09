@@ -207,6 +207,18 @@ DF_VEL_X = 'vel_x' # Placeholder if not in RigidBodyCols
 DF_VEL_Y = 'vel_y'
 DF_VEL_Z = 'vel_z'
 
+# 10. Plot Data Display Mapping
+# -----------------------------------------
+# Mapping User-Friendly Display Names to Internal DataFrame Column Names
+PLOT_DATA_DISPLAY_MAP = {
+    "Position X": DF_POS_X,
+    "Position Y": DF_POS_Y,
+    "Position Z": DF_POS_Z,
+    "Velocity X": DF_VEL_X,
+    "Velocity Y": DF_VEL_Y,
+    "Velocity Z": DF_VEL_Z
+}
+
 
 # 9. Launcher Window Configuration
 # -----------------------------------------
