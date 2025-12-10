@@ -68,14 +68,20 @@ class LauncherWindow(QMainWindow):
 
     def open_visualization(self):
         """Opens the main 3D visualization window."""
-        if self.main_window is None:
-            self.main_window = MainWindow()
+        # Ensure any existing window is closed and a fresh instance is created
+        if self.main_window is not None:
+            self.main_window.close()
+
+        self.main_window = MainWindow()
         self.main_window.show()
 
     def open_data_processing(self):
         """Opens the data processing window (MainApp)."""
-        if self.data_processing_window is None:
-            self.data_processing_window = MainApp()
+        # Ensure any existing window is closed and a fresh instance is created
+        if self.data_processing_window is not None:
+            self.data_processing_window.close()
+
+        self.data_processing_window = MainApp()
         self.data_processing_window.show()
 
 if __name__ == '__main__':
