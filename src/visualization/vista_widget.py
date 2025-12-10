@@ -279,3 +279,13 @@ class VistaWidget(QWidget):
                 actor.SetVisibility(is_visible)
 
         self.plotter.render()
+
+    def cleanup(self):
+        """Clean up resources (plotter) to prevent OpenGL context errors."""
+        if self.plotter:
+            self.plotter.close()
+            self.plotter = None
+
+    def closeEvent(self, event):
+        self.cleanup()
+        super().closeEvent(event)

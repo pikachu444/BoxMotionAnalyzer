@@ -181,6 +181,13 @@ class MainWindow(QMainWindow):
         else:
             super().keyPressEvent(event)
 
+    def closeEvent(self, event):
+        """Handle window close event to ensure explicit cleanup."""
+        # Explicitly cleanup the VistaWidget to release VTK/OpenGL resources
+        if hasattr(self, 'vista_widget'):
+            self.vista_widget.cleanup()
+        super().closeEvent(event)
+
     def update_plot_with_multiple_objects(self):
         """
         Updates the plot widget based on the current state of the control panel.
