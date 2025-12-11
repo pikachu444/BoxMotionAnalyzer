@@ -91,13 +91,33 @@ def _get_box_world_corners(pose_params, local_box_corners):
         # 잘못된 회전 벡터의 경우 NaN으로 채워진 배열 반환
         return np.full((8, 3), np.nan)
 
+def _calculate_local_corners(box_dims):
+    """
+    Calculates the 8 local corners based on the given box dimensions.
+    This ensures that the corners match the user-provided dimensions at runtime.
+    """
+    _L_box, _W_box, _H_box = box_dims
+    _hl, _hw, _hh = _L_box / 2.0, _W_box / 2.0, _H_box / 2.0
+
+    # Standard 8 local corners, ordered for consistency with config_app.
+    return np.array([
+        [-_hl, -_hw, -_hh], # 0
+        [ _hl, -_hw, -_hh], # 1
+        [ _hl,  _hw, -_hh], # 2
+        [-_hl,  _hw, -_hh], # 3
+        [-_hl, -_hw,  _hh], # 4
+        [ _hl, -_hw,  _hh], # 5
+        [ _hl,  _hw,  _hh], # 6
+        [-_hl,  _hw,  _hh]  # 7
+    ])
+
 class PoseOptimizer:
     """
     스무딩된 마커 데이터를 사용하여 각 프레임별로 박스의 최적 자세(위치/회전)를 순차적으로 계산합니다.
     """
     def __init__(self, face_definitions: dict[str, Any], local_box_corners: np.ndarray):
         self.face_definitions = face_definitions
-        self.local_box_corners = local_box_corners
+        self.local_box_corners = local_box_corners # Kept for backward compatibility, but ideally unused in process
         # 최적화 설정을 외부 config 파일에서 로드
         self.optimizer_options = {
             'maxiter': config_analysis.OPTIMIZER_MAX_ITERATIONS,
@@ -111,6 +131,10 @@ class PoseOptimizer:
 
         # 분석 시점의 전역 box_dims 값을 가져옵니다.
         box_dims = np.array(config_app.BOX_DIMS)
+
+        # Recalculate local corners based on the current box_dims (User Input)
+        # This fixes the bug where stale corners (from app launch) were used.
+        current_local_box_corners = _calculate_local_corners(box_dims)
 
         print(f"[PoseOptimizer INFO] Starting sequential optimization for {len(df)} frames...")
         results = []
@@ -168,7 +192,7 @@ class PoseOptimizer:
 
             # 4. 결과 저장 및 다음 프레임을 위한 값 업데이트
             optimized_params = result.x
-            world_corners = _get_box_world_corners(optimized_params, self.local_box_corners)
+            world_corners = _get_box_world_corners(optimized_params, current_local_box_corners)
 
             res_row = {TimeCols.TIME: frame_index}
             res_row[PoseCols.POS_X], res_row[PoseCols.POS_Y], res_row[PoseCols.POS_Z] = optimized_params[:3]

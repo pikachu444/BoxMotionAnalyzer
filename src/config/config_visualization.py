@@ -41,6 +41,7 @@ import numpy as np
 from src.config.data_columns import (
     RigidBodyCols, TimeCols, HeaderL3
 )
+from src.config import config_app
 
 # 1. Box Geometry & Labels
 # -----------------------------------------
@@ -62,6 +63,17 @@ BOX_FACES = [
     {"label": "LEFT",   "corner_indices": [0, 3, 7, 4]},
     {"label": "RIGHT",  "corner_indices": [1, 2, 6, 5]},
 ]
+
+# Face Keyword Map for dynamic marker coloring
+# Matches marker ID prefixes to face labels.
+FACE_KEYWORD_MAP = {
+    "TOP":    ["TOP", "T"],
+    "BOTTOM": ["BOTTOM", "BTM", "M"],
+    "FRONT":  ["FRONT", "FA", "F"],
+    "BACK":   ["BACK", "BA", "B"],
+    "LEFT":   ["LEFT", "L"],
+    "RIGHT":  ["RIGHT", "R"]
+}
 
 # 2. Marker Geometry & Labels
 # -----------------------------------------
@@ -92,7 +104,8 @@ FPS = 30
 # -----------------------------------------
 STYLE = {
     "ground": {
-        "center": [0, 0, -1], # A bit lower than the box
+        # Center and Direction are now dynamic based on WORLD_VERTICAL_AXIS_INDEX
+        # But we keep size/color here.
         "size": [5000, 5000],
         "color": "white",
         "opacity": 0.5
@@ -114,7 +127,8 @@ STYLE = {
             "FRONT": "green",
             "BACK": "yellow",
             "LEFT": "purple",
-            "RIGHT": "orange"
+            "RIGHT": "orange",
+            "ETC": "grey" # Default color for unmatched markers
         }
     }
 }
@@ -192,6 +206,18 @@ DF_POS_Z = RigidBodyCols.POS_Z
 DF_VEL_X = 'vel_x' # Placeholder if not in RigidBodyCols
 DF_VEL_Y = 'vel_y'
 DF_VEL_Z = 'vel_z'
+
+# 10. Plot Data Display Mapping
+# -----------------------------------------
+# Mapping User-Friendly Display Names to Internal DataFrame Column Names
+PLOT_DATA_DISPLAY_MAP = {
+    "Position X": DF_POS_X,
+    "Position Y": DF_POS_Y,
+    "Position Z": DF_POS_Z,
+    "Velocity X": DF_VEL_X,
+    "Velocity Y": DF_VEL_Y,
+    "Velocity Z": DF_VEL_Z
+}
 
 
 # 9. Launcher Window Configuration

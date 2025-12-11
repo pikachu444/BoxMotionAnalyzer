@@ -3,7 +3,8 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout
 from pyvistaqt import QtInteractor
 import numpy as np
 import pandas as pd
-from . import config
+from src.config import config_visualization as config
+from src.config import config_app
 from .data_handler import DataHandler
 
 class VistaWidget(QWidget):
@@ -34,9 +35,24 @@ class VistaWidget(QWidget):
         self.plotter.set_background(s[k.SK_GROUND][k.SK_COLOR])
         self.plotter.add_axes(interactive=False)
 
+        # Determine Up Axis from Global Config
+        # WORLD_VERTICAL_AXIS_INDEX: 1 (Y-up) or 2 (Z-up)
+        up_axis_idx = getattr(config_app, 'WORLD_VERTICAL_AXIS_INDEX', 2)
+
+        if up_axis_idx == 1:
+            # Y-Up
+            ground_direction = (0, 1, 0)
+            ground_center = (0, -1, 0) # Slightly below origin along Y
+            self.plotter.camera.up = (0, 1, 0)
+        else:
+            # Z-Up (Default)
+            ground_direction = (0, 0, 1)
+            ground_center = (0, 0, -1) # Slightly below origin along Z
+            self.plotter.camera.up = (0, 0, 1)
+
         ground = pv.Plane(
-            center=s[k.SK_GROUND][k.SK_CENTER],
-            direction=(0, 0, 1),
+            center=ground_center,
+            direction=ground_direction,
             i_size=s[k.SK_GROUND][k.SK_SIZE][0],
             j_size=s[k.SK_GROUND][k.SK_SIZE][1]
         )
@@ -87,10 +103,33 @@ class VistaWidget(QWidget):
                 self.polydata[k.SK_ACTOR_BOX].Modified()
                 self._update_polydata_points(self.polydata[k.SK_ACTOR_LABELS], k.SK_ACTOR_BOX, box_points)
 
-        # --- Update Markers (per face) ---
-        for face_info in k.BOX_FACES:
-            face_name = face_info[k.SK_FACE_LABEL]
-            marker_ids = [m for m in k.MARKER_LABELS if f"MK_{face_name}" in m]
+        # --- Update Markers (Dynamic) ---
+        # 1. Identify all available objects in the data
+        all_object_ids = self.data_handler.get_object_ids()
+        # 2. Filter out Box Corners (C1~C8)
+        all_marker_ids = [mid for mid in all_object_ids if mid not in k.BOX_CORNERS_LABELS]
+
+        # 3. Group markers by Face based on FACE_KEYWORD_MAP
+        grouped_markers = {}
+        for mid in all_marker_ids:
+            face_found = "ETC"
+            mid_upper = mid.upper()
+
+            # Check prefixes defined in FACE_KEYWORD_MAP
+            for face_key, prefixes in k.FACE_KEYWORD_MAP.items():
+                for prefix in prefixes:
+                    if mid_upper.startswith(prefix):
+                        face_found = face_key
+                        break
+                if face_found != "ETC":
+                    break
+
+            if face_found not in grouped_markers:
+                grouped_markers[face_found] = []
+            grouped_markers[face_found].append(mid)
+
+        # 4. Render each group
+        for face_name, marker_ids in grouped_markers.items():
             marker_points = self._get_points_for_ids(frame_df, marker_ids)
 
             if marker_points is not None:
@@ -111,6 +150,107 @@ class VistaWidget(QWidget):
                 else:
                     self._update_polydata_points(self.polydata[k.SK_ACTOR_MARKERS], face_name, marker_points)
                     self._update_polydata_points(self.polydata[k.SK_ACTOR_LABELS], face_name, marker_points)
+
+        self.plotter.render()
+
+    # --- View Control Methods ---
+    def reset_camera_view(self):
+        """Resets the camera to fit all actors in the view."""
+        if self.plotter:
+            self.plotter.reset_camera()
+
+    def view_xy_plane(self):
+        """Sets view to XY plane (Looking along Z axis)."""
+        if self.plotter:
+            self.plotter.view_xy()
+            self._adjust_camera_up()
+
+    def view_xz_plane(self):
+        """Sets view to XZ plane (Looking along Y axis)."""
+        if self.plotter:
+            self.plotter.view_xz()
+            self._adjust_camera_up()
+
+    def view_yz_plane(self):
+        """Sets view to YZ plane (Looking along X axis)."""
+        if self.plotter:
+            self.plotter.view_yz()
+            self._adjust_camera_up()
+
+    def view_isometric(self):
+        """
+        Sets view to Isometric.
+        Manually sets camera position and up vector to avoid double rendering (flickering).
+        """
+        if self.plotter is None:
+            return
+
+        up_axis_idx = getattr(config_app, 'WORLD_VERTICAL_AXIS_INDEX', 2)
+
+        # Calculate isometric position based on World Up
+        # Standard Isometric: View from (1, 1, 1) normalized
+        if up_axis_idx == 1: # Y-Up
+            # For Y-Up, "Standard" Iso look might be from (+X, +Y, +Z)
+            # PyVista's default view_isometric() sets position to (1, 1, 1) and up to (0, 0, 1)
+            # We want position (1, 1, 1) but Up (0, 1, 0) if Y is up.
+
+            # Use current focal point to maintain center of interest
+            focal = np.array(self.plotter.camera.focal_point)
+            distance = self.plotter.camera.distance
+
+            # Direction vector for Isometric view (looking from positive octant)
+            # Normalized direction: (1, 1, 1) / sqrt(3)
+            direction = np.array([1.0, 1.0, 1.0])
+            direction = direction / np.linalg.norm(direction)
+
+            new_pos = focal + direction * distance
+
+            self.plotter.camera.position = tuple(new_pos)
+            self.plotter.camera.up = (0.0, 1.0, 0.0) # Y-Up
+
+        else: # Z-Up (Default)
+            # PyVista Default behavior
+            self.plotter.view_isometric()
+            # self.plotter.camera.up = (0, 0, 1) # view_isometric does this already
+
+        self.plotter.render()
+
+    def _adjust_camera_up(self):
+        """
+        Ensures the camera's up vector matches the configured vertical axis.
+        Handles singularity cases where View Direction is parallel to Up Vector.
+        """
+        if self.plotter is None:
+            return
+
+        up_axis_idx = getattr(config_app, 'WORLD_VERTICAL_AXIS_INDEX', 2)
+
+        # 1. Determine Desired World Up Vector
+        if up_axis_idx == 1: # Y-Up
+            desired_up = np.array([0.0, 1.0, 0.0])
+            secondary_up = np.array([0.0, 0.0, 1.0]) # Fallback (Z)
+        else: # Z-Up (Default)
+            desired_up = np.array([0.0, 0.0, 1.0])
+            secondary_up = np.array([0.0, 1.0, 0.0]) # Fallback (Y)
+
+        # 2. Check Parallelism with View Direction
+        # View Direction = Focal Point - Position
+        pos = np.array(self.plotter.camera.position)
+        focal = np.array(self.plotter.camera.focal_point)
+        view_vec = focal - pos
+        norm = np.linalg.norm(view_vec)
+
+        if norm > 0:
+            view_vec = view_vec / norm
+            dot_product = np.dot(view_vec, desired_up)
+
+            # If parallel (dot product close to 1 or -1), use secondary up
+            if abs(dot_product) > 0.95:
+                self.plotter.camera.up = tuple(secondary_up)
+            else:
+                self.plotter.camera.up = tuple(desired_up)
+        else:
+            self.plotter.camera.up = tuple(desired_up)
 
         self.plotter.render()
 
@@ -139,3 +279,13 @@ class VistaWidget(QWidget):
                 actor.SetVisibility(is_visible)
 
         self.plotter.render()
+
+    def cleanup(self):
+        """Clean up resources (plotter) to prevent OpenGL context errors."""
+        if self.plotter:
+            self.plotter.close()
+            self.plotter = None
+
+    def closeEvent(self, event):
+        self.cleanup()
+        super().closeEvent(event)

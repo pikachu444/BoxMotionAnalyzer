@@ -6,15 +6,18 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QStatusBar, QMessageBox, QFileDialog
 )
 import matplotlib
-matplotlib.use('QtAgg')
+try:
+    matplotlib.use('QtAgg')
+except ImportError:
+    pass
 
-from src.data_loader import DataLoader
-from src.pipeline_controller import PipelineController
+from src.analysis.core.data_loader import DataLoader
+from src.analysis.core.pipeline_controller import PipelineController
 from src.analysis.parser import Parser
 from src.config.data_columns import FACE_PREFIX_TO_INFO
-from src.header_converter import convert_to_multi_header
-from src.ui.widget_raw_data_processing import WidgetRawDataProcessing
-from src.ui.widget_results_analyzer import WidgetResultsAnalyzer
+from src.utils.header_converter import convert_to_multi_header
+from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
+from src.analysis.ui.widget_results_analyzer import WidgetResultsAnalyzer
 
 class PipelineWorker(QThread):
     def __init__(self, controller, config, header_info, raw_data, parsed_data):

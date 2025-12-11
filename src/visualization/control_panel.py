@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QSpinBox
 )
 from PySide6.QtCore import Qt, Signal
-from . import config
+from src.config import config_visualization as config
 
 class ControlPanel(QWidget):
     frame_changed = Signal(int)
@@ -52,10 +52,9 @@ class ControlPanel(QWidget):
         layout = QVBoxLayout(group)
 
         self.plot_data_combobox = QComboBox()
-        self.plot_data_combobox.addItems([
-            config.DF_POS_X, config.DF_POS_Y, config.DF_POS_Z,
-            config.DF_VEL_X, config.DF_VEL_Y, config.DF_VEL_Z
-        ])
+        # Use the mapping to display user-friendly names while storing internal column names as user data
+        for display_name, col_name in config.PLOT_DATA_DISPLAY_MAP.items():
+            self.plot_data_combobox.addItem(display_name, col_name)
 
         self.object_list = QListWidget()
         # --- Enable Multi-selection ---

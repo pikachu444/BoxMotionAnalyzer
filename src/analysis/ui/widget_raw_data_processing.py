@@ -8,8 +8,8 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
-from src.plot_manager import PlotManager
-from src.data_selection_dialog import DataSelectionDialog
+from src.analysis.core.plot_manager import PlotManager
+from src.analysis.ui.data_selection_dialog import DataSelectionDialog
 from src.config import config_app
 from src.config.data_columns import (
     PoseCols, RawMarkerCols, DisplayNames, RigidBodyCols

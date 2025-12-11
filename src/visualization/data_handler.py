@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.visualization import config
+from src.config import config_visualization as config
 from src.config.data_columns import HeaderL1, HeaderL2, HeaderL3
 
 class DataHandler:
@@ -47,6 +47,10 @@ class DataHandler:
             # Extract base series
             if col_frame in df.columns:
                 frames = df[col_frame]
+                # Normalize frame numbers to start from 0
+                # (Handle sliced data where frames might start from e.g. 100)
+                if not frames.empty:
+                    frames = frames - frames.min()
             else:
                 # Generate frames if missing but time exists
                 frames = pd.Series(range(len(df)))
