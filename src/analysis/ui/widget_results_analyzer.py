@@ -437,6 +437,9 @@ class WidgetResultsAnalyzer(QWidget):
             ('variable_11', 'POSI_FROM_CENT_X'), ('value_11', '0.0'),
             ('variable_12', 'POSI_FROM_CENT_Y'), ('value_12', '0.0'),
             ('variable_13', 'POSI_FROM_CENT_Z'), ('value_13', '0.0'),
+            ('variable_14', 'ROT_ANG_VEL_X'), ('value_14', '0.0'),
+            ('variable_15', 'ROT_ANG_VEL_Y'), ('value_15', '0.0'),
+            ('variable_16', 'ROT_ANG_VEL_Z'), ('value_16', '0.0'),
             ('run_time', self.le_run_time.text()),
             ('tmin', self.le_time_step.text()),
         ])
