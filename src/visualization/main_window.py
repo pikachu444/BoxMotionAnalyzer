@@ -147,7 +147,8 @@ class MainWindow(QMainWindow):
 
                 self.set_frame(0)
                 # Auto-fit camera to scene
-                self.vista_widget.reset_camera_view()
+                # Defer the call slightly to ensure the rendering pipeline has updated the actors
+                QTimer.singleShot(100, self.vista_widget.reset_camera_view)
                 self.statusBar().showMessage("File loaded successfully.", 5000)
             else:
                 self.statusBar().showMessage("Failed to load file.", 5000)
