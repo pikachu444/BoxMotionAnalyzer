@@ -402,12 +402,12 @@ class WidgetResultsAnalyzer(QWidget):
             return
 
         vel_cols = {
-            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX),
-            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
-            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ),
-            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
-            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY),
-            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
+            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.COM, "WX_Ana"),
+            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, "WY_Ana"),
+            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, "WZ_Ana"),
+            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, "VX_Ana"),
+            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, "VY_Ana"),
+            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, "VZ_Ana"),
         }
         if time_point_data is not None:
             velocities = {key: time_point_data.get(col, 0.0) for key, col in vel_cols.items()}
