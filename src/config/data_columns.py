@@ -164,16 +164,16 @@ RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
 # This helps to avoid cluttering the view with too many options.
 DISPLAY_RESULT_COLUMNS = [
     # Analysis results for Center of Mass (CoM) Velocity
-    (HeaderL1.VEL, HeaderL2.COM, "VX_Ana"),
-    (HeaderL1.VEL, HeaderL2.COM, "VY_Ana"),
-    (HeaderL1.VEL, HeaderL2.COM, "VZ_Ana"),
-    (HeaderL1.VEL, HeaderL2.COM, f"{HeaderL3.NORM_V}_Ana"),
+    (HeaderL1.VEL, HeaderL2.COM, AnalysisCols.COM_VX_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, AnalysisCols.COM_VY_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, AnalysisCols.COM_VZ_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, AnalysisCols.COM_V_NORM_ANA),
 
     # Analysis results for Angular Velocity
-    (HeaderL1.VEL, HeaderL2.COM, "WX_Ana"),
-    (HeaderL1.VEL, HeaderL2.COM, "WY_Ana"),
-    (HeaderL1.VEL, HeaderL2.COM, "WZ_Ana"),
-    (HeaderL1.VEL, HeaderL2.COM, f"{HeaderL3.NORM_W}_Ana"),
+    (HeaderL1.VEL, HeaderL2.COM, AnalysisCols.ANG_WX_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, AnalysisCols.ANG_WY_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, AnalysisCols.ANG_WZ_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, AnalysisCols.ANG_W_NORM_ANA),
 
     # Relative Height for each of the 8 corners
     (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
