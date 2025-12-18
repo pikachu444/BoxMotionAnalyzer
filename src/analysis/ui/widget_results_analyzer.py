@@ -13,7 +13,7 @@ from matplotlib.figure import Figure
 from src.analysis.core.plot_manager import PlotManager
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS, RESULT_TIME_COL, TimeCols, HeaderL1, HeaderL2, HeaderL3,
-    CORNER_NAME_MAP
+    AnalysisCols, CORNER_NAME_MAP
 )
 
 class WidgetResultsAnalyzer(QWidget):
@@ -402,12 +402,12 @@ class WidgetResultsAnalyzer(QWidget):
             return
 
         vel_cols = {
-            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX),
-            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
-            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ),
-            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
-            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY),
-            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
+            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX_ANA),
+            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY_ANA),
+            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ_ANA),
+            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX_ANA),
+            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY_ANA),
+            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ_ANA),
         }
         if time_point_data is not None:
             velocities = {key: time_point_data.get(col, 0.0) for key, col in vel_cols.items()}
@@ -437,6 +437,9 @@ class WidgetResultsAnalyzer(QWidget):
             ('variable_11', 'POSI_FROM_CENT_X'), ('value_11', '0.0'),
             ('variable_12', 'POSI_FROM_CENT_Y'), ('value_12', '0.0'),
             ('variable_13', 'POSI_FROM_CENT_Z'), ('value_13', '0.0'),
+            ('variable_14', 'ROT_ANG_VEL_X'), ('value_14', '0.0'),
+            ('variable_15', 'ROT_ANG_VEL_Y'), ('value_15', '0.0'),
+            ('variable_16', 'ROT_ANG_VEL_Z'), ('value_16', '0.0'),
             ('run_time', self.le_run_time.text()),
             ('tmin', self.le_time_step.text()),
         ])
