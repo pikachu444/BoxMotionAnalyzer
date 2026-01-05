@@ -319,6 +319,10 @@ class WidgetResultsAnalyzer(QWidget):
             self.log_message.emit("[WARNING] No target data selected for 'Find Max'.")
             return
 
+        # Ensure target_column is a tuple (fix for PySide6 converting tuple to list)
+        if isinstance(target_column, list):
+            target_column = tuple(target_column)
+
         try:
             max_index = self.result_data[target_column].abs().idxmax()
             max_value = self.result_data.loc[max_index, target_column]
