@@ -2,11 +2,11 @@ import unittest
 from unittest.mock import MagicMock, patch
 import pandas as pd
 from PySide6.QtWidgets import QApplication
-from src.ui.widget_raw_data_processing import WidgetRawDataProcessing
+from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
 from src.config.data_columns import PoseCols
 
 # QApplication is required for QWidget
-app = QApplication([])
+app = QApplication.instance() or QApplication([])
 
 class TestWidgetRawDataProcessing(unittest.TestCase):
     def setUp(self):
@@ -17,12 +17,14 @@ class TestWidgetRawDataProcessing(unittest.TestCase):
     def test_file_load_emit_signal_real_data(self):
         # Use real data from TestSets
         import os
-        real_file_path = os.path.abspath("TestSets/small_test.csv")
+        real_file_path = os.path.abspath("data/testdata_box_marker.csv")
         if not os.path.exists(real_file_path):
-            self.skipTest(f"Test file not found: {real_file_path}")
+            # Fallback to creating it if missing or using another one
+            # The prompt memory mentions 'src/utils/make_testdata.py'
+             self.skipTest(f"Test file not found: {real_file_path}")
 
         # We need to use the real DataLoader and Parser for this integration test
-        from src.data_loader import DataLoader
+        from src.analysis.core.data_loader import DataLoader
         from src.analysis.parser import Parser
         from src.config.data_columns import FACE_PREFIX_TO_INFO
         
