@@ -39,8 +39,14 @@ if exist ".venv" (
     )
 )
 
+rem --- Configuration ---
+set "PYTHON_EXE=%VENV_DIR%\Scripts\python.exe"
+
 rem --- Activation ---
 echo Activating virtual environment: %VENV_DIR%
+echo Using Python executable: %PYTHON_EXE%
+
+rem Still activate to set environment variables (PATH, etc.)
 call "%VENV_DIR%\Scripts\activate.bat"
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to activate virtual environment.
@@ -52,7 +58,7 @@ rem --- Dependency Installation ---
 echo.
 echo Checking and installing dependencies...
 if exist "requirements.txt" (
-    pip install -r requirements.txt
+    "%PYTHON_EXE%" -m pip install -r requirements.txt
     if %ERRORLEVEL% NEQ 0 (
         echo Failed to install dependencies.
         pause
@@ -85,8 +91,8 @@ echo.
 echo Building in %MODE% mode...
 echo.
 
-rem Run the Python build script
-python build.py %MODE%
+rem Run the Python build script using the explicit venv python
+"%PYTHON_EXE%" build.py %MODE%
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
