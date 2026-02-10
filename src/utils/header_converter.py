@@ -19,8 +19,12 @@ def get_conversion_rules() -> list:
         PoseCols.R_PREFIX,
         VelocityCols.COM_V_PREFIX,
         VelocityCols.ANG_W_PREFIX,
+        VelocityCols.COM_A_PREFIX,
+        VelocityCols.ANG_A_PREFIX,
         VelocityCols.COM_V_NORM,
         VelocityCols.ANG_W_NORM,
+        VelocityCols.COM_A_NORM,
+        VelocityCols.ANG_A_NORM,
         RigidBodyCols.BASE_NAME,
         'C\\d+_V'  # Corner velocity
     ]
@@ -44,12 +48,24 @@ def get_conversion_rules() -> list:
         # 예시: 'AngVel_Wx' -> ('Velocity', 'CoM', 'WX')
         (re.compile(f"^{VelocityCols.ANG_W_PREFIX}(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.VEL, HeaderL2.COM, getattr(HeaderL3, f"W{m.group('axis').upper()}"))),
+        # 예시: 'CoM_Ax' -> ('Velocity', 'CoM', 'AX')
+        (re.compile(f"^{VelocityCols.COM_A_PREFIX}(?P<axis>[xyz])$"),
+         lambda m: (HeaderL1.VEL, HeaderL2.COM, getattr(HeaderL3, f"A{m.group('axis').upper()}"))),
+        # 예시: 'AngAcc_Ax' -> ('Velocity', 'CoM', 'AX')
+        (re.compile(f"^{VelocityCols.ANG_A_PREFIX}(?P<axis>[xyz])$"),
+         lambda m: (HeaderL1.VEL, HeaderL2.ANG, getattr(HeaderL3, f"A{m.group('axis').upper()}"))),
         # 예시: 'CoM_V_Norm' -> ('Velocity', 'CoM', 'Norm_V')
         (re.compile(f"^{VelocityCols.COM_V_NORM}$"),
          lambda m: (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_V)),
         # 예시: 'AngVel_W_Norm' -> ('Velocity', 'CoM', 'Norm_W')
         (re.compile(f"^{VelocityCols.ANG_W_NORM}$"),
          lambda m: (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_W)),
+        # 예시: 'CoM_A_Norm' -> ('Velocity', 'CoM', 'Norm_A')
+        (re.compile(f"^{VelocityCols.COM_A_NORM}$"),
+         lambda m: (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_A)),
+        # 예시: 'AngAcc_A_Norm' -> ('Velocity', 'CoM', 'Norm_A_ANG')
+        (re.compile(f"^{VelocityCols.ANG_A_NORM}$"),
+         lambda m: (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.NORM_A)),
         # 예시: 'CoM_Vx_Ana' -> ('Velocity', 'CoM', 'VX_Ana')
         (re.compile(f"^{VelocityCols.COM_V_PREFIX}(?P<axis>[xyz])_Ana$"),
          lambda m: (HeaderL1.VEL, HeaderL2.COM, f"V{m.group('axis').upper()}_Ana")),

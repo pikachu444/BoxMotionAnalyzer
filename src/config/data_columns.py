@@ -37,15 +37,25 @@ class PoseCols:
 @dataclass(frozen=True)
 class VelocityCols:
     COM_V_PREFIX: str = "CoM_V"
+    COM_A_PREFIX: str = "CoM_A"
     ANG_W_PREFIX: str = "AngVel_W"
+    ANG_A_PREFIX: str = "AngAcc_A"
     COM_VX: str = "CoM_Vx"
     COM_VY: str = "CoM_Vy"
     COM_VZ: str = "CoM_Vz"
+    COM_AX: str = "CoM_Ax"
+    COM_AY: str = "CoM_Ay"
+    COM_AZ: str = "CoM_Az"
     ANG_WX: str = "AngVel_Wx"
     ANG_WY: str = "AngVel_Wy"
     ANG_WZ: str = "AngVel_Wz"
+    ANG_AX: str = "AngAcc_Ax"
+    ANG_AY: str = "AngAcc_Ay"
+    ANG_AZ: str = "AngAcc_Az"
     COM_V_NORM: str = "CoM_V_Norm"
     ANG_W_NORM: str = "AngVel_W_Norm"
+    COM_A_NORM: str = "CoM_A_Norm"
+    ANG_A_NORM: str = "AngAcc_A_Norm"
 
 @dataclass(frozen=True)
 class CornerVelocityCols:
@@ -154,6 +164,10 @@ class HeaderL3:
     SRC: str = "Source"
     NORM_V: str = "Norm_V"
     NORM_W: str = "Norm_W"
+    AX: str = "AX"
+    AY: str = "AY"
+    AZ: str = "AZ"
+    NORM_A: str = "Norm_A"
     VX_ANA: str = "VX_Ana"
     VY_ANA: str = "VY_Ana"
     VZ_ANA: str = "VZ_Ana"
@@ -182,6 +196,18 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY_ANA),
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ_ANA),
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_W_ANA),
+
+    # Center of Mass (CoM) Linear Acceleration
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.AX),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.AY),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.AZ),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_A),
+
+    # Angular Acceleration
+    (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.AX),
+    (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.AY),
+    (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.AZ),
+    (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.NORM_A),
 
     # Relative Height for each of the 8 corners
     (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
