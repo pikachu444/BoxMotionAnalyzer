@@ -19,6 +19,10 @@ def get_conversion_rules() -> list:
         PoseCols.R_PREFIX,
         VelocityCols.COM_V_PREFIX,
         VelocityCols.ANG_W_PREFIX,
+        'CoM_A',
+        'AngAcc_A',
+        'CoM_A_Norm',
+        'AngAcc_A_Norm',
         VelocityCols.COM_V_NORM,
         VelocityCols.ANG_W_NORM,
         RigidBodyCols.BASE_NAME,
@@ -62,6 +66,28 @@ def get_conversion_rules() -> list:
         # 예시: 'AngVel_W_Norm_Ana' -> ('Velocity', 'CoM', 'Norm_W_Ana')
         (re.compile(f"^{AnalysisCols.ANG_W_NORM_ANA}$"),
          lambda m: (HeaderL1.VEL, HeaderL2.COM, f"{HeaderL3.NORM_W}_Ana")),
+
+        # --- Level 1: Acceleration ---
+        # 예시: 'CoM_Ax', 'CoM_Ax_Ana' -> ('Acceleration', 'CoM', 'AX'/'AX_Ana')
+        (re.compile(r"^CoM_A(?P<axis>[xyz])(?P<ana>_Ana)?$"),
+         lambda m: (
+             HeaderL1.ACC,
+             HeaderL2.COM,
+             f"A{m.group('axis').upper()}{m.group('ana') or ''}"
+         )),
+        # 예시: 'AngAcc_Ax', 'AngAcc_Ax_Ana' -> ('Acceleration', 'Angular', 'AX'/'AX_Ana')
+        (re.compile(r"^AngAcc_A(?P<axis>[xyz])(?P<ana>_Ana)?$"),
+         lambda m: (
+             HeaderL1.ACC,
+             HeaderL2.ANG,
+             f"A{m.group('axis').upper()}{m.group('ana') or ''}"
+         )),
+        # 예시: 'CoM_A_Norm', 'CoM_A_Norm_Ana' -> ('Acceleration', 'CoM', 'Norm_A'/'Norm_A_Ana')
+        (re.compile(r"^CoM_A_Norm(?P<ana>_Ana)?$"),
+         lambda m: (HeaderL1.ACC, HeaderL2.COM, f"{HeaderL3.NORM_A}{m.group('ana') or ''}")),
+        # 예시: 'AngAcc_A_Norm', 'AngAcc_A_Norm_Ana' -> ('Acceleration', 'Angular', 'Norm_A'/'Norm_A_Ana')
+        (re.compile(r"^AngAcc_A_Norm(?P<ana>_Ana)?$"),
+         lambda m: (HeaderL1.ACC, HeaderL2.ANG, f"{HeaderL3.NORM_A}{m.group('ana') or ''}")),
         # 예시: 'C0_Vx' -> ('Velocity', 'C0', 'VX')
         (re.compile(r"^(?P<corner>C\d+)_V(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.VEL, m.group('corner'), getattr(HeaderL3, f"V{m.group('axis').upper()}"))),

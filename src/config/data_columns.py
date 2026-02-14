@@ -107,6 +107,7 @@ class DisplayNames:
 class HeaderL1:
     POS: str = "Position"
     VEL: str = "Velocity"
+    ACC: str = "Acceleration"
     POSE: str = "Pose"
     INFO: str = "Info"
     ETC: str = "Etc"
@@ -138,6 +139,9 @@ class HeaderL3:
     WX: str = "WX"
     WY: str = "WY"
     WZ: str = "WZ"
+    AX: str = "AX"
+    AY: str = "AY"
+    AZ: str = "AZ"
     TX: str = "TX"
     TY: str = "TY"
     TZ: str = "TZ"
@@ -154,14 +158,19 @@ class HeaderL3:
     SRC: str = "Source"
     NORM_V: str = "Norm_V"
     NORM_W: str = "Norm_W"
+    NORM_A: str = "Norm_A"
     VX_ANA: str = "VX_Ana"
     VY_ANA: str = "VY_Ana"
     VZ_ANA: str = "VZ_Ana"
     WX_ANA: str = "WX_Ana"
     WY_ANA: str = "WY_Ana"
     WZ_ANA: str = "WZ_Ana"
+    AX_ANA: str = "AX_Ana"
+    AY_ANA: str = "AY_Ana"
+    AZ_ANA: str = "AZ_Ana"
     NORM_V_ANA: str = "Norm_V_Ana"
     NORM_W_ANA: str = "Norm_W_Ana"
+    NORM_A_ANA: str = "Norm_A_Ana"
     REL_H: str = "RelativeHeight"
     ANALYSIS_INPUT_H: str = "AnalysisInputHeight"
 
@@ -172,16 +181,16 @@ RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
 # This helps to avoid cluttering the view with too many options.
 DISPLAY_RESULT_COLUMNS = [
     # Analysis results for Center of Mass (CoM) Velocity
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_V_ANA),
+    (HeaderL1.ACC, HeaderL2.COM, HeaderL3.AX_ANA),
+    (HeaderL1.ACC, HeaderL2.COM, HeaderL3.AY_ANA),
+    (HeaderL1.ACC, HeaderL2.COM, HeaderL3.AZ_ANA),
+    (HeaderL1.ACC, HeaderL2.COM, HeaderL3.NORM_A_ANA),
 
     # Analysis results for Angular Velocity
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_W_ANA),
+    (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.AX_ANA),
+    (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.AY_ANA),
+    (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.AZ_ANA),
+    (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.NORM_A_ANA),
 
     # Relative Height for each of the 8 corners
     (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
