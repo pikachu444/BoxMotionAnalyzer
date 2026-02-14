@@ -36,16 +36,26 @@ class PoseCols:
 
 @dataclass(frozen=True)
 class VelocityCols:
-    COM_V_PREFIX: str = "CoM_V"
-    ANG_W_PREFIX: str = "AngVel_W"
-    COM_VX: str = "CoM_Vx"
-    COM_VY: str = "CoM_Vy"
-    COM_VZ: str = "CoM_Vz"
-    ANG_WX: str = "AngVel_Wx"
-    ANG_WY: str = "AngVel_Wy"
-    ANG_WZ: str = "AngVel_Wz"
-    COM_V_NORM: str = "CoM_V_Norm"
-    ANG_W_NORM: str = "AngVel_W_Norm"
+    T_V_PREFIX: str = "T_V"
+    T_A_PREFIX: str = "T_A"
+    R_V_PREFIX: str = "R_V"
+    R_A_PREFIX: str = "R_A"
+    T_VX: str = "T_Vx"
+    T_VY: str = "T_Vy"
+    T_VZ: str = "T_Vz"
+    T_AX: str = "T_Ax"
+    T_AY: str = "T_Ay"
+    T_AZ: str = "T_Az"
+    R_VX: str = "R_Vx"
+    R_VY: str = "R_Vy"
+    R_VZ: str = "R_Vz"
+    R_AX: str = "R_Ax"
+    R_AY: str = "R_Ay"
+    R_AZ: str = "R_Az"
+    T_V_NORM: str = "T_V_Norm"
+    R_V_NORM: str = "R_V_Norm"
+    T_A_NORM: str = "T_A_Norm"
+    R_A_NORM: str = "R_A_Norm"
 
 @dataclass(frozen=True)
 class CornerVelocityCols:
@@ -71,14 +81,16 @@ FACE_PREFIX_TO_INFO = {
 
 @dataclass(frozen=True)
 class AnalysisCols:
-    COM_VX_ANA: str = "CoM_Vx_Ana"
-    COM_VY_ANA: str = "CoM_Vy_Ana"
-    COM_VZ_ANA: str = "CoM_Vz_Ana"
-    ANG_WX_ANA: str = "AngVel_Wx_Ana"
-    ANG_WY_ANA: str = "AngVel_Wy_Ana"
-    ANG_WZ_ANA: str = "AngVel_Wz_Ana"
-    COM_V_NORM_ANA: str = "CoM_V_Norm_Ana"
-    ANG_W_NORM_ANA: str = "AngVel_W_Norm_Ana"
+    # _Ana suffix means analysis/local box coordinate result.
+    # Non-_Ana columns are lab/experiment coordinate results.
+    T_VX_ANA: str = "T_Vx_Ana"
+    T_VY_ANA: str = "T_Vy_Ana"
+    T_VZ_ANA: str = "T_Vz_Ana"
+    R_VX_ANA: str = "R_Vx_Ana"
+    R_VY_ANA: str = "R_Vy_Ana"
+    R_VZ_ANA: str = "R_Vz_Ana"
+    T_V_NORM_ANA: str = "T_V_Norm_Ana"
+    R_V_NORM_ANA: str = "R_V_Norm_Ana"
     FLOOR_N_X_ANA: str = "Floor_N_X_Ana"
     FLOOR_N_Y_ANA: str = "Floor_N_Y_Ana"
     FLOOR_N_Z_ANA: str = "Floor_N_Z_Ana"
@@ -107,6 +119,7 @@ class DisplayNames:
 class HeaderL1:
     POS: str = "Position"
     VEL: str = "Velocity"
+    ACC: str = "Acceleration"
     POSE: str = "Pose"
     INFO: str = "Info"
     ETC: str = "Etc"
@@ -116,10 +129,8 @@ class HeaderL1:
 @dataclass(frozen=True)
 class HeaderL2:
     RB: str = "RigidBody"
-    COM: str = "CoM"
-    ANG: str = "Angular"
-    BOX_T: str = "BoxTranslation"
-    BOX_R: str = "BoxRotation"
+    TRN: str = "Translation"
+    ROT: str = "Rotation"
     FLOOR_N: str = "FloorNormal"
     FLOOR_P: str = "FloorPoint"
     FRAME: str = "Frame"
@@ -154,6 +165,10 @@ class HeaderL3:
     SRC: str = "Source"
     NORM_V: str = "Norm_V"
     NORM_W: str = "Norm_W"
+    AX: str = "AX"
+    AY: str = "AY"
+    AZ: str = "AZ"
+    NORM_A: str = "Norm_A"
     VX_ANA: str = "VX_Ana"
     VY_ANA: str = "VY_Ana"
     VZ_ANA: str = "VZ_Ana"
@@ -171,17 +186,34 @@ RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
 # List of columns to be displayed in the result analyzer's selection tree.
 # This helps to avoid cluttering the view with too many options.
 DISPLAY_RESULT_COLUMNS = [
-    # Analysis results for Center of Mass (CoM) Velocity
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_V_ANA),
+    # CoM position (lab coordinate)
+    (HeaderL1.POS, HeaderL2.TRN, HeaderL3.PX),
+    (HeaderL1.POS, HeaderL2.TRN, HeaderL3.PY),
+    (HeaderL1.POS, HeaderL2.TRN, HeaderL3.PZ),
 
-    # Analysis results for Angular Velocity
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_W_ANA),
+    # Analysis/local box results for Translation Velocity
+    (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VX_ANA),
+    (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VY_ANA),
+    (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VZ_ANA),
+    (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.NORM_V_ANA),
+
+    # Analysis/local box results for Rotation Velocity
+    (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WX_ANA),
+    (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WY_ANA),
+    (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WZ_ANA),
+    (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.NORM_W_ANA),
+
+    # Translation acceleration (lab coordinate)
+    (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.AX),
+    (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.AY),
+    (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.AZ),
+    (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.NORM_A),
+
+    # Rotation acceleration (lab coordinate)
+    (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.AX),
+    (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.AY),
+    (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.AZ),
+    (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.NORM_A),
 
     # Relative Height for each of the 8 corners
     (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
@@ -218,6 +250,32 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.VEL, "C8", HeaderL3.VX),
     (HeaderL1.VEL, "C8", HeaderL3.VY),
     (HeaderL1.VEL, "C8", HeaderL3.VZ),
+
+    # Corner positions for each of the 8 corners
+    (HeaderL1.POS, "C1", HeaderL3.PX),
+    (HeaderL1.POS, "C1", HeaderL3.PY),
+    (HeaderL1.POS, "C1", HeaderL3.PZ),
+    (HeaderL1.POS, "C2", HeaderL3.PX),
+    (HeaderL1.POS, "C2", HeaderL3.PY),
+    (HeaderL1.POS, "C2", HeaderL3.PZ),
+    (HeaderL1.POS, "C3", HeaderL3.PX),
+    (HeaderL1.POS, "C3", HeaderL3.PY),
+    (HeaderL1.POS, "C3", HeaderL3.PZ),
+    (HeaderL1.POS, "C4", HeaderL3.PX),
+    (HeaderL1.POS, "C4", HeaderL3.PY),
+    (HeaderL1.POS, "C4", HeaderL3.PZ),
+    (HeaderL1.POS, "C5", HeaderL3.PX),
+    (HeaderL1.POS, "C5", HeaderL3.PY),
+    (HeaderL1.POS, "C5", HeaderL3.PZ),
+    (HeaderL1.POS, "C6", HeaderL3.PX),
+    (HeaderL1.POS, "C6", HeaderL3.PY),
+    (HeaderL1.POS, "C6", HeaderL3.PZ),
+    (HeaderL1.POS, "C7", HeaderL3.PX),
+    (HeaderL1.POS, "C7", HeaderL3.PY),
+    (HeaderL1.POS, "C7", HeaderL3.PZ),
+    (HeaderL1.POS, "C8", HeaderL3.PX),
+    (HeaderL1.POS, "C8", HeaderL3.PY),
+    (HeaderL1.POS, "C8", HeaderL3.PZ),
 
     # Analysis Input Height for each of the 8 corners
     (HeaderL1.ANALYSIS_SCENARIO, "C1", HeaderL3.ANALYSIS_INPUT_H),
