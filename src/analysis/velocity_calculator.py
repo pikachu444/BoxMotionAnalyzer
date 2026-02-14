@@ -160,14 +160,14 @@ class VelocityCalculator:
         ang_a_norm = np.linalg.norm(ang_acc, axis=1)
 
         # 결과를 numpy 배열로 DataFrame에 할당
-        result_df[[VelocityCols.COM_VX, VelocityCols.COM_VY, VelocityCols.COM_VZ]] = v_com
-        result_df[[VelocityCols.ANG_WX, VelocityCols.ANG_WY, VelocityCols.ANG_WZ]] = ang_vel
-        result_df[[VelocityCols.COM_AX, VelocityCols.COM_AY, VelocityCols.COM_AZ]] = a_com
-        result_df[[VelocityCols.ANG_AX, VelocityCols.ANG_AY, VelocityCols.ANG_AZ]] = ang_acc
-        result_df[VelocityCols.COM_V_NORM] = com_v_norm
-        result_df[VelocityCols.ANG_W_NORM] = ang_w_norm
-        result_df[VelocityCols.COM_A_NORM] = com_a_norm
-        result_df[VelocityCols.ANG_A_NORM] = ang_a_norm
+        result_df[[VelocityCols.T_VX, VelocityCols.T_VY, VelocityCols.T_VZ]] = v_com
+        result_df[[VelocityCols.R_VX, VelocityCols.R_VY, VelocityCols.R_VZ]] = ang_vel
+        result_df[[VelocityCols.T_AX, VelocityCols.T_AY, VelocityCols.T_AZ]] = a_com
+        result_df[[VelocityCols.R_AX, VelocityCols.R_AY, VelocityCols.R_AZ]] = ang_acc
+        result_df[VelocityCols.T_V_NORM] = com_v_norm
+        result_df[VelocityCols.R_V_NORM] = ang_w_norm
+        result_df[VelocityCols.T_A_NORM] = com_a_norm
+        result_df[VelocityCols.R_A_NORM] = ang_a_norm
 
         # numpy 배열을 사용하여 꼭짓점 속도 계산
         corner_velocities = self._calculate_corner_velocities(v_com, ang_vel, quaternions)
@@ -180,17 +180,17 @@ class VelocityCalculator:
         # 기존 컬럼 순서를 유지하되, norm 컬럼들을 각 벡터의 xyz 성분 뒤로 이동
         cols = result_df.columns.tolist()
         # COM_V_NORM 이동
-        cols.remove(VelocityCols.COM_V_NORM)
-        cols.insert(cols.index(VelocityCols.COM_VZ) + 1, VelocityCols.COM_V_NORM)
+        cols.remove(VelocityCols.T_V_NORM)
+        cols.insert(cols.index(VelocityCols.T_VZ) + 1, VelocityCols.T_V_NORM)
         # ANG_W_NORM 이동
-        cols.remove(VelocityCols.ANG_W_NORM)
-        cols.insert(cols.index(VelocityCols.ANG_WZ) + 1, VelocityCols.ANG_W_NORM)
+        cols.remove(VelocityCols.R_V_NORM)
+        cols.insert(cols.index(VelocityCols.R_VZ) + 1, VelocityCols.R_V_NORM)
         # COM_A_NORM 이동
-        cols.remove(VelocityCols.COM_A_NORM)
-        cols.insert(cols.index(VelocityCols.COM_AZ) + 1, VelocityCols.COM_A_NORM)
+        cols.remove(VelocityCols.T_A_NORM)
+        cols.insert(cols.index(VelocityCols.T_AZ) + 1, VelocityCols.T_A_NORM)
         # ANG_A_NORM 이동
-        cols.remove(VelocityCols.ANG_A_NORM)
-        cols.insert(cols.index(VelocityCols.ANG_AZ) + 1, VelocityCols.ANG_A_NORM)
+        cols.remove(VelocityCols.R_A_NORM)
+        cols.insert(cols.index(VelocityCols.R_AZ) + 1, VelocityCols.R_A_NORM)
         result_df = result_df[cols]
 
         print(f"[VelocityCalculator INFO] Finished processing {len(df)} frames.")

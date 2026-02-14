@@ -29,22 +29,22 @@ def test_velocity_calculator_adds_acceleration_columns():
     result = calc.process(df)
 
     for col in [
-        VelocityCols.COM_AX,
-        VelocityCols.COM_AY,
-        VelocityCols.COM_AZ,
-        VelocityCols.COM_A_NORM,
-        VelocityCols.ANG_AX,
-        VelocityCols.ANG_AY,
-        VelocityCols.ANG_AZ,
-        VelocityCols.ANG_A_NORM,
+        VelocityCols.T_AX,
+        VelocityCols.T_AY,
+        VelocityCols.T_AZ,
+        VelocityCols.T_A_NORM,
+        VelocityCols.R_AX,
+        VelocityCols.R_AY,
+        VelocityCols.R_AZ,
+        VelocityCols.R_A_NORM,
     ]:
         assert col in result.columns
 
     # x(t)=t^2 => v=2t, a=2 (endpoints may differ due to gradient edge scheme)
-    np.testing.assert_allclose(result[VelocityCols.COM_AX].iloc[2:-2], 2.0, atol=1e-6)
-    np.testing.assert_allclose(result[VelocityCols.COM_AY], 0.0, atol=1e-6)
-    np.testing.assert_allclose(result[VelocityCols.COM_AZ], 0.0, atol=1e-6)
-    np.testing.assert_allclose(result[VelocityCols.COM_A_NORM].iloc[2:-2], 2.0, atol=1e-6)
+    np.testing.assert_allclose(result[VelocityCols.T_AX].iloc[2:-2], 2.0, atol=1e-6)
+    np.testing.assert_allclose(result[VelocityCols.T_AY], 0.0, atol=1e-6)
+    np.testing.assert_allclose(result[VelocityCols.T_AZ], 0.0, atol=1e-6)
+    np.testing.assert_allclose(result[VelocityCols.T_A_NORM].iloc[2:-2], 2.0, atol=1e-6)
 
 
 def test_velocity_calculator_uses_spline_derivative_for_acceleration():
@@ -70,5 +70,5 @@ def test_velocity_calculator_uses_spline_derivative_for_acceleration():
     with patch("src.analysis.velocity_calculator._numerical_derivative", side_effect=AssertionError("finite-difference should not be used in spline mode")):
         result = calc.process(df)
 
-    assert VelocityCols.COM_AX in result.columns
-    assert VelocityCols.ANG_A_NORM in result.columns
+    assert VelocityCols.T_AX in result.columns
+    assert VelocityCols.R_A_NORM in result.columns
