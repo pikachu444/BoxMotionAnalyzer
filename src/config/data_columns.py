@@ -36,16 +36,42 @@ class PoseCols:
 
 @dataclass(frozen=True)
 class VelocityCols:
-    COM_V_PREFIX: str = "CoM_V"
-    ANG_W_PREFIX: str = "AngVel_W"
-    COM_VX: str = "CoM_Vx"
-    COM_VY: str = "CoM_Vy"
-    COM_VZ: str = "CoM_Vz"
-    ANG_WX: str = "AngVel_Wx"
-    ANG_WY: str = "AngVel_Wy"
-    ANG_WZ: str = "AngVel_Wz"
-    COM_V_NORM: str = "CoM_V_Norm"
-    ANG_W_NORM: str = "AngVel_W_Norm"
+    T_V_PREFIX: str = "T_V"
+    T_A_PREFIX: str = "T_A"
+    R_V_PREFIX: str = "R_V"
+    R_A_PREFIX: str = "R_A"
+
+    T_VX: str = "T_Vx"
+    T_VY: str = "T_Vy"
+    T_VZ: str = "T_Vz"
+    T_V_NORM: str = "T_V_Norm"
+
+    T_AX: str = "T_Ax"
+    T_AY: str = "T_Ay"
+    T_AZ: str = "T_Az"
+    T_A_NORM: str = "T_A_Norm"
+
+    R_VX: str = "R_Vx"
+    R_VY: str = "R_Vy"
+    R_VZ: str = "R_Vz"
+    R_V_NORM: str = "R_V_Norm"
+
+    R_AX: str = "R_Ax"
+    R_AY: str = "R_Ay"
+    R_AZ: str = "R_Az"
+    R_A_NORM: str = "R_A_Norm"
+
+    # Backward-compat aliases
+    COM_V_PREFIX: str = T_V_PREFIX
+    ANG_W_PREFIX: str = R_V_PREFIX
+    COM_VX: str = T_VX
+    COM_VY: str = T_VY
+    COM_VZ: str = T_VZ
+    ANG_WX: str = R_VX
+    ANG_WY: str = R_VY
+    ANG_WZ: str = R_VZ
+    COM_V_NORM: str = T_V_NORM
+    ANG_W_NORM: str = R_V_NORM
 
 @dataclass(frozen=True)
 class CornerVelocityCols:
@@ -138,6 +164,9 @@ class HeaderL3:
     WX: str = "WX"
     WY: str = "WY"
     WZ: str = "WZ"
+    AX: str = "AX"
+    AY: str = "AY"
+    AZ: str = "AZ"
     TX: str = "TX"
     TY: str = "TY"
     TZ: str = "TZ"
@@ -154,6 +183,7 @@ class HeaderL3:
     SRC: str = "Source"
     NORM_V: str = "Norm_V"
     NORM_W: str = "Norm_W"
+    NORM_A: str = "Norm_A"
     VX_ANA: str = "VX_Ana"
     VY_ANA: str = "VY_Ana"
     VZ_ANA: str = "VZ_Ana"
@@ -171,17 +201,25 @@ RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
 # List of columns to be displayed in the result analyzer's selection tree.
 # This helps to avoid cluttering the view with too many options.
 DISPLAY_RESULT_COLUMNS = [
-    # Analysis results for Center of Mass (CoM) Velocity
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_V_ANA),
+    # Translation velocity / acceleration
+    (HeaderL1.VEL, HeaderL2.BOX_T, HeaderL3.VX),
+    (HeaderL1.VEL, HeaderL2.BOX_T, HeaderL3.VY),
+    (HeaderL1.VEL, HeaderL2.BOX_T, HeaderL3.VZ),
+    (HeaderL1.VEL, HeaderL2.BOX_T, HeaderL3.NORM_V),
+    (HeaderL1.VEL, HeaderL2.BOX_T, HeaderL3.AX),
+    (HeaderL1.VEL, HeaderL2.BOX_T, HeaderL3.AY),
+    (HeaderL1.VEL, HeaderL2.BOX_T, HeaderL3.AZ),
+    (HeaderL1.VEL, HeaderL2.BOX_T, HeaderL3.NORM_A),
 
-    # Analysis results for Angular Velocity
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ_ANA),
-    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_W_ANA),
+    # Rotation velocity / acceleration
+    (HeaderL1.VEL, HeaderL2.BOX_R, HeaderL3.VX),
+    (HeaderL1.VEL, HeaderL2.BOX_R, HeaderL3.VY),
+    (HeaderL1.VEL, HeaderL2.BOX_R, HeaderL3.VZ),
+    (HeaderL1.VEL, HeaderL2.BOX_R, HeaderL3.NORM_V),
+    (HeaderL1.VEL, HeaderL2.BOX_R, HeaderL3.AX),
+    (HeaderL1.VEL, HeaderL2.BOX_R, HeaderL3.AY),
+    (HeaderL1.VEL, HeaderL2.BOX_R, HeaderL3.AZ),
+    (HeaderL1.VEL, HeaderL2.BOX_R, HeaderL3.NORM_A),
 
     # Relative Height for each of the 8 corners
     (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),

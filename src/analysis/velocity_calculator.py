@@ -123,8 +123,8 @@ class VelocityCalculator:
         fs = 1.0 / np.mean(np.diff(time_s)) if len(time_s) > 1 else 0
 
         # DataFrame에서 numpy 배열 추출
-        positions = result_df[[PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z]].values
-        rot_vectors = result_df[[PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]].values
+        positions = result_df[[PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z]].to_numpy(copy=True)
+        rot_vectors = result_df[[PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]].to_numpy(copy=True)
         quaternions = R.from_rotvec(rot_vectors).as_quat()
         quaternions = _ensure_quaternion_continuity(quaternions)
 
@@ -133,15 +133,28 @@ class VelocityCalculator:
         v_com, ang_vel = self._calculate_velocities(positions, quaternions, time_s)
         v_com, ang_vel = self._postprocess_velocities(v_com, ang_vel, fs)
 
+        # 가속도 계산
+        a_com = np.zeros_like(v_com)
+        ang_acc = np.zeros_like(ang_vel)
+        for i in range(3):
+            a_com[:, i] = _numerical_derivative(v_com[:, i], time_s)
+            ang_acc[:, i] = _numerical_derivative(ang_vel[:, i], time_s)
+
         # Norm 계산
-        com_v_norm = np.linalg.norm(v_com, axis=1)
-        ang_w_norm = np.linalg.norm(ang_vel, axis=1)
+        t_v_norm = np.linalg.norm(v_com, axis=1)
+        r_v_norm = np.linalg.norm(ang_vel, axis=1)
+        t_a_norm = np.linalg.norm(a_com, axis=1)
+        r_a_norm = np.linalg.norm(ang_acc, axis=1)
 
         # 결과를 numpy 배열로 DataFrame에 할당
-        result_df[[VelocityCols.COM_VX, VelocityCols.COM_VY, VelocityCols.COM_VZ]] = v_com
-        result_df[[VelocityCols.ANG_WX, VelocityCols.ANG_WY, VelocityCols.ANG_WZ]] = ang_vel
-        result_df[VelocityCols.COM_V_NORM] = com_v_norm
-        result_df[VelocityCols.ANG_W_NORM] = ang_w_norm
+        result_df[[VelocityCols.T_VX, VelocityCols.T_VY, VelocityCols.T_VZ]] = v_com
+        result_df[[VelocityCols.R_VX, VelocityCols.R_VY, VelocityCols.R_VZ]] = ang_vel
+        result_df[[VelocityCols.T_AX, VelocityCols.T_AY, VelocityCols.T_AZ]] = a_com
+        result_df[[VelocityCols.R_AX, VelocityCols.R_AY, VelocityCols.R_AZ]] = ang_acc
+        result_df[VelocityCols.T_V_NORM] = t_v_norm
+        result_df[VelocityCols.R_V_NORM] = r_v_norm
+        result_df[VelocityCols.T_A_NORM] = t_a_norm
+        result_df[VelocityCols.R_A_NORM] = r_a_norm
 
         # numpy 배열을 사용하여 꼭짓점 속도 계산
         corner_velocities = self._calculate_corner_velocities(v_com, ang_vel, quaternions)
@@ -153,12 +166,14 @@ class VelocityCalculator:
         # 컬럼 순서 재배치
         # 기존 컬럼 순서를 유지하되, norm 컬럼들을 각 벡터의 xyz 성분 뒤로 이동
         cols = result_df.columns.tolist()
-        # COM_V_NORM 이동
-        cols.remove(VelocityCols.COM_V_NORM)
-        cols.insert(cols.index(VelocityCols.COM_VZ) + 1, VelocityCols.COM_V_NORM)
-        # ANG_W_NORM 이동
-        cols.remove(VelocityCols.ANG_W_NORM)
-        cols.insert(cols.index(VelocityCols.ANG_WZ) + 1, VelocityCols.ANG_W_NORM)
+        for norm_col, z_col in [
+            (VelocityCols.T_V_NORM, VelocityCols.T_VZ),
+            (VelocityCols.R_V_NORM, VelocityCols.R_VZ),
+            (VelocityCols.T_A_NORM, VelocityCols.T_AZ),
+            (VelocityCols.R_A_NORM, VelocityCols.R_AZ),
+        ]:
+            cols.remove(norm_col)
+            cols.insert(cols.index(z_col) + 1, norm_col)
         result_df = result_df[cols]
 
         print(f"[VelocityCalculator INFO] Finished processing {len(df)} frames.")
