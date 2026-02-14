@@ -34,50 +34,50 @@ def get_conversion_rules() -> list:
     # 2. 변환 규칙 정의 (가장 구체적인 순서 -> 가장 일반적인 순서)
     rules = [
         # --- Level 1: Pose ---
-        # 예시: 'Box_Tx' -> ('Pose', 'BoxTranslation', 'TX')
+        # 예시: 'Box_Tx' -> ('Position', 'CoM', 'PX')
         (re.compile(f"^{PoseCols.T_PREFIX}(?P<axis>[xyz])$"),
-         lambda m: (HeaderL1.POSE, HeaderL2.BOX_T, getattr(HeaderL3, f"T{m.group('axis').upper()}"))),
-        # 예시: 'Box_Rx' -> ('Pose', 'BoxRotation', 'RX')
+         lambda m: (HeaderL1.POS, HeaderL2.COM, getattr(HeaderL3, f"P{m.group('axis').upper()}"))),
+        # 예시: 'Box_Rx' -> ('Pose', 'Angular', 'RX')
         (re.compile(f"^{PoseCols.R_PREFIX}(?P<axis>[xyz])$"),
-         lambda m: (HeaderL1.POSE, HeaderL2.BOX_R, getattr(HeaderL3, f"R{m.group('axis').upper()}"))),
+         lambda m: (HeaderL1.POSE, HeaderL2.ANG, getattr(HeaderL3, f"R{m.group('axis').upper()}"))),
 
         # --- Level 1: Velocity ---
-        # 예시: 'T_Vx' -> ('Velocity', 'Translation', 'VX')
+        # 예시: 'T_Vx' -> ('Velocity', 'CoM', 'VX')
         (re.compile(f"^{VelocityCols.T_V_PREFIX}(?P<axis>[xyz])$"),
-         lambda m: (HeaderL1.VEL, HeaderL2.TRN, getattr(HeaderL3, f"V{m.group('axis').upper()}"))),
-        # 예시: 'R_Vx' -> ('Velocity', 'Rotation', 'WX')
+         lambda m: (HeaderL1.VEL, HeaderL2.COM, getattr(HeaderL3, f"V{m.group('axis').upper()}"))),
+        # 예시: 'R_Vx' -> ('Velocity', 'Angular', 'WX')
         (re.compile(f"^{VelocityCols.R_V_PREFIX}(?P<axis>[xyz])$"),
-         lambda m: (HeaderL1.VEL, HeaderL2.ROT, getattr(HeaderL3, f"W{m.group('axis').upper()}"))),
-        # 예시: 'T_Ax' -> ('Acceleration', 'Translation', 'AX')
+         lambda m: (HeaderL1.VEL, HeaderL2.ANG, getattr(HeaderL3, f"W{m.group('axis').upper()}"))),
+        # 예시: 'T_Ax' -> ('Acceleration', 'CoM', 'AX')
         (re.compile(f"^{VelocityCols.T_A_PREFIX}(?P<axis>[xyz])$"),
-         lambda m: (HeaderL1.ACC, HeaderL2.TRN, getattr(HeaderL3, f"A{m.group('axis').upper()}"))),
-        # 예시: 'R_Ax' -> ('Acceleration', 'Rotation', 'AX')
+         lambda m: (HeaderL1.ACC, HeaderL2.COM, getattr(HeaderL3, f"A{m.group('axis').upper()}"))),
+        # 예시: 'R_Ax' -> ('Acceleration', 'Angular', 'AX')
         (re.compile(f"^{VelocityCols.R_A_PREFIX}(?P<axis>[xyz])$"),
-         lambda m: (HeaderL1.ACC, HeaderL2.ROT, getattr(HeaderL3, f"A{m.group('axis').upper()}"))),
-        # 예시: 'T_V_Norm' -> ('Velocity', 'Translation', 'Norm_V')
+         lambda m: (HeaderL1.ACC, HeaderL2.ANG, getattr(HeaderL3, f"A{m.group('axis').upper()}"))),
+        # 예시: 'T_V_Norm' -> ('Velocity', 'CoM', 'Norm_V')
         (re.compile(f"^{VelocityCols.T_V_NORM}$"),
-         lambda m: (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.NORM_V)),
-        # 예시: 'R_V_Norm' -> ('Velocity', 'Rotation', 'Norm_W')
+         lambda m: (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_V)),
+        # 예시: 'R_V_Norm' -> ('Velocity', 'Angular', 'Norm_W')
         (re.compile(f"^{VelocityCols.R_V_NORM}$"),
-         lambda m: (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.NORM_W)),
-        # 예시: 'T_A_Norm' -> ('Acceleration', 'Translation', 'Norm_A')
+         lambda m: (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.NORM_W)),
+        # 예시: 'T_A_Norm' -> ('Acceleration', 'CoM', 'Norm_A')
         (re.compile(f"^{VelocityCols.T_A_NORM}$"),
-         lambda m: (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.NORM_A)),
-        # 예시: 'R_A_Norm' -> ('Acceleration', 'Rotation', 'Norm_A')
+         lambda m: (HeaderL1.ACC, HeaderL2.COM, HeaderL3.NORM_A)),
+        # 예시: 'R_A_Norm' -> ('Acceleration', 'Angular', 'Norm_A')
         (re.compile(f"^{VelocityCols.R_A_NORM}$"),
-         lambda m: (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.NORM_A)),
-        # 예시: 'T_Vx_Ana' -> ('Velocity', 'Translation', 'VX_Ana')
+         lambda m: (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.NORM_A)),
+        # 예시: 'T_Vx_Ana' -> ('Velocity', 'CoM', 'VX_Ana')
         (re.compile(f"^{VelocityCols.T_V_PREFIX}(?P<axis>[xyz])_Ana$"),
-         lambda m: (HeaderL1.VEL, HeaderL2.TRN, f"V{m.group('axis').upper()}_Ana")),
-        # 예시: 'R_Vx_Ana' -> ('Velocity', 'Rotation', 'WX_Ana')
+         lambda m: (HeaderL1.VEL, HeaderL2.COM, f"V{m.group('axis').upper()}_Ana")),
+        # 예시: 'R_Vx_Ana' -> ('Velocity', 'Angular', 'WX_Ana')
         (re.compile(f"^{VelocityCols.R_V_PREFIX}(?P<axis>[xyz])_Ana$"),
-         lambda m: (HeaderL1.VEL, HeaderL2.ROT, f"W{m.group('axis').upper()}_Ana")),
-        # 예시: 'T_V_Norm_Ana' -> ('Velocity', 'Translation', 'Norm_V_Ana')
+         lambda m: (HeaderL1.VEL, HeaderL2.ANG, f"W{m.group('axis').upper()}_Ana")),
+        # 예시: 'T_V_Norm_Ana' -> ('Velocity', 'CoM', 'Norm_V_Ana')
         (re.compile(f"^{AnalysisCols.T_V_NORM_ANA}$"),
-         lambda m: (HeaderL1.VEL, HeaderL2.TRN, f"{HeaderL3.NORM_V}_Ana")),
-        # 예시: 'R_V_Norm_Ana' -> ('Velocity', 'Rotation', 'Norm_W_Ana')
+         lambda m: (HeaderL1.VEL, HeaderL2.COM, f"{HeaderL3.NORM_V}_Ana")),
+        # 예시: 'R_V_Norm_Ana' -> ('Velocity', 'Angular', 'Norm_W_Ana')
         (re.compile(f"^{AnalysisCols.R_V_NORM_ANA}$"),
-         lambda m: (HeaderL1.VEL, HeaderL2.ROT, f"{HeaderL3.NORM_W}_Ana")),
+         lambda m: (HeaderL1.VEL, HeaderL2.ANG, f"{HeaderL3.NORM_W}_Ana")),
         # 예시: 'C0_Vx' -> ('Velocity', 'C0', 'VX')
         (re.compile(r"^(?P<corner>C\d+)_V(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.VEL, m.group('corner'), getattr(HeaderL3, f"V{m.group('axis').upper()}"))),

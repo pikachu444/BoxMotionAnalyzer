@@ -28,9 +28,9 @@ class TestWidgetResultsAnalyzer(unittest.TestCase):
         """Helper to create result_data DataFrame"""
         height_cols = [(HeaderL1.ANALYSIS, f'C{i+1}', HeaderL3.REL_H) for i in range(8)]
         vel_cols = [
-            (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WX), (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WY),
-            (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WZ), (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VX),
-            (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VY), (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VZ),
+            (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WX), (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WY),
+            (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WZ), (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY), (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
         ]
 
         all_cols = height_cols + vel_cols

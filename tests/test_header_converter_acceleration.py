@@ -18,17 +18,17 @@ def test_convert_to_multi_header_maps_acceleration_columns():
 
     converted = convert_to_multi_header(df)
 
-    assert (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.AX) in converted.columns
-    assert (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.NORM_A) in converted.columns
-    assert (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.AX) in converted.columns
-    assert (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.NORM_A) in converted.columns
+    assert (HeaderL1.ACC, HeaderL2.COM, HeaderL3.AX) in converted.columns
+    assert (HeaderL1.ACC, HeaderL2.COM, HeaderL3.NORM_A) in converted.columns
+    assert (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.AX) in converted.columns
+    assert (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.NORM_A) in converted.columns
 
 
 def test_display_result_columns_includes_acceleration_items():
-    assert (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.AX) in DISPLAY_RESULT_COLUMNS
-    assert (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.NORM_A) in DISPLAY_RESULT_COLUMNS
-    assert (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.AX) in DISPLAY_RESULT_COLUMNS
-    assert (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.NORM_A) in DISPLAY_RESULT_COLUMNS
+    assert (HeaderL1.ACC, HeaderL2.COM, HeaderL3.AX) in DISPLAY_RESULT_COLUMNS
+    assert (HeaderL1.ACC, HeaderL2.COM, HeaderL3.NORM_A) in DISPLAY_RESULT_COLUMNS
+    assert (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.AX) in DISPLAY_RESULT_COLUMNS
+    assert (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.NORM_A) in DISPLAY_RESULT_COLUMNS
 
 
 def test_convert_to_multi_header_distinguishes_ana_suffix_columns():
@@ -43,5 +43,25 @@ def test_convert_to_multi_header_distinguishes_ana_suffix_columns():
 
     converted = convert_to_multi_header(df)
 
-    assert (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VX) in converted.columns
-    assert (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VX_ANA) in converted.columns
+    assert (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX) in converted.columns
+    assert (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX_ANA) in converted.columns
+
+
+def test_convert_to_multi_header_maps_com_position_from_box_translation():
+    df = pd.DataFrame({
+        "Box_Tx": [1.0],
+        "Box_Ty": [2.0],
+        "Box_Tz": [3.0],
+    }, index=[0.0])
+    df.index.name = "Time"
+
+    converted = convert_to_multi_header(df)
+
+    assert (HeaderL1.POS, HeaderL2.COM, HeaderL3.PX) in converted.columns
+    assert (HeaderL1.POS, HeaderL2.COM, HeaderL3.PY) in converted.columns
+    assert (HeaderL1.POS, HeaderL2.COM, HeaderL3.PZ) in converted.columns
+
+
+def test_display_result_columns_include_position_items():
+    assert (HeaderL1.POS, HeaderL2.COM, HeaderL3.PX) in DISPLAY_RESULT_COLUMNS
+    assert (HeaderL1.POS, "C1", HeaderL3.PX) in DISPLAY_RESULT_COLUMNS

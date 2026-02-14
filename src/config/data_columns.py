@@ -129,9 +129,11 @@ class HeaderL1:
 @dataclass(frozen=True)
 class HeaderL2:
     RB: str = "RigidBody"
-    TRN: str = "Translation"
-    ROT: str = "Rotation"
-    BOX_T: str = "BoxTranslation"
+    COM: str = "CoM"
+    ANG: str = "Angular"
+    # Backward-compatible aliases for legacy references.
+    TRN: str = COM
+    ROT: str = ANG
     BOX_R: str = "BoxRotation"
     FLOOR_N: str = "FloorNormal"
     FLOOR_P: str = "FloorPoint"
@@ -188,29 +190,60 @@ RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
 # List of columns to be displayed in the result analyzer's selection tree.
 # This helps to avoid cluttering the view with too many options.
 DISPLAY_RESULT_COLUMNS = [
+    # CoM Position (lab coordinate)
+    (HeaderL1.POS, HeaderL2.COM, HeaderL3.PX),
+    (HeaderL1.POS, HeaderL2.COM, HeaderL3.PY),
+    (HeaderL1.POS, HeaderL2.COM, HeaderL3.PZ),
+
+    # Corner Positions for each of the 8 corners
+    (HeaderL1.POS, "C1", HeaderL3.PX),
+    (HeaderL1.POS, "C1", HeaderL3.PY),
+    (HeaderL1.POS, "C1", HeaderL3.PZ),
+    (HeaderL1.POS, "C2", HeaderL3.PX),
+    (HeaderL1.POS, "C2", HeaderL3.PY),
+    (HeaderL1.POS, "C2", HeaderL3.PZ),
+    (HeaderL1.POS, "C3", HeaderL3.PX),
+    (HeaderL1.POS, "C3", HeaderL3.PY),
+    (HeaderL1.POS, "C3", HeaderL3.PZ),
+    (HeaderL1.POS, "C4", HeaderL3.PX),
+    (HeaderL1.POS, "C4", HeaderL3.PY),
+    (HeaderL1.POS, "C4", HeaderL3.PZ),
+    (HeaderL1.POS, "C5", HeaderL3.PX),
+    (HeaderL1.POS, "C5", HeaderL3.PY),
+    (HeaderL1.POS, "C5", HeaderL3.PZ),
+    (HeaderL1.POS, "C6", HeaderL3.PX),
+    (HeaderL1.POS, "C6", HeaderL3.PY),
+    (HeaderL1.POS, "C6", HeaderL3.PZ),
+    (HeaderL1.POS, "C7", HeaderL3.PX),
+    (HeaderL1.POS, "C7", HeaderL3.PY),
+    (HeaderL1.POS, "C7", HeaderL3.PZ),
+    (HeaderL1.POS, "C8", HeaderL3.PX),
+    (HeaderL1.POS, "C8", HeaderL3.PY),
+    (HeaderL1.POS, "C8", HeaderL3.PZ),
+
     # Analysis/local box results for Translation Velocity
-    (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VX_ANA),
-    (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VY_ANA),
-    (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.VZ_ANA),
-    (HeaderL1.VEL, HeaderL2.TRN, HeaderL3.NORM_V_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ_ANA),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_V_ANA),
 
     # Analysis/local box results for Rotation Velocity
-    (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WX_ANA),
-    (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WY_ANA),
-    (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.WZ_ANA),
-    (HeaderL1.VEL, HeaderL2.ROT, HeaderL3.NORM_W_ANA),
+    (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WX_ANA),
+    (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WY_ANA),
+    (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WZ_ANA),
+    (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.NORM_W_ANA),
 
     # Translation acceleration (lab coordinate)
-    (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.AX),
-    (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.AY),
-    (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.AZ),
-    (HeaderL1.ACC, HeaderL2.TRN, HeaderL3.NORM_A),
+    (HeaderL1.ACC, HeaderL2.COM, HeaderL3.AX),
+    (HeaderL1.ACC, HeaderL2.COM, HeaderL3.AY),
+    (HeaderL1.ACC, HeaderL2.COM, HeaderL3.AZ),
+    (HeaderL1.ACC, HeaderL2.COM, HeaderL3.NORM_A),
 
     # Rotation acceleration (lab coordinate)
-    (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.AX),
-    (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.AY),
-    (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.AZ),
-    (HeaderL1.ACC, HeaderL2.ROT, HeaderL3.NORM_A),
+    (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.AX),
+    (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.AY),
+    (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.AZ),
+    (HeaderL1.ACC, HeaderL2.ANG, HeaderL3.NORM_A),
 
     # Relative Height for each of the 8 corners
     (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
