@@ -2,7 +2,8 @@ import pandas as pd
 import re
 from typing import Tuple
 from src.config.data_columns import (
-    HeaderL1, HeaderL2, HeaderL3, RigidBodyCols, VelocityCols, PoseCols, AnalysisCols, TimeCols
+    HeaderL1, HeaderL2, HeaderL3, RigidBodyCols, VelocityCols, PoseCols, AnalysisCols, TimeCols,
+    ANA_COORDINATE_SUFFIX
 )
 
 # --- 멀티헤더 변환 규칙 ---
@@ -33,9 +34,15 @@ def get_conversion_rules() -> list:
         # 예시: 'Box_Tx' -> ('Pose', 'BoxTranslation', 'TX')
         (re.compile(f"^{PoseCols.T_PREFIX}(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.POSE, HeaderL2.BOX_T, getattr(HeaderL3, f"T{m.group('axis').upper()}"))),
+        # 예시: 'Box_Tx_Ana' -> ('Pose', 'BoxTranslation', 'TX_Ana')
+        (re.compile(f"^{PoseCols.T_PREFIX}(?P<axis>[xyz]){ANA_COORDINATE_SUFFIX}$"),
+         lambda m: (HeaderL1.POSE, HeaderL2.BOX_T, f"T{m.group('axis').upper()}{ANA_COORDINATE_SUFFIX}")),
         # 예시: 'Box_Rx' -> ('Pose', 'BoxRotation', 'RX')
         (re.compile(f"^{PoseCols.R_PREFIX}(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.POSE, HeaderL2.BOX_R, getattr(HeaderL3, f"R{m.group('axis').upper()}"))),
+        # 예시: 'Box_Rx_Ana' -> ('Pose', 'BoxRotation', 'RX_Ana')
+        (re.compile(f"^{PoseCols.R_PREFIX}(?P<axis>[xyz]){ANA_COORDINATE_SUFFIX}$"),
+         lambda m: (HeaderL1.POSE, HeaderL2.BOX_R, f"R{m.group('axis').upper()}{ANA_COORDINATE_SUFFIX}")),
 
         # --- Level 1: Velocity ---
         # 예시: 'CoM_Vx' -> ('Velocity', 'CoM', 'VX')

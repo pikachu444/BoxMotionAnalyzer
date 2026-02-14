@@ -1,5 +1,13 @@
 from dataclasses import dataclass
 
+
+# Coordinate-frame rule used across analyzer outputs.
+# - Columns ending with `_Ana` are represented in the local analysis coordinate frame.
+# - Columns without `_Ana` are represented in the experiment/world coordinate frame.
+ANA_COORDINATE_SUFFIX = "_Ana"
+LOCAL_COORDINATE_FRAME_NAME = "local"
+EXPERIMENT_COORDINATE_FRAME_NAME = "experiment"
+
 @dataclass(frozen=True)
 class TimeCols:
     TIME: str = "Time"
@@ -141,9 +149,15 @@ class HeaderL3:
     TX: str = "TX"
     TY: str = "TY"
     TZ: str = "TZ"
+    TX_ANA: str = "TX_Ana"
+    TY_ANA: str = "TY_Ana"
+    TZ_ANA: str = "TZ_Ana"
     RX: str = "RX"
     RY: str = "RY"
     RZ: str = "RZ"
+    RX_ANA: str = "RX_Ana"
+    RY_ANA: str = "RY_Ana"
+    RZ_ANA: str = "RZ_Ana"
     NX: str = "NX"
     NY: str = "NY"
     NZ: str = "NZ"
@@ -168,67 +182,75 @@ class HeaderL3:
 # --- Result File Column Constants ---
 RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
 
-# List of columns to be displayed in the result analyzer's selection tree.
-# This helps to avoid cluttering the view with too many options.
-DISPLAY_RESULT_COLUMNS = [
-    # Analysis results for Center of Mass (CoM) Velocity
+ANALYSIS_TARGET_RESULT_COLUMNS = [
+    # Analysis-frame CoM velocity
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX_ANA),
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY_ANA),
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ_ANA),
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_V_ANA),
 
-    # Analysis results for Angular Velocity
+    # Analysis-frame angular velocity
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX_ANA),
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY_ANA),
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ_ANA),
     (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_W_ANA),
 
-    # Relative Height for each of the 8 corners
-    (HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
-    (HeaderL1.ANALYSIS, "C2", HeaderL3.REL_H),
-    (HeaderL1.ANALYSIS, "C3", HeaderL3.REL_H),
-    (HeaderL1.ANALYSIS, "C4", HeaderL3.REL_H),
-    (HeaderL1.ANALYSIS, "C5", HeaderL3.REL_H),
-    (HeaderL1.ANALYSIS, "C6", HeaderL3.REL_H),
-    (HeaderL1.ANALYSIS, "C7", HeaderL3.REL_H),
-    (HeaderL1.ANALYSIS, "C8", HeaderL3.REL_H),
-
-    # Corner Velocities for each of the 8 corners
-    (HeaderL1.VEL, "C1", HeaderL3.VX),
-    (HeaderL1.VEL, "C1", HeaderL3.VY),
-    (HeaderL1.VEL, "C1", HeaderL3.VZ),
-    (HeaderL1.VEL, "C2", HeaderL3.VX),
-    (HeaderL1.VEL, "C2", HeaderL3.VY),
-    (HeaderL1.VEL, "C2", HeaderL3.VZ),
-    (HeaderL1.VEL, "C3", HeaderL3.VX),
-    (HeaderL1.VEL, "C3", HeaderL3.VY),
-    (HeaderL1.VEL, "C3", HeaderL3.VZ),
-    (HeaderL1.VEL, "C4", HeaderL3.VX),
-    (HeaderL1.VEL, "C4", HeaderL3.VY),
-    (HeaderL1.VEL, "C4", HeaderL3.VZ),
-    (HeaderL1.VEL, "C5", HeaderL3.VX),
-    (HeaderL1.VEL, "C5", HeaderL3.VY),
-    (HeaderL1.VEL, "C5", HeaderL3.VZ),
-    (HeaderL1.VEL, "C6", HeaderL3.VX),
-    (HeaderL1.VEL, "C6", HeaderL3.VY),
-    (HeaderL1.VEL, "C6", HeaderL3.VZ),
-    (HeaderL1.VEL, "C7", HeaderL3.VX),
-    (HeaderL1.VEL, "C7", HeaderL3.VY),
-    (HeaderL1.VEL, "C7", HeaderL3.VZ),
-    (HeaderL1.VEL, "C8", HeaderL3.VX),
-    (HeaderL1.VEL, "C8", HeaderL3.VY),
-    (HeaderL1.VEL, "C8", HeaderL3.VZ),
-
-    # Analysis Input Height for each of the 8 corners
-    (HeaderL1.ANALYSIS_SCENARIO, "C1", HeaderL3.ANALYSIS_INPUT_H),
-    (HeaderL1.ANALYSIS_SCENARIO, "C2", HeaderL3.ANALYSIS_INPUT_H),
-    (HeaderL1.ANALYSIS_SCENARIO, "C3", HeaderL3.ANALYSIS_INPUT_H),
-    (HeaderL1.ANALYSIS_SCENARIO, "C4", HeaderL3.ANALYSIS_INPUT_H),
-    (HeaderL1.ANALYSIS_SCENARIO, "C5", HeaderL3.ANALYSIS_INPUT_H),
-    (HeaderL1.ANALYSIS_SCENARIO, "C6", HeaderL3.ANALYSIS_INPUT_H),
-    (HeaderL1.ANALYSIS_SCENARIO, "C7", HeaderL3.ANALYSIS_INPUT_H),
-    (HeaderL1.ANALYSIS_SCENARIO, "C8", HeaderL3.ANALYSIS_INPUT_H),
+    # Analysis-frame box pose
+    (HeaderL1.POSE, HeaderL2.BOX_T, HeaderL3.TX_ANA),
+    (HeaderL1.POSE, HeaderL2.BOX_T, HeaderL3.TY_ANA),
+    (HeaderL1.POSE, HeaderL2.BOX_T, HeaderL3.TZ_ANA),
+    (HeaderL1.POSE, HeaderL2.BOX_R, HeaderL3.RX_ANA),
+    (HeaderL1.POSE, HeaderL2.BOX_R, HeaderL3.RY_ANA),
+    (HeaderL1.POSE, HeaderL2.BOX_R, HeaderL3.RZ_ANA),
 ]
+
+NON_ANALYSIS_TARGET_RESULT_COLUMNS = [
+    # Experiment-frame box pose
+    (HeaderL1.POSE, HeaderL2.BOX_T, HeaderL3.TX),
+    (HeaderL1.POSE, HeaderL2.BOX_T, HeaderL3.TY),
+    (HeaderL1.POSE, HeaderL2.BOX_T, HeaderL3.TZ),
+    (HeaderL1.POSE, HeaderL2.BOX_R, HeaderL3.RX),
+    (HeaderL1.POSE, HeaderL2.BOX_R, HeaderL3.RY),
+    (HeaderL1.POSE, HeaderL2.BOX_R, HeaderL3.RZ),
+
+    # Experiment-frame CoM velocity
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_V),
+
+    # Experiment-frame angular velocity
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WX),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WY),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.WZ),
+    (HeaderL1.VEL, HeaderL2.COM, HeaderL3.NORM_W),
+]
+
+CORNER_RELATIVE_HEIGHT_RESULT_COLUMNS = [
+    (HeaderL1.ANALYSIS, f"C{i}", HeaderL3.REL_H)
+    for i in range(1, 9)
+]
+
+CORNER_VELOCITY_RESULT_COLUMNS = [
+    (HeaderL1.VEL, f"C{i}", axis)
+    for i in range(1, 9)
+    for axis in (HeaderL3.VX, HeaderL3.VY, HeaderL3.VZ)
+]
+
+ANALYSIS_INPUT_HEIGHT_RESULT_COLUMNS = [
+    (HeaderL1.ANALYSIS_SCENARIO, f"C{i}", HeaderL3.ANALYSIS_INPUT_H)
+    for i in range(1, 9)
+]
+
+# List of columns to be displayed in the result analyzer's selection tree.
+# This helps to avoid cluttering the view with too many options.
+DISPLAY_RESULT_COLUMNS = (
+    ANALYSIS_TARGET_RESULT_COLUMNS
+    + NON_ANALYSIS_TARGET_RESULT_COLUMNS
+    + CORNER_RELATIVE_HEIGHT_RESULT_COLUMNS
+    + CORNER_VELOCITY_RESULT_COLUMNS
+    + ANALYSIS_INPUT_HEIGHT_RESULT_COLUMNS
+)
 
 # --- Corner Name Mapping ---
 CORNER_NAME_MAP = {
