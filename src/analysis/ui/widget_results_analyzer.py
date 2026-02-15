@@ -217,6 +217,7 @@ class WidgetResultsAnalyzer(QWidget):
         self.result_data_tree.clear()
         top_level_items = {}
         columns_to_plot = [col for col in df.columns if col in DISPLAY_RESULT_COLUMNS]
+        columns_to_plot.sort(key=self._result_tree_sort_key)
 
         for l1, l2, l3 in columns_to_plot:
             if l1 not in top_level_items:
@@ -239,6 +240,57 @@ class WidgetResultsAnalyzer(QWidget):
                 leaf_item.setCheckState(0, Qt.Unchecked)
 
         self.result_data_tree.expandAll()
+
+    @staticmethod
+    def _result_tree_sort_key(column_tuple):
+        l1, l2, l3 = column_tuple
+        l1_order = {
+            HeaderL1.POS: 0,
+            HeaderL1.VEL: 1,
+            HeaderL1.ACC: 2,
+            HeaderL1.ANALYSIS: 3,
+            HeaderL1.ANALYSIS_SCENARIO: 4
+        }
+        if l2 == HeaderL2.COM:
+            l2_rank = 0
+        elif isinstance(l2, str) and l2.startswith("C") and l2[1:].isdigit():
+            l2_rank = int(l2[1:])
+        else:
+            l2_rank = 99
+
+        l3_str = str(l3)
+        if l1 == HeaderL1.POS and l2 == HeaderL2.COM:
+            pos_order = ["P_TX", "P_TY", "P_TZ", "P_RX", "P_RY", "P_RZ"]
+            if l3_str in pos_order:
+                l3_rank = pos_order.index(l3_str)
+            else:
+                l3_rank = 999
+        elif l1 in {HeaderL1.VEL, HeaderL1.ACC} and l2 == HeaderL2.COM:
+            local_order = [
+                f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_TX",
+                f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_TY",
+                f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_TZ",
+                f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_T_Norm",
+                f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_RX",
+                f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_RY",
+                f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_RZ",
+                f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_R_Norm",
+            ]
+            global_order = [
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TX",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TY",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TZ",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_T_Norm",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_RX",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_RY",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_RZ",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_R_Norm",
+            ]
+            stacked = local_order + global_order
+            l3_rank = stacked.index(l3_str) if l3_str in stacked else 999
+        else:
+            l3_rank = 999
+        return (l1_order.get(l1, 99), l2_rank, l3_rank, l3_str)
 
     def plot_selected_results(self):
         if self.result_data is None: return
@@ -406,12 +458,12 @@ class WidgetResultsAnalyzer(QWidget):
             return
 
         vel_cols = {
-            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WX_ANA),
-            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WY_ANA),
-            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.ANG, HeaderL3.WZ_ANA),
-            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VX_ANA),
-            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VY_ANA),
-            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.VZ_ANA),
+            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_RX_ANA),
+            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_RY_ANA),
+            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_RZ_ANA),
+            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX_ANA),
+            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TY_ANA),
+            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TZ_ANA),
         }
         if time_point_data is not None:
             velocities = {key: time_point_data.get(col, 0.0) for key, col in vel_cols.items()}

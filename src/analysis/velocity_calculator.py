@@ -127,6 +127,7 @@ class VelocityCalculator:
             corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.VX_SUFFIX}'] = corner_vel[:, 0]
             corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.VY_SUFFIX}'] = corner_vel[:, 1]
             corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.VZ_SUFFIX}'] = corner_vel[:, 2]
+            corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.NORM_SUFFIX}'] = np.linalg.norm(corner_vel, axis=1)
         return corner_velocities_data
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
