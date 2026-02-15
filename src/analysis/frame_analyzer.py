@@ -32,11 +32,15 @@ class FrameAnalyzer:
 
     def _transform_coordinates(self, frame_row: pd.Series, R_lab_to_ana: R, T_box_lab: np.ndarray) -> dict:
         """기존의 운동학 데이터를 분석 좌표계로 변환합니다."""
-        v_com_lab = frame_row[[VelocityCols.COM_VX, VelocityCols.COM_VY, VelocityCols.COM_VZ]].values.astype(float)
-        omega_w_lab = frame_row[[VelocityCols.ANG_WX, VelocityCols.ANG_WY, VelocityCols.ANG_WZ]].values.astype(float)
+        v_com_lab = frame_row[[VelocityCols.T_VX, VelocityCols.T_VY, VelocityCols.T_VZ]].values.astype(float)
+        omega_w_lab = frame_row[[VelocityCols.R_VX, VelocityCols.R_VY, VelocityCols.R_VZ]].values.astype(float)
+        a_com_lab = frame_row[[VelocityCols.T_AX, VelocityCols.T_AY, VelocityCols.T_AZ]].values.astype(float)
+        alpha_lab = frame_row[[VelocityCols.R_AX, VelocityCols.R_AY, VelocityCols.R_AZ]].values.astype(float)
 
         v_com_ana = R_lab_to_ana @ v_com_lab
         omega_ana = R_lab_to_ana @ omega_w_lab
+        a_com_ana = R_lab_to_ana @ a_com_lab
+        alpha_ana = R_lab_to_ana @ alpha_lab
 
         n_floor_lab = np.zeros(3)
         n_floor_lab[self.vertical_axis_idx] = 1.0
@@ -47,12 +51,18 @@ class FrameAnalyzer:
 
         v_com_norm_ana = np.linalg.norm(v_com_ana)
         omega_norm_ana = np.linalg.norm(omega_ana)
+        a_com_norm_ana = np.linalg.norm(a_com_ana)
+        alpha_norm_ana = np.linalg.norm(alpha_ana)
 
         return {
-            AnalysisCols.COM_VX_ANA: v_com_ana[0], AnalysisCols.COM_VY_ANA: v_com_ana[1], AnalysisCols.COM_VZ_ANA: v_com_ana[2],
-            AnalysisCols.ANG_WX_ANA: omega_ana[0], AnalysisCols.ANG_WY_ANA: omega_ana[1], AnalysisCols.ANG_WZ_ANA: omega_ana[2],
-            AnalysisCols.COM_V_NORM_ANA: v_com_norm_ana,
-            AnalysisCols.ANG_W_NORM_ANA: omega_norm_ana,
+            AnalysisCols.T_VX_ANA: v_com_ana[0], AnalysisCols.T_VY_ANA: v_com_ana[1], AnalysisCols.T_VZ_ANA: v_com_ana[2],
+            AnalysisCols.R_VX_ANA: omega_ana[0], AnalysisCols.R_VY_ANA: omega_ana[1], AnalysisCols.R_VZ_ANA: omega_ana[2],
+            AnalysisCols.T_V_NORM_ANA: v_com_norm_ana,
+            AnalysisCols.R_V_NORM_ANA: omega_norm_ana,
+            AnalysisCols.T_AX_ANA: a_com_ana[0], AnalysisCols.T_AY_ANA: a_com_ana[1], AnalysisCols.T_AZ_ANA: a_com_ana[2],
+            AnalysisCols.R_AX_ANA: alpha_ana[0], AnalysisCols.R_AY_ANA: alpha_ana[1], AnalysisCols.R_AZ_ANA: alpha_ana[2],
+            AnalysisCols.T_A_NORM_ANA: a_com_norm_ana,
+            AnalysisCols.R_A_NORM_ANA: alpha_norm_ana,
             AnalysisCols.FLOOR_N_X_ANA: n_floor_ana[0], AnalysisCols.FLOOR_N_Y_ANA: n_floor_ana[1], AnalysisCols.FLOOR_N_Z_ANA: n_floor_ana[2],
             AnalysisCols.FLOOR_P_X_ANA: p_floor_ana[0], AnalysisCols.FLOOR_P_Y_ANA: p_floor_ana[1], AnalysisCols.FLOOR_P_Z_ANA: p_floor_ana[2],
         }
@@ -133,13 +143,21 @@ class FrameAnalyzer:
         # 컬럼 순서 재배치
         cols = result_df.columns.tolist()
         # COM_V_NORM_ANA 이동
-        if AnalysisCols.COM_V_NORM_ANA in cols:
-            cols.remove(AnalysisCols.COM_V_NORM_ANA)
-            cols.insert(cols.index(AnalysisCols.COM_VZ_ANA) + 1, AnalysisCols.COM_V_NORM_ANA)
+        if AnalysisCols.T_V_NORM_ANA in cols:
+            cols.remove(AnalysisCols.T_V_NORM_ANA)
+            cols.insert(cols.index(AnalysisCols.T_VZ_ANA) + 1, AnalysisCols.T_V_NORM_ANA)
         # ANG_W_NORM_ANA 이동
-        if AnalysisCols.ANG_W_NORM_ANA in cols:
-            cols.remove(AnalysisCols.ANG_W_NORM_ANA)
-            cols.insert(cols.index(AnalysisCols.ANG_WZ_ANA) + 1, AnalysisCols.ANG_W_NORM_ANA)
+        if AnalysisCols.R_V_NORM_ANA in cols:
+            cols.remove(AnalysisCols.R_V_NORM_ANA)
+            cols.insert(cols.index(AnalysisCols.R_VZ_ANA) + 1, AnalysisCols.R_V_NORM_ANA)
+        # COM_A_NORM_ANA 이동
+        if AnalysisCols.T_A_NORM_ANA in cols:
+            cols.remove(AnalysisCols.T_A_NORM_ANA)
+            cols.insert(cols.index(AnalysisCols.T_AZ_ANA) + 1, AnalysisCols.T_A_NORM_ANA)
+        # ANG_A_NORM_ANA 이동
+        if AnalysisCols.R_A_NORM_ANA in cols:
+            cols.remove(AnalysisCols.R_A_NORM_ANA)
+            cols.insert(cols.index(AnalysisCols.R_AZ_ANA) + 1, AnalysisCols.R_A_NORM_ANA)
         result_df = result_df[cols]
 
         print(f"[FrameAnalyzer INFO] Processed {len(df)} frames.")
