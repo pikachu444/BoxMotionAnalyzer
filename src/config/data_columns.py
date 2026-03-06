@@ -1,9 +1,19 @@
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class TimeCols:
     TIME: str = "Time"
     FRAME: str = "Frame"
+
+
+@dataclass(frozen=True)
+class TimelineMetaCols:
+    FULL_START_SEC: str = "Timeline_FullStartSec"
+    FULL_END_SEC: str = "Timeline_FullEndSec"
+    SLICE_START_SEC: str = "Timeline_SliceStartSec"
+    SLICE_END_SEC: str = "Timeline_SliceEndSec"
+
 
 @dataclass(frozen=True)
 class RawMarkerCols:
@@ -12,6 +22,7 @@ class RawMarkerCols:
     Z_SUFFIX: str = "_Z"
     FACEINFO_SUFFIX: str = "_FaceInfo"
 
+
 @dataclass(frozen=True)
 class RigidBodyCols:
     BASE_NAME: str = "RigidBody_Position"
@@ -19,9 +30,11 @@ class RigidBodyCols:
     POS_Y: str = "RigidBody_Position_Y"
     POS_Z: str = "RigidBody_Position_Z"
 
+
 @dataclass(frozen=True)
 class SourceCols:
     POSE: str = "Pose_Source"
+
 
 @dataclass(frozen=True)
 class PoseCols:
@@ -33,6 +46,7 @@ class PoseCols:
     ROT_X: str = "P_RX"
     ROT_Y: str = "P_RY"
     ROT_Z: str = "P_RZ"
+
 
 @dataclass(frozen=True)
 class VelocityCols:
@@ -57,6 +71,7 @@ class VelocityCols:
     T_A_NORM: str = "Global_A_T_Norm"
     R_A_NORM: str = "Global_A_R_Norm"
 
+
 @dataclass(frozen=True)
 class CornerVelocityCols:
     VX_SUFFIX: str = "_Global_V_TX"
@@ -64,11 +79,13 @@ class CornerVelocityCols:
     VZ_SUFFIX: str = "_Global_V_TZ"
     NORM_SUFFIX: str = "_Global_V_T_Norm"
 
+
 @dataclass(frozen=True)
 class CornerCoordCols:
     X_SUFFIX: str = "_X"
     Y_SUFFIX: str = "_Y"
     Z_SUFFIX: str = "_Z"
+
 
 FACE_PREFIX_TO_INFO = {
     'F': 'Front',
@@ -79,6 +96,7 @@ FACE_PREFIX_TO_INFO = {
     'FA': 'Front',
     'BA': 'Back'
 }
+
 
 @dataclass(frozen=True)
 class AnalysisCols:
@@ -106,6 +124,7 @@ class AnalysisCols:
     FLOOR_P_Y_ANA: str = "Floor_P_Y_Ana"
     FLOOR_P_Z_ANA: str = "Floor_P_Z_Ana"
 
+
 @dataclass(frozen=True)
 class RelativeHeightCols:
     H_ANA_SUFFIX: str = "_H_Ana"
@@ -122,6 +141,7 @@ class DisplayNames:
     RB_CENTER: str = "Rigid Body Center"
     MARKER_PREFIX: str = "Marker "
 
+
 # --- Multi-Header Constants ---
 @dataclass(frozen=True)
 class HeaderL1:
@@ -133,6 +153,7 @@ class HeaderL1:
     ETC: str = "Etc"
     ANALYSIS: str = "Analysis"
     ANALYSIS_SCENARIO: str = "Analysis Scenario"
+
 
 @dataclass(frozen=True)
 class HeaderL2:
@@ -147,8 +168,10 @@ class HeaderL2:
     FLOOR_P: str = "FloorPoint"
     FRAME: str = "Frame"
     TIME: str = "Time"
+    TIMELINE: str = "Timeline"
     POSE_SRC: str = "Pose"
     UNKNOWN: str = "Unknown"
+
 
 @dataclass(frozen=True)
 class HeaderL3:
@@ -192,6 +215,12 @@ class HeaderL3:
     A_TNORM_ANA: str = "BoxLocal_A_T_Norm"
     A_RNORM_ANA: str = "BoxLocal_A_R_Norm"
 
+    # Timeline context metadata
+    TL_FULL_START_SEC: str = "FullStartSec"
+    TL_FULL_END_SEC: str = "FullEndSec"
+    TL_SLICE_START_SEC: str = "SliceStartSec"
+    TL_SLICE_END_SEC: str = "SliceEndSec"
+
     # Backward-compatible aliases used by existing code paths.
     PX: str = P_TX
     PY: str = P_TY
@@ -234,8 +263,14 @@ class HeaderL3:
     REL_H: str = "RelativeHeight"
     ANALYSIS_INPUT_H: str = "AnalysisInputHeight"
 
+
 # --- Result File Column Constants ---
 RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
+RESULT_TIMELINE_FULL_START_COL = (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_FULL_START_SEC)
+RESULT_TIMELINE_FULL_END_COL = (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_FULL_END_SEC)
+RESULT_TIMELINE_SLICE_START_COL = (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_SLICE_START_SEC)
+RESULT_TIMELINE_SLICE_END_COL = (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_SLICE_END_SEC)
+
 
 # List of columns to be displayed in the result analyzer's selection tree.
 # This helps to avoid cluttering the view with too many options.
@@ -364,6 +399,7 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.ANALYSIS_SCENARIO, "C7", HeaderL3.ANALYSIS_INPUT_H),
     (HeaderL1.ANALYSIS_SCENARIO, "C8", HeaderL3.ANALYSIS_INPUT_H),
 ]
+
 
 # --- Corner Name Mapping ---
 CORNER_NAME_MAP = {

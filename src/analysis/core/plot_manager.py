@@ -108,6 +108,31 @@ class PlotManager(QObject):
     def _on_select(self, xmin: float, xmax: float):
         self.region_changed_signal.emit(xmin, xmax)
 
+    def _place_hover_annotation(self, x, y):
+        # Keep tooltip visible inside the plot area by flipping direction
+        # near top/right edges.
+        point_px = self.ax.transData.transform((x, y))
+        point_ax = self.ax.transAxes.inverted().transform(point_px)
+        ax_x, ax_y = float(point_ax[0]), float(point_ax[1])
+
+        if ax_x > 0.78:
+            x_offset = -20
+            ha = "right"
+        else:
+            x_offset = 20
+            ha = "left"
+
+        if ax_y > 0.78:
+            y_offset = -20
+            va = "top"
+        else:
+            y_offset = 20
+            va = "bottom"
+
+        self.annot.set_position((x_offset, y_offset))
+        self.annot.set_ha(ha)
+        self.annot.set_va(va)
+
     def _on_hover(self, event):
         """마우스가 그래프 위를 움직일 때 호출되어, 가장 가까운 데이터 포인트에 툴팁을 표시합니다."""
         # 마우스가 Axes 안에 있고, 그려진 선이 있을 때만 실행
@@ -136,7 +161,8 @@ class PlotManager(QObject):
                 line, x, y = closest_point
                 # 툴팁(Annotation) 업데이트
                 self.annot.xy = (x, y)
-                self.annot.set_text(f"{line.get_label()}\nTime: {x:.2f}\nValue: {y:.2f}")
+                self._place_hover_annotation(x, y)
+                self.annot.set_text(f"{line.get_label()}\nTime: {x:.3f}\nValue: {y:.2f}")
                 self.annot.get_bbox_patch().set_facecolor(line.get_color())
                 self.annot.get_bbox_patch().set_alpha(0.4)
                 self.annot.set_visible(True)

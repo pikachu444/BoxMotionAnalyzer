@@ -1,7 +1,15 @@
 import pandas as pd
 import re
 from src.config.data_columns import (
-    HeaderL1, HeaderL2, HeaderL3, RigidBodyCols, VelocityCols, PoseCols, AnalysisCols, TimeCols
+    HeaderL1,
+    HeaderL2,
+    HeaderL3,
+    RigidBodyCols,
+    VelocityCols,
+    PoseCols,
+    AnalysisCols,
+    TimeCols,
+    TimelineMetaCols,
 )
 
 
@@ -28,6 +36,16 @@ def get_conversion_rules() -> list:
     axis_to_vt = {"X": HeaderL3.V_TX, "Y": HeaderL3.V_TY, "Z": HeaderL3.V_TZ}
 
     rules = [
+        # Timeline context metadata
+        (re.compile(f"^{TimelineMetaCols.FULL_START_SEC}$"),
+         lambda m: (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_FULL_START_SEC)),
+        (re.compile(f"^{TimelineMetaCols.FULL_END_SEC}$"),
+         lambda m: (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_FULL_END_SEC)),
+        (re.compile(f"^{TimelineMetaCols.SLICE_START_SEC}$"),
+         lambda m: (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_SLICE_START_SEC)),
+        (re.compile(f"^{TimelineMetaCols.SLICE_END_SEC}$"),
+         lambda m: (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_SLICE_END_SEC)),
+
         # CoM position (optimized pose)
         (re.compile(f"^{PoseCols.POS_X}$"), lambda m: (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_TX)),
         (re.compile(f"^{PoseCols.POS_Y}$"), lambda m: (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_TY)),
@@ -89,7 +107,7 @@ def get_conversion_rules() -> list:
         (re.compile(f"^{RigidBodyCols.BASE_NAME}_(?P<axis>[XYZ])$"),
          lambda m: (HeaderL1.POS, HeaderL2.RB, axis_to_pt[m.group("axis")])),
         (re.compile(r"^(?P<marker>C\d+)_(?P<axis>[XYZ])$"),
-         lambda m: (HeaderL1.POS, m.group("marker"), axis_to_pt[m.group("axis")])),
+         lambda m: (HeaderL1.POS, m.group("marker"), axis_to_pt[m.group("axis")])) ,
         (re.compile(f"^{exclusion_pattern}(?P<marker>.*?)_(?P<suffix>FaceInfo|X|Y|Z)$"),
          lambda m: (
              HeaderL1.POS,
