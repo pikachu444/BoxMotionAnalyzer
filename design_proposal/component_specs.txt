@@ -1,74 +1,121 @@
 =========================================
-|    컴포넌트 및 기능 명세서 (v7 기준)    |
+|    컴포넌트 및 기능 명세서 (현재 기준)  |
 =========================================
 
-이 문서는 v7 아키텍처를 기준으로 애플리케이션의 주요 컴포넌트와 그 책임을 설명합니다.
+이 문서는 현재 코드 기준으로 주요 컴포넌트와 책임을 정리한다.
 
 ---
-### 1. `MainApp` (GUI 애플리케이션)
+### 1. `LauncherWindow`
 ---
-*   **책임:**
-    *   **Raw Data Processing:** `WidgetRawDataProcessing`을 인스턴스화하여 원본 데이터 분석 UI를 구성합니다.
-    *   **Results Analyzer:** `WidgetResultsAnalyzer`를 인스턴스화하여 결과 분석 및 시각화 UI를 구성합니다.
-    *   **Signal Handling:** 각 위젯에서 발생하는 시그널(`analysis_requested`, `analysis_failed` 등)을 처리하고 조정합니다.
-*   **핵심 위젯 (WidgetRawDataProcessing):**
-    *   `Matplotlib Canvas/Toolbar`: 원본 데이터 그래프 표시 및 제어.
-    *   `QPushButton` ("Load CSV File...", "Select Data...", "Run Analysis", "Export Results"): 핵심 기능 실행 버튼.
-    *   `QCheckBox` ("Enable Slicing"): 분석 구간 설정을 활성화/비활성화.
-    *   `QGroupBox`: 연관된 위젯들을 시각적으로 그룹화.
-*   **핵심 위젯 (WidgetResultsAnalyzer):**
-    *   두 번째 `Matplotlib Canvas/Toolbar`: 결과 비교용 그래프 표시.
-    *   `QListWidget`: 폴더 내 결과 파일 목록 표시.
-    *   `QTreeWidget`: 결과 파일 내 데이터 컬럼을 계층적으로 표시하고 선택 기능 제공.
-    *   `QGroupBox` ('Point Analysis'): 지점 분석 관련 위젯들을 그룹화.
-        *   `QLabel`: 선택된 지점의 정보(시간/값) 표시.
-        *   `QComboBox`: 최대값을 찾을 대상 데이터 선택.
-        *   `QPushButton` ('Find Max', 'Export Point Data...'): 기능 실행 버튼.
-*   **핵심 기능/메서드:**
-    *   `open_data_selection_dialog()`: 원본 데이터 플롯을 위한 데이터 선택 대화상자를 생성하고, 그 결과를 받아 그래프 업데이트를 트리거합니다.
-    *   `run_pipeline()`: `PipelineController`를 별도 스레드에서 실행하여 분석을 시작하고, 실행 시점의 `Box Dimensions`를 전역 설정에 업데이트합니다.
-    *   `on_result_file_selected()`: 결과 파일 목록에서 특정 파일이 선택되었을 때, 해당 파일을 로드하고 'Time' 컬럼을 인덱스로 설정하여 데이터 일관성을 확보한 뒤, 데이터 선택 트리를 채웁니다.
-    *   `plot_selected_results()`: 데이터 선택 트리에서 사용자가 체크한 항목들을 결과 그래프에 플로팅하고, '최대값 찾기 대상' 콤보박스를 업데이트합니다. 또한, 그래프를 새로 그린 후 툴바의 '홈' 상태를 재설정하여 올바르게 동작하도록 보장합니다.
-    *   `on_result_plot_click()`: 결과 그래프 클릭 시, `get_indexer`를 사용하여 가장 가까운 데이터 지점을 찾아 그 정보를 UI에 업데이트합니다.
-    *   `on_find_max_click()`: '대상 데이터'의 최대값 지점을 찾아 UI에 업데이트합니다.
-    *   `on_export_point_data_click()`: 현재 선택된 지점의 전체 데이터 행을 파일로 내보냅니다.
+*   위치: `src/launcher.py`
+*   책임:
+    *   분석 GUI(`MainApp`)와 시각화 GUI(`src.visualization.main_window.MainWindow`) 진입점 제공
+    *   버튼 기반으로 두 기능 영역을 분리
 
 ---
-### 2. `DataSelectionDialog` (데이터 선택 대화상자)
+### 2. `MainApp`
 ---
-*   **책임:** 사용자에게 전체 데이터 목록을 보여주고, 다중 선택을 받아 그 결과를 `MainApp`에 반환합니다.
-*   **핵심 위젯:**
-    *   `QListWidget`: 체크박스가 활성화된 항목들의 리스트를 표시합니다 (`Qt.ItemIsUserCheckable`).
-    *   `QDialogButtonBox`: "OK"와 "Cancel" 버튼을 제공합니다.
-*   **핵심 기능/메서드:**
-    *   `__init__(all_items, selected_items)`: 전체 항목 리스트와 현재 선택된 항목 리스트를 받아, 각 항목의 체크 상태를 초기화합니다.
-    *   `get_selected_items()`: 사용자가 "OK"를 눌렀을 때, 현재 체크된 모든 항목의 텍스트 리스트를 반환합니다.
+*   위치: `src/analysis/main_window.py`
+*   책임:
+    *   Step 1 / Step 2 탭 구성
+    *   `DataLoader`, `Parser`, `PipelineController` 생성 및 연결
+    *   분석 완료 결과를 보관하고 CSV export 처리
+    *   Step 1 export 후 Step 2 자동 로드 및 탭 전환
+*   주요 상태:
+    *   `final_result`
+    *   `last_analysis_context`
 
 ---
-### 3. `DataLoader` (데이터 로딩)
+### 3. `WidgetRawDataProcessing`
 ---
-*   **책임:** CSV 파일 전체를 읽어, 헤더 정보(상위 7줄)와 원본 데이터(나머지)를 분리하여 `MainApp`에 전달합니다.
+*   위치: `src/analysis/ui/widget_raw_data_processing.py`
+*   책임:
+    *   원본 CSV 로드
+    *   미리보기 플롯 표시
+    *   박스 크기, 축, 슬라이스 범위 설정
+    *   분석 실행 요청
+    *   결과 CSV export 요청
+*   주요 UI 요소:
+    *   `Load CSV File...`
+    *   `Box Dimensions (mm)`
+    *   `Select Data...`
+    *   `Slice Range`
+    *   `Run Analysis`
+    *   `Export Results to CSV`
+    *   로그 텍스트 영역
 
 ---
-### 4. `PlotManager` (상호작용형 시각화)
+### 4. `WidgetResultsAnalyzer`
 ---
-*   **책임:** `Matplotlib Canvas`를 관리합니다. 다중 그래프, 범례, `SpanSelector`, 마우스 커서 값 표시를 처리합니다.
+*   위치: `src/analysis/ui/widget_results_analyzer.py`
+*   책임:
+    *   결과 폴더/파일 로드
+    *   결과 컬럼 트리 구성
+    *   메인 결과 플롯 표시
+    *   팝업 플롯 생성 및 상태 관리
+    *   선택 시점 기반 point export / scenario export
+*   주요 UI 요소:
+    *   `Time Window`
+    *   `Select Result Folder...`
+    *   `Plot Selected Results`
+    *   `Open Popup (Current Selection)`
+    *   `Close All Popups`
+    *   `Find Abs. Max`
+    *   `Export Point Data...`
+    *   `Export Scenario CSV`
 
 ---
-### 6. `PipelineController` (오케스트레이터)
+### 5. `PlotPopupDialog`
 ---
-*   **책임:** 전체 분석 파이프라인의 **조립 및 실행**을 담당하는 오케스트레이터 역할을 합니다. GUI로부터 받은 설정값과 **캐시된 데이터를 바탕으로** 필요한 `Analysis Modules`를 초기화하고, 정의된 순서대로 모듈들을 순차적으로 호출합니다.
-*   **핵심 로직:**
-    *   `run_analysis(..., parsed_data)`: `MainApp`으로부터 파싱된 데이터 캐시를 전달받으면, 파싱 단계를 건너뛰고 슬라이싱 단계부터 파이프라인을 실행하여 중복 작업을 방지합니다.
+*   위치: `src/analysis/ui/plot_popup_dialog.py`
+*   책임:
+    *   별도 팝업 창에서 선택 컬럼만 표시
+    *   메인 Step 2 선택 시점과 커서를 동기화
+    *   팝업 내 클릭으로 선택 시간을 다시 부모 위젯에 전달
 
 ---
-### 7. `Analysis Modules` (분석 기능 단위)
+### 6. `DataSelectionDialog`
 ---
-*   **책임:** 각각의 독립적인 분석 기능을 수행하는 클래스들의 집합입니다. 각 모듈은 `DataFrame`을 입력받아 특정 분석을 수행한 뒤, 결과가 추가/수정된 `DataFrame`을 반환하는 일관된 인터페이스(`process(dataframe)`)를 가집니다.
-*   **핵심 모듈:**
-    *   `Slicer`: 시간 또는 프레임 기준으로 데이터를 슬라이싱합니다.
-    *   `Parser`: 원본 데이터를 분석에 용이한 'wide-format'의 DataFrame으로 가공하고, GUI 미리보기용 데이터 캐싱에도 사용됩니다.
-    *   `MarkerSmoother`: 마커 데이터에 스무딩 필터를 적용합니다.
-    *   `PoseOptimizer`: 마커 위치를 기반으로 강체의 자세(위치/회전)를 계산합니다.
-    *   `VelocityCalculator`: 자세 데이터를 기반으로 속도/가속도를 계산합니다.
-    *   `FrameAnalyzer`: 계산된 운동학 데이터를 특정 좌표계 기준으로 변환/분석합니다.
+*   위치: `src/analysis/ui/data_selection_dialog.py`
+*   책임:
+    *   Step 1에서 미리보기 플롯 대상을 다중 선택하는 체크리스트 제공
+
+---
+### 7. `PlotManager`
+---
+*   위치: `src/analysis/core/plot_manager.py`
+*   책임:
+    *   Matplotlib 캔버스와 축 관리
+    *   데이터 플롯 갱신
+    *   hover probe, 선택 구간, 축 초기화 등 공통 플롯 동작 처리
+
+---
+### 8. `PipelineController`
+---
+*   위치: `src/analysis/core/pipeline_controller.py`
+*   책임:
+    *   분석 모듈 호출 순서 제어
+    *   로그 / 성공 / 실패 시그널 발행
+    *   `parsed_data`를 입력으로 받아 중복 파싱 없이 분석 수행
+
+---
+### 9. 분석 모듈 집합
+---
+*   위치: `src/analysis/`
+*   주요 구성:
+    *   `Parser`
+    *   `Slicer`
+    *   `Smoother`
+    *   `PoseOptimizer`
+    *   `VelocityCalculator`
+    *   `FrameAnalyzer`
+    *   `Validator`
+
+---
+### 10. 컬럼/헤더 단일 진실원
+---
+*   위치: `src/config/data_columns.py`
+*   책임:
+    *   계산용 컬럼명 정의
+    *   Multi-header 규칙 정의
+    *   Results Analyzer 트리/표시 순서 정의

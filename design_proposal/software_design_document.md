@@ -1,86 +1,83 @@
-# 소프트웨어 설계 문서 (v7): Box Motion Analyzer GUI
+# 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
 ## 1. 개요
+이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 원본 CSV 기반 분석 파이프라인과 결과 분석 기능을 하나의 PySide6 애플리케이션 안에서 일관되게 제공하는 것이다.
 
-이 문서는 스크립트 기반 분석 파이프라인을, **확장 가능하고 유지보수성이 높은 객체지향 아키텍처**를 적용하여 사용자 친화적인 GUI 애플리케이션으로 전환하기 위한 설계를 설명합니다. 주요 목표는 기존 분석 스크립트들의 기능을 안정적으로 통합하고, 향후 새로운 분석 모듈을 쉽게 추가할 수 있는 유연한 구조를 마련하는 것입니다.
+## 2. 상위 구조
+- `src/main.py`
+  - 애플리케이션 진입점
+- `src/launcher.py`
+  - 분석 GUI와 3D 시각화 GUI를 선택하는 런처
+- `src/analysis/`
+  - 분석 파이프라인과 분석용 GUI
+- `src/visualization/`
+  - 3D 시각화 GUI
+- `src/config/`
+  - 설정값과 컬럼 정의
 
----
+## 3. 분석 GUI 설계
+분석 GUI는 `MainApp` 하나로 묶이고, 내부는 Step 1 / Step 2 탭으로 분리된다.
 
-## 2. GUI 디자인 및 워크플로우
+### 3.1. Step 1: Raw Data Processing
+- 원본 CSV 로드
+- 파싱 기반 미리보기 플롯
+- Plot target / axis 선택
+- Slice Range 지정
+- 분석 실행
+- 결과 CSV export
 
-애플리케이션은 크게 두 가지 주요 기능 영역으로 나뉩니다. 전체적인 시각적 레이아웃은 `gui_sketch.txt`에, 세부 워크플로우는 `flow_chart.txt`에 정의되어 있습니다.
+### 3.2. Step 2: Results Analysis
+- 결과 폴더 / 파일 선택
+- Multi-header 결과 컬럼 트리 표시
+- 메인 플롯 비교
+- 팝업 플롯 열기
+- 선택 시점 분석
+- point export
+- scenario export
 
-### 2.1. 주요 기능 영역
+### 3.3. Step 간 연결
+- Step 1에서 결과를 export하면 Step 2가 방금 저장한 파일을 자동 로드한다.
+- export 시 Full/Slice timeline metadata가 결과 CSV에 함께 저장된다.
 
-- **원시 데이터 처리 (Raw Data Processing):**
-    - 원본 CSV 파일을 로드하고, 분석 옵션(예: 슬라이싱 범위)을 설정하며, 분석 파이프라인을 실행하고, 최종 결과를 내보내는 핵심 기능 영역입니다.
-    - 주요 상호작용으로는 Matplotlib 그래프를 통한 데이터 시각화, 데이터 선택 대화상자, 상호작용형 슬라이싱 등이 포함됩니다.
+## 4. 핵심 설계 원칙
 
-- **결과 분석기 (Results Analyzer):**
-    - 이전에 분석되어 CSV 파일로 저장된 결과들을 불러와 시각화하고 비교 분석하는 보조 기능 영역입니다.
-    - 사용자는 결과 파일 목록에서 파일을 선택하고, `QTreeWidget`에 표시된 데이터 컬럼들 중 원하는 항목을 선택하여 두 번째 Matplotlib 그래프에 플로팅할 수 있습니다.
-    - 그래프의 특정 지점을 클릭하거나, 특정 데이터 시리즈의 최대값을 찾는 '지점 분석(Point Analysis)' 기능을 통해 상세 데이터를 확인하고 내보낼 수 있습니다.
-    - **해석 시나리오 출력 (Analysis Scenario Output):** 사용자가 GUI에서 선택한 특정 파라미터와 분석 결과를 조합하여, 외부 시뮬레이션 등에서 사용할 수 있는 특정 포맷의 입력 파일(CSV)을 생성하는 기능입니다. *(상세한 데이터 포맷 및 규칙은 `scenario_export_format.md` 참조)*
+### 4.1. 파이프라인 제어와 UI 분리
+- UI는 설정 수집과 결과 표시를 담당한다.
+- 실제 분석 순서 제어는 `PipelineController`가 담당한다.
 
----
+### 4.2. 컬럼 정의의 중앙 관리
+- 컬럼명, Multi-header 규칙, Results Analyzer 표시 순서는 `src/config/data_columns.py`에서 관리한다.
+- 새 분석 결과를 추가할 때도 우선 이 파일 기준으로 맞춘다.
 
-## 3. 핵심 데이터 구조 및 처리
+### 4.3. 단일 DataFrame 기반 처리
+- 중간 단계마다 파일을 만들지 않고 DataFrame을 누적 확장한다.
+- 최종 결과만 export 단계에서 CSV로 저장한다.
 
-- **단일 데이터 흐름 (Single Data Flow):** 여러 중간 CSV 파일을 생성하는 대신, 단일 `pandas.DataFrame` 객체가 전체 분석 파이프라인을 통과합니다. 각 분석 단계(모듈)는 이 DataFrame에 필요한 데이터(컬럼)를 추가하거나 수정하여 다음 단계로 전달합니다.
-- **`DataLoader` 역할 명확화:** CSV 파일을 읽어 헤더 정보와 원본 데이터 `DataFrame`으로 분리하는 역할을 명확히 합니다.
-- **구조화된 키워드 관리:** 하드코딩된 문자열(예: "Box_Tx")을 방지하기 위해, `src/config/` 디렉토리 내에 구조화된 데이터 클래스를 사용하여 모든 데이터 컬럼과 주요 키워드를 중앙에서 관리합니다. 이는 코드의 안정성과 가독성, 개발 편의성을 크게 향상시킵니다.
+### 4.4. 분석 결과와 후처리의 분리
+- Step 1은 "계산과 저장"에 집중한다.
+- Step 2는 "불러오기, 비교, 지점 추출, 시나리오 생성"에 집중한다.
 
-*(상세 내용은 `data_structures.txt` 참조 - **최신 상태로 업데이트됨**)*
+## 5. 주요 컴포넌트
+- `MainApp`
+- `WidgetRawDataProcessing`
+- `WidgetResultsAnalyzer`
+- `PlotPopupDialog`
+- `DataSelectionDialog`
+- `PlotManager`
+- `PipelineController`
+- `Parser`, `Slicer`, `Smoother`, `PoseOptimizer`, `VelocityCalculator`, `FrameAnalyzer`
 
----
+세부 책임은 `component_specs.txt`를 따른다.
 
-## 4. 소프트웨어 컴포넌트 및 아키텍처
+## 6. 현재 설계상 유의점
+- Results Analyzer에는 현재 "현재 선택 컬럼으로 팝업 열기" 흐름이 구현되어 있다.
+- popup subset 편집용 대화상자 파일은 존재하지만 메인 UI 버튼 흐름에는 노출되지 않는다.
+- 문서상 과거 `main_app.py`나 prototype 기반 흐름은 더 이상 기준으로 보지 않는다.
 
-애플리케이션은 명확히 분리된 컴포넌트와 **파이프라인 패턴**을 따르는 분석 모듈로 구성됩니다.
-
-### 4.1. GUI 컴포넌트
-
-- **`MainApp` (GUI):** 사용자 입력을 받고, '원시 데이터 처리' 및 '결과 분석기'의 모든 UI 이벤트를 처리하며, 분석 실행을 `PipelineController`에 위임합니다.
-- **`WidgetRawDataProcessing`:** 원본 데이터 로드, 설정, 분석 실행 UI를 담당하는 독립 위젯입니다.
-- **`WidgetResultsAnalyzer`:** 결과 파일 로드, 시각화, 시나리오 출력을 담당하는 독립 위젯입니다.
-- **`DataSelectionDialog` (대화상자):** 다중 데이터 선택 UI를 제공합니다.
-- **`PlotManager` (시각화):** Matplotlib 캔버스를 관리하고, 상호작용형 그래프(줌, 팬, 슬라이싱 등)를 처리합니다.
-
-### 4.2. 백엔드 아키텍처
-
-- **`PipelineController` (오케스트레이터):**
-    - **책임:** 전체 분석 파이프라인의 **조립 및 실행**을 담당하는 오케스트레이터 역할을 합니다.
-    - GUI로부터 받은 설정값을 바탕으로 필요한 `Analysis Modules`를 초기화하고, 정의된 순서대로 모듈들을 순차적으로 호출합니다.
-    - 실제 계산 로직을 포함하지 않으며, 각 분석 단계의 실행 흐름만 제어합니다.
-    - **에러 처리:** 분석 중 발생하는 예외를 포착하여 `analysis_failed` 시그널을 통해 GUI에 알립니다.
-    - **데이터 검증:** `DataValidator`를 사용하여 분석 시작 전 데이터의 유효성을 검사합니다.
-
-- **`Analysis Modules` (분석 기능 단위):**
-    - **책임:** 각각의 독립적인 분석 기능을 수행합니다.
-    - 각 모듈은 `src/analysis/` 디렉토리 내에 별도의 클래스(예: `Slicer`, `MarkerSmoother`, `VelocityCalculator`)로 구현됩니다.
-    - 모든 분석 모듈은 `process(dataframe)` 메서드를 가지며, 입력받은 DataFrame을 처리한 후, 결과가 추가/수정된 DataFrame을 반환합니다.
-    - 이 모듈화된 구조는 각 기능의 독립성을 보장하여 테스트, 재사용, 확장을 매우 용이하게 만듭니다.
-    - **`Parser`의 이중 역할:** `Parser` 모듈은 두 가지 방식으로 사용됩니다. 첫째, CSV 파일 로드 직후 GUI에 빠른 미리보기를 제공하기 위해 데이터를 즉시 파싱하고 그 결과를 캐싱합니다. 둘째, 캐시된 데이터가 없을 경우 분석 파이프라인의 첫 단계로서 실행됩니다. 이 아키텍처는 초기 GUI 반응성을 높여줍니다.
-
-*(각 컴포넌트의 상세 기능 및 책임은 `component_specs.txt` 파일 참조)*
-
----
-
-## 5. 핵심 설정 파라미터
-
-애플리케이션의 특정 동작, 특히 분석 파이프라인의 내부 로직은 `src/config/` 디렉토리의 설정 값에 의해 제어됩니다. 이는 코드 변경 없이 분석 방법을 유연하게 조정할 수 있도록 합니다.
-
-- **`TRIMMING_STRATEGY`:**
-    - **설명:** 스무딩 필터의 경계 효과를 줄이기 위해 사용된 '패딩(padding)' 데이터를 어느 시점에 제거할지를 결정하는 전략입니다.
-    - **`'early'`:** 스무딩 직후, 다른 계산(자세, 속도 등)이 수행되기 **전에** 패딩을 제거합니다. 계산량을 줄일 수 있는 장점이 있습니다.
-    - **`'late'`:** 모든 계산이 완료된 **후에** 최종 결과물에서 패딩을 제거합니다. 모든 계산이 더 넓은 데이터 범위에 대해 수행되므로, 경계 부분의 정확도가 더 높을 수 있습니다.
-
-- **`BOX_DIMS`:**
-    - **설명:** 분석 대상인 상자의 물리적 크기 (L, W, H)를 밀리미터(mm) 단위로 정의하는 리스트입니다. 이 값은 `PoseOptimizer` 등 자세를 계산하는 여러 모듈에서 사용됩니다.
-    - **업데이트 흐름:** 이 값은 `config_app.py`에 초기 기본값을 가지지만, 사용자가 GUI의 'Box Dimensions' 입력 필드에 새로운 값을 입력하고 'Run Analysis'를 실행하면, 해당 시점의 값이 `config_app.BOX_DIMS`에 전역적으로 업데이트되어 이번 분석에 사용됩니다.
-
----
-
-## 6. 결론
-
-이 새로운 v7 설계는 기존의 절차지향적 스크립트 파이프라인을, **객체지향적이고 확장 가능한 모듈형 아키텍처**로 전환하는 것을 목표로 합니다. `PipelineController`와 `Analysis Modules`의 명확한 역할 분리를 통해, 코드의 복잡도를 낮추고 향후 유지보수 및 기능 추가가 용이한 안정적인 애플리케이션을 구축할 수 있는 기반을 마련합니다.
+## 7. 관련 설계 문서
+- GUI 상세: `gui_description.md`
+- 데이터 구조: `data_structures.txt`
+- 컴포넌트 책임: `component_specs.txt`
+- 시나리오 export 형식: `scenario_export_format.md`
+- 개략 흐름: `flow_chart.txt`
+- 레이아웃 개요: `gui_sketch.txt`
