@@ -11,6 +11,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
+from src.config import config_visualization as config
 from src.launcher import LauncherWindow
 
 def main():
@@ -19,6 +21,7 @@ def main():
     Launches the unified launcher window.
     """
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(config.APP_ICON_PATH))
     window = LauncherWindow()
     window.show()
     sys.exit(app.exec())

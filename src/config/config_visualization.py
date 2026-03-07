@@ -225,6 +225,7 @@ PLOT_DATA_DISPLAY_MAP = {
 import os
 LAUNCHER_TITLE = "3D Motion Analyzer"
 # Use absolute path relative to this config file's location
-LAUNCHER_ICON_PATH = os.path.join(os.path.dirname(__file__), "images", "box_icon.png")
+APP_ICON_PATH = os.path.join(os.path.dirname(__file__), "images", "app_icon.ico")
+LAUNCHER_ICON_PATH = os.path.join(os.path.dirname(__file__), "images", "launcher_image.png")
 LAUNCHER_BTN_PROCESS_TEXT = "Data Processing"
 LAUNCHER_BTN_VISUALIZE_TEXT = "3D Visualization"

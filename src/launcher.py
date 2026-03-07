@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QSpacerItem,
     QSizePolicy
 )
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt, QSize
 
 from src.config import config_visualization as config
@@ -21,6 +21,7 @@ class LauncherWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(config.LAUNCHER_TITLE)
+        self.setWindowIcon(QIcon(config.APP_ICON_PATH))
         self.setGeometry(300, 300, 600, 300)
 
         self.main_window = None
@@ -86,6 +87,7 @@ class LauncherWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(config.APP_ICON_PATH))
     window = LauncherWindow()
     window.show()
     sys.exit(app.exec())
