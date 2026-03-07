@@ -1,5 +1,7 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
+Last Reviewed: 2026-03-08
+
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 원본 CSV 기반 분석 파이프라인과 결과 분석 기능을 하나의 PySide6 애플리케이션 안에서 일관되게 제공하는 것이다.
 

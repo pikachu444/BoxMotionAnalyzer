@@ -1,5 +1,7 @@
 # Visualization Guide
 
+Last Reviewed: 2026-03-08
+
 이 문서는 `src/visualization/` 아래 3D 시각화 기능이 어떤 구조로 동작하는지 설명한다.
 
 ## 1. 목적

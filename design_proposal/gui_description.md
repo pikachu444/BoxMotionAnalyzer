@@ -1,5 +1,7 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
+Last Reviewed: 2026-03-08
+
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
 

@@ -1,5 +1,7 @@
 # Export Analysis Scenario 형식 설명서
 
+Last Reviewed: 2026-03-08
+
 이 문서는 현재 `WidgetResultsAnalyzer.export_analysis_scenario()`가 생성하는 파일 형식을 설명한다.
 
 ## 1. 출력 형식
