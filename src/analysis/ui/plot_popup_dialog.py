@@ -5,7 +5,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
-from src.analysis.core.plot_manager import PlotManager
+from src.analysis.ui.plot_manager import PlotManager
 
 
 class PlotPopupDialog(QDialog):

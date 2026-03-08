@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt, QSize
 
 from src.config import config_visualization as config
 from src.visualization.main_window import MainWindow
-from src.analysis.main_window import MainApp
+from src.analysis.app.main_window import MainApp
 
 class LauncherWindow(QMainWindow):
     def __init__(self):

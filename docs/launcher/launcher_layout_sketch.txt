@@ -6,7 +6,7 @@ Last Reviewed: 2026-03-08
 |                                     |                            |
 |                                     |  +-----------------------+ |
 |      (Image Area: QLabel)           |  |   Data Processing     | | (Button 1)
-|      (images/box_icon.png)          |  +-----------------------+ |
+|      (config/images/launcher_image) |  +-----------------------+ |
 |                                     |                            |
 |                                     |  +-----------------------+ |
 |                                     |  |   3D Visualization    | | (Button 2)

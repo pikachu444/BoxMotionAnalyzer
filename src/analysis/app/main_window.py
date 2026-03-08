@@ -11,9 +11,9 @@ try:
 except ImportError:
     pass
 
-from src.analysis.core.data_loader import DataLoader
-from src.analysis.core.pipeline_controller import PipelineController
-from src.analysis.parser import Parser
+from src.analysis.pipeline.data_loader import DataLoader
+from src.analysis.pipeline.pipeline_controller import PipelineController
+from src.analysis.pipeline.parser import Parser
 from src.config import config_visualization as viz_config
 from src.config.data_columns import FACE_PREFIX_TO_INFO, TimelineMetaCols
 from src.utils.header_converter import convert_to_multi_header
