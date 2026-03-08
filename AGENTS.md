@@ -16,9 +16,11 @@ Last Reviewed: 2026-03-08
 
 ## 문서 작업 원칙
 - 루트 `README.md`는 프로젝트 전체 개요와 실행/빌드/테스트 안내를 담당한다.
-- `docs/`는 참고 문서와 구현 메모를 둔다.
-- `design_proposal/`은 현재 설계와 워크플로우 설명을 둔다.
-- 설계 문서를 수정할 때는 `design_proposal/design_docs_guide.md`도 함께 참고한다.
+- `docs/`는 프로젝트 문서의 기준 폴더다.
+- `docs/analysis/design/`에는 분석 기능 설계 문서를 둔다.
+- `docs/analysis/reference/`에는 결과 스키마, export 형식, 구조 메모 같은 참조 문서를 둔다.
+- `docs/visualization/`에는 visualization 가이드와 레이아웃 설계 문서를 둔다.
+- 분석 설계 문서를 수정할 때는 `docs/analysis/design/design_docs_guide.md`도 함께 참고한다.
 - 저장소에서 관리하는 모든 문서(`.md`, `.txt`)에는 문서 상단에 `Last Reviewed: YYYY-MM-DD`를 유지한다.
 - 문서 내용을 검토하거나 의미 있게 수정했으면 `Last Reviewed` 날짜도 함께 갱신한다.
 

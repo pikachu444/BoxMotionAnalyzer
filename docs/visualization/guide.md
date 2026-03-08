@@ -53,7 +53,7 @@ Last Reviewed: 2026-03-08
 - 결과 CSV 헤더 규칙이 바뀌면 다음을 함께 확인해야 한다.
   - `src/config/data_columns.py`
   - `src/visualization/data_handler.py`
-  - `docs/changeheader.txt`
+  - `docs/analysis/reference/csv_multi_header_schema.md`
 - object id 구성 방식이 바뀌면 `DataHandler.load_analysis_result()`와 `ControlPanel.populate_object_list()`를 함께 점검해야 한다.
 - 새 속성(예: acceleration)을 시각화에 추가할 때는 아래 순서로 확인하는 것이 안전하다.
   - `config_visualization.PLOT_DATA_DISPLAY_MAP`

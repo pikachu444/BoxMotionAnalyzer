@@ -361,7 +361,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setFont(QFont("Arial", 9))
 
-    out_dir = os.path.join("design_proposal", "gui_mockups")
+    out_dir = os.path.join("docs", "analysis", "design", "gui_mockups")
     os.makedirs(out_dir, exist_ok=True)
 
     step1 = Step1MockWindowV31()

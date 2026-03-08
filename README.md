@@ -44,9 +44,10 @@ Last Reviewed: 2026-03-08
 문서 목적에 따라 아래 경로를 우선 참고하세요.
 
 *   **루트 `README.md`**: 프로젝트 개요, 실행 방법, 빌드/테스트 안내
-*   **`docs/documentation_index.md`**: `docs/` 폴더 안내
-*   **`docs/visualization_guide.md`**: 3D visualization 기능 설명
-*   **`design_proposal/`**: 현재 GUI 설계와 워크플로우 설명
+*   **`docs/documentation_index.md`**: `docs/` 폴더 전체 안내
+*   **`docs/analysis/`**: 분석 기능 설계 문서와 참조 문서
+*   **`docs/visualization/`**: 3D visualization 가이드와 레이아웃 설계 문서
+*   **`docs/launcher/`**: 런처 관련 레이아웃 스케치와 메모
 
 ---
 

@@ -104,10 +104,10 @@ def main():
     # These must be included in the MultiIndex to maintain structure
     # Frame -> (Info, Frame, Number)
     header_tuples.append((HeaderL1.INFO, HeaderL2.FRAME, HeaderL3.NUM))
-    # Time -> (Info, Time, s) (Using 's' as per changeheader.txt/data_columns.py or 'Time'?)
+    # Time -> (Info, Time, s) (Using 's' as documented in csv_multi_header_schema.md/data_columns.py or 'Time'?)
     # data_columns.py: RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
     # But HeaderL3.TIME is "Time". HeaderL3.SEC is "s".
-    # changeheader.txt says: `Time` -> ('Info', 'Time', 's')
+    # csv_multi_header_schema.md says: `Time` -> ('Info', 'Time', 's')
     # Let's check src/config/data_columns.py again.
     # RESULT_TIME_COL = (HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME) -> ('Info', 'Time', 'Time')
     # Wait, in data_columns.py: HeaderL3.TIME = "Time".
