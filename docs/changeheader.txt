@@ -1,5 +1,7 @@
 # CSV Multi-Header 스키마 (v3)
 
+Last Reviewed: 2026-03-08
+
 이 문서는 현재 코드 기준의 결과 CSV Multi-Header 규칙을 정리한다.
 
 ## 1. 헤더 계층

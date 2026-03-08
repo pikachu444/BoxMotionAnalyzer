@@ -2,27 +2,83 @@
 |      핵심 데이터 구조 설계              |
 =========================================
 
-이 문서는 Box Motion Analyzer 애플리케이션 내부의 데이터 관리를 위한 핵심 데이터 구조를 설계합니다. 이 설계는 명확성, 관심사 분리, 효율적인 데이터 조작에 중점을 둡니다.
+Last Reviewed: 2026-03-08
+
+이 문서는 현재 구현 기준의 핵심 데이터 구조와 데이터 흐름을 정리한다.
 
 ---
 ### 1. 분석 설정 (Analysis Configuration)
 ---
 
-*   **목적:** 사용자가 GUI를 통해 설정하는 모든 분석 조건을 담는 컨테이너 역할을 합니다. 현재 구현에서는 별도의 클래스 대신, `main_app.py`의 `run_pipeline` 메서드 내에서 동적으로 생성되는 **딕셔너리(dictionary)**를 사용합니다.
-*   **핵심 키-값 쌍:**
-    *   `slice_filter_by`: `'time'` 또는 `'frame'`. 현재는 `'time'`으로 고정되어 사용됩니다.
-    *   `slice_start_val`: 분석할 구간의 시작 시간 (초).
-    *   `slice_end_val`: 분석할 구간의 종료 시간 (초).
-    *   (기타 `PoseOptimizer`나 `Smoother`에 필요한 파라미터들이 향후 추가될 수 있음)
+*   **형태:** 별도 클래스를 두지 않고 `dict`를 사용한다.
+*   **생성 위치:** `WidgetRawDataProcessing.emit_run_analysis()`
+*   **주요 키**
+    *   `slice_filter_by`: 현재는 `'time'` 고정
+    *   `slice_start_val`: 분석 시작 시각(초)
+    *   `slice_end_val`: 분석 종료 시각(초)
+
+이 설정은 `MainApp.run_pipeline()`을 거쳐 `PipelineController.run_analysis()`에 전달된다.
 
 ---
-### 2. 데이터 처리 흐름: 단일 DataFrame 누적 방식
+### 2. 런타임 데이터 객체
 ---
 
-*   **목적:** 여러 중간 데이터 객체나 파일을 생성하는 대신, 단일 `pandas.DataFrame` 객체를 사용하여 전체 분석 파이프라인의 데이터 흐름을 관리합니다. 이는 메모리 효율성을 높이고 데이터의 일관성을 유지하는 데 도움이 됩니다.
-*   **구현 방식:**
-    1.  **초기 상태:** `DataLoader`가 생성한 `RawData` DataFrame에서 시작합니다.
-    2.  **파이프라인 실행:** `PipelineController`에 의해 호출된 각 `Analysis Module` (예: `Slicer`, `MarkerSmoother`, `PoseOptimizer` 등)은 이 DataFrame을 입력으로 받습니다.
-    3.  **데이터 누적:** 각 모듈은 자신의 분석 결과를 입력 DataFrame에 **새로운 컬럼으로 추가**하거나 기존 컬럼을 수정한 뒤, 이 **수정/확장된 DataFrame을 반환**합니다.
-    *   **예시:** `PoseOptimizer`는 자세 정보를 담은 `Box_Tx`, `Box_Ty` 등의 컬럼을 추가하고, `VelocityCalculator`는 속도 정보를 담은 `CoM_Vx`, `AngVel_Wx` 등의 컬럼을 잇달아 추가합니다.
-    4.  **최종 결과:** 파이프라인의 마지막 단계를 거친 DataFrame이 모든 분석 결과를 포함하는 최종 결과물이 됩니다. `IntegrateVisualizationData.py`와 같은 별도의 데이터 통합 단계가 필요 없어집니다.
+*   **`header_info`**
+    *   `DataLoader.load_csv()`가 반환하는 헤더 메타데이터
+*   **`raw_data`**
+    *   원본 CSV 본문 DataFrame
+*   **`parsed_data`**
+    *   `Parser.process()`가 생성한 미리보기/분석용 DataFrame
+    *   Step 1 플롯과 실제 분석 파이프라인의 공통 입력으로 사용된다
+*   **`final_result`**
+    *   `PipelineController`가 반환한 최종 결과 DataFrame
+    *   Step 1 내보내기와 Step 2 결과 분석의 기준 데이터가 된다
+
+---
+### 3. 단일 DataFrame 누적 방식
+---
+
+*   파이프라인은 중간 CSV를 만들지 않고 하나의 `DataFrame`을 계속 확장한다.
+*   주요 단계는 다음과 같다.
+    1. `Parser`가 원본 데이터를 wide-format으로 정리
+    2. `Slicer`가 필요한 시간 구간을 선택
+    3. `Smoother`가 마커 데이터를 보정
+    4. `PoseOptimizer`가 Position 컬럼을 계산
+    5. `VelocityCalculator`가 Velocity / Acceleration 컬럼을 계산
+    6. `FrameAnalyzer`가 Analysis 컬럼을 계산
+*   각 단계는 입력 DataFrame에 컬럼을 추가하거나 수정한 뒤 반환한다.
+
+---
+### 4. 결과 컬럼 체계
+---
+
+실제 컬럼 체계의 단일 진실원(Single Source of Truth)은 `src/config/data_columns.py`이다.
+
+*   **Position / CoM**
+    *   `P_TX`, `P_TY`, `P_TZ`, `P_RX`, `P_RY`, `P_RZ`
+*   **Velocity / CoM**
+    *   `BoxLocal_V_*`
+    *   `Global_V_*`
+*   **Acceleration / CoM**
+    *   `BoxLocal_A_*`
+    *   `Global_A_*`
+*   **Analysis**
+    *   `C1~C8` 기준 분석 컬럼
+*   **Timeline metadata**
+    *   Full/Slice 시작과 끝 시각 컬럼이 결과 export 시 추가된다
+
+---
+### 5. Step 2용 결과 데이터
+---
+
+*   Step 1에서 CSV export 시 `MainApp._add_timeline_context_columns()`가 timeline metadata를 추가한다.
+*   이후 `convert_to_multi_header()`가 flat column을 3-level multi-header로 변환한다.
+*   Step 2는 `DataLoader.load_result_csv()`로 이 결과 파일을 읽고, `DISPLAY_RESULT_COLUMNS` 기준으로 트리와 플롯 항목을 구성한다.
+
+---
+### 6. 시나리오 export 데이터
+---
+
+*   입력 기준 데이터는 Step 2에서 현재 선택된 시점의 단일 row이다.
+*   출력 형식은 `scenario_export_format.md`에 정의된 7줄 텍스트 CSV 형식이다.
+*   `Manual Offset`, `Manual Height` 체크 상태에 따라 offset 코너와 높이값 결정 방식이 달라진다.

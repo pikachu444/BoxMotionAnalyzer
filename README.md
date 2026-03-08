@@ -1,5 +1,7 @@
 # Box Motion Analyzer
 
+Last Reviewed: 2026-03-08
+
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
 ## 🚀 주요 기능
@@ -34,6 +36,17 @@
 *   **`docs/`**: 개발 문서 및 참고 자료.
 *   **`data/`**: 데이터 입출력 폴더 (테스트 데이터 포함).
 *   **`tests/`**: 통합 테스트 및 구조 검증 스크립트.
+
+---
+
+## 📘 문서 안내
+
+문서 목적에 따라 아래 경로를 우선 참고하세요.
+
+*   **루트 `README.md`**: 프로젝트 개요, 실행 방법, 빌드/테스트 안내
+*   **`docs/documentation_index.md`**: `docs/` 폴더 안내
+*   **`docs/visualization_guide.md`**: 3D visualization 기능 설명
+*   **`design_proposal/`**: 현재 GUI 설계와 워크플로우 설명
 
 ---
 

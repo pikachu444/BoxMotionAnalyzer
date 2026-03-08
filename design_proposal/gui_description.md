@@ -1,100 +1,100 @@
-# Box Motion Analyzer v2.0 GUI 구조 설명서
+# Box Motion Analyzer v2.2 GUI 구조 설명서
+
+Last Reviewed: 2026-03-08
 
 ## 개요
-이 문서는 `main_app.py`를 기반으로 한 Box Motion Analyzer의 GUI 레이아웃, 각 구성 요소의 기능 및 사용자 작업 흐름을 상세히 설명합니다.
+이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
 
-## 1. 프로그램의 목적
-이 애플리케이션은 CSV 파일에 기록된 상자의 3D 모션 데이터를 불러와 분석하고, 그 결과를 시각화하며, 사용자가 원하는 형태로 데이터를 가공하고 저장할 수 있도록 돕는 GUI 도구입니다.
+## 1. 전체 구조
+- 메인 분석 창은 `QTabWidget` 기반의 2단계 흐름으로 구성된다.
+- `Step 1: Raw Data Processing`
+  - 원본 CSV 로드, 미리보기, 슬라이스 범위 지정, 분석 실행, 결과 CSV 내보내기
+- `Step 2: Results Analysis`
+  - 결과 CSV 로드, 컬럼 선택 플롯, 팝업 플롯, 지점 분석, 시나리오 CSV 내보내기
+- 하단 `QStatusBar`는 파일 로드, 분석 진행, 내보내기 성공/실패 상태를 표시한다.
 
-## 2. 전체 레이아웃
-애플리케이션의 창은 크게 두 개의 주요 영역으로 나뉩니다:
-1.  **Raw Data Processing:** 원본 CSV 데이터를 불러와 분석을 실행하고 결과를 내보내는 주 작업 영역입니다.
-2.  **Results Analyzer:** 이미 분석이 완료된 결과 CSV 파일들을 불러와 시각화하고 비교하는 보조 작업 영역입니다.
+## 2. Step 1: Raw Data Processing
+`WidgetRawDataProcessing`이 담당한다.
 
-창의 가장 하단에는 **상태 표시줄(Status Bar)**이 위치합니다.
+### 2.1. 상단 레이아웃
+- 좌측: Matplotlib 그래프와 네비게이션 툴바
+  - 파일 로드 직후 파싱된 `parsed_data`를 기준으로 미리보기 그래프를 그린다.
+  - `PlotManager`가 확대/축소, 마우스 오버, 슬라이스 구간 선택을 처리한다.
+- 우측: 제어 패널
+  - `Load CSV File...`
+  - 선택된 파일 경로 표시
+  - `Box Dimensions (mm)` 입력
+  - 로그 출력 텍스트 영역
 
----
+### 2.2. 하단 컨트롤
+- `Plot Options`
+  - `Select Data...`
+  - 선택된 대상 표시
+  - 축 선택 콤보박스 (`Position-X`, `Position-Y`, `Position-Z`)
+- `Slice Range`
+  - 체크 가능한 그룹 박스
+  - 활성화 시 `Start`, `End` 입력값과 그래프 구간 선택기가 동기화된다
+- 실행 버튼
+  - `Run Analysis`
+  - `Export Results to CSV`
 
-## 3. 세부 구성 요소
+### 2.3. 주요 동작
+- 파일 로드 시 `DataLoader`와 `Parser`가 즉시 미리보기용 데이터를 준비한다.
+- `Run Analysis`는 현재 박스 크기와 슬라이스 범위를 설정 딕셔너리로 만들어 `PipelineController`에 전달한다.
+- `Export Results to CSV`는 최종 분석 결과에 Full/Slice timeline metadata를 추가한 뒤 multi-header CSV로 저장한다.
+- 내보내기 성공 시 저장한 결과 파일을 Step 2에 즉시 로드하고, 탭도 Step 2로 전환한다.
 
-### 3.1. Raw Data Processing 영역
-이 영역은 원본 데이터를 처리하고 분석하는 모든 기능을 포함하며, 상단 패널과 하단 컨트롤 패널로 구성됩니다.
+## 3. Step 2: Results Analysis
+`WidgetResultsAnalyzer`가 담당한다.
 
-#### 3.1.1. 상단 패널 (좌: 그래프, 우: 컨트롤)
-- **그래프 영역 (Plot Area):**
-    - **설명:** 원본 데이터 또는 분석 결과를 시각적으로 보여주는 Matplotlib 그래프입니다.
-    - **포함된 요소:** 그래프 캔버스, 네비게이션 툴바.
-- **우측 패널:**
-    - **`Load CSV File...` (QPushButton):** 분석할 원본 CSV 파일을 선택합니다.
-    - **파일 경로 (QLabel):** 선택된 파일의 경로를 표시합니다.
-    - **Box Dimensions (QGroupBox):**
-        - **`Box Dimensions (mm)`:** 분석에 사용될 상자의 물리적 크기를 밀리미터(mm) 단위로 입력합니다.
-        - **`L` (QLineEdit):** 상자의 길이 (Length)
-        - **`W` (QLineEdit):** 상자의 너비 (Width)
-        - **`H` (QLineEdit):** 상자의 높이 (Height)
-    - **로그 출력 (Log Output):**
-        - **설명:** 파일 로딩 상태, 분석 진행 상황, 오류 메시지 등 애플리케이션의 주요 이벤트 로그를 시간 순서대로 표시하는 읽기 전용 텍스트 영역입니다.
+### 3.1. Time Window 영역
+- Active File
+- Number of Samples
+- Full timeline / Slice timeline 정보 문자열
+- Slice 구간을 시각적으로 보여주는 막대형 타임라인
 
-#### 3.1.2. 하단 컨트롤 패널
-- **Plot Options (QGroupBox):**
-    - **`Select Data...` (QPushButton):** 그래프에 표시할 특정 마커 또는 Rigid Body Position을 선택하는 대화상자를 엽니다.
-    - **선택된 데이터 (QLabel):** 선택된 데이터 열의 이름을 표시합니다.
-    - **`Axis` (QComboBox):** 그래프에 표시할 기본 축을 선택합니다 (드롭다운 메뉴: `Position-X`, `Position-Y`, `Position-Z`).
-- **Slice Range (QGroupBox, Checkable):**
-    - **체크박스:** 이 그룹 박스 좌측의 체크박스를 통해 데이터 **슬라이싱(Slicing)** 기능의 활성화 여부를 결정합니다.
-    - **`Start` (QLineEdit):** 분석할 데이터의 시작 지점(시간 또는 프레임)을 숫자로 입력합니다.
-    - **`End` (QLineEdit):** 분석할 데이터의 종료 지점을 숫자로 입력합니다.
-- **실행 버튼:**
-    - **`Run Analysis` (QPushButton):** 위에서 설정된 모든 파라미터(슬라이싱 범위, 박스 크기 등)를 바탕으로 전체 데이터 분석 파이프라인을 실행합니다. 분석 중에는 비활성화됩니다.
-    - **`Export Results to CSV` (QPushButton):** 분석이 성공적으로 완료된 후 활성화됩니다. 이 버튼을 누르면 분석 결과가 담긴 새로운 CSV 파일을 저장할 수 있습니다.
+### 3.2. 본문 3분할 레이아웃
+- `1. Result Files`
+  - `Select Result Folder...`
+  - 읽기 전용 Folder Path
+  - 결과 CSV 목록
+- `2. Data Selection`
+  - 결과 컬럼 트리 (`QTreeWidget`)
+  - `Clear Selection`
+  - `Plot Selected Results`
+  - `Open Popup (Current Selection)`
+  - `Close All Popups`
+  - Opened Popups / Checked Columns 상태 표시
+- `3. Point Analysis & Export`
+  - `Point Analysis`
+    - `Target`
+    - `Find Abs. Max`
+    - 선택된 시점 표시
+    - `Export Point Data...`
+  - `4. Export Analysis Input`
+    - `Manual Offset`
+    - `Manual Height`
+    - `Offset0~2`
+    - `Run Time`
+    - `Step`
+    - `Scene Name`
+    - `Export Scenario CSV`
 
----
+### 3.3. 하단 메인 플롯
+- 현재 체크된 결과 컬럼을 한 그래프에 겹쳐서 표시한다.
+- 그래프 클릭 시 가장 가까운 시점을 선택한다.
+- 선택된 시점은 붉은 수직선 커서와 선택 정보 레이블로 반영된다.
 
-### 3.2. Results Analyzer 영역
-이 영역은 이전에 분석되어 저장된 결과 파일들을 시각화하는 데 사용됩니다.
+### 3.4. 팝업 플롯
+- `PlotPopupDialog`는 현재 체크된 컬럼 집합으로 별도 창을 연다.
+- 팝업 그래프도 클릭 가능하며, 선택된 시간이 메인 Step 2와 동기화된다.
+- 현재 구현은 "현재 선택 항목으로 팝업 열기"만 지원하며, 별도 subset 편집 버튼은 노출하지 않는다.
 
-- **결과 그래프 (Result Plot Area):**
-    - **설명:** 선택된 결과 데이터들을 시각적으로 보여주는 두 번째 Matplotlib 그래프입니다.
-- **결과 컨트롤 패널 (Result Controls):** 이 패널은 파일 선택 부분과 지점 분석 부분으로 나뉩니다.
-    - **파일 및 데이터 선택:**
-        - **`Select Result Folder...` (QPushButton):** 결과 파일들이 저장된 폴더를 선택합니다.
-        - **`Plot Selected Results` (QPushButton):** 트리에서 선택된 데이터들을 결과 그래프에 그립니다. (상단으로 이동됨)
-        - **`Result File List` 및 `Select Data to Plot`:** 파일 목록(좌)과 데이터 선택 트리(우)가 **수평으로 나란히 배치**되어 공간 효율성을 높였습니다.
-    - **지점 분석 (Point Analysis) (QGroupBox):** (2줄로 재구성됨)
-        - **첫째 줄:**
-            - **대상 데이터 (QComboBox):** 최대값을 찾을 데이터 시리즈를 선택합니다.
-            - **`Find Abs. Max` (QPushButton):** '대상 데이터'로 지정된 시리즈의 **절대값**이 최대인 지점을 찾아 커서로 표시합니다.
-        - **둘째 줄:**
-            - **선택 지점 정보 (QLabel):** 그래프에서 선택된 지점의 시간과 값 정보를 표시합니다.
-            - **`Export Point Data...` (QPushButton):** 현재 선택된 단일 시점의 전체 데이터 행을 CSV 파일로 내보냅니다.
-    - **해석 시나리오 출력 (Analysis Scenario Output) (QGroupBox):**
-        - **`수동 오프셋 선택` (QCheckBox):** 사용자가 직접 오프셋을 선택할지 여부를 결정합니다. 체크 해제 시, 프로그램이 내부적으로 오프셋을 결정하며 아래의 드롭다운 메뉴는 비활성화됩니다.
-        - **`오프셋0`, `오프셋1`, `오프셋2` (QComboBox):** 수동 선택 시 활성화되며, 각각 'C1'부터 'C8'까지의 값 중 **서로 중복되지 않게** 선택합니다. 하나의 콤보박스에서 값이 선택되면, 다른 콤보박스에서는 해당 값을 선택할 수 없도록 목록이 동적으로 변경됩니다.
-        - **`analysis run time` (QLineEdit):** 분석 실행 시간을 설정합니다. (기본값: "0.1")
-        - **`critical time step` (QLineEdit):** 해석에 사용될 최소 시간 단계를 설정합니다. (기본값: "1e-7")
-        - **`drop scene name` (QLineEdit):** 생성될 파일의 이름을 지정합니다. (기본값: 빈 문자열)
-        - **`Export analysis input` (QPushButton):** 선택된 시나리오(오프셋 조합 및 입력값)를 기반으로 분석 입력을 생성하고 내보내는 기능을 수행합니다 (세부 동작은 추후 정의).
-
----
-
-## 4. 상태 표시줄 (Status Bar)
-- **설명:** 창의 가장 하단에 위치하며, "File loaded", "Running analysis...", "Analysis complete" 등 애플리케이션의 현재 상태를 간략한 텍스트로 알려줍니다.
-
-## 5. 기본 작업 흐름 (User Workflow)
-
-### 원본 데이터 분석 흐름
-1. 사용자가 **`Load CSV File...`** 버튼을 눌러 원본 데이터를 불러옵니다.
-2. 프로그램은 로드된 데이터를 즉시 파싱하여 **그래프 영역**에 기본 데이터를 표시합니다.
-3. 사용자는 필요에 따라 **Slice Range**나 **Box Dimensions** 등의 분석 옵션을 수정합니다.
-4. 사용자가 **`Run Analysis`** 버튼을 누르면, 백그라운드에서 분석이 시작되고 진행 상황이 **로그 출력** 창에 표시됩니다.
-5. 분석이 완료되면, **`Export Results to CSV`** 버튼이 활성화되며, 사용자는 결과를 파일로 저장할 수 있습니다.
-
-### 결과 데이터 분석 및 지점 추출 흐름
-1. 사용자가 **`Select Result Folder...`** 버튼을 눌러 결과 파일들이 있는 폴더를 선택합니다.
-2. **Result File List**에서 특정 파일을 선택하면, 데이터 구조가 **Select Data to Plot** 트리에 로드됩니다.
-3. 사용자는 트리에서 원하는 데이터들을 체크하고 **`Plot Selected Results`** 버튼을 눌러 그래프를 확인합니다. (이전 선택 항목은 유지됩니다.)
-4. **(지점 분석)** 사용자는 다음 두 가지 방법으로 특정 시점을 선택합니다:
-    - **수동:** 그래프를 직접 마우스로 클릭합니다.
-    - **자동:** '대상 데이터'를 선택하고 **`Find Abs. Max`** 버튼을 누릅니다.
-5. 선택된 시점은 그래프의 수직선 커서와 정보 레이블을 통해 시각적으로 확인됩니다.
-6. 사용자는 **`Export Point Data...`** 버튼을 눌러, 현재 선택된 단일 시점의 **전체 데이터 행**을 CSV 파일로 저장합니다.
+## 4. 현재 사용자 흐름
+1. Step 1에서 원본 CSV를 로드한다.
+2. 필요한 데이터와 축, 슬라이스 범위를 조정한다.
+3. 분석을 실행한다.
+4. 결과를 CSV로 내보낸다.
+5. 저장 직후 Step 2가 열리고 방금 저장한 결과 파일이 자동 로드된다.
+6. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
+7. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.

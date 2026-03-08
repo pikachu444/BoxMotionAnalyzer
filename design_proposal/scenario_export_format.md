@@ -1,66 +1,74 @@
-### '해석 시나리오 출력 (Export Analysis Scenario)' 기능 상세 설명
+# Export Analysis Scenario 형식 설명서
 
-이 문서는 '해석 시나리오 출력' 버튼을 통해 생성되는 CSV 파일의 데이터 구조와 각 값의 의미, 그리고 데이터가 결정되는 방식에 대해 상세히 설명합니다.
+Last Reviewed: 2026-03-08
 
-#### 1. 최종 출력 포맷
+이 문서는 현재 `WidgetResultsAnalyzer.export_analysis_scenario()`가 생성하는 파일 형식을 설명한다.
 
-생성되는 CSV 파일은 총 7개의 줄로 구성된 텍스트 파일입니다.
+## 1. 출력 형식
+- 결과는 텍스트 기반 CSV 파일이다.
+- 총 7줄 구조를 사용한다.
+  - 1~6줄: `키,값`
+  - 7줄: 나머지 `키,값` 쌍을 한 줄에 이어 붙인 형식
 
--   **첫 6줄:** 각각의 줄은 `키,값` 형태의 한 쌍의 데이터를 가집니다.
-    ```
-    1,Left
-    2,Right
-    3,Bottom
-    4,Top
-    5,Rear
-    6,Front
-    ```
--   **마지막 7번째 줄:** 나머지 모든 `키,값` 쌍들이 쉼표(`,`)로 구분되어 하나의 긴 줄로 이어집니다.
-    ```
-    cat,Corner_Drop_2nd,drop_name,Scene01,...,run_time,0.2,tmin,1e-7
-    ```
+예시:
+```text
+1,Left
+2,Right
+3,Bottom
+4,Top
+5,Rear
+6,Front
+cat,Corner_Drop_2nd,drop_name,Scene01,...,run_time,0.1,tmin,1e-7
+```
 
-#### 2. 데이터 필드별 상세 설명
+## 2. UI 입력과 필드 매핑
+- `Scene Name` -> `drop_name`
+- `Run Time` -> `run_time`
+- `Step` -> `tmin`
+- `Manual Offset`, `Manual Height` 체크 상태는 `variable_1..3`, `value_1..3` 계산 방식에 영향을 준다
 
-| CSV 필드 (키) | 값 (Value) | 설명 |
-| :--- | :--- | :--- |
-| `1` ~ `6` | `Left`, `Right`, `Bottom`, `Top`, `Rear`, `Front` | 파일의 시작 부분에 항상 고정적으로 포함되는 값입니다. |
-| `cat` | `Corner_Drop_2nd` | 분석 카테고리를 나타내는 고정된 문자열입니다. |
-| `drop_name` | (사용자 입력) | GUI의 'drop scene name' 입력 필드에 사용자가 입력한 값입니다. |
-| `variable_1..3` | `LeftBottomRear`, `RightTopFront` 등 | **오프셋 코너의 이름**입니다. 이 값은 '수동/자동 오프셋 선택' 모드에 따라 결정됩니다. (아래 '3. 오프셋 코너 결정 로직' 참조) |
-| `value_1..3` | (계산된 높이 값) | `variable_1..3`에 해당하는 각 코너의 `analysisinputheight` (수직 높이) 값입니다. 이 값은 '결과 분석기' 그래프에서 사용자가 선택한 특정 시간 지점의 분석 결과(`result_data`)로부터 조회됩니다. |
-| `variable_4`, `value_4` | `OFFSET`, `0.0` | 현재는 항상 `0.0`으로 고정된 오프셋 값입니다. |
-| `variable_5..7` | `ANG_VEL_X`, `ANG_VEL_Y`, `ANG_VEL_Z` | CoM(질량 중심)의 **각속도** 성분입니다. |
-| `value_5..7` | (계산된 각속도 값) | `variable_5..7`에 해당하는 각속도 값입니다. '결과 분석기' 그래프에서 선택된 시간 지점의 `result_data`로부터 조회됩니다. |
-| `variable_8..10` | `TRA_VEL_X`, `TRA_VEL_Y`, `TRA_VEL_Z` | CoM(질량 중심)의 **병진 속도** 성분입니다. |
-| `value_8..10` | (계산된 병진 속도 값) | `variable_8..10`에 해당하는 병진 속도 값입니다. '결과 분석기' 그래프에서 선택된 시간 지점의 `result_data`로부터 조회됩니다. |
-| `variable_11..13` | `POSI_FROM_CENT_X`, `POSI_FROM_CENT_Y`, `POSI_FROM_CENT_Z` | 현재는 항상 `0.0`으로 고정된 값입니다. |
-| `value_11..13` | `0.0` | `variable_11..13`에 해당하는 값입니다. |
-| `run_time` | (사용자 입력) | GUI의 'analysis run time' 입력 필드에 사용자가 입력한 값입니다. |
-| `tmin` | (사용자 입력) | GUI의 'critical time step' 입력 필드에 사용자가 입력한 값입니다. |
+## 3. 고정 필드
+- `1~6`: `Left`, `Right`, `Bottom`, `Top`, `Rear`, `Front`
+- `cat`: 항상 `Corner_Drop_2nd`
+- `variable_4`, `value_4`: 항상 `OFFSET`, `0.0`
 
-#### 3. 오프셋 코너 결정 로직 (`variable_1..3` 및 `value_1..3`)
+## 4. offset 코너 결정 규칙
 
-`variable`과 `value` 1, 2, 3에 해당하는 3개의 코너와 그 높이 값은 GUI의 '수동 오프셋 선택' 체크박스 상태에 따라 두 가지 방식으로 결정됩니다.
+### 4.1. 자동 offset
+- `Manual Offset`이 꺼져 있으면 자동 규칙을 사용한다.
+- 현재 선택된 시점 row에서 `Analysis / C1~C8 / RelativeHeight`를 비교한다.
+- 가장 낮은 코너를 찾고, 그 코너가 속한 4개 그룹 안에서 높이가 가장 낮은 3개를 선택한다.
+- 선택된 코너 이름은 `CORNER_NAME_MAP`으로 사람이 읽는 이름으로 변환되어 `variable_1..3`에 저장된다.
+- 해당 높이값은 `value_1..3`에 저장된다.
 
-##### 3.1. 자동 계산 모드 (체크박스 해제 시)
+### 4.2. 수동 offset
+- `Manual Offset`이 켜져 있으면 사용자가 고른 `Offset0~2`를 그대로 사용한다.
+- `Manual Height`가 꺼져 있으면 현재 선택 시점의 `RelativeHeight` 값을 사용한다.
+- `Manual Height`가 켜져 있으면 텍스트 입력값을 그대로 `value_1..3`에 사용한다.
 
-1.  사용자가 '결과 분석기' 그래프에서 선택한 **특정 시간 지점**의 데이터(`result_data`)를 기준으로 합니다.
-2.  해당 시점에서 8개 코너(C1~C8)의 `analysisinputheight` (수직 높이) 값을 모두 비교하여 **가장 낮은 높이를 가진 코너**를 찾습니다.
-3.  찾아낸 최소 높이 코너가 어느 그룹에 속하는지 확인합니다.
-    *   **그룹 1:** C1, C2, C3, C4
-    *   **그룹 2:** C5, C6, C7, C8
-4.  해당 코너가 속한 **동일한 그룹 내**에서, 높이가 낮은 순서대로 코너 3개를 최종 선택합니다.
-    *   예: 최소 높이 코너가 C3였다면, 그룹 1(C1, C2, C3, C4) 내에서 높이 순으로 정렬하여 상위 3개를 선택합니다.
-5.  선택된 3개 코너의 이름(예: 'RightTopRear')과 해당 시점의 높이 값이 `variable_1..3`과 `value_1..3`에 순서대로 매칭됩니다.
+## 5. 속도 필드
+- `variable_5..7`
+  - `ANG_VEL_X`
+  - `ANG_VEL_Y`
+  - `ANG_VEL_Z`
+- `variable_8..10`
+  - `TRA_VEL_X`
+  - `TRA_VEL_Y`
+  - `TRA_VEL_Z`
 
-##### 3.2. 수동 계산 모드 (체크박스 선택 시)
+속도 값은 현재 선택된 시점 row의 CoM velocity 컬럼에서 읽는다.
 
-1.  GUI의 '오프셋' 콤보박스 3개에서 **사용자가 직접 선택한 코너**(예: C2, C5, C7)를 가져옵니다.
-2.  선택된 3개 코너의 이름과, 해당 코너들의 `analysisinputheight` 값을 '결과 분석기' 그래프에서 선택된 시간 지점의 `result_data`에서 조회합니다.
-3.  조회된 코너 이름과 높이 값이 `variable_1..3`과 `value_1..3`에 순서대로 매칭됩니다.
+주의:
+- `Manual Offset`과 `Manual Height`가 모두 켜진 경우, 구현상 높이값은 수동 입력을 사용하고 속도값은 `0.0`으로 채운다.
 
-###### 3.2.1. 높이 값 직접 지정 (체크박스 선택 시)
-*   **'높이 값 직접 지정'** 체크박스가 활성화되면, `value_1..3` 값은 더 이상 `result_data`에서 조회하지 않습니다.
-*   대신, GUI에 표시되는 **'직접 입력 높이'** 텍스트 필드 3개에 사용자가 입력한 숫자 값을 `value_1..3`으로 사용합니다.
-*   이 기능은 사용자가 특정 높이 값을 시뮬레이션하거나, 계산된 값 대신 원하는 값을 강제로 지정해야 할 때 유용합니다.
+## 6. 기타 고정 값
+- `variable_11..13`
+  - `POSI_FROM_CENT_X`
+  - `POSI_FROM_CENT_Y`
+  - `POSI_FROM_CENT_Z`
+- `variable_14..16`
+  - `ROT_ANG_VEL_X`
+  - `ROT_ANG_VEL_Y`
+  - `ROT_ANG_VEL_Z`
+
+현재 구현에서는 위 값들을 모두 `0.0`으로 출력한다.

@@ -1,5 +1,7 @@
 # Code Structure Notes (Current)
 
+Last Reviewed: 2026-03-08
+
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
 
