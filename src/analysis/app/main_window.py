@@ -1,7 +1,6 @@
 import sys
 import pandas as pd
 from PySide6.QtCore import QThread
-from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QStatusBar, QMessageBox, QFileDialog, QTabWidget
 )
@@ -11,12 +10,13 @@ try:
 except ImportError:
     pass
 
-from src.analysis.core.data_loader import DataLoader
-from src.analysis.core.pipeline_controller import PipelineController
-from src.analysis.parser import Parser
+from src.analysis.pipeline.data_loader import DataLoader
+from src.analysis.pipeline.pipeline_controller import PipelineController
+from src.analysis.pipeline.parser import Parser
 from src.config import config_visualization as viz_config
 from src.config.data_columns import FACE_PREFIX_TO_INFO, TimelineMetaCols
 from src.utils.header_converter import convert_to_multi_header
+from src.utils.app_identity import configure_qt_application, get_window_icon
 from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
 from src.analysis.ui.widget_results_analyzer import WidgetResultsAnalyzer
 
@@ -38,7 +38,7 @@ class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Box Motion Analyzer v2.2")
-        self.setWindowIcon(QIcon(viz_config.APP_ICON_PATH))
+        self.setWindowIcon(get_window_icon())
         self.setGeometry(100, 100, 1200, 900)
 
         self.data_loader = DataLoader()
@@ -165,7 +165,7 @@ class MainApp(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(viz_config.APP_ICON_PATH))
+    configure_qt_application(app)
     window = MainApp()
     window.show()
     sys.exit(app.exec())

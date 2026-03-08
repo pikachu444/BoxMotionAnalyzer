@@ -8,18 +8,19 @@ from PySide6.QtWidgets import (
     QPushButton,
     QLabel,
 )
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, QSize
 
 from src.config import config_visualization as config
 from src.visualization.main_window import MainWindow
-from src.analysis.main_window import MainApp
+from src.analysis.app.main_window import MainApp
+from src.utils.app_identity import configure_qt_application, get_window_icon
 
 class LauncherWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(config.LAUNCHER_TITLE)
-        self.setWindowIcon(QIcon(config.APP_ICON_PATH))
+        self.setWindowIcon(get_window_icon())
         self.resize(840, 380)
 
         self.main_window = None
@@ -91,7 +92,7 @@ class LauncherWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(config.APP_ICON_PATH))
+    configure_qt_application(app)
     window = LauncherWindow()
     window.show()
     sys.exit(app.exec())
