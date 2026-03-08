@@ -1,37 +1,34 @@
-# Documentation Index
+﻿# Documentation Index
 
 Last Reviewed: 2026-03-08
 
-이 문서는 `docs/` 폴더 안내용 인덱스다. 루트 `README.md`와 달리 프로젝트 전체 소개나 실행 방법을 반복하지 않고, 어떤 문서를 언제 보면 되는지만 정리한다.
+이 문서는 `docs/` 아래 문서를 목적별로 안내하는 인덱스다. 루트 `README.md`가 프로젝트 전체 개요와 실행 방법을 설명한다면, 이 문서는 세부 문서를 어디서 찾아야 하는지 정리한다.
 
-## 먼저 어디를 보면 되나
-- 프로젝트를 처음 이해할 때
-  - 루트 `README.md`
-- 현재 GUI 설계와 작업 흐름을 보고 싶을 때
-  - `design_proposal/`
-- 결과 CSV 구조나 시각화 내부 동작 같은 세부 참고자료가 필요할 때
-  - `docs/`
+## 먼저 볼 문서
+- 프로젝트 전체 개요와 실행 방법: 루트 `README.md`
+- 저장소 작업 규칙: 루트 `AGENTS.md`
+- 문서 구조 안내: `docs/documentation_index.md`
 
-## 이 폴더의 문서 역할
-- `documentation_index.md`
-  - 이 폴더의 안내문
-- `visualization_guide.md`
-  - 3D visualization 기능의 구조와 사용 흐름 설명
-- `changeheader.txt`
-  - 결과 CSV multi-header 규칙 정리
-- `code_structure_analysis.md`
-  - 결과 컬럼 스키마와 구현 연결 구조 메모
-- `launcher_layout_sketch.txt`
-  - 런처 창 레이아웃 스케치
+## analysis 문서
+- `docs/analysis/design/`
+  - 분석 GUI 구조, 시스템 설계, 워크플로우, mockup 같은 설계 문서
+- `docs/analysis/reference/`
+  - 결과 CSV 스키마, 데이터 구조, 시나리오 export 형식, 코드 구조 메모 같은 참조 문서
 
-## 문서 분리 원칙
-- 루트 `README.md`
-  - 프로젝트 소개, 실행 방법, 빌드/테스트 안내
-- `design_proposal/`
-  - 현재 설계와 워크플로우 설명
-- `docs/`
-  - 구현 참고 문서와 기능별 보조 설명
+## visualization 문서
+- `docs/visualization/guide.md`
+  - 3D visualization 기능 구조와 사용 흐름 설명
+- `docs/visualization/design/`
+  - visualization 메인 창과 관련 레이아웃 스케치
 
-## 정리 기준
-- 같은 이름의 `README.md`가 여러 개 보이면 역할이 헷갈릴 수 있으므로, `docs/` 안 안내문은 `documentation_index.md`로 분리했다.
-- 내부 구현 메모 성격이 강한 문서는 가능한 한 사용자 안내문과 이름부터 구분한다.
+## launcher 문서
+- `docs/launcher/`
+  - 런처 창과 관련된 레이아웃 스케치와 메모
+
+## 현재 핵심 문서 예시
+- `docs/analysis/design/system_design.md`
+- `docs/analysis/design/gui_overview.md`
+- `docs/analysis/reference/csv_multi_header_schema.md`
+- `docs/analysis/reference/result_schema_notes.md`
+- `docs/visualization/guide.md`
+- `docs/launcher/launcher_layout_sketch.txt`

@@ -77,9 +77,9 @@ Last Reviewed: 2026-03-08
 - 문서상 과거 `main_app.py`나 prototype 기반 흐름은 더 이상 기준으로 보지 않는다.
 
 ## 7. 관련 설계 문서
-- GUI 상세: `gui_description.md`
-- 데이터 구조: `data_structures.txt`
+- GUI 상세: `gui_overview.md`
+- 데이터 구조: `../reference/pipeline_data_structures.txt`
 - 컴포넌트 책임: `component_specs.txt`
-- 시나리오 export 형식: `scenario_export_format.md`
-- 개략 흐름: `flow_chart.txt`
+- 시나리오 export 형식: `../reference/scenario_export_format.md`
+- 개략 흐름: `workflow.txt`
 - 레이아웃 개요: `gui_sketch.txt`
