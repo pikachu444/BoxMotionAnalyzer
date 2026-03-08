@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QApplication
 )
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction
 from PySide6.QtCore import QTimer, Qt
 import numpy as np
 
@@ -14,12 +14,13 @@ from .plot_widget import PlotWidget
 from .plot_dialog import PlotDialog
 from .animation_widget import AnimationWidget
 from .info_log_widget import InfoLogWidget
+from src.utils.app_identity import configure_qt_application, get_window_icon
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("3D Motion Analyzer")
-        self.setWindowIcon(QIcon(config.APP_ICON_PATH))
+        self.setWindowIcon(get_window_icon())
         self.setGeometry(100, 100, 1800, 1000)
 
         self.current_frame = 0
@@ -299,7 +300,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(config.APP_ICON_PATH))
+    configure_qt_application(app)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
