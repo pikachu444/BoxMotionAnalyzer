@@ -29,6 +29,7 @@ def get_conversion_rules() -> list:
         AnalysisCols.T_AX_ANA.rsplit("_", 1)[0],  # BoxLocal_A
         RigidBodyCols.BASE_NAME,
         r"C\d+_Global_V_T",
+        r"C\d+_Global_A_T",
     ]
     exclusion_pattern = f"(?!{'|'.join(reserved_prefixes)})"
 
@@ -99,6 +100,10 @@ def get_conversion_rules() -> list:
          lambda m: (HeaderL1.VEL, m.group("corner"), axis_to_vt[m.group("axis")])),
         (re.compile(r"^(?P<corner>C\d+)_Global_V_T_Norm$"),
          lambda m: (HeaderL1.VEL, m.group("corner"), HeaderL3.V_TNORM)),
+        (re.compile(r"^(?P<corner>C\d+)_Global_A_T(?P<axis>[XYZ])$"),
+         lambda m: (HeaderL1.ACC, m.group("corner"), getattr(HeaderL3, f"A_T{m.group('axis')}"))),
+        (re.compile(r"^(?P<corner>C\d+)_Global_A_T_Norm$"),
+         lambda m: (HeaderL1.ACC, m.group("corner"), HeaderL3.A_TNORM)),
         # Backward compatibility
         (re.compile(r"^(?P<corner>C\d+)_V(?P<axis>[xyz])$"),
          lambda m: (HeaderL1.VEL, m.group("corner"), axis_to_vt[m.group("axis").upper()])),

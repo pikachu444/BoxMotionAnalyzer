@@ -5,7 +5,7 @@ from scipy.spatial.transform import Rotation as R
 from scipy.signal import butter, filtfilt
 from src.config import config_analysis
 from src.config import config_app
-from src.config.data_columns import PoseCols, VelocityCols, CornerVelocityCols
+from src.config.data_columns import PoseCols, VelocityCols, CornerVelocityCols, CornerAccelerationCols
 
 # --- Module-level Helper Functions ---
 
@@ -48,6 +48,9 @@ class VelocityCalculator:
         self.use_vel_lpf = config_analysis.USE_VELOCITY_LOWPASS_FILTER
         self.vel_lpf_cutoff = config_analysis.VELOCITY_LPF_CUTOFF_HZ
         self.vel_lpf_order = config_analysis.VELOCITY_LPF_ORDER
+        self.use_acc_lpf = config_analysis.USE_ACCELERATION_LOWPASS_FILTER
+        self.acc_lpf_cutoff = config_analysis.ACCELERATION_LPF_CUTOFF_HZ
+        self.acc_lpf_order = config_analysis.ACCELERATION_LPF_ORDER
         self.local_box_corners = config_app.LOCAL_BOX_CORNERS
 
     def _preprocess_pose_data(self, positions, quaternions, fs):
@@ -115,6 +118,17 @@ class VelocityCalculator:
 
         return a_com, ang_acc
 
+    def _postprocess_accelerations(self, a_com, ang_acc, fs):
+        if self.use_acc_lpf:
+            for i in range(3):
+                a_com[:, i] = _apply_butter_lowpass(
+                    pd.Series(a_com[:, i]), self.acc_lpf_cutoff, fs, self.acc_lpf_order
+                )
+                ang_acc[:, i] = _apply_butter_lowpass(
+                    pd.Series(ang_acc[:, i]), self.acc_lpf_cutoff, fs, self.acc_lpf_order
+                )
+        return a_com, ang_acc
+
     def _calculate_corner_velocities(self, v_com, ang_vel, quaternions):
         """ legacy 코드와 동일하게, 모든 입력을 numpy 배열로 가정하고 계산합니다. """
         corner_velocities_data = {}
@@ -129,6 +143,23 @@ class VelocityCalculator:
             corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.VZ_SUFFIX}'] = corner_vel[:, 2]
             corner_velocities_data[f'C{c_idx + 1}{CornerVelocityCols.NORM_SUFFIX}'] = np.linalg.norm(corner_vel, axis=1)
         return corner_velocities_data
+
+    def _calculate_corner_accelerations(self, a_com, ang_vel, ang_acc, quaternions):
+        corner_accelerations_data = {}
+        rotations = R.from_quat(quaternions)
+        for c_idx, r_local in enumerate(self.local_box_corners):
+            r_world_from_com = rotations.apply(r_local)
+            corner_acc = (
+                a_com
+                + np.cross(ang_acc, r_world_from_com)
+                + np.cross(ang_vel, np.cross(ang_vel, r_world_from_com))
+            )
+
+            corner_accelerations_data[f'C{c_idx + 1}{CornerAccelerationCols.AX_SUFFIX}'] = corner_acc[:, 0]
+            corner_accelerations_data[f'C{c_idx + 1}{CornerAccelerationCols.AY_SUFFIX}'] = corner_acc[:, 1]
+            corner_accelerations_data[f'C{c_idx + 1}{CornerAccelerationCols.AZ_SUFFIX}'] = corner_acc[:, 2]
+            corner_accelerations_data[f'C{c_idx + 1}{CornerAccelerationCols.NORM_SUFFIX}'] = np.linalg.norm(corner_acc, axis=1)
+        return corner_accelerations_data
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         if df.empty or PoseCols.POS_X not in df.columns:
@@ -153,6 +184,7 @@ class VelocityCalculator:
 
         # 가속도 계산
         a_com, ang_acc = self._calculate_accelerations(v_com, ang_vel, time_s)
+        a_com, ang_acc = self._postprocess_accelerations(a_com, ang_acc, fs)
 
         # Norm 계산
         com_v_norm = np.linalg.norm(v_com, axis=1)
@@ -172,9 +204,12 @@ class VelocityCalculator:
 
         # numpy 배열을 사용하여 꼭짓점 속도 계산
         corner_velocities = self._calculate_corner_velocities(v_com, ang_vel, quaternions)
+        corner_accelerations = self._calculate_corner_accelerations(a_com, ang_vel, ang_acc, quaternions)
 
         # 계산된 꼭짓점 속도를 DataFrame에 추가
         for col, data in corner_velocities.items():
+            result_df[col] = data
+        for col, data in corner_accelerations.items():
             result_df[col] = data
 
         # 컬럼 순서 재배치

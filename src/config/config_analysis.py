@@ -51,6 +51,11 @@ USE_VELOCITY_LOWPASS_FILTER = False
 VELOCITY_LPF_CUTOFF_HZ = 8.0
 VELOCITY_LPF_ORDER = 4
 
+# STAGE 5: Acceleration Data Post-processing: Final Low-Pass Filter
+USE_ACCELERATION_LOWPASS_FILTER = False
+ACCELERATION_LPF_CUTOFF_HZ = 8.0
+ACCELERATION_LPF_ORDER = 4
+
 
 # --- Pipeline Strategy Parameters ---
 # 파이프라인에서 최종 데이터 슬라이스를 어느 시점에 할지 결정합니다.
