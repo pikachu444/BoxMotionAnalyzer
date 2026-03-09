@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QMainWindow,
     QPushButton,
+    QRadioButton,
     QSplitter,
     QTextEdit,
     QTreeWidget,
@@ -350,6 +351,281 @@ class PopupMockWindowV31(QDialog):
         l.addWidget(QLabel("Clicking the popup plot syncs the selected time back to Step 2."))
 
 
+class Step1ProcessingModeMockWindowV32(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Step 1 - Raw Data Processing (Processing Mode Mock)")
+        self.resize(1440, 900)
+
+        root = QWidget()
+        self.setCentralWidget(root)
+        layout = QVBoxLayout(root)
+
+        title = QLabel("Step 1: Raw Data Processing")
+        title.setStyleSheet("font-weight: 600; font-size: 18px;")
+        layout.addWidget(title)
+
+        group = QGroupBox("Raw Data Processing")
+        group_layout = QVBoxLayout(group)
+
+        top_layout = QHBoxLayout()
+
+        plot_container = QWidget()
+        plot_layout = QVBoxLayout(plot_container)
+        plot_layout.setContentsMargins(0, 0, 0, 0)
+
+        fig = Figure(figsize=(7, 4), dpi=100)
+        preview_canvas = FigureCanvas(fig)
+        plot_layout.addWidget(NavigationToolbar(preview_canvas, self))
+        plot_layout.addWidget(preview_canvas)
+
+        ax = fig.subplots()
+        x = np.linspace(0, 100, 400)
+        y = 40 + 10 * np.sin(x / 6)
+        ax.plot(x, y, color="#2b6cb0", linewidth=1.8, label="RigidBody_Position_X")
+        ax.axvspan(20, 30, color="#68d391", alpha=0.35, label="Slice Range")
+        ax.set_title("Raw Data Preview")
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("Value")
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc="upper right")
+        fig.tight_layout()
+
+        right_panel = QVBoxLayout()
+        right_panel.addWidget(QPushButton("Load CSV File..."))
+        right_panel.addWidget(QLabel("C:/Data/Experiment1.csv"))
+
+        box_dims = QGroupBox("Box Dimensions (mm)")
+        box_dims_layout = QGridLayout(box_dims)
+        box_dims_layout.addWidget(QLabel("L:"), 0, 0)
+        box_dims_layout.addWidget(QLineEdit("1820.0"), 0, 1)
+        box_dims_layout.addWidget(QLabel("W:"), 1, 0)
+        box_dims_layout.addWidget(QLineEdit("1110.0"), 1, 1)
+        box_dims_layout.addWidget(QLabel("H:"), 2, 0)
+        box_dims_layout.addWidget(QLineEdit("164.0"), 2, 1)
+        right_panel.addWidget(box_dims)
+
+        log_output = QTextEdit()
+        log_output.setReadOnly(True)
+        log_output.setPlainText(
+            "[INFO] Loaded C:/Data/Experiment1.csv\n"
+            "[INFO] Preview parsing complete.\n"
+            "[INFO] Current mode: Standard\n"
+            "[INFO] Standard uses the default smoothing and filtering pipeline."
+        )
+        right_panel.addWidget(log_output)
+
+        top_layout.addWidget(plot_container, 8)
+        top_layout.addLayout(right_panel, 3)
+        group_layout.addLayout(top_layout)
+
+        bottom_controls = QHBoxLayout()
+
+        plot_options = QGroupBox("Plot Options")
+        plot_options_layout = QHBoxLayout(plot_options)
+        plot_options_layout.addWidget(QPushButton("Select Data..."))
+        plot_options_layout.addWidget(QLabel("Selected: RigidBody Center"))
+        plot_options_layout.addWidget(QLabel("Axis:"))
+        axis_combo = QComboBox()
+        axis_combo.addItems(["Position-X", "Position-Y", "Position-Z"])
+        plot_options_layout.addWidget(axis_combo)
+        bottom_controls.addWidget(plot_options, 4)
+
+        slice_group = QGroupBox("Slice Range")
+        slice_group.setCheckable(True)
+        slice_group.setChecked(True)
+        slice_layout = QHBoxLayout(slice_group)
+        slice_layout.addWidget(QLabel("Start:"))
+        slice_layout.addWidget(QLineEdit("20.0"))
+        slice_layout.addWidget(QLabel("End:"))
+        slice_layout.addWidget(QLineEdit("30.0"))
+        bottom_controls.addWidget(slice_group, 3)
+
+        processing_group = QGroupBox("Processing Mode")
+        processing_layout = QVBoxLayout(processing_group)
+
+        radio_row = QHBoxLayout()
+        standard = QRadioButton("Standard")
+        standard.setChecked(True)
+        raw = QRadioButton("Raw")
+        advanced = QRadioButton("Advanced")
+        radio_row.addWidget(standard)
+        radio_row.addWidget(raw)
+        radio_row.addWidget(advanced)
+        radio_row.addStretch()
+        adv_button = QPushButton("Advanced Settings...")
+        adv_button.setEnabled(False)
+        radio_row.addWidget(adv_button)
+        processing_layout.addLayout(radio_row)
+
+        mode_description = QLabel(
+            "Standard uses smoothing/filtering for more stable velocity and acceleration."
+        )
+        mode_description.setWordWrap(True)
+        mode_description.setStyleSheet("color: #4a5568;")
+        processing_layout.addWidget(mode_description)
+        bottom_controls.addWidget(processing_group, 5)
+
+        run_controls = QVBoxLayout()
+        run_controls.addWidget(QPushButton("Run Analysis"))
+        run_controls.addWidget(QPushButton("Export Results to CSV"))
+        bottom_controls.addLayout(run_controls, 2)
+
+        group_layout.addLayout(bottom_controls)
+        layout.addWidget(group, 1)
+
+
+class AdvancedProcessingDialogMockV32(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Advanced Processing Settings")
+        self.resize(700, 760)
+
+        root = QVBoxLayout(self)
+
+        marker_group = QGroupBox("Marker Smoothing")
+        marker_layout = QVBoxLayout(marker_group)
+        marker_note = QLabel(
+            "Controls how raw marker tracks are smoothed before pose estimation begins."
+        )
+        marker_note.setWordWrap(True)
+        marker_note.setStyleSheet("color: #4a5568;")
+        marker_layout.addWidget(marker_note)
+        marker_toggle = QCheckBox("Enable marker smoothing")
+        marker_toggle.setChecked(True)
+        marker_layout.addWidget(marker_toggle)
+        marker_toggle_note = QLabel(
+            "Recommended for standard processing. Disabling this keeps the marker data closer to the raw input."
+        )
+        marker_toggle_note.setWordWrap(True)
+        marker_toggle_note.setStyleSheet("color: #718096; font-size: 11px; margin-left: 18px;")
+        marker_layout.addWidget(marker_toggle_note)
+        marker_form = QFormLayout()
+        method_combo = QComboBox()
+        method_combo.addItems(["Butterworth -> Moving Average", "Butterworth", "Moving Average"])
+        marker_form.addRow("Method:", method_combo)
+        marker_layout.addLayout(marker_form)
+        root.addWidget(marker_group)
+
+        range_group = QGroupBox("Range Edge Handling")
+        range_layout = QVBoxLayout(range_group)
+        range_note = QLabel(
+            "Controls how the selected time range is handled near the start and end boundaries."
+        )
+        range_note.setWordWrap(True)
+        range_note.setStyleSheet("color: #4a5568;")
+        range_layout.addWidget(range_note)
+        range_form = QFormLayout()
+        trimming_combo = QComboBox()
+        trimming_combo.addItems([
+            "Stable (recommended)",
+            "Fast (less accurate near range edges)",
+        ])
+        range_form.addRow("Mode:", trimming_combo)
+        range_layout.addLayout(range_form)
+        range_hint = QLabel(
+            "Stable keeps a small hidden margin around the selected range during calculations. "
+            "Fast trims earlier and can be less reliable near the boundaries."
+        )
+        range_hint.setWordWrap(True)
+        range_hint.setStyleSheet("color: #718096; font-size: 11px;")
+        range_layout.addWidget(range_hint)
+        root.addWidget(range_group)
+
+        pose_group = QGroupBox("Pose")
+        pose_layout = QVBoxLayout(pose_group)
+        pose_note = QLabel(
+            "Pose options affect the rigid-body position and orientation before velocity and acceleration are derived."
+        )
+        pose_note.setWordWrap(True)
+        pose_note.setStyleSheet("color: #4a5568;")
+        pose_layout.addWidget(pose_note)
+        pose_lpf = QCheckBox("Pose low-pass filter")
+        pose_ma = QCheckBox("Pose moving average")
+        pose_ma.setChecked(True)
+        pose_layout.addWidget(pose_lpf)
+        pose_layout.addWidget(QLabel("  Reduces fast pose jitter before derivatives are computed."))
+        pose_layout.itemAt(pose_layout.count() - 1).widget().setStyleSheet("color: #718096; font-size: 11px;")
+        pose_layout.addWidget(pose_ma)
+        pose_layout.addWidget(QLabel("  Applies a small moving average to pose data for additional stabilization."))
+        pose_layout.itemAt(pose_layout.count() - 1).widget().setStyleSheet("color: #718096; font-size: 11px;")
+        root.addWidget(pose_group)
+
+        derivative_group = QGroupBox("Derivative Method")
+        derivative_layout = QVBoxLayout(derivative_group)
+        derivative_note = QLabel(
+            "Selects how velocity and acceleration are derived from pose data."
+        )
+        derivative_note.setWordWrap(True)
+        derivative_note.setStyleSheet("color: #4a5568;")
+        derivative_layout.addWidget(derivative_note)
+        method_row = QHBoxLayout()
+        method_row.addWidget(QLabel("Method:"))
+        velocity_method = QComboBox()
+        velocity_method.addItems(["Spline", "Finite Difference"])
+        method_row.addWidget(velocity_method)
+        method_row.addStretch()
+        derivative_layout.addLayout(method_row)
+        derivative_hint = QLabel(
+            "Spline is smoother and more stable. Finite Difference is closer to raw derivatives but noisier."
+        )
+        derivative_hint.setWordWrap(True)
+        derivative_hint.setStyleSheet("color: #718096; font-size: 11px;")
+        derivative_layout.addWidget(derivative_hint)
+        root.addWidget(derivative_group)
+
+        velocity_group = QGroupBox("Velocity")
+        velocity_layout = QVBoxLayout(velocity_group)
+        velocity_note = QLabel(
+            "Post-processing applied after velocity has been calculated."
+        )
+        velocity_note.setWordWrap(True)
+        velocity_note.setStyleSheet("color: #4a5568;")
+        velocity_layout.addWidget(velocity_note)
+        vel_lpf = QCheckBox("Velocity low-pass filter")
+        velocity_layout.addWidget(vel_lpf)
+        vel_hint = QLabel(
+            "Useful when the derived velocity still contains rapid oscillations."
+        )
+        vel_hint.setWordWrap(True)
+        vel_hint.setStyleSheet("color: #718096; font-size: 11px; margin-left: 18px;")
+        velocity_layout.addWidget(vel_hint)
+        root.addWidget(velocity_group)
+
+        acc_group = QGroupBox("Acceleration")
+        acc_layout = QVBoxLayout(acc_group)
+        acc_note = QLabel(
+            "Post-processing applied after acceleration has been calculated."
+        )
+        acc_note.setWordWrap(True)
+        acc_note.setStyleSheet("color: #4a5568;")
+        acc_layout.addWidget(acc_note)
+        acc_lpf = QCheckBox("Acceleration low-pass filter")
+        acc_layout.addWidget(acc_lpf)
+        acc_hint = QLabel(
+            "Recommended when acceleration is too noisy. Corner acceleration is derived from the filtered CoM and angular acceleration."
+        )
+        acc_hint.setWordWrap(True)
+        acc_hint.setStyleSheet("color: #718096; font-size: 11px; margin-left: 18px;")
+        acc_layout.addWidget(acc_hint)
+        root.addWidget(acc_group)
+
+        note = QLabel(
+            "Standard and Raw use preset behaviors. Advanced lets you tune each processing stage before running Step 1 analysis."
+        )
+        note.setWordWrap(True)
+        note.setStyleSheet("color: #4a5568;")
+        root.addWidget(note)
+
+        buttons = QHBoxLayout()
+        buttons.addStretch()
+        buttons.addWidget(QPushButton("Cancel"))
+        ok_button = QPushButton("OK")
+        ok_button.setDefault(True)
+        buttons.addWidget(ok_button)
+        root.addLayout(buttons)
+
+
 def save_widget(widget, path):
     widget.show()
     QApplication.processEvents()
@@ -372,7 +648,15 @@ if __name__ == "__main__":
     save_widget(step2, os.path.join(out_dir, "step2_improved_mock_v31.png"))
     save_widget(popup, os.path.join(out_dir, "step2_popup_improved_mock_v31.png"))
 
+    step1_modes = Step1ProcessingModeMockWindowV32()
+    advanced_dialog = AdvancedProcessingDialogMockV32()
+
+    save_widget(step1_modes, os.path.join(out_dir, "step1_processing_mode_mock_v32.png"))
+    save_widget(advanced_dialog, os.path.join(out_dir, "step1_advanced_settings_mock_v32.png"))
+
     print("Saved:")
     print(os.path.join(out_dir, "step1_improved_mock_v31.png"))
     print(os.path.join(out_dir, "step2_improved_mock_v31.png"))
     print(os.path.join(out_dir, "step2_popup_improved_mock_v31.png"))
+    print(os.path.join(out_dir, "step1_processing_mode_mock_v32.png"))
+    print(os.path.join(out_dir, "step1_advanced_settings_mock_v32.png"))
