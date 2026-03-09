@@ -36,7 +36,13 @@ class PipelineController(QObject):
         전체 분석 파이프라인을 순차적으로 실행합니다.
         """
         try:
+            analysis_options = gui_config.get('analysis_options', {})
+            processing_mode = gui_config.get('processing_mode', 'standard')
+            self.smoother.configure(analysis_options)
+            self.velocity_calculator.configure(analysis_options)
+
             self.log_message.emit(f"[INFO] Using Box Dimensions (L,W,H): {config_app.BOX_DIMS}")
+            self.log_message.emit(f"[INFO] Processing mode: {processing_mode}")
             # 파싱된 데이터가 있으면 재사용하고, 스무딩을 위해 패딩/트리밍을 수행합니다.
 
             # 1. 파싱 단계
@@ -62,7 +68,7 @@ class PipelineController(QObject):
             self.log_message.emit("[2/8] Slicing data with padding...")
             original_start = gui_config.get('slice_start_val')
             original_end = gui_config.get('slice_end_val')
-            padding_size_frames = config_analysis.SMOOTHING_PADDING_SIZE
+            padding_size_frames = config_analysis.SMOOTHING_PADDING_SIZE if analysis_options.get('enable_marker_smoothing', True) else 0
             time_index = pd.Series(data.index)
             time_diffs = time_index.diff().dropna()
             mean_delta_t = time_diffs.mean() if not time_diffs.empty else 0
@@ -83,12 +89,16 @@ class PipelineController(QObject):
             self.log_message.emit(f"    Padded slicer done. Shape: {padded_data.shape}")
 
             # 3. 스무딩
-            self.log_message.emit("[3/8] Smoothing markers...")
-            data_to_process = self.smoother.process(padded_data)
-            self.log_message.emit(f"    Smoother done. Shape: {data_to_process.shape}")
+            if analysis_options.get('enable_marker_smoothing', True):
+                self.log_message.emit("[3/8] Smoothing markers...")
+                data_to_process = self.smoother.process(padded_data)
+                self.log_message.emit(f"    Smoother done. Shape: {data_to_process.shape}")
+            else:
+                self.log_message.emit("[3/8] Marker smoothing skipped by processing mode.")
+                data_to_process = padded_data.copy()
 
             # --- 전략적 분기점 ---
-            trimming_strategy = config_analysis.TRIMMING_STRATEGY
+            trimming_strategy = analysis_options.get('trimming_strategy', config_analysis.TRIMMING_STRATEGY)
             self.log_message.emit(f"\n[INFO] Using Trimming Strategy: '{trimming_strategy}'")
 
             slicer_for_trimming = Slicer(

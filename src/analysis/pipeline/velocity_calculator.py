@@ -36,22 +36,29 @@ def _ensure_quaternion_continuity(quats):
 
 class VelocityCalculator:
     def __init__(self):
-        self.method = config_analysis.VELOCITY_CALCULATION_METHOD
-        self.use_pose_lpf = config_analysis.USE_POSE_LOWPASS_FILTER
+        self.configure()
+        self.local_box_corners = config_app.LOCAL_BOX_CORNERS
+
+    def configure(self, overrides=None):
+        settings = overrides or {}
+        self.method = settings.get('derivative_method', config_analysis.VELOCITY_CALCULATION_METHOD)
+        self.use_pose_lpf = settings.get('use_pose_lowpass_filter', config_analysis.USE_POSE_LOWPASS_FILTER)
         self.pose_lpf_cutoff = config_analysis.POSE_LPF_CUTOFF_HZ
         self.pose_lpf_order = config_analysis.POSE_LPF_ORDER
-        self.use_pose_ma = config_analysis.USE_POSE_MOVING_AVERAGE
+        self.use_pose_ma = settings.get('use_pose_moving_average', config_analysis.USE_POSE_MOVING_AVERAGE)
         self.pose_ma_window = config_analysis.POSE_MA_WINDOW
         self.spline_s_pos = config_analysis.SPLINE_S_FACTOR_POSITION
         self.spline_s_rot = config_analysis.SPLINE_S_FACTOR_ROTATION
         self.spline_k = config_analysis.SPLINE_DEGREE
-        self.use_vel_lpf = config_analysis.USE_VELOCITY_LOWPASS_FILTER
+        self.use_vel_lpf = settings.get('use_velocity_lowpass_filter', config_analysis.USE_VELOCITY_LOWPASS_FILTER)
         self.vel_lpf_cutoff = config_analysis.VELOCITY_LPF_CUTOFF_HZ
         self.vel_lpf_order = config_analysis.VELOCITY_LPF_ORDER
-        self.use_acc_lpf = config_analysis.USE_ACCELERATION_LOWPASS_FILTER
+        self.use_acc_lpf = settings.get(
+            'use_acceleration_lowpass_filter',
+            config_analysis.USE_ACCELERATION_LOWPASS_FILTER,
+        )
         self.acc_lpf_cutoff = config_analysis.ACCELERATION_LPF_CUTOFF_HZ
         self.acc_lpf_order = config_analysis.ACCELERATION_LPF_ORDER
-        self.local_box_corners = config_app.LOCAL_BOX_CORNERS
 
     def _preprocess_pose_data(self, positions, quaternions, fs):
         if self.use_pose_lpf:
