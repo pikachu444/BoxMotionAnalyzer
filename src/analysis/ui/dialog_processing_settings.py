@@ -88,10 +88,14 @@ class ProcessingSettingsDialog(QDialog):
         derivative_note.setStyleSheet("color: #4a5568;")
         derivative_layout.addWidget(derivative_note)
         derivative_form = QFormLayout()
-        self.combo_derivative_method = QComboBox()
+        self.combo_velocity_method = QComboBox()
         for label, value in ui_config.DERIVATIVE_METHOD_CHOICES:
-            self.combo_derivative_method.addItem(label, userData=value)
-        derivative_form.addRow(ui_config.FIELD_LABELS["derivative_method"], self.combo_derivative_method)
+            self.combo_velocity_method.addItem(label, userData=value)
+        self.combo_acceleration_method = QComboBox()
+        for label, value in ui_config.DERIVATIVE_METHOD_CHOICES:
+            self.combo_acceleration_method.addItem(label, userData=value)
+        derivative_form.addRow(ui_config.FIELD_LABELS["velocity_method"], self.combo_velocity_method)
+        derivative_form.addRow(ui_config.FIELD_LABELS["acceleration_method"], self.combo_acceleration_method)
         derivative_layout.addLayout(derivative_form)
         derivative_hint = QLabel(ui_config.FIELD_HINTS["derivative_method"])
         derivative_hint.setWordWrap(True)
@@ -151,8 +155,12 @@ class ProcessingSettingsDialog(QDialog):
         self.cb_pose_lpf.setChecked(self._current_options.get("use_pose_lowpass_filter", False))
         self.cb_pose_ma.setChecked(self._current_options.get("use_pose_moving_average", False))
         self._set_combo_data(
-            self.combo_derivative_method,
-            self._current_options.get("derivative_method", "spline"),
+            self.combo_velocity_method,
+            self._current_options.get("velocity_method", "spline"),
+        )
+        self._set_combo_data(
+            self.combo_acceleration_method,
+            self._current_options.get("acceleration_method", "spline"),
         )
         self.cb_velocity_lpf.setChecked(self._current_options.get("use_velocity_lowpass_filter", False))
         self.cb_acceleration_lpf.setChecked(self._current_options.get("use_acceleration_lowpass_filter", False))
@@ -170,7 +178,8 @@ class ProcessingSettingsDialog(QDialog):
             "trimming_strategy": self.combo_range_handling.currentData(),
             "use_pose_lowpass_filter": self.cb_pose_lpf.isChecked(),
             "use_pose_moving_average": self.cb_pose_ma.isChecked(),
-            "derivative_method": self.combo_derivative_method.currentData(),
+            "velocity_method": self.combo_velocity_method.currentData(),
+            "acceleration_method": self.combo_acceleration_method.currentData(),
             "use_velocity_lowpass_filter": self.cb_velocity_lpf.isChecked(),
             "use_acceleration_lowpass_filter": self.cb_acceleration_lpf.isChecked(),
         }
