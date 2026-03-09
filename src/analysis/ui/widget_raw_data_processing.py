@@ -1,8 +1,8 @@
 import os
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
-    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
+    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -10,7 +10,8 @@ from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
-from src.config import config_app
+from src.analysis.ui.dialog_processing_settings import ProcessingSettingsDialog
+from src.config import config_app, config_analysis_ui
 from src.config.data_columns import (
     PoseCols, RawMarkerCols, DisplayNames, RigidBodyCols
 )
@@ -31,6 +32,8 @@ class WidgetRawDataProcessing(QWidget):
         self.header_info = None
         self.parsed_data = None
         self.current_selected_targets = []
+        self.current_processing_mode = config_analysis_ui.PROCESSING_MODE_STANDARD
+        self.advanced_processing_options = config_analysis_ui.get_default_advanced_options()
 
         self._setup_ui()
         self._connect_signals()
@@ -132,6 +135,36 @@ class WidgetRawDataProcessing(QWidget):
         slice_h_layout.addWidget(self.le_slice_end)
         h_controls_layout.addWidget(self.slice_group)
 
+        processing_group = QGroupBox(config_analysis_ui.PROCESSING_MODE_GROUP_TITLE)
+        processing_layout = QVBoxLayout(processing_group)
+
+        radio_row = QHBoxLayout()
+        self.rb_processing_standard = QRadioButton(
+            config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_STANDARD]
+        )
+        self.rb_processing_standard.setChecked(True)
+        self.rb_processing_raw = QRadioButton(
+            config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_RAW]
+        )
+        self.rb_processing_advanced = QRadioButton(
+            config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_ADVANCED]
+        )
+        radio_row.addWidget(self.rb_processing_standard)
+        radio_row.addWidget(self.rb_processing_raw)
+        radio_row.addWidget(self.rb_processing_advanced)
+        radio_row.addStretch()
+
+        self.processing_settings_button = QPushButton(config_analysis_ui.ADVANCED_BUTTON_TEXT)
+        self.processing_settings_button.setEnabled(False)
+        radio_row.addWidget(self.processing_settings_button)
+        processing_layout.addLayout(radio_row)
+
+        self.processing_mode_description = QLabel()
+        self.processing_mode_description.setWordWrap(True)
+        self.processing_mode_description.setStyleSheet("color: #4a5568;")
+        processing_layout.addWidget(self.processing_mode_description)
+        h_controls_layout.addWidget(processing_group)
+
         # Run/Export Buttons
         run_button_layout = QVBoxLayout()
         self.run_button = QPushButton("Run Analysis")
@@ -154,6 +187,11 @@ class WidgetRawDataProcessing(QWidget):
         self.slice_group.toggled.connect(self.toggle_slicing_widgets)
         self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
         self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
+        self.rb_processing_standard.toggled.connect(self._on_processing_mode_changed)
+        self.rb_processing_raw.toggled.connect(self._on_processing_mode_changed)
+        self.rb_processing_advanced.toggled.connect(self._on_processing_mode_changed)
+        self.processing_settings_button.clicked.connect(self.open_processing_settings_dialog)
+        self._update_processing_mode_ui()
 
     def append_log(self, message):
         self.log_output.append(message)
@@ -260,6 +298,36 @@ class WidgetRawDataProcessing(QWidget):
         except (ValueError, TypeError):
             pass
 
+    def _on_processing_mode_changed(self):
+        if self.rb_processing_standard.isChecked():
+            self.current_processing_mode = config_analysis_ui.PROCESSING_MODE_STANDARD
+        elif self.rb_processing_raw.isChecked():
+            self.current_processing_mode = config_analysis_ui.PROCESSING_MODE_RAW
+        elif self.rb_processing_advanced.isChecked():
+            self.current_processing_mode = config_analysis_ui.PROCESSING_MODE_ADVANCED
+        self._update_processing_mode_ui()
+
+    def _update_processing_mode_ui(self):
+        self.processing_settings_button.setEnabled(
+            self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_ADVANCED
+        )
+        self.processing_mode_description.setText(
+            config_analysis_ui.PROCESSING_MODE_DESCRIPTIONS[self.current_processing_mode]
+        )
+
+    def open_processing_settings_dialog(self):
+        dialog = ProcessingSettingsDialog(self.advanced_processing_options, self)
+        if dialog.exec():
+            self.advanced_processing_options = dialog.get_settings()
+            self._update_processing_mode_ui()
+
+    def _build_analysis_overrides(self):
+        if self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_STANDARD:
+            return config_analysis_ui.get_default_advanced_options()
+        if self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_RAW:
+            return config_analysis_ui.get_raw_mode_options()
+        return dict(self.advanced_processing_options)
+
     def emit_run_analysis(self):
         if self.raw_data is None: return
         try:
@@ -273,6 +341,8 @@ class WidgetRawDataProcessing(QWidget):
                 'slice_filter_by': 'time',
                 'slice_start_val': float(self.le_slice_start.text()) if self.slice_group.isChecked() else self.parsed_data.index.min(),
                 'slice_end_val': float(self.le_slice_end.text()) if self.slice_group.isChecked() else self.parsed_data.index.max(),
+                'processing_mode': self.current_processing_mode,
+                'analysis_options': self._build_analysis_overrides(),
             }
             self.analysis_requested.emit(config)
             self.run_button.setEnabled(False)

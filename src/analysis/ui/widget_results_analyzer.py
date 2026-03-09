@@ -502,6 +502,14 @@ class WidgetResultsAnalyzer(QWidget):
             ]
             stacked = local_order + global_order
             l3_rank = stacked.index(l3_str) if l3_str in stacked else 999
+        elif l1 in {HeaderL1.VEL, HeaderL1.ACC} and isinstance(l2, str) and l2.startswith("C") and l2[1:].isdigit():
+            corner_order = [
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TX",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TY",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TZ",
+                f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_T_Norm",
+            ]
+            l3_rank = corner_order.index(l3_str) if l3_str in corner_order else 999
         else:
             l3_rank = 999
         return (l1_order.get(l1, 99), l2_rank, l3_rank, l3_str)

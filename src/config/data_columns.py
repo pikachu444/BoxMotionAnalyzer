@@ -81,6 +81,14 @@ class CornerVelocityCols:
 
 
 @dataclass(frozen=True)
+class CornerAccelerationCols:
+    AX_SUFFIX: str = "_Global_A_TX"
+    AY_SUFFIX: str = "_Global_A_TY"
+    AZ_SUFFIX: str = "_Global_A_TZ"
+    NORM_SUFFIX: str = "_Global_A_T_Norm"
+
+
+@dataclass(frozen=True)
 class CornerCoordCols:
     X_SUFFIX: str = "_X"
     Y_SUFFIX: str = "_Y"
@@ -388,6 +396,40 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.VEL, "C8", HeaderL3.V_TY),
     (HeaderL1.VEL, "C8", HeaderL3.V_TZ),
     (HeaderL1.VEL, "C8", HeaderL3.V_TNORM),
+
+    # Corner Accelerations for each of the 8 corners (translation + norm)
+    (HeaderL1.ACC, "C1", HeaderL3.A_TX),
+    (HeaderL1.ACC, "C1", HeaderL3.A_TY),
+    (HeaderL1.ACC, "C1", HeaderL3.A_TZ),
+    (HeaderL1.ACC, "C1", HeaderL3.A_TNORM),
+    (HeaderL1.ACC, "C2", HeaderL3.A_TX),
+    (HeaderL1.ACC, "C2", HeaderL3.A_TY),
+    (HeaderL1.ACC, "C2", HeaderL3.A_TZ),
+    (HeaderL1.ACC, "C2", HeaderL3.A_TNORM),
+    (HeaderL1.ACC, "C3", HeaderL3.A_TX),
+    (HeaderL1.ACC, "C3", HeaderL3.A_TY),
+    (HeaderL1.ACC, "C3", HeaderL3.A_TZ),
+    (HeaderL1.ACC, "C3", HeaderL3.A_TNORM),
+    (HeaderL1.ACC, "C4", HeaderL3.A_TX),
+    (HeaderL1.ACC, "C4", HeaderL3.A_TY),
+    (HeaderL1.ACC, "C4", HeaderL3.A_TZ),
+    (HeaderL1.ACC, "C4", HeaderL3.A_TNORM),
+    (HeaderL1.ACC, "C5", HeaderL3.A_TX),
+    (HeaderL1.ACC, "C5", HeaderL3.A_TY),
+    (HeaderL1.ACC, "C5", HeaderL3.A_TZ),
+    (HeaderL1.ACC, "C5", HeaderL3.A_TNORM),
+    (HeaderL1.ACC, "C6", HeaderL3.A_TX),
+    (HeaderL1.ACC, "C6", HeaderL3.A_TY),
+    (HeaderL1.ACC, "C6", HeaderL3.A_TZ),
+    (HeaderL1.ACC, "C6", HeaderL3.A_TNORM),
+    (HeaderL1.ACC, "C7", HeaderL3.A_TX),
+    (HeaderL1.ACC, "C7", HeaderL3.A_TY),
+    (HeaderL1.ACC, "C7", HeaderL3.A_TZ),
+    (HeaderL1.ACC, "C7", HeaderL3.A_TNORM),
+    (HeaderL1.ACC, "C8", HeaderL3.A_TX),
+    (HeaderL1.ACC, "C8", HeaderL3.A_TY),
+    (HeaderL1.ACC, "C8", HeaderL3.A_TZ),
+    (HeaderL1.ACC, "C8", HeaderL3.A_TNORM),
 
     # Analysis Input Height for each of the 8 corners
     (HeaderL1.ANALYSIS_SCENARIO, "C1", HeaderL3.ANALYSIS_INPUT_H),
