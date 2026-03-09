@@ -23,9 +23,9 @@ class MarkerSmoother:
         self.method_sequence = list(
             settings.get('marker_smoothing_method_sequence', config_analysis.SMOOTHING_METHOD_SEQUENCE)
         )
-        self.cutoff_freq = config_analysis.BUTTERWORTH_CUTOFF_FREQ_HZ
-        self.order = config_analysis.BUTTERWORTH_ORDER
-        self.ma_window = config_analysis.MA_WINDOW_SIZE
+        self.cutoff_freq = settings.get('marker_butterworth_cutoff_hz', config_analysis.BUTTERWORTH_CUTOFF_FREQ_HZ)
+        self.order = int(settings.get('marker_butterworth_order', config_analysis.BUTTERWORTH_ORDER))
+        self.ma_window = int(settings.get('marker_moving_average_window', config_analysis.MA_WINDOW_SIZE))
 
     def _calculate_fs(self, time_series: pd.Series) -> float:
         """시간 Series로부터 평균 샘플링 주파수를 계산합니다."""

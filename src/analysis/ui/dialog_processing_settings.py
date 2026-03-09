@@ -1,12 +1,14 @@
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDoubleSpinBox,
     QDialog,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QSpinBox,
     QVBoxLayout,
 )
 
@@ -42,6 +44,12 @@ class ProcessingSettingsDialog(QDialog):
         for label, value in ui_config.MARKER_SMOOTHING_METHOD_CHOICES:
             self.combo_marker_method.addItem(label, userData=value)
         marker_form.addRow(ui_config.FIELD_LABELS["marker_smoothing_method"], self.combo_marker_method)
+        self.spin_marker_cutoff = self._create_double_spinbox(0.1, 200.0, 2, 0.5)
+        self.spin_marker_order = self._create_int_spinbox(1, 10)
+        self.spin_marker_ma_window = self._create_int_spinbox(1, 101)
+        marker_form.addRow(ui_config.FIELD_LABELS["marker_butterworth_cutoff"], self.spin_marker_cutoff)
+        marker_form.addRow(ui_config.FIELD_LABELS["marker_butterworth_order"], self.spin_marker_order)
+        marker_form.addRow(ui_config.FIELD_LABELS["marker_ma_window"], self.spin_marker_ma_window)
         marker_layout.addLayout(marker_form)
         root.addWidget(marker_group)
 
@@ -79,6 +87,14 @@ class ProcessingSettingsDialog(QDialog):
         pose_ma_hint = QLabel(f"  {ui_config.FIELD_HINTS['pose_moving_average']}")
         pose_ma_hint.setStyleSheet("color: #718096; font-size: 11px;")
         pose_layout.addWidget(pose_ma_hint)
+        pose_form = QFormLayout()
+        self.spin_pose_lpf_cutoff = self._create_double_spinbox(0.1, 200.0, 2, 0.5)
+        self.spin_pose_lpf_order = self._create_int_spinbox(1, 10)
+        self.spin_pose_ma_window = self._create_int_spinbox(1, 101)
+        pose_form.addRow(ui_config.FIELD_LABELS["pose_lpf_cutoff"], self.spin_pose_lpf_cutoff)
+        pose_form.addRow(ui_config.FIELD_LABELS["pose_lpf_order"], self.spin_pose_lpf_order)
+        pose_form.addRow(ui_config.FIELD_LABELS["pose_ma_window"], self.spin_pose_ma_window)
+        pose_layout.addLayout(pose_form)
         root.addWidget(pose_group)
 
         derivative_group = QGroupBox(ui_config.SECTION_TITLES["derivative_method"])
@@ -96,11 +112,21 @@ class ProcessingSettingsDialog(QDialog):
             self.combo_acceleration_method.addItem(label, userData=value)
         derivative_form.addRow(ui_config.FIELD_LABELS["velocity_method"], self.combo_velocity_method)
         derivative_form.addRow(ui_config.FIELD_LABELS["acceleration_method"], self.combo_acceleration_method)
+        self.spin_spline_position = self._create_double_spinbox(0.0, 10.0, 6, 0.001)
+        self.spin_spline_rotation = self._create_double_spinbox(0.0, 10.0, 6, 0.001)
+        self.spin_spline_degree = self._create_int_spinbox(1, 5)
+        derivative_form.addRow(ui_config.FIELD_LABELS["spline_position_factor"], self.spin_spline_position)
+        derivative_form.addRow(ui_config.FIELD_LABELS["spline_rotation_factor"], self.spin_spline_rotation)
+        derivative_form.addRow(ui_config.FIELD_LABELS["spline_degree"], self.spin_spline_degree)
         derivative_layout.addLayout(derivative_form)
         derivative_hint = QLabel(ui_config.FIELD_HINTS["derivative_method"])
         derivative_hint.setWordWrap(True)
         derivative_hint.setStyleSheet("color: #718096; font-size: 11px;")
         derivative_layout.addWidget(derivative_hint)
+        spline_hint = QLabel(ui_config.FIELD_HINTS["spline_parameters"])
+        spline_hint.setWordWrap(True)
+        spline_hint.setStyleSheet("color: #718096; font-size: 11px;")
+        derivative_layout.addWidget(spline_hint)
         root.addWidget(derivative_group)
 
         velocity_group = QGroupBox(ui_config.SECTION_TITLES["velocity"])
@@ -115,6 +141,12 @@ class ProcessingSettingsDialog(QDialog):
         velocity_hint.setWordWrap(True)
         velocity_hint.setStyleSheet("color: #718096; font-size: 11px; margin-left: 18px;")
         velocity_layout.addWidget(velocity_hint)
+        velocity_form = QFormLayout()
+        self.spin_velocity_lpf_cutoff = self._create_double_spinbox(0.1, 200.0, 2, 0.5)
+        self.spin_velocity_lpf_order = self._create_int_spinbox(1, 10)
+        velocity_form.addRow(ui_config.FIELD_LABELS["velocity_lpf_cutoff"], self.spin_velocity_lpf_cutoff)
+        velocity_form.addRow(ui_config.FIELD_LABELS["velocity_lpf_order"], self.spin_velocity_lpf_order)
+        velocity_layout.addLayout(velocity_form)
         root.addWidget(velocity_group)
 
         acceleration_group = QGroupBox(ui_config.SECTION_TITLES["acceleration"])
@@ -129,6 +161,12 @@ class ProcessingSettingsDialog(QDialog):
         acceleration_hint.setWordWrap(True)
         acceleration_hint.setStyleSheet("color: #718096; font-size: 11px; margin-left: 18px;")
         acceleration_layout.addWidget(acceleration_hint)
+        acceleration_form = QFormLayout()
+        self.spin_acceleration_lpf_cutoff = self._create_double_spinbox(0.1, 200.0, 2, 0.5)
+        self.spin_acceleration_lpf_order = self._create_int_spinbox(1, 10)
+        acceleration_form.addRow(ui_config.FIELD_LABELS["acceleration_lpf_cutoff"], self.spin_acceleration_lpf_cutoff)
+        acceleration_form.addRow(ui_config.FIELD_LABELS["acceleration_lpf_order"], self.spin_acceleration_lpf_order)
+        acceleration_layout.addLayout(acceleration_form)
         root.addWidget(acceleration_group)
 
         buttons = QHBoxLayout()
@@ -142,18 +180,32 @@ class ProcessingSettingsDialog(QDialog):
         buttons.addWidget(ok_button)
         root.addLayout(buttons)
 
+        self.cb_marker_smoothing.toggled.connect(self._update_enabled_state)
+        self.cb_pose_lpf.toggled.connect(self._update_enabled_state)
+        self.cb_pose_ma.toggled.connect(self._update_enabled_state)
+        self.cb_velocity_lpf.toggled.connect(self._update_enabled_state)
+        self.cb_acceleration_lpf.toggled.connect(self._update_enabled_state)
+        self.combo_velocity_method.currentIndexChanged.connect(self._update_enabled_state)
+        self.combo_acceleration_method.currentIndexChanged.connect(self._update_enabled_state)
+
     def _load_options(self):
         self.cb_marker_smoothing.setChecked(self._current_options.get("enable_marker_smoothing", True))
         self._set_combo_data(
             self.combo_marker_method,
             self._current_options.get("marker_smoothing_method_sequence", []),
         )
+        self.spin_marker_cutoff.setValue(self._current_options.get("marker_butterworth_cutoff_hz", 10.0))
+        self.spin_marker_order.setValue(self._current_options.get("marker_butterworth_order", 4))
+        self.spin_marker_ma_window.setValue(self._current_options.get("marker_moving_average_window", 3))
         self._set_combo_data(
             self.combo_range_handling,
             self._current_options.get("trimming_strategy", "late"),
         )
         self.cb_pose_lpf.setChecked(self._current_options.get("use_pose_lowpass_filter", False))
+        self.spin_pose_lpf_cutoff.setValue(self._current_options.get("pose_lpf_cutoff_hz", 20.0))
+        self.spin_pose_lpf_order.setValue(self._current_options.get("pose_lpf_order", 4))
         self.cb_pose_ma.setChecked(self._current_options.get("use_pose_moving_average", False))
+        self.spin_pose_ma_window.setValue(self._current_options.get("pose_moving_average_window", 3))
         self._set_combo_data(
             self.combo_velocity_method,
             self._current_options.get("velocity_method", "spline"),
@@ -162,8 +214,16 @@ class ProcessingSettingsDialog(QDialog):
             self.combo_acceleration_method,
             self._current_options.get("acceleration_method", "spline"),
         )
+        self.spin_spline_position.setValue(self._current_options.get("spline_s_factor_position", 1e-2))
+        self.spin_spline_rotation.setValue(self._current_options.get("spline_s_factor_rotation", 1e-3))
+        self.spin_spline_degree.setValue(self._current_options.get("spline_degree", 3))
         self.cb_velocity_lpf.setChecked(self._current_options.get("use_velocity_lowpass_filter", False))
+        self.spin_velocity_lpf_cutoff.setValue(self._current_options.get("velocity_lpf_cutoff_hz", 8.0))
+        self.spin_velocity_lpf_order.setValue(self._current_options.get("velocity_lpf_order", 4))
         self.cb_acceleration_lpf.setChecked(self._current_options.get("use_acceleration_lowpass_filter", False))
+        self.spin_acceleration_lpf_cutoff.setValue(self._current_options.get("acceleration_lpf_cutoff_hz", 8.0))
+        self.spin_acceleration_lpf_order.setValue(self._current_options.get("acceleration_lpf_order", 4))
+        self._update_enabled_state()
 
     def _set_combo_data(self, combo: QComboBox, target_value):
         for index in range(combo.count()):
@@ -171,15 +231,64 @@ class ProcessingSettingsDialog(QDialog):
                 combo.setCurrentIndex(index)
                 return
 
+    def _create_double_spinbox(self, minimum, maximum, decimals, step):
+        spinbox = QDoubleSpinBox()
+        spinbox.setRange(minimum, maximum)
+        spinbox.setDecimals(decimals)
+        spinbox.setSingleStep(step)
+        return spinbox
+
+    def _create_int_spinbox(self, minimum, maximum):
+        spinbox = QSpinBox()
+        spinbox.setRange(minimum, maximum)
+        return spinbox
+
+    def _update_enabled_state(self):
+        marker_enabled = self.cb_marker_smoothing.isChecked()
+        self.combo_marker_method.setEnabled(marker_enabled)
+        self.spin_marker_cutoff.setEnabled(marker_enabled)
+        self.spin_marker_order.setEnabled(marker_enabled)
+        self.spin_marker_ma_window.setEnabled(marker_enabled)
+
+        self.spin_pose_lpf_cutoff.setEnabled(self.cb_pose_lpf.isChecked())
+        self.spin_pose_lpf_order.setEnabled(self.cb_pose_lpf.isChecked())
+        self.spin_pose_ma_window.setEnabled(self.cb_pose_ma.isChecked())
+
+        spline_enabled = (
+            self.combo_velocity_method.currentData() == "spline"
+            or self.combo_acceleration_method.currentData() == "spline"
+        )
+        self.spin_spline_position.setEnabled(spline_enabled)
+        self.spin_spline_rotation.setEnabled(spline_enabled)
+        self.spin_spline_degree.setEnabled(spline_enabled)
+
+        self.spin_velocity_lpf_cutoff.setEnabled(self.cb_velocity_lpf.isChecked())
+        self.spin_velocity_lpf_order.setEnabled(self.cb_velocity_lpf.isChecked())
+        self.spin_acceleration_lpf_cutoff.setEnabled(self.cb_acceleration_lpf.isChecked())
+        self.spin_acceleration_lpf_order.setEnabled(self.cb_acceleration_lpf.isChecked())
+
     def get_settings(self) -> dict:
         return {
             "enable_marker_smoothing": self.cb_marker_smoothing.isChecked(),
             "marker_smoothing_method_sequence": list(self.combo_marker_method.currentData()),
+            "marker_butterworth_cutoff_hz": self.spin_marker_cutoff.value(),
+            "marker_butterworth_order": self.spin_marker_order.value(),
+            "marker_moving_average_window": self.spin_marker_ma_window.value(),
             "trimming_strategy": self.combo_range_handling.currentData(),
             "use_pose_lowpass_filter": self.cb_pose_lpf.isChecked(),
+            "pose_lpf_cutoff_hz": self.spin_pose_lpf_cutoff.value(),
+            "pose_lpf_order": self.spin_pose_lpf_order.value(),
             "use_pose_moving_average": self.cb_pose_ma.isChecked(),
+            "pose_moving_average_window": self.spin_pose_ma_window.value(),
             "velocity_method": self.combo_velocity_method.currentData(),
             "acceleration_method": self.combo_acceleration_method.currentData(),
+            "spline_s_factor_position": self.spin_spline_position.value(),
+            "spline_s_factor_rotation": self.spin_spline_rotation.value(),
+            "spline_degree": self.spin_spline_degree.value(),
             "use_velocity_lowpass_filter": self.cb_velocity_lpf.isChecked(),
+            "velocity_lpf_cutoff_hz": self.spin_velocity_lpf_cutoff.value(),
+            "velocity_lpf_order": self.spin_velocity_lpf_order.value(),
             "use_acceleration_lowpass_filter": self.cb_acceleration_lpf.isChecked(),
+            "acceleration_lpf_cutoff_hz": self.spin_acceleration_lpf_cutoff.value(),
+            "acceleration_lpf_order": self.spin_acceleration_lpf_order.value(),
         }
