@@ -24,6 +24,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1800, 1000)
 
         self.current_frame = 0
+        self.plot_dialogs = []
 
         # 1. Create core components
         self.data_handler = DataHandler()
@@ -288,15 +289,22 @@ class MainWindow(QMainWindow):
 
 
     def show_plot_dialog(self):
-        """Creates and shows the detailed plot dialog."""
+        """Creates and shows the detailed plot dialog as a modeless window."""
         plot_args = self.plot_widget.current_plot_args
         y_label = self.plot_widget.y_axis_label
 
         if not plot_args:
             return # Don't show dialog if there's nothing to plot
 
-        dialog = PlotDialog(plot_args, y_label, self)
-        dialog.exec()
+        # Create an independent top-level popup and keep existing popups open.
+        dialog = PlotDialog(plot_args, y_label)
+        dialog.setWindowModality(Qt.NonModal)
+        dialog.setWindowFlag(Qt.Window, True)
+        dialog.setAttribute(Qt.WA_DeleteOnClose, True)
+
+        self.plot_dialogs.append(dialog)
+        dialog.destroyed.connect(lambda *_: self.plot_dialogs.remove(dialog) if dialog in self.plot_dialogs else None)
+        dialog.show()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

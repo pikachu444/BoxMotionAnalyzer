@@ -1,10 +1,13 @@
-from PySide6.QtWidgets import QDialog, QVBoxLayout
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT, FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-class PlotDialog(QDialog):
+class PlotDialog(QWidget):
     def __init__(self, plot_args: list[dict], y_axis_label: str, parent=None):
         super().__init__(parent)
+        self.setWindowFlag(Qt.Window, True)
+        self.setWindowModality(Qt.NonModal)
         self.setWindowTitle("Plot Details")
         self.setGeometry(200, 200, 800, 600)
 
