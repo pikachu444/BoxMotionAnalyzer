@@ -160,6 +160,10 @@ class WidgetRawDataProcessing(QWidget):
 
         self.processing_settings_button = QPushButton(config_analysis_ui.ADVANCED_BUTTON_TEXT)
         self.processing_settings_button.setEnabled(False)
+        self.processing_settings_button.setMinimumWidth(
+            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_settings_button_min_width"]
+        )
+        self.processing_settings_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         radio_row.addWidget(self.processing_settings_button)
         processing_layout.addLayout(radio_row)
 
