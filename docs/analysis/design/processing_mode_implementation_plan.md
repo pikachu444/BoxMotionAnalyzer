@@ -1,4 +1,4 @@
-Last Reviewed: 2026-03-09
+Last Reviewed: 2026-03-10
 
 # Processing Mode Implementation Plan
 
@@ -195,3 +195,9 @@ Last Reviewed: 2026-03-09
 - 먼저 2단계까지 구현하고 사용 가능한 흐름을 만든다.
 - method 분리와 수치 파라미터 편집은 그 다음 단계로 분리한다.
 - 이번 확장 작업은 작은 단계로 나누어 진행한다.
+
+
+## Layout tuning constants policy (Step 1)
+- Step 1 bottom control row layout tuning values (minimum widths, fixed description height, stretch ratios) are managed in `src/config/config_analysis_ui.py`.
+- `src/analysis/ui/widget_raw_data_processing.py` should consume those constants instead of hard-coded numeric literals.
+- 목적: 해상도/폰트 조건이 달라질 때 코드 로직 수정 없이 설정값만 조정할 수 있도록 유지보수성을 높인다.
