@@ -20,6 +20,16 @@ PROCESSING_MODE_DESCRIPTIONS = {
     PROCESSING_MODE_ADVANCED: "Advanced lets you customize each processing stage.",
 }
 
+
+# Step 1 layout tuning constants (Raw Data Processing bottom controls)
+RAW_DATA_PROCESSING_LAYOUT = {
+    "plot_options_group_min_width": 360,
+    "slice_group_min_width": 280,
+    "processing_group_min_width": 360,
+    "processing_mode_description_fixed_height": 42,
+    "bottom_controls_stretch": [4, 3, 4, 2],
+}
+
 SECTION_TITLES = {
     "marker_smoothing": "Marker Smoothing",
     "range_edge_handling": "Range Edge Handling",
