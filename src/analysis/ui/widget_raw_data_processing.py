@@ -2,7 +2,8 @@ import os
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton
+    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton,
+    QSizePolicy
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -137,6 +138,9 @@ class WidgetRawDataProcessing(QWidget):
 
         processing_group = QGroupBox(config_analysis_ui.PROCESSING_MODE_GROUP_TITLE)
         processing_layout = QVBoxLayout(processing_group)
+        processing_group.setMinimumWidth(
+            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_group_min_width"]
+        )
 
         radio_row = QHBoxLayout()
         self.rb_processing_standard = QRadioButton(
@@ -156,15 +160,30 @@ class WidgetRawDataProcessing(QWidget):
 
         self.processing_settings_button = QPushButton(config_analysis_ui.ADVANCED_BUTTON_TEXT)
         self.processing_settings_button.setEnabled(False)
+        self.processing_settings_button.setMinimumWidth(
+            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_settings_button_min_width"]
+        )
+        self.processing_settings_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         radio_row.addWidget(self.processing_settings_button)
         processing_layout.addLayout(radio_row)
 
         self.processing_mode_description = QLabel()
         self.processing_mode_description.setWordWrap(True)
         self.processing_mode_description.setStyleSheet("color: #4a5568;")
+        self.processing_mode_description.setFixedHeight(
+            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_mode_description_fixed_height"]
+        )
+        self.processing_mode_description.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         processing_layout.addWidget(self.processing_mode_description)
         h_controls_layout.addWidget(processing_group)
 
+        # Keep bottom controls stable across processing mode text changes.
+        plot_options_group.setMinimumWidth(
+            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["plot_options_group_min_width"]
+        )
+        self.slice_group.setMinimumWidth(
+            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["slice_group_min_width"]
+        )
         # Run/Export Buttons
         run_button_layout = QVBoxLayout()
         self.run_button = QPushButton("Run Analysis")
@@ -173,6 +192,11 @@ class WidgetRawDataProcessing(QWidget):
         run_button_layout.addWidget(self.run_button)
         run_button_layout.addWidget(self.export_button)
         h_controls_layout.addLayout(run_button_layout)
+
+        # Stretch mapping order:
+        #   0: plot_options_group, 1: slice_group, 2: processing_group, 3: run_button_layout
+        for index, stretch in enumerate(config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["bottom_controls_stretch"]):
+            h_controls_layout.setStretch(index, stretch)
 
         group_layout.addWidget(controls_widget)
         layout.addWidget(group_box)
