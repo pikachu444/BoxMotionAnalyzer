@@ -37,6 +37,9 @@
 #      Application Configuration
 # =========================================
 
+import os
+import sys
+
 import numpy as np
 from src.config.data_columns import (
     RigidBodyCols, TimeCols, HeaderL3
@@ -222,12 +225,17 @@ PLOT_DATA_DISPLAY_MAP = {
 
 # 9. Launcher Window Configuration
 # -----------------------------------------
-import os
+def _get_images_dir():
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, "src", "config", "images")
+    return os.path.join(os.path.dirname(__file__), "images")
+
+
+IMAGES_DIR = _get_images_dir()
 LAUNCHER_TITLE = "3D Motion Analyzer"
-# Use absolute path relative to this config file's location
 APP_USER_MODEL_ID = "pikachu444.BoxMotionAnalyzer"
-APP_ICON_PATH = os.path.join(os.path.dirname(__file__), "images", "app_icon_taskbar.ico")
-WINDOW_ICON_PATH = os.path.join(os.path.dirname(__file__), "images", "app_icon_window.ico")
-LAUNCHER_ICON_PATH = os.path.join(os.path.dirname(__file__), "images", "launcher_image.png")
+APP_ICON_PATH = os.path.join(IMAGES_DIR, "app_icon_taskbar.ico")
+WINDOW_ICON_PATH = os.path.join(IMAGES_DIR, "app_icon_window.ico")
+LAUNCHER_ICON_PATH = os.path.join(IMAGES_DIR, "launcher_image.png")
 LAUNCHER_BTN_PROCESS_TEXT = "Data Processing"
 LAUNCHER_BTN_VISUALIZE_TEXT = "3D Visualization"

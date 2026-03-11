@@ -1,6 +1,6 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-11
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
@@ -25,17 +25,30 @@ Last Reviewed: 2026-03-08
 이 프로젝트는 유지보수와 확장성을 위해 다음과 같이 모듈화된 폴더 구조를 갖습니다.
 
 *   **`src/`**: 소스 코드 루트
-    *   **`main.py`**: 프로그램의 통합 진입점 (Launcher 실행).
-    *   **`launcher.py`**: 분석 도구와 시각화 도구를 연결하는 런처 윈도우.
+    *   **`main.py`**: 프로그램의 통합 진입점. Launcher를 실행합니다.
+    *   **`launcher.py`**: 분석 GUI와 3D 시각화 GUI를 여는 런처 윈도우입니다.
     *   **`analysis/`**: 데이터 분석 관련 핵심 로직 및 UI.
-        *   `core/`: 파이프라인, 데이터 로더 등 핵심 모듈.
-        *   `ui/`: 분석 관련 위젯 및 다이얼로그.
-    *   **`visualization/`**: 3D 시각화 관련 코드 (PyVista, Qt 위젯).
-    *   **`config/`**: 설정 파일 중앙 관리 (`config_visualization.py` 등).
+        *   `app/`: 분석 메인 윈도우(`MainApp`)와 상위 UI 조립 코드
+        *   `pipeline/`: parser, slicer, smoother, pose optimizer, velocity calculator, frame analyzer 등 분석 파이프라인
+        *   `ui/`: Step 1/Step 2 위젯, 플롯, 대화상자
+    *   **`visualization/`**: 3D 시각화 관련 코드(PyVista, Qt 위젯, 결과 CSV 로더)
+    *   **`config/`**: 설정 파일, 컬럼 정의, 아이콘/이미지 리소스
     *   **`utils/`**: 공용 유틸리티 스크립트.
 *   **`docs/`**: 개발 문서 및 참고 자료.
 *   **`data/`**: 데이터 입출력 폴더 (테스트 데이터 포함).
 *   **`tests/`**: 통합 테스트 및 구조 검증 스크립트.
+
+### 현재 GUI 흐름
+
+*   **Launcher**
+    *   `src/main.py` -> `src/launcher.py`
+*   **Data Analysis**
+    *   `src/analysis/app/main_window.py`
+    *   Step 1: Raw Data Processing
+    *   Step 2: Results Analysis
+*   **3D Visualization**
+    *   `src/visualization/main_window.py`
+    *   입력은 분석 결과로 export한 multi-header CSV입니다.
 
 ---
 
@@ -66,13 +79,21 @@ pip install -r requirements.txt
 ```bash
 python src/main.py
 ```
-실행 시 **Launcher Window**가 열리며, 여기서 **Data Processing** (분석) 또는 **3D Visualization** (시각화) 버튼을 클릭하여 원하는 작업을 시작할 수 있습니다.
+실행 시 **Launcher Window**가 열리며, 여기서 아래 두 흐름 중 하나를 시작할 수 있습니다.
+
+*   **Data Processing**: 원본 CSV를 불러와 분석하고 결과를 CSV로 export
+*   **3D Visualization**: export된 결과 CSV를 열어 3D/2D로 탐색
+
+### 3. 분석 결과 export와 visualization의 관계
+
+시각화 창은 원본 raw CSV를 직접 읽지 않습니다.  
+분석 GUI에서 export한 **multi-header 결과 CSV**를 입력으로 사용합니다.
 
 ---
 
 ## 🏗️ 빌드 방법 (배포용 실행 파일 생성)
 
-`PyInstaller`를 사용하여 독립 실행형(`.exe`) 파일을 생성할 수 있습니다.
+이 프로젝트는 **Windows 배포**를 기준으로 `PyInstaller`를 사용해 독립 실행형(`.exe`) 파일을 생성합니다.
 
 ### 1. `build.bat` 사용 (Windows 권장)
 `build.bat` 파일을 더블 클릭하거나 명령 프롬프트에서 실행한 후, 원하는 모드를 선택하세요.
@@ -87,6 +108,15 @@ python build.py onedir
 # 단일 파일 방식 (onefile)
 python build.py onefile
 ```
+
+### 3. 아이콘/리소스 포함
+
+빌드 시 실행 파일 아이콘과 런처/창 아이콘에 필요한 리소스는 `src/config/images/` 아래 파일을 사용합니다.
+Windows에서 최종 아이콘 확인 시에는 아래를 함께 점검하세요.
+
+*   탐색기에서 보이는 `.exe` 아이콘
+*   실행 후 창 좌상단 아이콘
+*   작업표시줄 아이콘
 
 ---
 
