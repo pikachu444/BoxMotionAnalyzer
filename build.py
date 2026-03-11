@@ -3,6 +3,11 @@ import shutil
 import subprocess
 import sys
 
+
+def get_pyinstaller_data_sep():
+    """Return the platform-specific separator used by PyInstaller --add-data."""
+    return ";" if os.name == "nt" else ":"
+
 def clean_previous_builds(dist_path):
     """지정된 빌드 출력 디렉토리와 임시 파일을 정리합니다."""
     print(f"Cleaning up output directory: {dist_path}...")
@@ -45,6 +50,9 @@ def build(mode):
 
     # Determine the absolute path to the entry point
     entry_point = os.path.join('src', 'main.py')
+    icon_path = os.path.join('src', 'config', 'images', 'app_icon.ico')
+    image_dir = os.path.join('src', 'config', 'images')
+    add_data_arg = f"{image_dir}{get_pyinstaller_data_sep()}src/config/images"
 
     cmd = [
         sys.executable, '-m', 'PyInstaller',
@@ -55,6 +63,8 @@ def build(mode):
         '--distpath', dist_path, # 출력 경로 지정
         # Add src to python path so imports inside main.py work
         '--paths', 'src',
+        '--icon', icon_path,
+        '--add-data', add_data_arg,
         entry_point    # 진입점
     ]
 
