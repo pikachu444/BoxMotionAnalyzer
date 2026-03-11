@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-11
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 원본 CSV 기반 분석 파이프라인과 결과 분석 기능을 하나의 PySide6 애플리케이션 안에서 일관되게 제공하는 것이다.
@@ -25,6 +25,7 @@ Last Reviewed: 2026-03-08
 - 파싱 기반 미리보기 플롯
 - Plot target / axis 선택
 - Slice Range 지정
+- Optional uniform resampling 지정
 - 분석 실행
 - 결과 CSV export
 
@@ -46,6 +47,7 @@ Last Reviewed: 2026-03-08
 ### 4.1. 파이프라인 제어와 UI 분리
 - UI는 설정 수집과 결과 표시를 담당한다.
 - 실제 분석 순서 제어는 `PipelineController`가 담당한다.
+- resampling factor 기반 옵션 보정 규칙처럼 UI/Qt와 무관한 계산 로직은 순수 모듈로 분리한다.
 
 ### 4.2. 컬럼 정의의 중앙 관리
 - 컬럼명, Multi-header 규칙, Results Analyzer 표시 순서는 `src/config/data_columns.py`에서 관리한다.
@@ -54,6 +56,7 @@ Last Reviewed: 2026-03-08
 ### 4.3. 단일 DataFrame 기반 처리
 - 중간 단계마다 파일을 만들지 않고 DataFrame을 누적 확장한다.
 - 최종 결과만 export 단계에서 CSV로 저장한다.
+- resampling을 사용하는 경우에도 slice 이후 DataFrame을 uniform time grid로 재구성한 뒤 후속 분석을 수행한다.
 
 ### 4.4. 분석 결과와 후처리의 분리
 - Step 1은 "계산과 저장"에 집중한다.
@@ -67,6 +70,7 @@ Last Reviewed: 2026-03-08
 - `DataSelectionDialog`
 - `PlotManager`
 - `PipelineController`
+- `UniformResampler`
 - `Parser`, `Slicer`, `Smoother`, `PoseOptimizer`, `VelocityCalculator`, `FrameAnalyzer`
 
 세부 책임은 `component_specs.txt`를 따른다.

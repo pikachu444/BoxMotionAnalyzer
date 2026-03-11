@@ -2,7 +2,7 @@ import os
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton,
+    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton, QCheckBox,
     QSizePolicy
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -136,6 +136,26 @@ class WidgetRawDataProcessing(QWidget):
         slice_h_layout.addWidget(self.le_slice_end)
         h_controls_layout.addWidget(self.slice_group)
 
+        self.resampling_group = QGroupBox(config_analysis_ui.RESAMPLING_GROUP_TITLE)
+        resampling_layout = QGridLayout(self.resampling_group)
+        self.cb_enable_resampling = QCheckBox(config_analysis_ui.RESAMPLING_ENABLE_LABEL)
+        resampling_layout.addWidget(self.cb_enable_resampling, 0, 0, 1, 2)
+        resampling_layout.addWidget(QLabel(config_analysis_ui.RESAMPLING_FACTOR_LABEL), 1, 0)
+        self.combo_resampling_factor = QComboBox()
+        for label, factor in config_analysis_ui.RESAMPLING_FACTOR_CHOICES:
+            self.combo_resampling_factor.addItem(label, userData=factor)
+        self.combo_resampling_factor.setEnabled(False)
+        resampling_layout.addWidget(self.combo_resampling_factor, 1, 1)
+        self.resampling_description = QLabel(config_analysis_ui.RESAMPLING_DESCRIPTION)
+        self.resampling_description.setWordWrap(True)
+        self.resampling_description.setStyleSheet("color: #4a5568;")
+        self.resampling_description.setFixedHeight(
+            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["resampling_description_fixed_height"]
+        )
+        self.resampling_description.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        resampling_layout.addWidget(self.resampling_description, 2, 0, 1, 2)
+        h_controls_layout.addWidget(self.resampling_group)
+
         processing_group = QGroupBox(config_analysis_ui.PROCESSING_MODE_GROUP_TITLE)
         processing_layout = QVBoxLayout(processing_group)
         processing_group.setMinimumWidth(
@@ -184,6 +204,9 @@ class WidgetRawDataProcessing(QWidget):
         self.slice_group.setMinimumWidth(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["slice_group_min_width"]
         )
+        self.resampling_group.setMinimumWidth(
+            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["resampling_group_min_width"]
+        )
         # Run/Export Buttons
         run_button_layout = QVBoxLayout()
         self.run_button = QPushButton("Run Analysis")
@@ -194,7 +217,7 @@ class WidgetRawDataProcessing(QWidget):
         h_controls_layout.addLayout(run_button_layout)
 
         # Stretch mapping order:
-        #   0: plot_options_group, 1: slice_group, 2: processing_group, 3: run_button_layout
+        #   0: plot_options_group, 1: slice_group, 2: resampling_group, 3: processing_group, 4: run_button_layout
         for index, stretch in enumerate(config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["bottom_controls_stretch"]):
             h_controls_layout.setStretch(index, stretch)
 
@@ -211,6 +234,7 @@ class WidgetRawDataProcessing(QWidget):
         self.slice_group.toggled.connect(self.toggle_slicing_widgets)
         self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
         self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
+        self.cb_enable_resampling.toggled.connect(self.combo_resampling_factor.setEnabled)
         self.rb_processing_standard.toggled.connect(self._on_processing_mode_changed)
         self.rb_processing_raw.toggled.connect(self._on_processing_mode_changed)
         self.rb_processing_advanced.toggled.connect(self._on_processing_mode_changed)
@@ -365,6 +389,9 @@ class WidgetRawDataProcessing(QWidget):
                 'slice_filter_by': 'time',
                 'slice_start_val': float(self.le_slice_start.text()) if self.slice_group.isChecked() else self.parsed_data.index.min(),
                 'slice_end_val': float(self.le_slice_end.text()) if self.slice_group.isChecked() else self.parsed_data.index.max(),
+                'enable_resampling': self.cb_enable_resampling.isChecked(),
+                'resampling_factor': self.combo_resampling_factor.currentData(),
+                'resampling_method': 'linear',
                 'processing_mode': self.current_processing_mode,
                 'analysis_options': self._build_analysis_overrides(),
             }

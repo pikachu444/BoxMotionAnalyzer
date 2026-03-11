@@ -2,7 +2,7 @@
 |    컴포넌트 및 기능 명세서 (현재 기준)  |
 =========================================
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-11
 
 이 문서는 현재 코드 기준으로 주요 컴포넌트와 책임을 정리한다.
 
@@ -35,6 +35,7 @@ Last Reviewed: 2026-03-08
     *   원본 CSV 로드
     *   미리보기 플롯 표시
     *   박스 크기, 축, 슬라이스 범위 설정
+    *   optional uniform resampling factor 설정
     *   분석 실행 요청
     *   결과 CSV export 요청
 *   주요 UI 요소:
@@ -42,6 +43,7 @@ Last Reviewed: 2026-03-08
     *   `Box Dimensions (mm)`
     *   `Select Data...`
     *   `Slice Range`
+    *   `Resampling`
     *   `Run Analysis`
     *   `Export Results to CSV`
     *   로그 텍스트 영역
@@ -94,14 +96,23 @@ Last Reviewed: 2026-03-08
 ---
 ### 8. `PipelineController`
 ---
-*   위치: `src/analysis/core/pipeline_controller.py`
+*   위치: `src/analysis/pipeline/pipeline_controller.py`
 *   책임:
     *   분석 모듈 호출 순서 제어
     *   로그 / 성공 / 실패 시그널 발행
     *   `parsed_data`를 입력으로 받아 중복 파싱 없이 분석 수행
 
 ---
-### 9. 분석 모듈 집합
+### 9. `UniformResampler`
+---
+*   위치: `src/analysis/pipeline/resampler.py`
+*   책임:
+    *   시간 인덱스를 기준으로 uniform grid 생성
+    *   numeric 컬럼 linear interpolation
+    *   문자열/범주형 컬럼 ffill/bfill
+    *   `Frame` 컬럼 재번호
+---
+### 10. 분석 모듈 집합
 ---
 *   위치: `src/analysis/`
 *   주요 구성:
@@ -112,9 +123,10 @@ Last Reviewed: 2026-03-08
     *   `VelocityCalculator`
     *   `FrameAnalyzer`
     *   `Validator`
+    *   `UniformResampler`
 
 ---
-### 10. 컬럼/헤더 단일 진실원
+### 11. 컬럼/헤더 단일 진실원
 ---
 *   위치: `src/config/data_columns.py`
 *   책임:

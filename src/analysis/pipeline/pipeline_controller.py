@@ -8,6 +8,8 @@ from src.analysis.pipeline.smoother import MarkerSmoother
 from src.analysis.pipeline.pose_optimizer import PoseOptimizer
 from src.analysis.pipeline.velocity_calculator import VelocityCalculator
 from src.analysis.pipeline.frame_analyzer import FrameAnalyzer
+from src.analysis.pipeline.resampling_options import build_effective_analysis_options
+from src.analysis.pipeline.resampler import UniformResampler
 from src.analysis.pipeline.validator import DataValidator
 
 class PipelineController(QObject):
@@ -38,8 +40,14 @@ class PipelineController(QObject):
         try:
             analysis_options = gui_config.get('analysis_options', {})
             processing_mode = gui_config.get('processing_mode', 'standard')
-            self.smoother.configure(analysis_options)
-            self.velocity_calculator.configure(analysis_options)
+            resampling_enabled = bool(gui_config.get('enable_resampling', False))
+            resampling_factor = int(gui_config.get('resampling_factor') or 1)
+            effective_analysis_options = build_effective_analysis_options(
+                analysis_options,
+                resampling_factor if resampling_enabled else 1,
+            )
+            self.smoother.configure(effective_analysis_options)
+            self.velocity_calculator.configure(effective_analysis_options)
 
             self.log_message.emit(f"[INFO] Using Box Dimensions (L,W,H): {config_app.BOX_DIMS}")
             self.log_message.emit(f"[INFO] Processing mode: {processing_mode}")
@@ -88,8 +96,19 @@ class PipelineController(QObject):
             padded_data = slicer_for_padding.process(data)
             self.log_message.emit(f"    Padded slicer done. Shape: {padded_data.shape}")
 
+            if resampling_enabled and resampling_factor > 1:
+                self.log_message.emit("[2.5/8] Resampling data on a uniform time grid...")
+                resampler = UniformResampler(resampling_factor)
+                original_rows = len(padded_data)
+                original_mean_dt = float(pd.Series(padded_data.index).diff().dropna().mean()) if len(padded_data) > 1 else 0.0
+                padded_data = resampler.process(padded_data)
+                new_mean_dt = float(pd.Series(padded_data.index).diff().dropna().mean()) if len(padded_data) > 1 else 0.0
+                self.log_message.emit(f"    Resampling factor: {resampling_factor}x")
+                self.log_message.emit(f"    Rows: {original_rows} -> {len(padded_data)}")
+                self.log_message.emit(f"    Mean dt: {original_mean_dt:.6f}s -> {new_mean_dt:.6f}s")
+
             # 3. 스무딩
-            if analysis_options.get('enable_marker_smoothing', True):
+            if effective_analysis_options.get('enable_marker_smoothing', True):
                 self.log_message.emit("[3/8] Smoothing markers...")
                 data_to_process = self.smoother.process(padded_data)
                 self.log_message.emit(f"    Smoother done. Shape: {data_to_process.shape}")
@@ -98,7 +117,7 @@ class PipelineController(QObject):
                 data_to_process = padded_data.copy()
 
             # --- 전략적 분기점 ---
-            trimming_strategy = analysis_options.get('trimming_strategy', config_analysis.TRIMMING_STRATEGY)
+            trimming_strategy = effective_analysis_options.get('trimming_strategy', config_analysis.TRIMMING_STRATEGY)
             self.log_message.emit(f"\n[INFO] Using Trimming Strategy: '{trimming_strategy}'")
 
             slicer_for_trimming = Slicer(

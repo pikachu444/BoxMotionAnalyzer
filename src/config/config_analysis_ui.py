@@ -5,8 +5,20 @@ PROCESSING_MODE_RAW = "raw"
 PROCESSING_MODE_ADVANCED = "advanced"
 
 PROCESSING_MODE_GROUP_TITLE = "Processing Mode"
+RESAMPLING_GROUP_TITLE = "Resampling"
 ADVANCED_DIALOG_TITLE = "Advanced Processing Settings"
 ADVANCED_BUTTON_TEXT = "Advanced Settings..."
+RESAMPLING_ENABLE_LABEL = "Enable Resampling"
+RESAMPLING_FACTOR_LABEL = "Factor:"
+RESAMPLING_DESCRIPTION = (
+    "Adds uniformly interpolated samples before analysis to increase temporal resolution."
+)
+RESAMPLING_FACTOR_CHOICES = [
+    ("2x", 2),
+    ("3x", 3),
+    ("4x", 4),
+    ("5x", 5),
+]
 
 PROCESSING_MODE_LABELS = {
     PROCESSING_MODE_STANDARD: "Standard",
@@ -25,9 +37,11 @@ PROCESSING_MODE_DESCRIPTIONS = {
 RAW_DATA_PROCESSING_LAYOUT = {
     "plot_options_group_min_width": 360,
     "slice_group_min_width": 280,
+    "resampling_group_min_width": 280,
     "processing_group_min_width": 360,
     "processing_mode_description_fixed_height": 42,
-    "bottom_controls_stretch": [4, 3, 4, 2],
+    "resampling_description_fixed_height": 42,
+    "bottom_controls_stretch": [4, 3, 3, 4, 2],
     "processing_settings_button_min_width": 170,
 }
 
