@@ -39,7 +39,7 @@ class AnimationWidget(QWidget):
         self.timeline_slider.setRange(0, max_frames - 1)
 
     def update_frame_display(self, frame_number, total_frames, time_value):
-        self.frame_label.setText(f"Frame: {frame_number} / {total_frames}  (Time: {time_value:.2f}s)")
+        self.frame_label.setText(f"Frame: {frame_number} / {total_frames}  (Time: {time_value:.3f}s)")
         self.timeline_slider.blockSignals(True)
         self.timeline_slider.setValue(frame_number)
         self.timeline_slider.blockSignals(False)

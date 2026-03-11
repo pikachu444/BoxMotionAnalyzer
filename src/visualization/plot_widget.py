@@ -42,7 +42,7 @@ class PlotWidget(QWidget):
             self.ax.plot(args["x"], args["y"], label=args["label"])
 
         self.ax.set_title(f"{y_axis_label} Timeseries")
-        self.ax.set_xlabel("Frame")
+        self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel(y_axis_label)
 
         # Add a legend only if there are multiple lines to distinguish

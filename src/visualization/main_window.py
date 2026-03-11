@@ -231,7 +231,7 @@ class MainWindow(QMainWindow):
                     ]
 
                 plot_args.append({
-                    "x": plot_df[config.DF_FRAME],
+                    "x": plot_df[config.DF_TIME],
                     "y": plot_df[data_to_plot],
                     "label": obj_id
                 })

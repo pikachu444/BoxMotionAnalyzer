@@ -43,7 +43,7 @@ class PlotDialog(QWidget):
         for args in plot_args:
             self.ax.plot(args["x"], args["y"], label=args["label"])
         self.ax.set_title(f"{y_axis_label} Timeseries (Detailed View)")
-        self.ax.set_xlabel("Frame")
+        self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel(y_axis_label)
         if len(plot_args) > 1:
             self.ax.legend()
@@ -81,7 +81,7 @@ class PlotDialog(QWidget):
 
         if closest_artist:
             # Update annotation text and position
-            text = f"{closest_artist['line'].get_label()}: ({closest_artist['x']:.0f}, {closest_artist['y']:.2f})"
+            text = f"{closest_artist['line'].get_label()}: ({closest_artist['x']:.3f}, {closest_artist['y']:.2f})"
             self.annot.xy = (closest_artist['x'], closest_artist['y'])
             self.annot.set_text(text)
             self.annot.set_visible(True)
