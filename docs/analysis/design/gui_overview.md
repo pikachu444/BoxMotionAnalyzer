@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-11
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -34,13 +34,20 @@ Last Reviewed: 2026-03-08
 - `Slice Range`
   - 체크 가능한 그룹 박스
   - 활성화 시 `Start`, `End` 입력값과 그래프 구간 선택기가 동기화된다
+- `Resampling`
+  - 분석 전에 uniform time grid로 샘플을 보간할지 결정한다
+  - `Enable Resampling` 체크 시 factor(`2x` ~ `5x`)를 선택할 수 있다
+  - 설명 라벨로 interpolation 기반 시간 해상도 증가 기능임을 안내한다
+- `Processing Mode`
+  - Standard / Raw / Advanced 라디오 버튼
+  - 아래 설명 라벨로 현재 모드의 성격을 안내한다
 - 실행 버튼
   - `Run Analysis`
   - `Export Results to CSV`
 
 ### 2.3. 주요 동작
 - 파일 로드 시 `DataLoader`와 `Parser`가 즉시 미리보기용 데이터를 준비한다.
-- `Run Analysis`는 현재 박스 크기와 슬라이스 범위를 설정 딕셔너리로 만들어 `PipelineController`에 전달한다.
+- `Run Analysis`는 현재 박스 크기, 슬라이스 범위, resampling 옵션, processing mode를 설정 딕셔너리로 만들어 `PipelineController`에 전달한다.
 - `Export Results to CSV`는 최종 분석 결과에 Full/Slice timeline metadata를 추가한 뒤 multi-header CSV로 저장한다.
 - 내보내기 성공 시 저장한 결과 파일을 Step 2에 즉시 로드하고, 탭도 Step 2로 전환한다.
 
@@ -93,8 +100,9 @@ Last Reviewed: 2026-03-08
 ## 4. 현재 사용자 흐름
 1. Step 1에서 원본 CSV를 로드한다.
 2. 필요한 데이터와 축, 슬라이스 범위를 조정한다.
-3. 분석을 실행한다.
-4. 결과를 CSV로 내보낸다.
-5. 저장 직후 Step 2가 열리고 방금 저장한 결과 파일이 자동 로드된다.
-6. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
-7. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
+3. 필요하면 resampling factor를 선택한다.
+4. 분석을 실행한다.
+5. 결과를 CSV로 내보낸다.
+6. 저장 직후 Step 2가 열리고 방금 저장한 결과 파일이 자동 로드된다.
+7. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
+8. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
