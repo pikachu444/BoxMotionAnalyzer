@@ -3,7 +3,7 @@ from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton, QCheckBox,
-    QSizePolicy
+    QSizePolicy, QSplitter
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -46,7 +46,7 @@ class WidgetRawDataProcessing(QWidget):
         group_layout = QVBoxLayout(group_box)
 
         # 1a. Top Layout: Plot and Right Panel
-        top_layout = QHBoxLayout()
+        top_splitter = QSplitter(Qt.Orientation.Horizontal)
 
         # Plot Container
         plot_container = QWidget()
@@ -64,9 +64,12 @@ class WidgetRawDataProcessing(QWidget):
         self.plot_manager = PlotManager(self.canvas, self.fig)
         self.plot_manager.ax.text(0.5, 0.5, "Load a CSV file to start.", ha='center', va='center')
         self.plot_manager.canvas.draw()
+        top_splitter.addWidget(plot_container)
 
         # Right Panel
+        right_panel = QWidget()
         right_panel_layout = QVBoxLayout()
+        right_panel.setLayout(right_panel_layout)
         self.load_csv_button = QPushButton("Load CSV File...")
         self.file_path_label = QLabel("No file selected.")
         
@@ -96,9 +99,12 @@ class WidgetRawDataProcessing(QWidget):
         self.log_output.setPlaceholderText("[INFO] Load a CSV file to start.")
         right_panel_layout.addWidget(self.log_output)
 
-        top_layout.addWidget(plot_container, 8)
-        top_layout.addLayout(right_panel_layout, 2)
-        group_layout.addLayout(top_layout)
+        top_splitter.addWidget(right_panel)
+        top_splitter.setChildrenCollapsible(False)
+        top_splitter.setStretchFactor(0, 5)
+        top_splitter.setStretchFactor(1, 2)
+        top_splitter.setSizes([900, 280])
+        group_layout.addWidget(top_splitter)
 
         # 1b. Bottom Controls
         controls_widget = QWidget()
