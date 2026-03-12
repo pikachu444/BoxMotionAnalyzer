@@ -135,28 +135,41 @@ class WidgetResultsAnalyzer(QWidget):
         selection_layout.addWidget(self.selection_checked_columns_label)
         splitter.addWidget(selection_group)
 
-        right_group = QGroupBox("3. Point Analysis & Export")
-        right_layout = QVBoxLayout(right_group)
+        right_panel = QWidget()
+        right_layout = QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(0, 0, 0, 0)
 
-        point_analysis_group = QGroupBox("Point Analysis")
+        point_analysis_group = QGroupBox("3. Peak & Point Selection")
         point_analysis_layout = QVBoxLayout(point_analysis_group)
 
-        find_max_layout = QHBoxLayout()
-        find_max_layout.addWidget(QLabel("Target:"))
+        target_layout = QHBoxLayout()
+        target_layout.addWidget(QLabel("Target:"))
         self.find_max_target_combo = QComboBox()
-        find_max_layout.addWidget(self.find_max_target_combo)
-        self.find_max_button = QPushButton("Find Abs. Max")
-        find_max_layout.addWidget(self.find_max_button)
-        point_analysis_layout.addLayout(find_max_layout)
+        target_layout.addWidget(self.find_max_target_combo)
+        point_analysis_layout.addLayout(target_layout)
+
+        find_layout = QHBoxLayout()
+        find_layout.addWidget(QLabel("Find:"))
+        self.find_abs_max_button = QPushButton("Abs Max")
+        self.find_max_button = QPushButton("Max")
+        self.find_min_button = QPushButton("Min")
+        find_layout.addWidget(self.find_abs_max_button)
+        find_layout.addWidget(self.find_max_button)
+        find_layout.addWidget(self.find_min_button)
+        point_analysis_layout.addLayout(find_layout)
 
         selected_export_layout = QHBoxLayout()
-        self.selected_point_label = QLabel("Selected: None")
+        self.selected_point_label = QLabel("Selected Point: None")
         selected_export_layout.addWidget(self.selected_point_label)
         selected_export_layout.addStretch()
+        point_analysis_layout.addLayout(selected_export_layout)
+
+        export_button_row = QHBoxLayout()
+        export_button_row.addStretch()
         self.export_point_button = QPushButton("Export Point Data...")
         self.export_point_button.setEnabled(False)
-        selected_export_layout.addWidget(self.export_point_button)
-        point_analysis_layout.addLayout(selected_export_layout)
+        export_button_row.addWidget(self.export_point_button)
+        point_analysis_layout.addLayout(export_button_row)
         right_layout.addWidget(point_analysis_group)
 
         analysis_scenario_group = QGroupBox("4. Export Analysis Input")
@@ -203,7 +216,7 @@ class WidgetResultsAnalyzer(QWidget):
         analysis_scenario_layout.addWidget(self.export_scenario_button)
         right_layout.addWidget(analysis_scenario_group)
         right_layout.addStretch()
-        splitter.addWidget(right_group)
+        splitter.addWidget(right_panel)
 
         splitter.setSizes([320, 620, 500])
         layout.addWidget(splitter, 3)
@@ -231,7 +244,9 @@ class WidgetResultsAnalyzer(QWidget):
         self.open_popup_current_button.clicked.connect(self.open_popup_current_selection)
         self.close_all_popups_button.clicked.connect(self.close_all_popups)
         self.canvas.mpl_connect('button_press_event', self.on_result_plot_click)
+        self.find_abs_max_button.clicked.connect(self.on_find_abs_max_click)
         self.find_max_button.clicked.connect(self.on_find_max_click)
+        self.find_min_button.clicked.connect(self.on_find_min_click)
         self.export_point_button.clicked.connect(self.on_export_point_data_click)
         
         # Scenario Output
@@ -619,6 +634,27 @@ class WidgetResultsAnalyzer(QWidget):
 
         self._select_time_by_xdata(event.xdata)
 
+    def _get_selected_target_value(self):
+        if self.result_data is None:
+            return None
+
+        selected_index = self.selected_point_info.get('index')
+        if selected_index is None:
+            return None
+
+        target_column = self.find_max_target_combo.currentData()
+        if target_column is None:
+            return None
+
+        if isinstance(target_column, list):
+            target_column = tuple(target_column)
+
+        try:
+            value = self.result_data.iloc[selected_index][target_column]
+            return float(value)
+        except Exception:
+            return None
+
     def update_point_selection_ui(self, value=None):
         if self.result_point_cursor:
             try:
@@ -639,15 +675,18 @@ class WidgetResultsAnalyzer(QWidget):
             except Exception:
                 time_text = str(selected_time)
 
+            if value is None:
+                value = self._get_selected_target_value()
+
             if value is not None:
                 self.selected_point_label.setText(
-                    f"Selected: T={time_text}s, Value={float(value):.4f}"
+                    f"Selected Point: T={time_text}s, Value={float(value):.4f}"
                 )
             else:
-                self.selected_point_label.setText(f"Selected: T={time_text}s")
+                self.selected_point_label.setText(f"Selected Point: T={time_text}s")
             self.export_point_button.setEnabled(True)
         else:
-            self.selected_point_label.setText("Selected: None")
+            self.selected_point_label.setText("Selected Point: None")
             self.export_point_button.setEnabled(False)
             self.plot_manager.canvas.draw()
 
@@ -706,32 +745,55 @@ class WidgetResultsAnalyzer(QWidget):
     def on_popup_point_selected(self, selected_time):
         self._select_time_by_xdata(selected_time)
 
-    def on_find_max_click(self):
+    def _find_extreme_point(self, mode):
         if self.result_data is None or self.result_data.empty:
             return
         target_column = self.find_max_target_combo.currentData()
         if target_column is None:
-            self.log_message.emit("[WARNING] No target data selected for 'Find Max'.")
+            self.log_message.emit("[WARNING] No target data selected for peak search.")
             return
 
         if isinstance(target_column, list):
             target_column = tuple(target_column)
 
         try:
-            max_index = self.result_data[target_column].abs().idxmax()
-            max_value = self.result_data.loc[max_index, target_column]
-            self._select_time_by_xdata(max_index, value=max_value)
+            series = pd.to_numeric(self.result_data[target_column], errors='coerce')
+            if mode == "abs_max":
+                extreme_index = series.abs().idxmax()
+                extreme_value = self.result_data.loc[extreme_index, target_column]
+                action_label = "abs max"
+            elif mode == "max":
+                extreme_index = series.idxmax()
+                extreme_value = self.result_data.loc[extreme_index, target_column]
+                action_label = "max"
+            elif mode == "min":
+                extreme_index = series.idxmin()
+                extreme_value = self.result_data.loc[extreme_index, target_column]
+                action_label = "min"
+            else:
+                raise ValueError(f"Unknown extreme mode: {mode}")
+
+            self._select_time_by_xdata(extreme_index, value=extreme_value)
             selected_time = self.selected_point_info.get('time')
             try:
                 selected_time_text = f"{float(selected_time):.3f}s"
             except Exception:
                 selected_time_text = str(selected_time)
             self.log_message.emit(
-                f"[INFO] Found max value for '{'/'.join(target_column)}': "
-                f"{float(max_value):.4f} at T={selected_time_text}"
+                f"[INFO] Found {action_label} for '{'/'.join(target_column)}': "
+                f"{float(extreme_value):.4f} at T={selected_time_text}"
             )
         except Exception as e:
-            self.log_message.emit(f"[ERROR] Could not find max value: {e}")
+            self.log_message.emit(f"[ERROR] Could not find extreme value: {e}")
+
+    def on_find_abs_max_click(self):
+        self._find_extreme_point("abs_max")
+
+    def on_find_max_click(self):
+        self._find_extreme_point("max")
+
+    def on_find_min_click(self):
+        self._find_extreme_point("min")
 
     def on_export_point_data_click(self):
         if self.result_data is None or self.selected_point_info.get('index') is None:
