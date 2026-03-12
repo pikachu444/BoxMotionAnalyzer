@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-03-11
+Last Reviewed: 2026-03-12
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -72,20 +72,19 @@ Last Reviewed: 2026-03-11
   - `Open Popup (Current Selection)`
   - `Close All Popups`
   - Opened Popups / Checked Columns 상태 표시
-- `3. Point Analysis & Export`
-  - `Point Analysis`
-    - `Target`
-    - `Find Abs. Max`
-    - 선택된 시점 표시
-    - `Export Point Data...`
-  - `4. Export Analysis Input`
-    - `Manual Offset`
-    - `Manual Height`
-    - `Offset0~2`
-    - `Run Time`
-    - `Step`
-    - `Scene Name`
-    - `Export Scenario CSV`
+- `3. Peak & Point Selection`
+  - `Target`
+  - `Find: Abs Max / Max / Min`
+  - `Selected Point`
+  - `Export Point Data...`
+- `4. Export Analysis Input`
+  - `Manual Offset`
+  - `Manual Height`
+  - `Offset0~2`
+  - `Run Time`
+  - `Step`
+  - `Scene Name`
+  - `Export Scenario CSV`
 
 ### 3.3. 하단 메인 플롯
 - 현재 체크된 결과 컬럼을 한 그래프에 겹쳐서 표시한다.
