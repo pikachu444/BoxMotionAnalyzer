@@ -38,11 +38,11 @@ RAW_DATA_PROCESSING_LAYOUT = {
     "plot_options_group_min_width": 360,
     "slice_group_min_width": 280,
     "resampling_group_min_width": 280,
-    "processing_group_min_width": 360,
+    "processing_group_min_width": 320,
     "processing_mode_description_fixed_height": 42,
     "resampling_description_fixed_height": 42,
     "bottom_controls_stretch": [4, 3, 3, 4, 2],
-    "processing_settings_button_min_width": 170,
+    "processing_settings_button_min_width": 150,
 }
 
 SECTION_TITLES = {

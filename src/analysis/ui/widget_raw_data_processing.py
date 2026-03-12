@@ -106,34 +106,45 @@ class WidgetRawDataProcessing(QWidget):
 
         # Plot Options
         plot_options_group = QGroupBox("Plot Options")
-        plot_options_h_layout = QHBoxLayout(plot_options_group)
+        plot_options_layout = QVBoxLayout(plot_options_group)
+        plot_options_top_row = QHBoxLayout()
         self.select_data_button = QPushButton("Select Data...")
         self.selected_data_label = QLabel("Selected: None")
         self.selected_data_label.setWordWrap(True)
-        
-        plot_options_h_layout.addWidget(self.select_data_button)
-        plot_options_h_layout.addWidget(self.selected_data_label)
-        plot_options_h_layout.addWidget(QLabel("Axis:"))
-        
+
+        plot_options_top_row.addWidget(self.select_data_button)
+        plot_options_top_row.addWidget(self.selected_data_label)
+        plot_options_layout.addLayout(plot_options_top_row)
+
+        plot_options_bottom_row = QHBoxLayout()
+        plot_options_bottom_row.addWidget(QLabel("Axis:"))
         self.combo_plot_axis = QComboBox()
         self.combo_plot_axis.addItem("Position-X", userData=PoseCols.POS_X)
         self.combo_plot_axis.addItem("Position-Y", userData=PoseCols.POS_Y)
         self.combo_plot_axis.addItem("Position-Z", userData=PoseCols.POS_Z)
-        plot_options_h_layout.addWidget(self.combo_plot_axis)
-        
+        plot_options_bottom_row.addWidget(self.combo_plot_axis)
+        plot_options_bottom_row.addStretch()
+        plot_options_layout.addLayout(plot_options_bottom_row)
+
         h_controls_layout.addWidget(plot_options_group)
 
         # Slice Range
         self.slice_group = QGroupBox("Slice Range")
         self.slice_group.setCheckable(True)
         self.slice_group.setChecked(False)
-        slice_h_layout = QHBoxLayout(self.slice_group)
-        slice_h_layout.addWidget(QLabel("Start:"))
+        slice_layout = QVBoxLayout(self.slice_group)
+
+        slice_start_row = QHBoxLayout()
+        slice_start_row.addWidget(QLabel("Start:"))
         self.le_slice_start = QLineEdit()
-        slice_h_layout.addWidget(self.le_slice_start)
-        slice_h_layout.addWidget(QLabel("End:"))
+        slice_start_row.addWidget(self.le_slice_start)
+        slice_layout.addLayout(slice_start_row)
+
+        slice_end_row = QHBoxLayout()
+        slice_end_row.addWidget(QLabel("End:"))
         self.le_slice_end = QLineEdit()
-        slice_h_layout.addWidget(self.le_slice_end)
+        slice_end_row.addWidget(self.le_slice_end)
+        slice_layout.addLayout(slice_end_row)
         h_controls_layout.addWidget(self.slice_group)
 
         self.resampling_group = QGroupBox(config_analysis_ui.RESAMPLING_GROUP_TITLE)
@@ -177,15 +188,18 @@ class WidgetRawDataProcessing(QWidget):
         radio_row.addWidget(self.rb_processing_raw)
         radio_row.addWidget(self.rb_processing_advanced)
         radio_row.addStretch()
+        processing_layout.addLayout(radio_row)
 
+        settings_row = QHBoxLayout()
+        settings_row.addStretch()
         self.processing_settings_button = QPushButton(config_analysis_ui.ADVANCED_BUTTON_TEXT)
         self.processing_settings_button.setEnabled(False)
         self.processing_settings_button.setMinimumWidth(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_settings_button_min_width"]
         )
         self.processing_settings_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        radio_row.addWidget(self.processing_settings_button)
-        processing_layout.addLayout(radio_row)
+        settings_row.addWidget(self.processing_settings_button)
+        processing_layout.addLayout(settings_row)
 
         self.processing_mode_description = QLabel()
         self.processing_mode_description.setWordWrap(True)
