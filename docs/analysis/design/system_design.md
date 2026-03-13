@@ -29,6 +29,7 @@ Last Reviewed: 2026-03-13
 - 분석 실행
 - 결과 CSV export
 - 미리보기 플롯과 하단 제어 영역 사이에는 세로 splitter가 있어, 창 높이 증가분이 플롯에 우선 배분되고 사용자가 플롯 높이를 직접 조절할 수 있다.
+- Advanced marker smoothing에서는 선택한 method sequence에 따라 관련 파라미터만 표시되며, Savitzky-Golay를 marker smoothing 옵션으로 비교할 수 있다.
 
 ### 3.2. Step 2: Results Analysis
 - 결과 폴더 / 파일 선택
