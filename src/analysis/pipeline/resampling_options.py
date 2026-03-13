@@ -3,7 +3,7 @@ def build_effective_analysis_options(analysis_options: dict, resampling_factor: 
     if resampling_factor <= 1:
         return effective
 
-    for key in ("marker_moving_average_window", "pose_moving_average_window"):
+    for key in ("marker_moving_average_window", "marker_savgol_window_length", "pose_moving_average_window"):
         if key in effective:
             effective[key] = max(1, int(round(float(effective[key]) * resampling_factor)))
 

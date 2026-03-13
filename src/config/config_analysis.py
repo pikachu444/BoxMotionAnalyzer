@@ -13,6 +13,8 @@ BUTTERWORTH_ORDER = 4
 # Scipy의 filtfilt 기본값인 3 * (order + 1)을 따름.
 BUTTERWORTH_PAD_SIZE = 3 * (BUTTERWORTH_ORDER + 1)
 MA_WINDOW_SIZE = 3
+SAVGOL_WINDOW_LENGTH = 7
+SAVGOL_POLYORDER = 3
 
 # 스무딩 시 경계 효과를 줄이기 위한 패딩 사이즈.
 # scipy.signal.filtfilt의 기본 패딩 길이(3 * (order+1))를 따름.

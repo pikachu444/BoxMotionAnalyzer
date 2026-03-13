@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.signal import butter, filtfilt
+from scipy.signal import butter, filtfilt, savgol_filter
 from src.config import config_analysis
 from src.config.data_columns import RawMarkerCols
 
@@ -26,6 +26,17 @@ class MarkerSmoother:
         self.cutoff_freq = settings.get('marker_butterworth_cutoff_hz', config_analysis.BUTTERWORTH_CUTOFF_FREQ_HZ)
         self.order = int(settings.get('marker_butterworth_order', config_analysis.BUTTERWORTH_ORDER))
         self.ma_window = int(settings.get('marker_moving_average_window', config_analysis.MA_WINDOW_SIZE))
+        self.savgol_window_length = int(
+            settings.get('marker_savgol_window_length', config_analysis.SAVGOL_WINDOW_LENGTH)
+        )
+        self.savgol_polyorder = int(
+            settings.get('marker_savgol_polyorder', config_analysis.SAVGOL_POLYORDER)
+        )
+
+    @staticmethod
+    def _normalize_odd_window(window: int) -> int:
+        window = max(1, int(window))
+        return window if window % 2 == 1 else window + 1
 
     def _calculate_fs(self, time_series: pd.Series) -> float:
         """시간 Series로부터 평균 샘플링 주파수를 계산합니다."""
@@ -62,6 +73,32 @@ class MarkerSmoother:
             elif method == 'moving_average':
                 if self.ma_window <= 1 or len(smoothed) < self.ma_window: continue
                 smoothed = smoothed.rolling(window=self.ma_window, center=True, min_periods=1).mean()
+
+            elif method == 'savitzky_golay':
+                window_length = self._normalize_odd_window(self.savgol_window_length)
+                if len(smoothed) < 3:
+                    continue
+                if window_length > len(smoothed):
+                    window_length = len(smoothed) if len(smoothed) % 2 == 1 else len(smoothed) - 1
+                if window_length < 3:
+                    continue
+
+                polyorder = max(1, int(self.savgol_polyorder))
+                if polyorder >= window_length:
+                    polyorder = window_length - 1
+                if polyorder < 1:
+                    continue
+
+                try:
+                    filtered_values = savgol_filter(
+                        smoothed.astype(np.float64).values,
+                        window_length=window_length,
+                        polyorder=polyorder,
+                        mode='interp',
+                    )
+                    smoothed = pd.Series(filtered_values, index=series.index, name=series.name)
+                except ValueError:
+                    continue
 
         return smoothed
 

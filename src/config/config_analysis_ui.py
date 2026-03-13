@@ -66,9 +66,14 @@ SECTION_DESCRIPTIONS = {
 FIELD_LABELS = {
     "enable_marker_smoothing": "Enable marker smoothing",
     "marker_smoothing_method": "Method:",
+    "marker_butterworth_group": "Butterworth settings",
     "marker_butterworth_cutoff": "Butterworth cutoff (Hz):",
     "marker_butterworth_order": "Butterworth order:",
+    "marker_ma_group": "Moving average settings",
     "marker_ma_window": "Moving average window:",
+    "marker_savgol_group": "Savitzky-Golay settings",
+    "marker_savgol_window": "Window length:",
+    "marker_savgol_polyorder": "Polynomial order:",
     "range_edge_handling": "Mode:",
     "pose_lowpass_filter": "Pose Butterworth low-pass filter",
     "pose_moving_average": "Pose moving average",
@@ -92,6 +97,7 @@ FIELD_LABELS = {
 
 FIELD_HINTS = {
     "enable_marker_smoothing": "Recommended for standard processing. Disabling this keeps the marker data closer to the raw input.",
+    "marker_savgol": "Savitzky-Golay can preserve local peak shape better than a low-pass filter, but large windows can still smear impact timing.",
     "range_edge_handling": "Stable keeps a small hidden margin around the selected range during calculations. Fast trims earlier and can be less reliable near the boundaries.",
     "pose_lowpass_filter": "Reduces fast pose jitter before derivatives are computed.",
     "pose_moving_average": "Applies a small moving average to pose data for additional stabilization.",
@@ -115,6 +121,7 @@ MARKER_SMOOTHING_METHOD_CHOICES = [
     ("Butterworth -> Moving Average", ["butterworth", "moving_average"]),
     ("Butterworth", ["butterworth"]),
     ("Moving Average", ["moving_average"]),
+    ("Savitzky-Golay", ["savitzky_golay"]),
 ]
 
 
@@ -125,6 +132,8 @@ def get_default_advanced_options():
         "marker_butterworth_cutoff_hz": config_analysis.BUTTERWORTH_CUTOFF_FREQ_HZ,
         "marker_butterworth_order": config_analysis.BUTTERWORTH_ORDER,
         "marker_moving_average_window": config_analysis.MA_WINDOW_SIZE,
+        "marker_savgol_window_length": config_analysis.SAVGOL_WINDOW_LENGTH,
+        "marker_savgol_polyorder": config_analysis.SAVGOL_POLYORDER,
         "trimming_strategy": config_analysis.TRIMMING_STRATEGY,
         "use_pose_lowpass_filter": config_analysis.USE_POSE_LOWPASS_FILTER,
         "pose_lpf_cutoff_hz": config_analysis.POSE_LPF_CUTOFF_HZ,
@@ -152,6 +161,8 @@ def get_raw_mode_options():
         "marker_butterworth_cutoff_hz": config_analysis.BUTTERWORTH_CUTOFF_FREQ_HZ,
         "marker_butterworth_order": config_analysis.BUTTERWORTH_ORDER,
         "marker_moving_average_window": config_analysis.MA_WINDOW_SIZE,
+        "marker_savgol_window_length": config_analysis.SAVGOL_WINDOW_LENGTH,
+        "marker_savgol_polyorder": config_analysis.SAVGOL_POLYORDER,
         "trimming_strategy": "early",
         "use_pose_lowpass_filter": False,
         "pose_lpf_cutoff_hz": config_analysis.POSE_LPF_CUTOFF_HZ,

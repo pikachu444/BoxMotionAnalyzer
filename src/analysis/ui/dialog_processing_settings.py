@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QSpinBox,
+    QWidget,
     QVBoxLayout,
 )
 
@@ -44,13 +45,35 @@ class ProcessingSettingsDialog(QDialog):
         for label, value in ui_config.MARKER_SMOOTHING_METHOD_CHOICES:
             self.combo_marker_method.addItem(label, userData=value)
         marker_form.addRow(ui_config.FIELD_LABELS["marker_smoothing_method"], self.combo_marker_method)
+        marker_layout.addLayout(marker_form)
+
+        self.marker_butterworth_group = QGroupBox(ui_config.FIELD_LABELS["marker_butterworth_group"])
+        marker_butterworth_form = QFormLayout(self.marker_butterworth_group)
         self.spin_marker_cutoff = self._create_double_spinbox(0.1, 200.0, 2, 0.5)
         self.spin_marker_order = self._create_int_spinbox(1, 10)
+        marker_butterworth_form.addRow(ui_config.FIELD_LABELS["marker_butterworth_cutoff"], self.spin_marker_cutoff)
+        marker_butterworth_form.addRow(ui_config.FIELD_LABELS["marker_butterworth_order"], self.spin_marker_order)
+        marker_layout.addWidget(self.marker_butterworth_group)
+
+        self.marker_ma_group = QGroupBox(ui_config.FIELD_LABELS["marker_ma_group"])
+        marker_ma_form = QFormLayout(self.marker_ma_group)
         self.spin_marker_ma_window = self._create_int_spinbox(1, 101)
-        marker_form.addRow(ui_config.FIELD_LABELS["marker_butterworth_cutoff"], self.spin_marker_cutoff)
-        marker_form.addRow(ui_config.FIELD_LABELS["marker_butterworth_order"], self.spin_marker_order)
-        marker_form.addRow(ui_config.FIELD_LABELS["marker_ma_window"], self.spin_marker_ma_window)
-        marker_layout.addLayout(marker_form)
+        marker_ma_form.addRow(ui_config.FIELD_LABELS["marker_ma_window"], self.spin_marker_ma_window)
+        marker_layout.addWidget(self.marker_ma_group)
+
+        self.marker_savgol_group = QGroupBox(ui_config.FIELD_LABELS["marker_savgol_group"])
+        marker_savgol_layout = QVBoxLayout(self.marker_savgol_group)
+        marker_savgol_hint = QLabel(ui_config.FIELD_HINTS["marker_savgol"])
+        marker_savgol_hint.setWordWrap(True)
+        marker_savgol_hint.setStyleSheet("color: #718096; font-size: 11px;")
+        marker_savgol_layout.addWidget(marker_savgol_hint)
+        marker_savgol_form = QFormLayout()
+        self.spin_marker_savgol_window = self._create_int_spinbox(3, 201)
+        self.spin_marker_savgol_polyorder = self._create_int_spinbox(1, 10)
+        marker_savgol_form.addRow(ui_config.FIELD_LABELS["marker_savgol_window"], self.spin_marker_savgol_window)
+        marker_savgol_form.addRow(ui_config.FIELD_LABELS["marker_savgol_polyorder"], self.spin_marker_savgol_polyorder)
+        marker_savgol_layout.addLayout(marker_savgol_form)
+        marker_layout.addWidget(self.marker_savgol_group)
         root.addWidget(marker_group)
 
         range_group = QGroupBox(ui_config.SECTION_TITLES["range_edge_handling"])
@@ -185,6 +208,7 @@ class ProcessingSettingsDialog(QDialog):
         self.cb_pose_ma.toggled.connect(self._update_enabled_state)
         self.cb_velocity_lpf.toggled.connect(self._update_enabled_state)
         self.cb_acceleration_lpf.toggled.connect(self._update_enabled_state)
+        self.combo_marker_method.currentIndexChanged.connect(self._update_enabled_state)
         self.combo_velocity_method.currentIndexChanged.connect(self._update_enabled_state)
         self.combo_acceleration_method.currentIndexChanged.connect(self._update_enabled_state)
 
@@ -197,6 +221,8 @@ class ProcessingSettingsDialog(QDialog):
         self.spin_marker_cutoff.setValue(self._current_options.get("marker_butterworth_cutoff_hz", 10.0))
         self.spin_marker_order.setValue(self._current_options.get("marker_butterworth_order", 4))
         self.spin_marker_ma_window.setValue(self._current_options.get("marker_moving_average_window", 3))
+        self.spin_marker_savgol_window.setValue(self._current_options.get("marker_savgol_window_length", 7))
+        self.spin_marker_savgol_polyorder.setValue(self._current_options.get("marker_savgol_polyorder", 3))
         self._set_combo_data(
             self.combo_range_handling,
             self._current_options.get("trimming_strategy", "late"),
@@ -243,12 +269,21 @@ class ProcessingSettingsDialog(QDialog):
         spinbox.setRange(minimum, maximum)
         return spinbox
 
+    def _set_widget_visible(self, widget: QWidget, visible: bool):
+        widget.setVisible(visible)
+        widget.setEnabled(visible)
+
     def _update_enabled_state(self):
         marker_enabled = self.cb_marker_smoothing.isChecked()
         self.combo_marker_method.setEnabled(marker_enabled)
-        self.spin_marker_cutoff.setEnabled(marker_enabled)
-        self.spin_marker_order.setEnabled(marker_enabled)
-        self.spin_marker_ma_window.setEnabled(marker_enabled)
+        selected_methods = list(self.combo_marker_method.currentData() or [])
+        show_butterworth = marker_enabled and "butterworth" in selected_methods
+        show_moving_average = marker_enabled and "moving_average" in selected_methods
+        show_savgol = marker_enabled and "savitzky_golay" in selected_methods
+
+        self._set_widget_visible(self.marker_butterworth_group, show_butterworth)
+        self._set_widget_visible(self.marker_ma_group, show_moving_average)
+        self._set_widget_visible(self.marker_savgol_group, show_savgol)
 
         self.spin_pose_lpf_cutoff.setEnabled(self.cb_pose_lpf.isChecked())
         self.spin_pose_lpf_order.setEnabled(self.cb_pose_lpf.isChecked())
@@ -274,6 +309,8 @@ class ProcessingSettingsDialog(QDialog):
             "marker_butterworth_cutoff_hz": self.spin_marker_cutoff.value(),
             "marker_butterworth_order": self.spin_marker_order.value(),
             "marker_moving_average_window": self.spin_marker_ma_window.value(),
+            "marker_savgol_window_length": self.spin_marker_savgol_window.value(),
+            "marker_savgol_polyorder": self.spin_marker_savgol_polyorder.value(),
             "trimming_strategy": self.combo_range_handling.currentData(),
             "use_pose_lowpass_filter": self.cb_pose_lpf.isChecked(),
             "pose_lpf_cutoff_hz": self.spin_pose_lpf_cutoff.value(),
