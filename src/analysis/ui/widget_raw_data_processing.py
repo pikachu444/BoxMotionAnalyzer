@@ -41,12 +41,16 @@ class WidgetRawDataProcessing(QWidget):
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
-        
+
         group_box = QGroupBox("Raw Data Processing")
         group_layout = QVBoxLayout(group_box)
 
+        main_splitter = QSplitter(Qt.Orientation.Vertical)
+        main_splitter.setChildrenCollapsible(False)
+
         # 1a. Top Layout: Plot and Right Panel
         top_splitter = QSplitter(Qt.Orientation.Horizontal)
+        top_splitter.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         # Plot Container
         plot_container = QWidget()
@@ -57,9 +61,10 @@ class WidgetRawDataProcessing(QWidget):
         self.fig.subplots_adjust(left=0.08, right=0.98, bottom=0.1, top=0.95)
         self.canvas = FigureCanvas(self.fig)
         self.toolbar = NavigationToolbar(self.canvas, self)
-        
+
         plot_layout.addWidget(self.toolbar)
         plot_layout.addWidget(self.canvas)
+        plot_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.plot_manager = PlotManager(self.canvas, self.fig)
         self.plot_manager.ax.text(0.5, 0.5, "Load a CSV file to start.", ha='center', va='center')
@@ -98,17 +103,19 @@ class WidgetRawDataProcessing(QWidget):
         self.log_output.setReadOnly(True)
         self.log_output.setPlaceholderText("[INFO] Load a CSV file to start.")
         right_panel_layout.addWidget(self.log_output)
+        right_panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
 
         top_splitter.addWidget(right_panel)
         top_splitter.setChildrenCollapsible(False)
         top_splitter.setStretchFactor(0, 5)
         top_splitter.setStretchFactor(1, 2)
         top_splitter.setSizes([900, 280])
-        group_layout.addWidget(top_splitter)
+        main_splitter.addWidget(top_splitter)
 
         # 1b. Bottom Controls
         controls_widget = QWidget()
         h_controls_layout = QHBoxLayout(controls_widget)
+        controls_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
 
         # Plot Options
         plot_options_group = QGroupBox("Plot Options")
@@ -241,7 +248,12 @@ class WidgetRawDataProcessing(QWidget):
         for index, stretch in enumerate(config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["bottom_controls_stretch"]):
             h_controls_layout.setStretch(index, stretch)
 
-        group_layout.addWidget(controls_widget)
+        main_splitter.addWidget(controls_widget)
+        main_splitter.setStretchFactor(0, 6)
+        main_splitter.setStretchFactor(1, 1)
+        main_splitter.setSizes([700, 220])
+
+        group_layout.addWidget(main_splitter)
         layout.addWidget(group_box)
 
     def _connect_signals(self):

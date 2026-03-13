@@ -4,7 +4,7 @@ from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QGroupBox, QTreeWidget, QTreeWidgetItem,
-    QFileDialog, QListWidget, QFormLayout, QCheckBox, QGridLayout, QSplitter, QFrame
+    QFileDialog, QListWidget, QFormLayout, QCheckBox, QGridLayout, QSplitter, QFrame, QSizePolicy
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -48,6 +48,8 @@ class WidgetResultsAnalyzer(QWidget):
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
+        main_splitter = QSplitter(Qt.Orientation.Vertical)
+        main_splitter.setChildrenCollapsible(False)
 
         context_group = QGroupBox("Time Window")
         context_layout = QVBoxLayout(context_group)
@@ -82,9 +84,11 @@ class WidgetResultsAnalyzer(QWidget):
         timeline_bar_layout.addWidget(self.timeline_bar_right, 1)
         timeline_bar_row.addWidget(self.timeline_bar_widget)
         context_layout.addLayout(timeline_bar_row)
+        context_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         layout.addWidget(context_group)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         files_group = QGroupBox("1. Result Files")
         files_layout = QVBoxLayout(files_group)
@@ -219,7 +223,7 @@ class WidgetResultsAnalyzer(QWidget):
         splitter.addWidget(right_panel)
 
         splitter.setSizes([320, 620, 500])
-        layout.addWidget(splitter, 3)
+        main_splitter.addWidget(splitter)
 
         main_plot_group = QGroupBox("Main Plot")
         main_plot_layout = QVBoxLayout(main_plot_group)
@@ -232,8 +236,13 @@ class WidgetResultsAnalyzer(QWidget):
         self.toolbar = NavigationToolbar(self.canvas, self)
         main_plot_layout.addWidget(self.toolbar)
         main_plot_layout.addWidget(self.canvas)
+        main_plot_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.plot_manager = PlotManager(self.canvas, self.fig)
-        layout.addWidget(main_plot_group, 5)
+        main_splitter.addWidget(main_plot_group)
+        main_splitter.setStretchFactor(0, 3)
+        main_splitter.setStretchFactor(1, 5)
+        main_splitter.setSizes([420, 520])
+        layout.addWidget(main_splitter)
 
     def _connect_signals(self):
         self.select_result_folder_button.clicked.connect(self.select_result_folder)
