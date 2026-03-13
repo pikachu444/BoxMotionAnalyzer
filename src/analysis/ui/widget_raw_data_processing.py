@@ -115,7 +115,8 @@ class WidgetRawDataProcessing(QWidget):
         # 1b. Bottom Controls
         controls_widget = QWidget()
         h_controls_layout = QHBoxLayout(controls_widget)
-        controls_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
+        controls_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        controls_widget.setMinimumHeight(180)
 
         # Plot Options
         plot_options_group = QGroupBox("Plot Options")
