@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-03-11
+Last Reviewed: 2026-03-13
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 원본 CSV 기반 분석 파이프라인과 결과 분석 기능을 하나의 PySide6 애플리케이션 안에서 일관되게 제공하는 것이다.
@@ -28,6 +28,7 @@ Last Reviewed: 2026-03-11
 - Optional uniform resampling 지정
 - 분석 실행
 - 결과 CSV export
+- 미리보기 플롯과 하단 제어 영역 사이에는 세로 splitter가 있어, 창 높이 증가분이 플롯에 우선 배분되고 사용자가 플롯 높이를 직접 조절할 수 있다.
 
 ### 3.2. Step 2: Results Analysis
 - 결과 폴더 / 파일 선택
@@ -37,6 +38,7 @@ Last Reviewed: 2026-03-11
 - 선택 시점 분석
 - point export
 - scenario export
+- 상단 분석 제어 영역과 하단 메인 플롯 사이에는 세로 splitter가 있어, 기본 레이아웃을 유지하면서도 메인 플롯 높이를 수동 조절할 수 있다.
 
 ### 3.3. Step 간 연결
 - Step 1에서 결과를 export하면 Step 2가 방금 저장한 파일을 자동 로드한다.
