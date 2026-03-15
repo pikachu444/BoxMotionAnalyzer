@@ -1,4 +1,4 @@
-Last Reviewed: 2026-03-10
+Last Reviewed: 2026-03-15
 
 # Processing Mode Implementation Plan
 
@@ -59,12 +59,26 @@ Last Reviewed: 2026-03-10
 - 현재 선택 모드 설명 라벨 1개
 
 ### Advanced dialog 섹션 순서
-1. `Marker Smoothing`
-2. `Range Edge Handling`
-3. `Pose`
-4. `Derivative Method`
-5. `Velocity`
-6. `Acceleration`
+1. Left column
+   - `Marker Smoothing`
+   - `Range Edge Handling`
+   - `Pose`
+2. Right column
+   - `Derivative Method`
+   - `Velocity`
+   - `Acceleration`
+
+### Advanced dialog 레이아웃 원칙
+- Advanced dialog는 세로 1열 스택 대신 2-column 고정 배치를 사용한다.
+- 왼쪽 column은 입력/전처리 흐름을 보여준다.
+  - `Marker Smoothing`
+  - `Range Edge Handling`
+  - `Pose`
+- 오른쪽 column은 파생값 계산과 후처리 흐름을 보여준다.
+  - `Derivative Method`
+  - `Velocity`
+  - `Acceleration`
+- 새 카테고리명을 추가하지 않고 기존 섹션 타이틀을 유지한다.
 
 ### Advanced dialog 버튼
 - `Cancel`

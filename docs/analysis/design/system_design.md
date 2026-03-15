@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-03-13
+Last Reviewed: 2026-03-15
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 원본 CSV 기반 분석 파이프라인과 결과 분석 기능을 하나의 PySide6 애플리케이션 안에서 일관되게 제공하는 것이다.
@@ -30,6 +30,7 @@ Last Reviewed: 2026-03-13
 - 결과 CSV export
 - 미리보기 플롯과 하단 제어 영역 사이에는 세로 splitter가 있어, 창 높이 증가분이 플롯에 우선 배분되고 사용자가 플롯 높이를 직접 조절할 수 있다.
 - Advanced marker smoothing에서는 선택한 method sequence에 따라 관련 파라미터만 표시되며, Savitzky-Golay를 marker smoothing 옵션으로 비교할 수 있다.
+- Advanced processing settings dialog는 2-column 레이아웃을 사용하며, 왼쪽에는 전처리(`Marker Smoothing`, `Range Edge Handling`, `Pose`), 오른쪽에는 파생값 계산/후처리(`Derivative Method`, `Velocity`, `Acceleration`)를 배치한다.
 
 ### 3.2. Step 2: Results Analysis
 - 결과 폴더 / 파일 선택

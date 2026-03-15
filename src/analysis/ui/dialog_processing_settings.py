@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QDialog,
     QFormLayout,
+    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -20,13 +21,33 @@ class ProcessingSettingsDialog(QDialog):
     def __init__(self, current_options: dict, parent=None):
         super().__init__(parent)
         self.setWindowTitle(ui_config.ADVANCED_DIALOG_TITLE)
-        self.resize(700, 760)
+        self.resize(
+            ui_config.ADVANCED_DIALOG_LAYOUT["width"],
+            ui_config.ADVANCED_DIALOG_LAYOUT["height"],
+        )
         self._current_options = dict(current_options)
         self._setup_ui()
         self._load_options()
 
     def _setup_ui(self):
         root = QVBoxLayout(self)
+        margins = ui_config.ADVANCED_DIALOG_LAYOUT["contents_margins"]
+        root.setContentsMargins(*margins)
+        root.setSpacing(ui_config.ADVANCED_DIALOG_LAYOUT["section_spacing"])
+
+        content_layout = QGridLayout()
+        content_layout.setColumnStretch(0, 1)
+        content_layout.setColumnStretch(1, 1)
+        content_layout.setHorizontalSpacing(ui_config.ADVANCED_DIALOG_LAYOUT["column_spacing"])
+        content_layout.setVerticalSpacing(ui_config.ADVANCED_DIALOG_LAYOUT["section_spacing"])
+        root.addLayout(content_layout)
+
+        left_column = QVBoxLayout()
+        left_column.setSpacing(ui_config.ADVANCED_DIALOG_LAYOUT["section_spacing"])
+        right_column = QVBoxLayout()
+        right_column.setSpacing(ui_config.ADVANCED_DIALOG_LAYOUT["section_spacing"])
+        content_layout.addLayout(left_column, 0, 0)
+        content_layout.addLayout(right_column, 0, 1)
 
         marker_group = QGroupBox(ui_config.SECTION_TITLES["marker_smoothing"])
         marker_layout = QVBoxLayout(marker_group)
@@ -74,7 +95,7 @@ class ProcessingSettingsDialog(QDialog):
         marker_savgol_form.addRow(ui_config.FIELD_LABELS["marker_savgol_polyorder"], self.spin_marker_savgol_polyorder)
         marker_savgol_layout.addLayout(marker_savgol_form)
         marker_layout.addWidget(self.marker_savgol_group)
-        root.addWidget(marker_group)
+        left_column.addWidget(marker_group)
 
         range_group = QGroupBox(ui_config.SECTION_TITLES["range_edge_handling"])
         range_layout = QVBoxLayout(range_group)
@@ -92,7 +113,7 @@ class ProcessingSettingsDialog(QDialog):
         range_hint.setWordWrap(True)
         range_hint.setStyleSheet("color: #718096; font-size: 11px;")
         range_layout.addWidget(range_hint)
-        root.addWidget(range_group)
+        left_column.addWidget(range_group)
 
         pose_group = QGroupBox(ui_config.SECTION_TITLES["pose"])
         pose_layout = QVBoxLayout(pose_group)
@@ -118,7 +139,7 @@ class ProcessingSettingsDialog(QDialog):
         pose_form.addRow(ui_config.FIELD_LABELS["pose_lpf_order"], self.spin_pose_lpf_order)
         pose_form.addRow(ui_config.FIELD_LABELS["pose_ma_window"], self.spin_pose_ma_window)
         pose_layout.addLayout(pose_form)
-        root.addWidget(pose_group)
+        left_column.addWidget(pose_group)
 
         derivative_group = QGroupBox(ui_config.SECTION_TITLES["derivative_method"])
         derivative_layout = QVBoxLayout(derivative_group)
@@ -150,7 +171,7 @@ class ProcessingSettingsDialog(QDialog):
         spline_hint.setWordWrap(True)
         spline_hint.setStyleSheet("color: #718096; font-size: 11px;")
         derivative_layout.addWidget(spline_hint)
-        root.addWidget(derivative_group)
+        right_column.addWidget(derivative_group)
 
         velocity_group = QGroupBox(ui_config.SECTION_TITLES["velocity"])
         velocity_layout = QVBoxLayout(velocity_group)
@@ -170,7 +191,7 @@ class ProcessingSettingsDialog(QDialog):
         velocity_form.addRow(ui_config.FIELD_LABELS["velocity_lpf_cutoff"], self.spin_velocity_lpf_cutoff)
         velocity_form.addRow(ui_config.FIELD_LABELS["velocity_lpf_order"], self.spin_velocity_lpf_order)
         velocity_layout.addLayout(velocity_form)
-        root.addWidget(velocity_group)
+        right_column.addWidget(velocity_group)
 
         acceleration_group = QGroupBox(ui_config.SECTION_TITLES["acceleration"])
         acceleration_layout = QVBoxLayout(acceleration_group)
@@ -190,7 +211,10 @@ class ProcessingSettingsDialog(QDialog):
         acceleration_form.addRow(ui_config.FIELD_LABELS["acceleration_lpf_cutoff"], self.spin_acceleration_lpf_cutoff)
         acceleration_form.addRow(ui_config.FIELD_LABELS["acceleration_lpf_order"], self.spin_acceleration_lpf_order)
         acceleration_layout.addLayout(acceleration_form)
-        root.addWidget(acceleration_group)
+        right_column.addWidget(acceleration_group)
+
+        left_column.addStretch()
+        right_column.addStretch()
 
         buttons = QHBoxLayout()
         buttons.addStretch()

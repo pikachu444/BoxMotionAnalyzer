@@ -45,6 +45,14 @@ RAW_DATA_PROCESSING_LAYOUT = {
     "processing_settings_button_min_width": 150,
 }
 
+ADVANCED_DIALOG_LAYOUT = {
+    "width": 1120,
+    "height": 700,
+    "column_spacing": 18,
+    "section_spacing": 14,
+    "contents_margins": (12, 12, 12, 12),
+}
+
 SECTION_TITLES = {
     "marker_smoothing": "Marker Smoothing",
     "range_edge_handling": "Range Edge Handling",
