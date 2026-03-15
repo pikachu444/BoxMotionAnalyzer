@@ -1,6 +1,6 @@
 # Repository AGENTS Guide
 
-Last Reviewed: 2026-03-13
+Last Reviewed: 2026-03-16
 
 이 문서는 저장소 전체에 공통으로 적용하는 작업 원칙을 정리한다.
 
@@ -23,6 +23,10 @@ Last Reviewed: 2026-03-13
 - 분석 설계 문서를 수정할 때는 `docs/analysis/design/design_docs_guide.md`도 함께 참고한다.
 - 저장소에서 관리하는 모든 문서(`.md`, `.txt`)에는 문서 상단에 `Last Reviewed: YYYY-MM-DD`를 유지한다.
 - 문서 내용을 검토하거나 의미 있게 수정했으면 `Last Reviewed` 날짜도 함께 갱신한다.
+
+## 임시 작업 메모
+- 진행 중인 `3D Visualization Inspector` 개편 작업을 다시 시작할 때는 먼저 `docs/visualization/design/inspector_redesign_plan.md`를 참고한다.
+- 이 메모는 해당 작업이 완료되고 문서가 더 이상 임시 계획 문서가 아니게 되면 제거하거나 현재 상태에 맞게 갱신한다.
 
 ## 코드 작업 원칙
 - 현재 구현과 맞지 않는 구 버전 스크립트, 테스트, 문서는 유지 이유가 없으면 정리 대상이 될 수 있다.
