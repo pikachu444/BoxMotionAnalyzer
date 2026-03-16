@@ -26,6 +26,7 @@ from src.config.data_columns import (
     CORNER_NAME_MAP,
     get_result_column_display_path,
     get_result_metric_display_name,
+    normalize_result_column,
 )
 
 class WidgetResultsAnalyzer(QWidget):
@@ -567,7 +568,7 @@ class WidgetResultsAnalyzer(QWidget):
                 column_tuple = leaf_item.data(0, Qt.ItemDataRole.UserRole)
                 if column_tuple is None:
                     column_tuple = (top_item.text(0), mid_item.text(0), leaf_item.text(0))
-                checked_columns.append(column_tuple)
+                checked_columns.append(normalize_result_column(column_tuple))
         return checked_columns
 
     def on_tree_item_changed(self, _item, _column):
@@ -670,9 +671,7 @@ class WidgetResultsAnalyzer(QWidget):
         target_column = self.find_max_target_combo.currentData()
         if target_column is None:
             return None
-
-        if isinstance(target_column, list):
-            target_column = tuple(target_column)
+        target_column = normalize_result_column(target_column)
 
         try:
             value = self.result_data.iloc[selected_index][target_column]
@@ -777,9 +776,7 @@ class WidgetResultsAnalyzer(QWidget):
         if target_column is None:
             self.log_message.emit("[WARNING] No target data selected for peak search.")
             return
-
-        if isinstance(target_column, list):
-            target_column = tuple(target_column)
+        target_column = normalize_result_column(target_column)
 
         try:
             series = pd.to_numeric(self.result_data[target_column], errors='coerce')

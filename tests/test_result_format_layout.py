@@ -1,5 +1,6 @@
 import unittest
 
+from src.analysis.pipeline.data_loader import DataLoader
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS,
     HeaderL1,
@@ -7,6 +8,7 @@ from src.config.data_columns import (
     HeaderL3,
     get_result_column_display_path,
     get_result_metric_display_name,
+    normalize_result_column,
 )
 
 
@@ -84,6 +86,28 @@ class TestResultFormatLayout(unittest.TestCase):
             get_result_column_display_path((HeaderL1.ACC, "C3", HeaderL3.A_TNORM)),
             "Acceleration / C3 / Acceleration Norm (Global Frame)",
         )
+
+    def test_result_column_normalization_accepts_qt_style_lists(self):
+        self.assertEqual(
+            normalize_result_column([HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX]),
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX),
+        )
+        with self.assertRaises(ValueError):
+            normalize_result_column([HeaderL1.VEL, HeaderL2.COM])
+
+    def test_real_result_csv_columns_stay_hashable_after_normalization(self):
+        loader = DataLoader()
+        df = loader.load_result_csv("data/test_real_data_result.csv")
+        matched_columns = [col for col in df.columns if col in DISPLAY_RESULT_COLUMNS]
+
+        self.assertTrue(matched_columns)
+
+        qt_style_columns = [list(col) for col in matched_columns[:5]]
+        normalized_columns = [normalize_result_column(col) for col in qt_style_columns]
+
+        self.assertEqual(len(set(normalized_columns)), len(normalized_columns))
+        selected_df = df[normalized_columns].copy()
+        self.assertFalse(selected_df.empty)
 
 
 if __name__ == "__main__":
