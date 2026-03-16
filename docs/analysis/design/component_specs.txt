@@ -2,7 +2,7 @@
 |    컴포넌트 및 기능 명세서 (현재 기준)  |
 =========================================
 
-Last Reviewed: 2026-03-11
+Last Reviewed: 2026-03-16
 
 이 문서는 현재 코드 기준으로 주요 컴포넌트와 책임을 정리한다.
 
@@ -17,7 +17,7 @@ Last Reviewed: 2026-03-11
 ---
 ### 2. `MainApp`
 ---
-*   위치: `src/analysis/main_window.py`
+*   위치: `src/analysis/app/main_window.py`
 *   책임:
     *   Step 1 / Step 2 탭 구성
     *   `DataLoader`, `Parser`, `PipelineController` 생성 및 연결

@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 from src.config import config_visualization as config
 
 class InfoLogWidget(QGroupBox):
-    """A widget to display detailed information about selected objects in a table."""
+    """Displays current-frame values for the selected scene entities."""
 
     def __init__(self, parent=None):
         super().__init__(config.LBL_INFO_LOG, parent)
@@ -36,8 +36,8 @@ class InfoLogWidget(QGroupBox):
 
     def update_info_log(self, data: list[dict]):
         """
-        Updates the info log table with the given data.
-        'data' is a list of dictionaries, where each dict represents a selected object.
+        Updates the frame inspector table with the given data.
+        Each dictionary represents one selected entity and should include 'entity_id'.
         """
         self.info_table.clear()
         if not data:
@@ -46,25 +46,22 @@ class InfoLogWidget(QGroupBox):
             self.info_table.setHorizontalHeaderLabels([config.LBL_PROPERTY])
             return
 
-        # --- Setup columns ---
-        object_ids = [d.get('object_id', 'N/A') for d in data]
-        self.info_table.setColumnCount(1 + len(object_ids))
-        self.info_table.setHorizontalHeaderLabels([config.LBL_PROPERTY] + object_ids)
+        entity_ids = [d.get(config.DF_ENTITY_ID, config.LBL_EMPTY_VALUE) for d in data]
+        self.info_table.setColumnCount(1 + len(entity_ids))
+        self.info_table.setHorizontalHeaderLabels([config.LBL_PROPERTY] + entity_ids)
 
-        # --- Populate rows ---
-        if not data:
-            return
-
-        properties = list(data[0].keys())
-        if 'object_id' in properties:
-            properties.remove('object_id')
+        properties = []
+        for obj_data in data:
+            for key in obj_data.keys():
+                if key == config.DF_ENTITY_ID or key in properties:
+                    continue
+                properties.append(key)
 
         self.info_table.setRowCount(len(properties))
-
         for row_idx, prop in enumerate(properties):
             self.info_table.setItem(row_idx, 0, QTableWidgetItem(prop))
             for col_idx, obj_data in enumerate(data):
-                value = obj_data.get(prop, "N/A")
+                value = obj_data.get(prop, config.LBL_EMPTY_VALUE)
                 if isinstance(value, float):
                     value_str = f"{value:.2f}"
                 else:

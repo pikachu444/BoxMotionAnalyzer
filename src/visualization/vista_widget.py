@@ -104,10 +104,8 @@ class VistaWidget(QWidget):
                 self._update_polydata_points(self.polydata[k.SK_ACTOR_LABELS], k.SK_ACTOR_BOX, box_points)
 
         # --- Update Markers (Dynamic) ---
-        # 1. Identify all available objects in the data
-        all_object_ids = self.data_handler.get_object_ids()
-        # 2. Filter out Box Corners (C1~C8)
-        all_marker_ids = [mid for mid in all_object_ids if mid not in k.BOX_CORNERS_LABELS]
+        # 1. Identify marker entities from the exported visualization data model.
+        all_marker_ids = self.data_handler.get_entity_ids_by_type(config.ENTITY_TYPE_MARKER)
 
         # 3. Group markers by Face based on FACE_KEYWORD_MAP
         grouped_markers = {}
@@ -262,7 +260,6 @@ class VistaWidget(QWidget):
         sorter = np.array(ids)
         points_df[config.DF_OBJECT_ID] = points_df[config.DF_OBJECT_ID].astype(pd.CategoricalDtype(categories=sorter, ordered=True))
         points_df = points_df.sort_values(config.DF_OBJECT_ID)
-        # Use the standardized 'pos_x', 'pos_y', 'pos_z' columns
         return points_df[[config.DF_POS_X, config.DF_POS_Y, config.DF_POS_Z]].values
 
     def set_actor_visibility(self, actor_name: str, is_visible: bool):

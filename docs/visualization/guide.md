@@ -1,6 +1,6 @@
 # Visualization Guide
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-16
 
 이 문서는 `src/visualization/` 아래 3D 시각화 기능이 어떤 구조로 동작하는지 설명한다.
 
@@ -21,22 +21,22 @@ Last Reviewed: 2026-03-08
 - `src/visualization/vista_widget.py`
   - PyVista 기반 3D 렌더링
 - `src/visualization/control_panel.py`
-  - 표시 옵션, plot 대상 선택, frame range 필터
+  - 표시 옵션, grouped `Scene Inspector`, metric 선택, frame range 필터
 - `src/visualization/plot_widget.py`
   - 2D 시계열 플롯
 - `src/visualization/plot_dialog.py`
   - 플롯 확대용 팝업 다이얼로그
 - `src/visualization/info_log_widget.py`
-  - 선택 객체의 현재 프레임 정보를 표 형식으로 표시
+  - 선택 entity의 현재 프레임 정보를 `Frame Inspector` 표 형식으로 표시
 - `src/visualization/animation_widget.py`
   - 재생/정지와 프레임 이동 제어
 
 ## 4. 데이터 흐름
 1. 사용자가 visualization 창에서 결과 CSV를 연다.
 2. `DataHandler.load_analysis_result()`가 multi-header CSV를 읽는다.
-3. Position 계열 컬럼을 기준으로 object id를 식별한다.
-4. 각 object에 대해 frame/time/position/velocity를 long-format DataFrame으로 정리한다.
-5. `MainWindow`가 현재 frame 기준으로 3D 뷰, 2D plot, info log를 갱신한다.
+3. Position 계열 컬럼을 기준으로 `CoM / Corners / Markers` entity를 식별한다.
+4. 각 entity에 대해 frame/time/position/velocity를 long-format DataFrame으로 정리한다.
+5. `MainWindow`가 현재 frame 기준으로 3D 뷰, 2D plot, `Frame Inspector`를 갱신한다.
 
 ## 5. 설정 파일
 - 시각화 전용 설정은 `src/config/config_visualization.py`에 있다.
@@ -46,6 +46,12 @@ Last Reviewed: 2026-03-08
 ## 6. 현재 동작 특성
 - visualization은 분석 결과 CSV를 직접 읽는다. 원본 raw CSV를 바로 읽는 흐름이 아니다.
 - `DataHandler`는 결과 CSV의 `Position`, `Velocity`, `Info` multi-header를 해석한다.
+- `Scene Inspector`는 `Center of Mass / Corners / Markers` 그룹으로 entity를 나눠 보여준다.
+- 선택한 entity type에 따라 plot metric 목록이 달라진다.
+  - `CoM`: position, global velocity, speed, box-local velocity
+  - `Corners`: position, global velocity, speed
+  - `Markers`: position만 지원
+- 1차 구현에서는 서로 다른 entity type의 동시 선택을 제한한다.
 - `PlotWidget` 더블클릭 시 `PlotDialog`가 열려 확대 플롯을 볼 수 있다.
 - frame range 체크박스와 spinbox로 선택 구간만 플롯할 수 있다.
 
@@ -54,7 +60,7 @@ Last Reviewed: 2026-03-08
   - `src/config/data_columns.py`
   - `src/visualization/data_handler.py`
   - `docs/analysis/reference/csv_multi_header_schema.md`
-- object id 구성 방식이 바뀌면 `DataHandler.load_analysis_result()`와 `ControlPanel.populate_object_list()`를 함께 점검해야 한다.
+- object id / entity grouping 방식이 바뀌면 `DataHandler.load_analysis_result()`와 `ControlPanel.populate_scene_inspector()`를 함께 점검해야 한다.
 - 새 속성(예: acceleration)을 시각화에 추가할 때는 아래 순서로 확인하는 것이 안전하다.
   - `config_visualization.PLOT_DATA_DISPLAY_MAP`
   - `DataHandler`

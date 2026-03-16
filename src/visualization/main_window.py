@@ -4,7 +4,6 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QAction
 from PySide6.QtCore import QTimer, Qt
-import numpy as np
 
 from src.config import config_visualization as config
 from .data_handler import DataHandler
@@ -70,6 +69,7 @@ class MainWindow(QMainWindow):
         # Connect signals from the control panel
         self.control_panel.visibility_changed.connect(self.vista_widget.set_actor_visibility)
         self.control_panel.object_selected.connect(self.update_plot_with_multiple_objects)
+        self.control_panel.plot_data_combobox.currentIndexChanged.connect(self.update_plot_with_multiple_objects)
 
         # Connect frame range controls to the plot update method
         self.control_panel.range_checkbox.stateChanged.connect(self.update_plot_with_multiple_objects)
@@ -84,11 +84,6 @@ class MainWindow(QMainWindow):
         self.info_log_widget.log_pos_checkbox.stateChanged.connect(self.update_info_log)
         self.info_log_widget.log_vel_checkbox.stateChanged.connect(self.update_info_log)
         self.info_log_widget.log_speed_checkbox.stateChanged.connect(self.update_info_log)
-
-        # Connect frame range controls to the plot update method
-        self.control_panel.range_checkbox.stateChanged.connect(self.update_plot_with_multiple_objects)
-        self.control_panel.start_frame_spinbox.valueChanged.connect(self.update_plot_with_multiple_objects)
-        self.control_panel.end_frame_spinbox.valueChanged.connect(self.update_plot_with_multiple_objects)
 
     def _create_menu_bar(self):
         menu_bar = self.menuBar()
@@ -140,7 +135,7 @@ class MainWindow(QMainWindow):
             success = self.data_handler.load_analysis_result(filepath)
             if success:
                 self.animation_widget.set_frame_range(self.data_handler.n_frames)
-                self.control_panel.populate_object_list(self.data_handler.get_object_ids())
+                self.control_panel.populate_scene_inspector(self.data_handler.get_entities_by_type())
 
                 # Set the range for the frame spinboxes
                 max_frame = self.data_handler.n_frames - 1
@@ -205,19 +200,19 @@ class MainWindow(QMainWindow):
         if self.data_handler.visualization_dataframe is None:
             return
 
-        selected_items = self.control_panel.object_list.selectedItems()
-        if not selected_items:
+        selected_entity_ids = self.control_panel.get_selected_entity_ids()
+        if not selected_entity_ids:
             self.plot_widget.plot_multiple_data([], "")
             return
 
-        object_ids = [item.text() for item in selected_items]
-        # Retrieve the internal column name (e.g., 'pos_x' or 'RigidBody_Position_X')
-        # stored in the UserData of the combobox items.
         data_to_plot = self.control_panel.plot_data_combobox.currentData()
+        if data_to_plot is None:
+            self.plot_widget.plot_multiple_data([], "")
+            return
 
         plot_args = []
-        for obj_id in object_ids:
-            df = self.data_handler.get_object_timeseries(obj_id)
+        for entity_id in selected_entity_ids:
+            df = self.data_handler.get_entity_timeseries(entity_id)
             if df is not None and not df.empty and data_to_plot in df.columns:
                 plot_df = df.dropna(subset=[config.DF_FRAME, data_to_plot])
 
@@ -233,55 +228,47 @@ class MainWindow(QMainWindow):
                 plot_args.append({
                     "x": plot_df[config.DF_TIME],
                     "y": plot_df[data_to_plot],
-                    "label": obj_id
+                    "label": entity_id
                 })
 
-        self.plot_widget.plot_multiple_data(plot_args, data_to_plot)
+        self.plot_widget.plot_multiple_data(plot_args, self.control_panel.plot_data_combobox.currentText())
 
     def update_info_log(self):
-        """Updates the information log based on selections."""
-        selected_items = self.control_panel.object_list.selectedItems()
-        if not selected_items:
+        """Updates the frame inspector based on selections."""
+        selected_entity_ids = self.control_panel.get_selected_entity_ids()
+        selected_entity_type = self.control_panel.get_selected_entity_type()
+        if not selected_entity_ids:
             self.info_log_widget.update_info_log([])
             return
 
-        object_ids = [item.text() for item in selected_items]
         frame_df = self.data_handler.get_frame_data(self.current_frame)
-        if frame_df is None:
+        if frame_df is None or frame_df.empty:
             return
 
+        row_specs = config.get_frame_inspector_rows(
+            selected_entity_type,
+            include_position=self.info_log_widget.log_pos_checkbox.isChecked(),
+            include_velocity=self.info_log_widget.log_vel_checkbox.isChecked(),
+            include_speed=self.info_log_widget.log_speed_checkbox.isChecked(),
+        )
+
         log_data = []
-        for obj_id in object_ids:
-            obj_data_row = frame_df[frame_df[config.MH_LEVEL_OBJECT_ID] == obj_id]
+        for entity_id in selected_entity_ids:
+            obj_data_row = frame_df[frame_df[config.DF_ENTITY_ID] == entity_id]
             if obj_data_row.empty:
-                log_data.append({'object_id': obj_id}) # Add empty dict to show column
+                log_data.append({config.DF_ENTITY_ID: entity_id})
                 continue
 
-            item_data = {'object_id': obj_id}
+            item_data = {config.DF_ENTITY_ID: entity_id}
+            for label, column_name in row_specs:
+                if column_name == config.DF_FRAME:
+                    item_data[label] = self.current_frame
+                    continue
 
-            # Basic Info (always shown)
-            item_data['frame'] = self.current_frame
-            item_data['time'] = obj_data_row[config.DF_TIME].iloc[0]
-
-            # Position
-            if self.info_log_widget.log_pos_checkbox.isChecked():
-                item_data[config.DF_POS_X] = obj_data_row[config.DF_POS_X].iloc[0]
-                item_data[config.DF_POS_Y] = obj_data_row[config.DF_POS_Y].iloc[0]
-                item_data[config.DF_POS_Z] = obj_data_row[config.DF_POS_Z].iloc[0]
-
-            # Velocity
-            if self.info_log_widget.log_vel_checkbox.isChecked():
-                item_data[config.DF_VEL_X] = obj_data_row[config.DF_VEL_X].iloc[0]
-                item_data[config.DF_VEL_Y] = obj_data_row[config.DF_VEL_Y].iloc[0]
-                item_data[config.DF_VEL_Z] = obj_data_row[config.DF_VEL_Z].iloc[0]
-
-            # Speed (Magnitude)
-            if self.info_log_widget.log_speed_checkbox.isChecked():
-                vx = obj_data_row[config.DF_VEL_X].iloc[0]
-                vy = obj_data_row[config.DF_VEL_Y].iloc[0]
-                vz = obj_data_row[config.DF_VEL_Z].iloc[0]
-                speed = np.linalg.norm([vx, vy, vz])
-                item_data[config.LBL_SPEED.lower()] = speed
+                value = obj_data_row[column_name].iloc[0] if column_name in obj_data_row.columns else config.LBL_EMPTY_VALUE
+                if value != value:
+                    value = config.LBL_EMPTY_VALUE
+                item_data[label] = value
 
             log_data.append(item_data)
 

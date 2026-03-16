@@ -1,6 +1,6 @@
 ﻿# Design Docs Guide
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-16
 
 이 문서는 `docs/analysis/design/` 아래 분석 기능 설계 문서를 정리하거나 갱신할 때 참고하는 가이드다.
 
@@ -9,7 +9,7 @@ Last Reviewed: 2026-03-08
 - 실제 동작 기준은 항상 현재 코드이며, 설계 문서는 그 구현을 설명하도록 유지한다.
 
 ## 먼저 확인할 기준 파일
-1. `src/analysis/main_window.py`
+1. `src/analysis/app/main_window.py`
 2. `src/analysis/ui/widget_raw_data_processing.py`
 3. `src/analysis/ui/widget_results_analyzer.py`
 4. `src/analysis/ui/plot_popup_dialog.py`

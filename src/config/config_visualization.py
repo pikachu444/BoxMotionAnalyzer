@@ -39,11 +39,10 @@
 
 import os
 import sys
+from collections import OrderedDict
 
 import numpy as np
-from src.config.data_columns import (
-    RigidBodyCols, TimeCols, HeaderL3
-)
+from src.config.data_columns import HeaderL2, RigidBodyCols, TimeCols
 from src.config import config_app
 
 # 1. Box Geometry & Labels
@@ -143,13 +142,30 @@ DATA_DIR = "data/"
 TEST_CSV_PATH = DATA_DIR + "testdata_box_marker.csv"
 
 
-# 6. Multi-Header CSV Constants
+# 6. Entity / Inspector Configuration
 # -----------------------------------------
-MH_LEVEL_DATATYPE = 'data_type'
-MH_LEVEL_OBJECT_ID = 'object_id'
-MH_LEVEL_AXIS = 'axis'
-MH_VAL_POSITION = 'position'
-MH_VAL_VELOCITY = 'velocity'
+ENTITY_TYPE_COM = "com"
+ENTITY_TYPE_CORNER = "corner"
+ENTITY_TYPE_MARKER = "marker"
+
+ENTITY_ID_COM = "CoM"
+ENTITY_GROUP_LABELS = OrderedDict([
+    ("Center of Mass", ENTITY_TYPE_COM),
+    ("Corners", ENTITY_TYPE_CORNER),
+    ("Markers", ENTITY_TYPE_MARKER),
+])
+
+
+def is_corner_entity(entity_id: str) -> bool:
+    return entity_id in BOX_CORNERS_LABELS
+
+
+def classify_entity_id(entity_id: str) -> str:
+    if entity_id == ENTITY_ID_COM:
+        return ENTITY_TYPE_COM
+    if is_corner_entity(entity_id):
+        return ENTITY_TYPE_CORNER
+    return ENTITY_TYPE_MARKER
 
 
 # 7. UI Label Text Constants
@@ -162,9 +178,12 @@ LBL_START = "Start:"
 LBL_END = "End:"
 LBL_PLOT_DATA = "Plot Data:"
 LBL_DISPLAY_OPTIONS = "Display Options"
-LBL_OBJECT_INSPECTOR = "Object Inspector"
-LBL_INFO_LOG = "Information Log"
+LBL_OBJECT_INSPECTOR = "Scene Inspector"
+LBL_INFO_LOG = "Frame Inspector"
 LBL_PROPERTY = "Property"
+LBL_FRAME = "Frame"
+LBL_TIME_SECONDS = "Time (s)"
+LBL_EMPTY_VALUE = "N/A"
 
 
 # 8. Key Constants for Code Robustness
@@ -192,35 +211,145 @@ SK_ACTOR_LABELS = 'labels'
 SK_FACE_LABEL = 'label'
 SK_CORNER_INDICES = 'corner_indices'
 
-# For DataFrame columns (SSOT from src.config.data_columns)
+# For DataFrame columns used by visualization long format
 DF_FRAME = TimeCols.FRAME
 DF_TIME = TimeCols.TIME
-DF_OBJECT_ID = 'object_id' # This is internal to visualizer's long format, or we can map it if needed.
-                           # But for now, DataHandler creates this column.
-                           # Wait, DataHandler.load_analysis_result will need to produce this.
+DF_ENTITY_ID = "entity_id"
+DF_OBJECT_ID = DF_ENTITY_ID
+DF_ENTITY_TYPE = "entity_type"
+DF_SOURCE_OBJECT_ID = "source_object_id"
 
-# Mapping RigidBodyCols to internal keys if we want to keep 'pos_x' style or use full names.
-# The plan said: DF_POS_X = RigidBodyCols.POS_X
-# This means the DataFrame column name will be 'RigidBody_Position_X'.
-DF_POS_X = RigidBodyCols.POS_X
-DF_POS_Y = RigidBodyCols.POS_Y
-DF_POS_Z = RigidBodyCols.POS_Z
-# Note: Velocity columns might need similar mapping if used.
-DF_VEL_X = 'vel_x' # Placeholder if not in RigidBodyCols
-DF_VEL_Y = 'vel_y'
-DF_VEL_Z = 'vel_z'
+DF_POS_GLOBAL_X = "position_global_x"
+DF_POS_GLOBAL_Y = "position_global_y"
+DF_POS_GLOBAL_Z = "position_global_z"
+DF_VEL_GLOBAL_X = "velocity_global_x"
+DF_VEL_GLOBAL_Y = "velocity_global_y"
+DF_VEL_GLOBAL_Z = "velocity_global_z"
+DF_SPEED_GLOBAL = "speed_global"
+DF_VEL_BOX_LOCAL_X = "velocity_box_local_x"
+DF_VEL_BOX_LOCAL_Y = "velocity_box_local_y"
+DF_VEL_BOX_LOCAL_Z = "velocity_box_local_z"
 
-# 10. Plot Data Display Mapping
-# -----------------------------------------
-# Mapping User-Friendly Display Names to Internal DataFrame Column Names
-PLOT_DATA_DISPLAY_MAP = {
-    "Position X": DF_POS_X,
-    "Position Y": DF_POS_Y,
-    "Position Z": DF_POS_Z,
-    "Velocity X": DF_VEL_X,
-    "Velocity Y": DF_VEL_Y,
-    "Velocity Z": DF_VEL_Z
+# Backward-compatible aliases used by existing visualization code and tests.
+DF_POS_X = DF_POS_GLOBAL_X
+DF_POS_Y = DF_POS_GLOBAL_Y
+DF_POS_Z = DF_POS_GLOBAL_Z
+DF_VEL_X = DF_VEL_GLOBAL_X
+DF_VEL_Y = DF_VEL_GLOBAL_Y
+DF_VEL_Z = DF_VEL_GLOBAL_Z
+
+# Legacy constants kept for compatibility with older code paths.
+MH_LEVEL_DATATYPE = "data_type"
+MH_LEVEL_OBJECT_ID = "object_id"
+MH_LEVEL_AXIS = "axis"
+MH_VAL_POSITION = "position"
+MH_VAL_VELOCITY = "velocity"
+
+PLOT_METRIC_LABELS = OrderedDict([
+    (DF_POS_GLOBAL_X, "Position X (Global Frame)"),
+    (DF_POS_GLOBAL_Y, "Position Y (Global Frame)"),
+    (DF_POS_GLOBAL_Z, "Position Z (Global Frame)"),
+    (DF_VEL_GLOBAL_X, "Velocity X (Global Frame)"),
+    (DF_VEL_GLOBAL_Y, "Velocity Y (Global Frame)"),
+    (DF_VEL_GLOBAL_Z, "Velocity Z (Global Frame)"),
+    (DF_SPEED_GLOBAL, "Speed (Global Frame)"),
+    (DF_VEL_BOX_LOCAL_X, "Velocity X (Box Local Frame)"),
+    (DF_VEL_BOX_LOCAL_Y, "Velocity Y (Box Local Frame)"),
+    (DF_VEL_BOX_LOCAL_Z, "Velocity Z (Box Local Frame)"),
+])
+
+ENTITY_TYPE_METRICS = {
+    ENTITY_TYPE_COM: [
+        DF_POS_GLOBAL_X,
+        DF_POS_GLOBAL_Y,
+        DF_POS_GLOBAL_Z,
+        DF_VEL_GLOBAL_X,
+        DF_VEL_GLOBAL_Y,
+        DF_VEL_GLOBAL_Z,
+        DF_SPEED_GLOBAL,
+        DF_VEL_BOX_LOCAL_X,
+        DF_VEL_BOX_LOCAL_Y,
+        DF_VEL_BOX_LOCAL_Z,
+    ],
+    ENTITY_TYPE_CORNER: [
+        DF_POS_GLOBAL_X,
+        DF_POS_GLOBAL_Y,
+        DF_POS_GLOBAL_Z,
+        DF_VEL_GLOBAL_X,
+        DF_VEL_GLOBAL_Y,
+        DF_VEL_GLOBAL_Z,
+        DF_SPEED_GLOBAL,
+    ],
+    ENTITY_TYPE_MARKER: [
+        DF_POS_GLOBAL_X,
+        DF_POS_GLOBAL_Y,
+        DF_POS_GLOBAL_Z,
+    ],
 }
+
+PLOT_DATA_DISPLAY_MAP = OrderedDict(
+    (PLOT_METRIC_LABELS[column], column)
+    for column in ENTITY_TYPE_METRICS[ENTITY_TYPE_COM]
+)
+
+FRAME_INSPECTOR_ROWS = {
+    ENTITY_TYPE_COM: {
+        "position": [DF_POS_GLOBAL_X, DF_POS_GLOBAL_Y, DF_POS_GLOBAL_Z],
+        "velocity": [
+            DF_VEL_GLOBAL_X,
+            DF_VEL_GLOBAL_Y,
+            DF_VEL_GLOBAL_Z,
+            DF_VEL_BOX_LOCAL_X,
+            DF_VEL_BOX_LOCAL_Y,
+            DF_VEL_BOX_LOCAL_Z,
+        ],
+        "speed": [DF_SPEED_GLOBAL],
+    },
+    ENTITY_TYPE_CORNER: {
+        "position": [DF_POS_GLOBAL_X, DF_POS_GLOBAL_Y, DF_POS_GLOBAL_Z],
+        "velocity": [DF_VEL_GLOBAL_X, DF_VEL_GLOBAL_Y, DF_VEL_GLOBAL_Z],
+        "speed": [DF_SPEED_GLOBAL],
+    },
+    ENTITY_TYPE_MARKER: {
+        "position": [DF_POS_GLOBAL_X, DF_POS_GLOBAL_Y, DF_POS_GLOBAL_Z],
+        "velocity": [],
+        "speed": [],
+    },
+}
+
+
+def get_metric_options(entity_type: str | None) -> list[tuple[str, str]]:
+    if entity_type is None:
+        entity_type = ENTITY_TYPE_COM
+    return [
+        (PLOT_METRIC_LABELS[column], column)
+        for column in ENTITY_TYPE_METRICS.get(entity_type, ENTITY_TYPE_METRICS[ENTITY_TYPE_MARKER])
+    ]
+
+
+def get_metric_label(metric_key: str) -> str:
+    return PLOT_METRIC_LABELS.get(metric_key, metric_key)
+
+
+def get_frame_inspector_rows(
+    entity_type: str | None,
+    *,
+    include_position: bool,
+    include_velocity: bool,
+    include_speed: bool,
+) -> list[tuple[str, str]]:
+    rows = [(LBL_FRAME, DF_FRAME), (LBL_TIME_SECONDS, DF_TIME)]
+    if entity_type is None:
+        return rows
+
+    sections = FRAME_INSPECTOR_ROWS.get(entity_type, FRAME_INSPECTOR_ROWS[ENTITY_TYPE_MARKER])
+    if include_position:
+        rows.extend((get_metric_label(column), column) for column in sections["position"])
+    if include_velocity:
+        rows.extend((get_metric_label(column), column) for column in sections["velocity"])
+    if include_speed:
+        rows.extend((get_metric_label(column), column) for column in sections["speed"])
+    return rows
 
 
 # 9. Launcher Window Configuration
