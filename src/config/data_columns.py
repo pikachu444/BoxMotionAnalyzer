@@ -518,7 +518,21 @@ def get_result_metric_display_name(l1: str, l2: str, l3: str) -> str:
 
 
 def get_result_column_display_path(column: tuple[str, str, str]) -> str:
-    l1, l2, l3 = column
+    l1, l2, l3 = normalize_result_column(column)
     l1_label = RESULT_LEVEL1_DISPLAY.get(l1, str(l1))
     l3_label = get_result_metric_display_name(l1, l2, l3)
     return f"{l1_label} / {l2} / {l3_label}"
+
+
+def normalize_result_column(column: tuple[str, str, str] | list[str]) -> tuple[str, str, str]:
+    if isinstance(column, tuple):
+        normalized = column
+    elif isinstance(column, list):
+        normalized = tuple(column)
+    else:
+        raise TypeError(f"Unsupported result column type: {type(column).__name__}")
+
+    if len(normalized) != 3:
+        raise ValueError(f"Result column must have exactly 3 elements: {normalized!r}")
+
+    return tuple(str(part) for part in normalized)
