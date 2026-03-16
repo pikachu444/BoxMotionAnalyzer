@@ -5,6 +5,8 @@ from matplotlib.widgets import SpanSelector
 import pandas as pd
 from PySide6.QtCore import Signal, QObject
 
+from src.config.data_columns import get_result_column_display_path
+
 class PlotManager(QObject):
     region_changed_signal = Signal(float, float)
 
@@ -33,7 +35,7 @@ class PlotManager(QObject):
 
             # 튜플인 경우, 제목과 범례에 사용할 문자열 레이블을 생성합니다.
             if isinstance(col_name, tuple):
-                label = '.'.join(map(str, col_name))
+                label = get_result_column_display_path(col_name)
             else:
                 label = col_name
             labels_to_plot.append(label)

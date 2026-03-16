@@ -1,9 +1,9 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-03-15
+Last Reviewed: 2026-03-16
 
 ## 개요
-이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
+이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
 
 ## 1. 전체 구조
 - 메인 분석 창은 `QTabWidget` 기반의 2단계 흐름으로 구성된다.
@@ -70,6 +70,8 @@ Last Reviewed: 2026-03-15
   - 결과 CSV 목록
 - `2. Data Selection`
   - 결과 컬럼 트리 (`QTreeWidget`)
+  - 내부 선택값은 `(L1, L2, L3)` tuple을 유지하지만, 사용자에게는 `Velocity X (Box Local Frame)` 같은 표시명을 노출
+  - 트리 아래 안내 라벨이 raw export key 대신 표시명이 보인다는 점을 예시와 함께 설명
   - `Clear Selection`
   - `Plot Selected Results`
   - `Open Popup (Current Selection)`
@@ -77,6 +79,7 @@ Last Reviewed: 2026-03-15
   - Opened Popups / Checked Columns 상태 표시
 - `3. Peak & Point Selection`
   - `Target`
+  - 현재 Target 기준으로 peak search가 동작한다는 안내 라벨
   - `Find: Abs Max / Max / Min`
   - `Selected Point`
   - `Export Point Data...`
@@ -91,6 +94,7 @@ Last Reviewed: 2026-03-15
 
 ### 3.3. 하단 메인 플롯
 - 현재 체크된 결과 컬럼을 한 그래프에 겹쳐서 표시한다.
+- 범례와 타겟 선택 문자열은 raw schema key를 직접 이어붙이지 않고, export 의미를 풀어쓴 표시명을 사용한다.
 - 그래프 클릭 시 가장 가까운 시점을 선택한다.
 - 선택된 시점은 붉은 수직선 커서와 선택 정보 레이블로 반영된다.
 

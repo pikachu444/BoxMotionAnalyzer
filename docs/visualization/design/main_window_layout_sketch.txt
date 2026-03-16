@@ -1,64 +1,80 @@
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-16
 
 # =======================================================
 #       3D Motion Analyzer - GUI Layout Sketch
 # =======================================================
 #
-# This file describes the visual layout and components of the application.
-# It should be updated whenever the GUI design changes.
-#
-# Last Updated: 2025-07-14
+# This file describes the current visualization window layout.
+# It should be updated whenever the implemented GUI structure changes.
 #
 # ----------------------------------------------------------------------------------------------------
-# | My Motion Analyzer v1.0                                                                    - [ ] X |
+# | 3D Motion Analyzer                                                                         - [ ] X |
 # +----------------------------------------------------------------------------------------------------
-# | [File]  [Process]  [View]  [Help]                                     (Menu Bar - main_window.py)  |
+# | [File]  [View]                                                              (Menu Bar - main_window.py) |
 # +--------------------------------------------------+-------------------------------------------------
 # |                                                  |                  Analysis Panel                 |
 # |                                                  | +---------------------------------------------+ |
 # |           3D Viewport                            | | Display Options     (control_panel.py)      | |
-# |                                                  | | [ ] Box    [ ] Markers    [ ] Labels        | |
+# |                                                  | | [x] Box    [x] Markers    [x] Labels        | |
 # |      (vista_widget.py: PyVista 렌더링 영역)          | +---------------------------------------------+ |
-# |                                                  | | Object Inspector    (control_panel.py)      | |
+# |                                                  | | Scene Inspector     (control_panel.py)      | |
 # |                                                  | | +-----------------------------------------+ | |
-# |                                                  | | | V1 (Corner)                             | | |
-# |                                                  | | | ...                                     | | |
-# |                                                  | | | M1 (Marker)  <-- Selectable List        | | |
+# |                                                  | | | Plot Data: [Position X (Global) v]     | | |
+# |                                                  | | +-----------------------------------------+ | |
+# |                                                  | | | [ ] Use Frame Range                     | | |
+# |                                                  | | | Start: [  0  ]   End: [ 500 ]           | | |
+# |                                                  | | +-----------------------------------------+ | |
+# |                                                  | | | > Center of Mass                        | | |
+# |                                                  | | |     CoM                                 | | |
+# |                                                  | | | > Corners                               | | |
+# |                                                  | | |     C1                                  | | |
+# |                                                  | | |     C2   <-- same-type multi-select     | | |
+# |                                                  | | | > Markers                               | | |
+# |                                                  | | |     MK_TOP_1                            | | |
 # |                                                  | | +-----------------------------------------+ | |
 # |                                                  | +---------------------------------------------+ |
-# |                                                  | | Data Plot (matplotlib) (plot_widget.py)     | |
-# |                                                  | |          (Selected object's data plot)      | |
+# |                                                  | | Data Plot (plot_widget.py)                  | |
+# |                                                  | |     (Selected entities data plot)          | |
 # |                                                  | +---------------------------------------------+ |
-# |                                                  | | Information Log     (control_panel.py)      | |
-# |                                                  | | Frame: 123, Object: M1, Pos:(x,y,z)         | |
+# |                                                  | | Frame Inspector   (info_log_widget.py)      | |
+# |                                                  | | [x] Position [x] Velocity [x] Acceleration | |
+# |                                                  | | Property | CoM    | C1     | C2             | |
+# |                                                  | | Rows vary by selected entity type          | |
 # |                                                  | +---------------------------------------------+ |
 # +--------------------------------------------------+-------------------------------------------------
-# |                      Animation Controls & Timeline (control_panel.py)                              |
-# | [|<] [Play/Pause] [>|]  Frame: [ 123 ] / 500   [-----------------o----------------]  FPS: [ 30 ]   |
+# |                    Animation Controls & Timeline (animation_widget.py)                            |
+# | [|<] [Play/Pause] [>|]  Frame: [ 123 ] / 500   [-----------------o----------------]              |
 # +----------------------------------------------------------------------------------------------------
-# | Status: Ready.  |  File: C:/data/final_data.csv                     (Status Bar - main_window.py) |
+# | Status: Ready. Please open a CSV file.                                     (Status Bar)           |
 # +----------------------------------------------------------------------------------------------------
 
 ### Component Breakdown:
 
 *   **main_window.py**:
     *   Manages the main window, menu bar, and status bar.
-    *   Assembles all other widgets into the main layout (e.g., `QHBoxLayout`).
+    *   Assembles the visualization widgets into the main layout.
 
 *   **vista_widget.py**:
     *   The left-hand side panel containing the `pyvistaqt.QtInteractor`.
     *   Responsible for all 3D rendering logic.
 
 *   **control_panel.py**:
-    *   A composite widget that will eventually hold all interactive controls.
-    *   **Display Options**: A group of `QCheckBox` widgets to toggle the visibility of different actors (box, markers, labels).
-    *   **Object Inspector**: A `QListWidget` populated with all unique `object_id`s from the loaded data. Used to select an object for analysis.
-    *   **Information Log**: A `QTextEdit` (read-only) to display detailed numerical data of the selected object or frame.
-    *   **Animation Controls**: `QPushButton`s for play/pause and a `QSlider` for timeline scrubbing.
+    *   Holds the right-side interactive controls.
+    *   **Display Options**: `QCheckBox` widgets to toggle box, markers, and labels.
+    *   **Scene Inspector**: A grouped `QTreeWidget` that separates `Center of Mass`, `Corners`, and `Markers`.
+    *   **Metric Selector**: A `QComboBox` whose entries change based on the selected entity type.
+    *   **Metric Help Label**: A short inline label that explains the supported frames and metrics for the selected entity type.
+    *   **Frame Range Filter**: `Use Frame Range`, `Start`, `End` controls for plot filtering.
 
 *   **plot_widget.py**:
-    *   The panel for displaying 2D graphs using `matplotlib`.
-    *   It will receive data based on the selection in the `Object Inspector`.
+    *   Displays 2D graphs using `matplotlib`.
+    *   Receives data based on the selection in the `Scene Inspector`.
+
+*   **info_log_widget.py**:
+    *   Displays the `Frame Inspector` table for the current frame.
+    *   The visible rows vary by selected entity type.
+    *   Marker selections expose position rows only, while CoM selections also expose global and box-local velocity/acceleration rows.
 
 *   **data_handler.py** (Non-visual):
-    *   The central hub for all data operations. Triggered by user actions in the GUI.
+    *   Reads the exported multi-header result CSV.
+    *   Builds the visualization long-format DataFrame and classifies entities as `CoM`, `corner`, or `marker`.

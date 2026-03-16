@@ -1,49 +1,55 @@
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-16
 
 # =======================================================
 #       3D Motion Analyzer - GUI Layout Sketch (v2)
 # =======================================================
 #
-# This sketch describes the target layout including all planned UI/UX improvements.
+# This sketch captures the currently implemented 1st-pass inspector redesign.
 #
 # +----------------------------------------------------------------------------------------------------
-# | [File] [Process] [View] [Help]                                                                     |
+# | [File] [View]                                                                                     |
 # +--------------------------------------------------+-------------------------------------------------
 # |                                                  |                  Analysis Panel                 |
 # |                                                  | +---------------------------------------------+ |
 # |                                                  | | Display Options     (control_panel.py)      | |
-# |           3D Viewport                            | | [ ] Box    [ ] Markers    [ ] Labels        | |
+# |           3D Viewport                            | | [x] Box    [x] Markers    [x] Labels        | |
 # |                                                  | +---------------------------------------------+ |
-# |  (vista_widget.py)                               | | Object Inspector    (control_panel.py)      | |
+# |  (vista_widget.py)                               | | Scene Inspector     (control_panel.py)      | |
 # |                                                  | | +-----------------------------------------+ | |
-# |                                                  | | | Plot Data: [pos_x v]                    | | |
+# |                                                  | | | Plot Data: [Position X (Global) v]     | | |
 # |                                                  | | +-----------------------------------------+ | |
-# |                                                  | | | [ ] Use Frame Range                     | | |  <-- [MILESTONE 4]
-# |                                                  | | | Start: [  0  ]   End: [ 500 ]           | | |  <-- [MILESTONE 4]
+# |                                                  | | | [ ] Use Frame Range                     | | |
+# |                                                  | | | Start: [  0  ]   End: [ 500 ]           | | |
 # |                                                  | | +-----------------------------------------+ | |
-# |                                                  | | | C0 (Corner)                             | | |
-# |                                                  | | | C1 (Corner)  <-- Multi-Select List      | | |
-# |                                                  | | | ...                                     | | |
+# |                                                  | | | > Center of Mass                        | | |
+# |                                                  | | |     CoM                                 | | |
+# |                                                  | | | > Corners                               | | |
+# |                                                  | | |     C1                                  | | |
+# |                                                  | | |     C2  <-- same-type multi-select      | | |
+# |                                                  | | | > Markers                               | | |
+# |                                                  | | |     MK_TOP_1                            | | |
 # |                                                  | | +-----------------------------------------+ | |
 # |                                                  | +---------------------------------------------+ |
-# |                                                  | | Information Log     (control_panel.py)      | |
+# |                                                  | | Frame Inspector   (info_log_widget.py)      | |
 # |                                                  | | +-----------------------------------------+ | |
-# |                                                  | | | [x] Position [ ] Velocity [x] Speed     | | |  <-- [MILESTONE 4]
+# |                                                  | | | [x] Position [x] Velocity [x] Acceleration | ||
 # |                                                  | | +-----------------------------------------+ | |
-# |                                                  | | | Property | C0     | C1     | C2     |     | |  <-- [MILESTONE 4]
-# |                                                  | | |----------|--------|--------|--------|     | |
-# |                                                  | | | pos_z    | 70.7   | 80.8   | 90.9   |     | |
-# |                                                  | | | speed    | 15.0   | 18.2   | 21.5   |     | |
+# |                                                  | | | Property | CoM    | C1     | C2         | | |
+# |                                                  | | |----------|--------|--------|--------|   | |
+# |                                                  | | | Frame    | 123    | 123    | 123    |   | |
+# |                                                  | | | Time (s) | 1.23   | 1.23   | 1.23   |   | |
+# |                                                  | | | Vel Norm | 15.0   | 18.2   | 21.5   |   | |
+# |                                                  | | | Acc X    | 0.4    | 0.8    | 0.6    |   | |
 # |                                                  | | +-----------------------------------------+ | |
 # |                                                  | +---------------------------------------------+ |
 # |                                                  | | Data Plot (plot_widget.py)                  | |
-# |                                                  | |  (Double-click to expand)                   | |  <-- [MILESTONE 3]
+# |                                                  | | (Double-click to open popup plot)           | |
 # |                                                  | +---------------------------------------------+ |
 # +--------------------------------------------------+-------------------------------------------------
 # |                      Animation Controls & Timeline (animation_widget.py)                           |
 # +----------------------------------------------------------------------------------------------------
 
-### Expanded Plot View (Popup Dialog) - [MILESTONE 3]
+### Expanded Plot View (Popup Dialog)
 
 # +--------------------------------------------------------------------------+
 # | Plot Details                                                       - [X] |
@@ -53,7 +59,7 @@ Last Reviewed: 2026-03-08
 # |                                                                          |
 # |                              (Expanded Plot)                             |
 # |                                                                          |
-# |   * (Hover to see value: Frame 123, Value: 45.6)                         |
+# |   * Hover annotation available in popup view                             |
 # |                                                                          |
 # |                                                                          |
 # +--------------------------------------------------------------------------+

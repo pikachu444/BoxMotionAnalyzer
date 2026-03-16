@@ -24,6 +24,8 @@ from src.config.data_columns import (
     HeaderL2,
     HeaderL3,
     CORNER_NAME_MAP,
+    get_result_column_display_path,
+    get_result_metric_display_name,
 )
 
 class WidgetResultsAnalyzer(QWidget):
@@ -116,6 +118,11 @@ class WidgetResultsAnalyzer(QWidget):
         self.result_data_tree.setHeaderLabel("Select Data to Plot")
         self.result_data_tree.setEnabled(False)
         selection_layout.addWidget(self.result_data_tree)
+        self.selection_help_label = QLabel(
+            "Displayed names expand export keys into readable labels, for example Velocity X (Box Local Frame)."
+        )
+        self.selection_help_label.setWordWrap(True)
+        selection_layout.addWidget(self.selection_help_label)
 
         selection_buttons_row = QHBoxLayout()
         self.clear_selection_button = QPushButton("Clear Selection")
@@ -151,6 +158,11 @@ class WidgetResultsAnalyzer(QWidget):
         self.find_max_target_combo = QComboBox()
         target_layout.addWidget(self.find_max_target_combo)
         point_analysis_layout.addLayout(target_layout)
+        self.target_help_label = QLabel(
+            "Peak search uses the metric currently selected in Target."
+        )
+        self.target_help_label.setWordWrap(True)
+        point_analysis_layout.addWidget(self.target_help_label)
 
         find_layout = QHBoxLayout()
         find_layout.addWidget(QLabel("Find:"))
@@ -466,8 +478,9 @@ class WidgetResultsAnalyzer(QWidget):
                 top_level_node['children'][l2] = mid_item
             mid_item = top_level_node['children'][l2]
 
-            leaf_item = QTreeWidgetItem(mid_item, [l3])
+            leaf_item = QTreeWidgetItem(mid_item, [get_result_metric_display_name(l1, l2, l3)])
             leaf_item.setFlags(leaf_item.flags() | Qt.ItemIsUserCheckable)
+            leaf_item.setData(0, Qt.ItemDataRole.UserRole, (l1, l2, l3))
 
             column_tuple = (l1, l2, l3)
             if column_tuple in self.last_selected_result_columns:
@@ -551,7 +564,10 @@ class WidgetResultsAnalyzer(QWidget):
         checked_columns = []
         for top_item, mid_item, leaf_item in self._iter_leaf_items():
             if leaf_item.checkState(0) == Qt.Checked:
-                checked_columns.append((top_item.text(0), mid_item.text(0), leaf_item.text(0)))
+                column_tuple = leaf_item.data(0, Qt.ItemDataRole.UserRole)
+                if column_tuple is None:
+                    column_tuple = (top_item.text(0), mid_item.text(0), leaf_item.text(0))
+                checked_columns.append(column_tuple)
         return checked_columns
 
     def on_tree_item_changed(self, _item, _column):
@@ -567,7 +583,7 @@ class WidgetResultsAnalyzer(QWidget):
     def _update_find_max_targets(self, checked_columns):
         self.find_max_target_combo.clear()
         for col in checked_columns:
-            self.find_max_target_combo.addItem(f"{col[0]}/{col[1]}/{col[2]}", userData=col)
+            self.find_max_target_combo.addItem(get_result_column_display_path(col), userData=col)
 
     def plot_selected_results(self):
         if self.result_data is None:
@@ -789,7 +805,7 @@ class WidgetResultsAnalyzer(QWidget):
             except Exception:
                 selected_time_text = str(selected_time)
             self.log_message.emit(
-                f"[INFO] Found {action_label} for '{'/'.join(target_column)}': "
+                f"[INFO] Found {action_label} for '{get_result_column_display_path(target_column)}': "
                 f"{float(extreme_value):.4f} at T={selected_time_text}"
             )
         except Exception as e:
