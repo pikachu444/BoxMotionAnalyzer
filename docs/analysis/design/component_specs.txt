@@ -58,6 +58,7 @@ Last Reviewed: 2026-03-16
     *   메인 결과 플롯 표시
     *   팝업 플롯 생성 및 상태 관리
     *   선택 시점 기반 point export / scenario export
+    *   export `(L1, L2, L3)` tuple은 내부값으로 유지하면서, Results Analyzer UI에는 사용자용 표시명 제공
 *   주요 UI 요소:
     *   `Time Window`
     *   `Select Result Folder...`
@@ -133,3 +134,4 @@ Last Reviewed: 2026-03-16
     *   계산용 컬럼명 정의
     *   Multi-header 규칙 정의
     *   Results Analyzer 트리/표시 순서 정의
+    *   Results Analyzer 사용자 표시명 포맷 정의

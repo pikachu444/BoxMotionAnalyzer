@@ -448,3 +448,77 @@ CORNER_NAME_MAP = {
     'C1': 'LeftBottomRear', 'C2': 'RightBottomRear', 'C3': 'RightTopRear', 'C4': 'LeftTopRear',
     'C5': 'LeftBottomFront', 'C6': 'RightBottomFront', 'C7': 'RightTopFront', 'C8': 'LeftTopFront'
 }
+
+
+RESULT_LEVEL1_DISPLAY = {
+    HeaderL1.POS: HeaderL1.POS,
+    HeaderL1.VEL: HeaderL1.VEL,
+    HeaderL1.ACC: HeaderL1.ACC,
+    HeaderL1.ANALYSIS: HeaderL1.ANALYSIS,
+    HeaderL1.ANALYSIS_SCENARIO: HeaderL1.ANALYSIS_SCENARIO,
+    HeaderL1.INFO: HeaderL1.INFO,
+}
+
+
+RESULT_LEVEL3_DISPLAY = {
+    HeaderL3.P_TX: "Position X",
+    HeaderL3.P_TY: "Position Y",
+    HeaderL3.P_TZ: "Position Z",
+    HeaderL3.P_RX: "Rotation X",
+    HeaderL3.P_RY: "Rotation Y",
+    HeaderL3.P_RZ: "Rotation Z",
+    HeaderL3.REL_H: "Relative Height",
+    HeaderL3.ANALYSIS_INPUT_H: "Analysis Input Height",
+    HeaderL3.TIME: "Time",
+    HeaderL3.NUM: "Frame",
+    HeaderL3.TL_FULL_START_SEC: "Full Start Time",
+    HeaderL3.TL_FULL_END_SEC: "Full End Time",
+    HeaderL3.TL_SLICE_START_SEC: "Slice Start Time",
+    HeaderL3.TL_SLICE_END_SEC: "Slice End Time",
+    HeaderL3.SRC: "Pose Source",
+}
+
+
+def _format_motion_metric_display(l1: str, l3: str) -> str:
+    family = "Velocity" if l1 == HeaderL1.VEL else "Acceleration"
+    if l3.startswith("BoxLocal_"):
+        frame_label = "Box Local Frame"
+        metric_key = l3[len("BoxLocal_"):]
+    else:
+        frame_label = "Global Frame"
+        metric_key = l3[len("Global_"):] if l3.startswith("Global_") else l3
+
+    if metric_key.endswith("_Norm"):
+        component_label = "Norm"
+    else:
+        axis_label = metric_key.rsplit("_", 1)[-1]
+        axis_label = {
+            "TX": "X",
+            "TY": "Y",
+            "TZ": "Z",
+            "RX": "X",
+            "RY": "Y",
+            "RZ": "Z",
+        }.get(axis_label, axis_label)
+        component_label = axis_label
+
+    if "_R" in metric_key:
+        base_label = f"Angular {family}"
+    else:
+        base_label = family
+
+    return f"{base_label} {component_label} ({frame_label})"
+
+
+def get_result_metric_display_name(l1: str, l2: str, l3: str) -> str:
+    del l2
+    if l1 in {HeaderL1.VEL, HeaderL1.ACC}:
+        return _format_motion_metric_display(l1, l3)
+    return RESULT_LEVEL3_DISPLAY.get(l3, str(l3))
+
+
+def get_result_column_display_path(column: tuple[str, str, str]) -> str:
+    l1, l2, l3 = column
+    l1_label = RESULT_LEVEL1_DISPLAY.get(l1, str(l1))
+    l3_label = get_result_metric_display_name(l1, l2, l3)
+    return f"{l1_label} / {l2} / {l3_label}"
