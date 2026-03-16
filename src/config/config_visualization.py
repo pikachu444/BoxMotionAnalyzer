@@ -42,7 +42,7 @@ import sys
 from collections import OrderedDict
 
 import numpy as np
-from src.config.data_columns import HeaderL2, RigidBodyCols, TimeCols
+from src.config.data_columns import HeaderL2, HeaderL3, TimeCols
 from src.config import config_app
 
 # 1. Box Geometry & Labels
@@ -213,7 +213,9 @@ SK_ACTOR_LABELS = 'labels'
 SK_FACE_LABEL = 'label'
 SK_CORNER_INDICES = 'corner_indices'
 
-# For DataFrame columns used by visualization long format
+# For DataFrame columns used by visualization long format.
+# Visualization reuses exported metric keys so Data Processing/export remains
+# the single source of truth for metric naming.
 DF_FRAME = TimeCols.FRAME
 DF_TIME = TimeCols.TIME
 DF_ENTITY_ID = "entity_id"
@@ -221,25 +223,25 @@ DF_OBJECT_ID = DF_ENTITY_ID
 DF_ENTITY_TYPE = "entity_type"
 DF_SOURCE_OBJECT_ID = "source_object_id"
 
-DF_POS_GLOBAL_X = "position_global_x"
-DF_POS_GLOBAL_Y = "position_global_y"
-DF_POS_GLOBAL_Z = "position_global_z"
-DF_VEL_GLOBAL_X = "velocity_global_x"
-DF_VEL_GLOBAL_Y = "velocity_global_y"
-DF_VEL_GLOBAL_Z = "velocity_global_z"
-DF_VEL_GLOBAL_NORM = "velocity_global_norm"
-DF_VEL_BOX_LOCAL_X = "velocity_box_local_x"
-DF_VEL_BOX_LOCAL_Y = "velocity_box_local_y"
-DF_VEL_BOX_LOCAL_Z = "velocity_box_local_z"
-DF_VEL_BOX_LOCAL_NORM = "velocity_box_local_norm"
-DF_ACC_GLOBAL_X = "acceleration_global_x"
-DF_ACC_GLOBAL_Y = "acceleration_global_y"
-DF_ACC_GLOBAL_Z = "acceleration_global_z"
-DF_ACC_GLOBAL_NORM = "acceleration_global_norm"
-DF_ACC_BOX_LOCAL_X = "acceleration_box_local_x"
-DF_ACC_BOX_LOCAL_Y = "acceleration_box_local_y"
-DF_ACC_BOX_LOCAL_Z = "acceleration_box_local_z"
-DF_ACC_BOX_LOCAL_NORM = "acceleration_box_local_norm"
+DF_POS_GLOBAL_X = HeaderL3.P_TX
+DF_POS_GLOBAL_Y = HeaderL3.P_TY
+DF_POS_GLOBAL_Z = HeaderL3.P_TZ
+DF_VEL_GLOBAL_X = HeaderL3.V_TX
+DF_VEL_GLOBAL_Y = HeaderL3.V_TY
+DF_VEL_GLOBAL_Z = HeaderL3.V_TZ
+DF_VEL_GLOBAL_NORM = HeaderL3.V_TNORM
+DF_VEL_BOX_LOCAL_X = HeaderL3.V_TX_ANA
+DF_VEL_BOX_LOCAL_Y = HeaderL3.V_TY_ANA
+DF_VEL_BOX_LOCAL_Z = HeaderL3.V_TZ_ANA
+DF_VEL_BOX_LOCAL_NORM = HeaderL3.V_TNORM_ANA
+DF_ACC_GLOBAL_X = HeaderL3.A_TX
+DF_ACC_GLOBAL_Y = HeaderL3.A_TY
+DF_ACC_GLOBAL_Z = HeaderL3.A_TZ
+DF_ACC_GLOBAL_NORM = HeaderL3.A_TNORM
+DF_ACC_BOX_LOCAL_X = HeaderL3.A_TX_ANA
+DF_ACC_BOX_LOCAL_Y = HeaderL3.A_TY_ANA
+DF_ACC_BOX_LOCAL_Z = HeaderL3.A_TZ_ANA
+DF_ACC_BOX_LOCAL_NORM = HeaderL3.A_TNORM_ANA
 
 # Backward-compatible aliases used by existing visualization code and tests.
 DF_POS_X = DF_POS_GLOBAL_X

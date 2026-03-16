@@ -36,6 +36,7 @@ Last Reviewed: 2026-03-16
 2. `DataHandler.load_analysis_result()`가 multi-header CSV를 읽는다.
 3. Position 계열 컬럼을 기준으로 `CoM / Corners / Markers` entity를 식별한다.
 4. 각 entity에 대해 frame/time/position/velocity/acceleration을 long-format DataFrame으로 정리한다.
+   이때 metric 컬럼 키는 visualization 전용 이름을 새로 만들지 않고 export의 `HeaderL3` 키를 그대로 재사용한다.
 5. `MainWindow`가 현재 frame 기준으로 3D 뷰, 2D plot, `Frame Inspector`를 갱신한다.
 
 ## 5. 설정 파일
@@ -46,6 +47,8 @@ Last Reviewed: 2026-03-16
 ## 6. 현재 동작 특성
 - visualization은 분석 결과 CSV를 직접 읽는다. 원본 raw CSV를 바로 읽는 흐름이 아니다.
 - `DataHandler`는 결과 CSV의 `Position`, `Velocity`, `Acceleration`, `Info` multi-header를 해석한다.
+- visualization 내부 metric 키도 export 스키마를 그대로 따른다.
+  - 예: `P_TX`, `Global_V_TX`, `Global_V_T_Norm`, `BoxLocal_A_T_Norm`
 - `Scene Inspector`는 `Center of Mass / Corners / Markers` 그룹으로 entity를 나눠 보여준다.
 - 선택한 entity type에 따라 plot metric 목록이 달라진다.
   - `CoM`: position, global velocity/velocity norm, box-local velocity/velocity norm, global acceleration, box-local acceleration
