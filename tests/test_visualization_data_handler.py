@@ -31,6 +31,15 @@ class TestVisualizationDataHandler(unittest.TestCase):
             (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX_ANA),
             (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TY_ANA),
             (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TZ_ANA),
+            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TNORM_ANA),
+            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TX),
+            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TY),
+            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TZ),
+            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TNORM),
+            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TX_ANA),
+            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TY_ANA),
+            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TZ_ANA),
+            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TNORM_ANA),
             (HeaderL1.POS, "C1", HeaderL3.P_TX),
             (HeaderL1.POS, "C1", HeaderL3.P_TY),
             (HeaderL1.POS, "C1", HeaderL3.P_TZ),
@@ -38,13 +47,17 @@ class TestVisualizationDataHandler(unittest.TestCase):
             (HeaderL1.VEL, "C1", HeaderL3.V_TY),
             (HeaderL1.VEL, "C1", HeaderL3.V_TZ),
             (HeaderL1.VEL, "C1", HeaderL3.V_TNORM),
+            (HeaderL1.ACC, "C1", HeaderL3.A_TX),
+            (HeaderL1.ACC, "C1", HeaderL3.A_TY),
+            (HeaderL1.ACC, "C1", HeaderL3.A_TZ),
+            (HeaderL1.ACC, "C1", HeaderL3.A_TNORM),
             (HeaderL1.POS, "M1", HeaderL3.P_TX),
             (HeaderL1.POS, "M1", HeaderL3.P_TY),
             (HeaderL1.POS, "M1", HeaderL3.P_TZ),
         ])
         data = [
-            [10, 0.0, 1.0, 2.0, 3.0, 0.4, 0.5, 0.6, 0.9, 0.1, 0.2, 0.3, 4.0, 5.0, 6.0, 0.7, 0.8, 0.9, 1.4, 7.0, 8.0, 9.0],
-            [11, 0.1, 1.1, 2.1, 3.1, 0.4, 0.5, 0.6, 0.9, 0.1, 0.2, 0.3, 4.1, 5.1, 6.1, 0.7, 0.8, 0.9, 1.4, 7.1, 8.1, 9.1],
+            [10, 0.0, 1.0, 2.0, 3.0, 0.4, 0.5, 0.6, 0.9, 0.1, 0.2, 0.3, 0.4, 1.4, 1.5, 1.6, 2.6, 0.7, 0.8, 0.9, 1.0, 4.0, 5.0, 6.0, 0.7, 0.8, 0.9, 1.4, 2.0, 2.1, 2.2, 3.6, 7.0, 8.0, 9.0],
+            [11, 0.1, 1.1, 2.1, 3.1, 0.4, 0.5, 0.6, 0.9, 0.1, 0.2, 0.3, 0.4, 1.4, 1.5, 1.6, 2.6, 0.7, 0.8, 0.9, 1.0, 4.1, 5.1, 6.1, 0.7, 0.8, 0.9, 1.4, 2.0, 2.1, 2.2, 3.6, 7.1, 8.1, 9.1],
         ]
         pd.DataFrame(data, columns=columns).to_csv(self.test_csv_path, index=False)
 
@@ -59,8 +72,13 @@ class TestVisualizationDataHandler(unittest.TestCase):
         com_df = handler.get_entity_timeseries(config.ENTITY_ID_COM)
         marker_df = handler.get_entity_timeseries("M1")
         self.assertIn(config.DF_VEL_BOX_LOCAL_X, com_df.columns)
+        self.assertIn(config.DF_ACC_GLOBAL_X, com_df.columns)
+        self.assertIn(config.DF_ACC_BOX_LOCAL_X, com_df.columns)
+        self.assertEqual(com_df[config.DF_VEL_GLOBAL_NORM].iloc[0], 0.9)
+        self.assertEqual(com_df[config.DF_ACC_GLOBAL_NORM].iloc[0], 2.6)
         self.assertTrue(marker_df[config.DF_VEL_X].isna().all())
-        self.assertTrue(marker_df[config.DF_SPEED_GLOBAL].isna().all())
+        self.assertTrue(marker_df[config.DF_VEL_GLOBAL_NORM].isna().all())
+        self.assertTrue(marker_df[config.DF_ACC_GLOBAL_NORM].isna().all())
 
 
 if __name__ == "__main__":

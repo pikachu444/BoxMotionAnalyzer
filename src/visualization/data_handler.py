@@ -170,19 +170,18 @@ class DataHandler:
         entity_df[config.DF_VEL_GLOBAL_Z] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TZ)
         )
-
-        speed_series = self._series_or_nan(
+        vel_global_norm_series = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TNORM)
         )
-        if speed_series.isna().all():
-            speed_series = np.sqrt(
+        if vel_global_norm_series.isna().all():
+            vel_global_norm_series = np.sqrt(
                 entity_df[config.DF_VEL_GLOBAL_X].fillna(0.0) ** 2
                 + entity_df[config.DF_VEL_GLOBAL_Y].fillna(0.0) ** 2
                 + entity_df[config.DF_VEL_GLOBAL_Z].fillna(0.0) ** 2
             )
             if entity_type == config.ENTITY_TYPE_MARKER:
-                speed_series = pd.Series(np.nan, index=df.index)
-        entity_df[config.DF_SPEED_GLOBAL] = speed_series
+                vel_global_norm_series = pd.Series(np.nan, index=df.index)
+        entity_df[config.DF_VEL_GLOBAL_NORM] = vel_global_norm_series
 
         entity_df[config.DF_VEL_BOX_LOCAL_X] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TX_ANA)
@@ -193,17 +192,73 @@ class DataHandler:
         entity_df[config.DF_VEL_BOX_LOCAL_Z] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TZ_ANA)
         )
+        entity_df[config.DF_VEL_BOX_LOCAL_NORM] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TNORM_ANA)
+        )
+        if entity_df[config.DF_VEL_BOX_LOCAL_NORM].isna().all() and entity_type == config.ENTITY_TYPE_COM:
+            entity_df[config.DF_VEL_BOX_LOCAL_NORM] = np.sqrt(
+                entity_df[config.DF_VEL_BOX_LOCAL_X].fillna(0.0) ** 2
+                + entity_df[config.DF_VEL_BOX_LOCAL_Y].fillna(0.0) ** 2
+                + entity_df[config.DF_VEL_BOX_LOCAL_Z].fillna(0.0) ** 2
+            )
+
+        entity_df[config.DF_ACC_GLOBAL_X] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TX)
+        )
+        entity_df[config.DF_ACC_GLOBAL_Y] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TY)
+        )
+        entity_df[config.DF_ACC_GLOBAL_Z] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TZ)
+        )
+        entity_df[config.DF_ACC_GLOBAL_NORM] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TNORM)
+        )
+        if entity_df[config.DF_ACC_GLOBAL_NORM].isna().all() and entity_type != config.ENTITY_TYPE_MARKER:
+            entity_df[config.DF_ACC_GLOBAL_NORM] = np.sqrt(
+                entity_df[config.DF_ACC_GLOBAL_X].fillna(0.0) ** 2
+                + entity_df[config.DF_ACC_GLOBAL_Y].fillna(0.0) ** 2
+                + entity_df[config.DF_ACC_GLOBAL_Z].fillna(0.0) ** 2
+            )
+
+        entity_df[config.DF_ACC_BOX_LOCAL_X] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TX_ANA)
+        )
+        entity_df[config.DF_ACC_BOX_LOCAL_Y] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TY_ANA)
+        )
+        entity_df[config.DF_ACC_BOX_LOCAL_Z] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TZ_ANA)
+        )
+        entity_df[config.DF_ACC_BOX_LOCAL_NORM] = self._series_or_nan(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TNORM_ANA)
+        )
+        if entity_df[config.DF_ACC_BOX_LOCAL_NORM].isna().all() and entity_type == config.ENTITY_TYPE_COM:
+            entity_df[config.DF_ACC_BOX_LOCAL_NORM] = np.sqrt(
+                entity_df[config.DF_ACC_BOX_LOCAL_X].fillna(0.0) ** 2
+                + entity_df[config.DF_ACC_BOX_LOCAL_Y].fillna(0.0) ** 2
+                + entity_df[config.DF_ACC_BOX_LOCAL_Z].fillna(0.0) ** 2
+            )
 
         if entity_type != config.ENTITY_TYPE_COM:
             entity_df[config.DF_VEL_BOX_LOCAL_X] = np.nan
             entity_df[config.DF_VEL_BOX_LOCAL_Y] = np.nan
             entity_df[config.DF_VEL_BOX_LOCAL_Z] = np.nan
+            entity_df[config.DF_VEL_BOX_LOCAL_NORM] = np.nan
+            entity_df[config.DF_ACC_BOX_LOCAL_X] = np.nan
+            entity_df[config.DF_ACC_BOX_LOCAL_Y] = np.nan
+            entity_df[config.DF_ACC_BOX_LOCAL_Z] = np.nan
+            entity_df[config.DF_ACC_BOX_LOCAL_NORM] = np.nan
 
         if entity_type == config.ENTITY_TYPE_MARKER:
             entity_df[config.DF_VEL_GLOBAL_X] = np.nan
             entity_df[config.DF_VEL_GLOBAL_Y] = np.nan
             entity_df[config.DF_VEL_GLOBAL_Z] = np.nan
-            entity_df[config.DF_SPEED_GLOBAL] = np.nan
+            entity_df[config.DF_VEL_GLOBAL_NORM] = np.nan
+            entity_df[config.DF_ACC_GLOBAL_X] = np.nan
+            entity_df[config.DF_ACC_GLOBAL_Y] = np.nan
+            entity_df[config.DF_ACC_GLOBAL_Z] = np.nan
+            entity_df[config.DF_ACC_GLOBAL_NORM] = np.nan
 
         return entity_df
 

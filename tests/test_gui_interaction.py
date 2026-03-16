@@ -62,27 +62,62 @@ class TestGuiInteraction(unittest.TestCase):
                     df[config.DF_VEL_X] = np.nan
                     df[config.DF_VEL_Y] = np.nan
                     df[config.DF_VEL_Z] = np.nan
-                    df[config.DF_SPEED_GLOBAL] = np.nan
+                    df[config.DF_VEL_GLOBAL_NORM] = np.nan
                     df[config.DF_VEL_BOX_LOCAL_X] = np.nan
                     df[config.DF_VEL_BOX_LOCAL_Y] = np.nan
                     df[config.DF_VEL_BOX_LOCAL_Z] = np.nan
+                    df[config.DF_VEL_BOX_LOCAL_NORM] = np.nan
+                    df[config.DF_ACC_GLOBAL_X] = np.nan
+                    df[config.DF_ACC_GLOBAL_Y] = np.nan
+                    df[config.DF_ACC_GLOBAL_Z] = np.nan
+                    df[config.DF_ACC_GLOBAL_NORM] = np.nan
+                    df[config.DF_ACC_BOX_LOCAL_X] = np.nan
+                    df[config.DF_ACC_BOX_LOCAL_Y] = np.nan
+                    df[config.DF_ACC_BOX_LOCAL_Z] = np.nan
+                    df[config.DF_ACC_BOX_LOCAL_NORM] = np.nan
                 else:
                     df[config.DF_VEL_X] = 1.0
                     df[config.DF_VEL_Y] = 0.0
                     df[config.DF_VEL_Z] = np.cos(frames * 0.1)
-                    df[config.DF_SPEED_GLOBAL] = np.sqrt(
+                    df[config.DF_VEL_GLOBAL_NORM] = np.sqrt(
                         df[config.DF_VEL_X] ** 2
                         + df[config.DF_VEL_Y] ** 2
                         + df[config.DF_VEL_Z] ** 2
+                    )
+                    df[config.DF_ACC_GLOBAL_X] = 0.3
+                    df[config.DF_ACC_GLOBAL_Y] = 0.0
+                    df[config.DF_ACC_GLOBAL_Z] = 0.1
+                    df[config.DF_ACC_GLOBAL_NORM] = np.sqrt(
+                        df[config.DF_ACC_GLOBAL_X] ** 2
+                        + df[config.DF_ACC_GLOBAL_Y] ** 2
+                        + df[config.DF_ACC_GLOBAL_Z] ** 2
                     )
                     if entity_type == config.ENTITY_TYPE_COM:
                         df[config.DF_VEL_BOX_LOCAL_X] = 0.5
                         df[config.DF_VEL_BOX_LOCAL_Y] = 0.25
                         df[config.DF_VEL_BOX_LOCAL_Z] = 0.0
+                        df[config.DF_VEL_BOX_LOCAL_NORM] = np.sqrt(
+                            df[config.DF_VEL_BOX_LOCAL_X] ** 2
+                            + df[config.DF_VEL_BOX_LOCAL_Y] ** 2
+                            + df[config.DF_VEL_BOX_LOCAL_Z] ** 2
+                        )
+                        df[config.DF_ACC_BOX_LOCAL_X] = 0.2
+                        df[config.DF_ACC_BOX_LOCAL_Y] = 0.1
+                        df[config.DF_ACC_BOX_LOCAL_Z] = 0.0
+                        df[config.DF_ACC_BOX_LOCAL_NORM] = np.sqrt(
+                            df[config.DF_ACC_BOX_LOCAL_X] ** 2
+                            + df[config.DF_ACC_BOX_LOCAL_Y] ** 2
+                            + df[config.DF_ACC_BOX_LOCAL_Z] ** 2
+                        )
                     else:
                         df[config.DF_VEL_BOX_LOCAL_X] = np.nan
                         df[config.DF_VEL_BOX_LOCAL_Y] = np.nan
                         df[config.DF_VEL_BOX_LOCAL_Z] = np.nan
+                        df[config.DF_VEL_BOX_LOCAL_NORM] = np.nan
+                        df[config.DF_ACC_BOX_LOCAL_X] = np.nan
+                        df[config.DF_ACC_BOX_LOCAL_Y] = np.nan
+                        df[config.DF_ACC_BOX_LOCAL_Z] = np.nan
+                        df[config.DF_ACC_BOX_LOCAL_NORM] = np.nan
 
                 dfs.append(df)
 
@@ -167,6 +202,24 @@ class TestGuiInteraction(unittest.TestCase):
                 "Position Z (Global Frame)",
             ],
         )
+
+    def test_com_selection_shows_norm_and_acceleration_metrics_and_help(self):
+        tree = self.window.control_panel.object_tree
+        com_item = self._find_tree_item(config.ENTITY_ID_COM)
+
+        tree.clearSelection()
+        tree.setCurrentItem(com_item)
+        com_item.setSelected(True)
+        self.app.processEvents()
+
+        combo_labels = [
+            self.window.control_panel.plot_data_combobox.itemText(i)
+            for i in range(self.window.control_panel.plot_data_combobox.count())
+        ]
+        self.assertIn("Velocity Norm (Global Frame)", combo_labels)
+        self.assertIn("Acceleration X (Global Frame)", combo_labels)
+        self.assertIn("Acceleration Norm (Box Local Frame)", combo_labels)
+        self.assertIn("Box Local Frame", self.window.control_panel.inspector_help_label.text())
 
     def test_mixed_type_selection_is_restricted_to_one_entity_type(self):
         tree = self.window.control_panel.object_tree

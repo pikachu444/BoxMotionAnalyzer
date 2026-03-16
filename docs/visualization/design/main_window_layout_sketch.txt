@@ -37,7 +37,7 @@ Last Reviewed: 2026-03-16
 # |                                                  | |     (Selected entities data plot)          | |
 # |                                                  | +---------------------------------------------+ |
 # |                                                  | | Frame Inspector   (info_log_widget.py)      | |
-# |                                                  | | [x] Position [x] Velocity [x] Speed        | |
+# |                                                  | | [x] Position [x] Velocity [x] Acceleration | |
 # |                                                  | | Property | CoM    | C1     | C2             | |
 # |                                                  | | Rows vary by selected entity type          | |
 # |                                                  | +---------------------------------------------+ |
@@ -63,6 +63,7 @@ Last Reviewed: 2026-03-16
     *   **Display Options**: `QCheckBox` widgets to toggle box, markers, and labels.
     *   **Scene Inspector**: A grouped `QTreeWidget` that separates `Center of Mass`, `Corners`, and `Markers`.
     *   **Metric Selector**: A `QComboBox` whose entries change based on the selected entity type.
+    *   **Metric Help Label**: A short inline label that explains the supported frames and metrics for the selected entity type.
     *   **Frame Range Filter**: `Use Frame Range`, `Start`, `End` controls for plot filtering.
 
 *   **plot_widget.py**:
@@ -72,7 +73,7 @@ Last Reviewed: 2026-03-16
 *   **info_log_widget.py**:
     *   Displays the `Frame Inspector` table for the current frame.
     *   The visible rows vary by selected entity type.
-    *   Marker selections expose position rows only, while CoM selections also expose global and box-local velocity rows.
+    *   Marker selections expose position rows only, while CoM selections also expose global and box-local velocity/acceleration rows.
 
 *   **data_handler.py** (Non-visual):
     *   Reads the exported multi-header result CSV.

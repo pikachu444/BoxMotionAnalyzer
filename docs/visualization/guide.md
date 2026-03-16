@@ -35,7 +35,7 @@ Last Reviewed: 2026-03-16
 1. 사용자가 visualization 창에서 결과 CSV를 연다.
 2. `DataHandler.load_analysis_result()`가 multi-header CSV를 읽는다.
 3. Position 계열 컬럼을 기준으로 `CoM / Corners / Markers` entity를 식별한다.
-4. 각 entity에 대해 frame/time/position/velocity를 long-format DataFrame으로 정리한다.
+4. 각 entity에 대해 frame/time/position/velocity/acceleration을 long-format DataFrame으로 정리한다.
 5. `MainWindow`가 현재 frame 기준으로 3D 뷰, 2D plot, `Frame Inspector`를 갱신한다.
 
 ## 5. 설정 파일
@@ -45,12 +45,13 @@ Last Reviewed: 2026-03-16
 
 ## 6. 현재 동작 특성
 - visualization은 분석 결과 CSV를 직접 읽는다. 원본 raw CSV를 바로 읽는 흐름이 아니다.
-- `DataHandler`는 결과 CSV의 `Position`, `Velocity`, `Info` multi-header를 해석한다.
+- `DataHandler`는 결과 CSV의 `Position`, `Velocity`, `Acceleration`, `Info` multi-header를 해석한다.
 - `Scene Inspector`는 `Center of Mass / Corners / Markers` 그룹으로 entity를 나눠 보여준다.
 - 선택한 entity type에 따라 plot metric 목록이 달라진다.
-  - `CoM`: position, global velocity, speed, box-local velocity
-  - `Corners`: position, global velocity, speed
+  - `CoM`: position, global velocity/velocity norm, box-local velocity/velocity norm, global acceleration, box-local acceleration
+  - `Corners`: position, global velocity/velocity norm, global acceleration
   - `Markers`: position만 지원
+- metric 콤보박스 아래 help label이 현재 선택 유형에서 지원되는 좌표계와 metric 범위를 설명한다.
 - 1차 구현에서는 서로 다른 entity type의 동시 선택을 제한한다.
 - `PlotWidget` 더블클릭 시 `PlotDialog`가 열려 확대 플롯을 볼 수 있다.
 - frame range 체크박스와 spinbox로 선택 구간만 플롯할 수 있다.
@@ -61,7 +62,7 @@ Last Reviewed: 2026-03-16
   - `src/visualization/data_handler.py`
   - `docs/analysis/reference/csv_multi_header_schema.md`
 - object id / entity grouping 방식이 바뀌면 `DataHandler.load_analysis_result()`와 `ControlPanel.populate_scene_inspector()`를 함께 점검해야 한다.
-- 새 속성(예: acceleration)을 시각화에 추가할 때는 아래 순서로 확인하는 것이 안전하다.
+- 새 속성(예: additional norms or derived metrics)을 시각화에 추가할 때는 아래 순서로 확인하는 것이 안전하다.
   - `config_visualization.PLOT_DATA_DISPLAY_MAP`
   - `DataHandler`
   - `PlotWidget`

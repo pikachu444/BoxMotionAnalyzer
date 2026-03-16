@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
         self.control_panel.object_selected.connect(self.update_info_log)
         self.info_log_widget.log_pos_checkbox.stateChanged.connect(self.update_info_log)
         self.info_log_widget.log_vel_checkbox.stateChanged.connect(self.update_info_log)
-        self.info_log_widget.log_speed_checkbox.stateChanged.connect(self.update_info_log)
+        self.info_log_widget.log_acc_checkbox.stateChanged.connect(self.update_info_log)
 
     def _create_menu_bar(self):
         menu_bar = self.menuBar()
@@ -249,7 +249,7 @@ class MainWindow(QMainWindow):
             selected_entity_type,
             include_position=self.info_log_widget.log_pos_checkbox.isChecked(),
             include_velocity=self.info_log_widget.log_vel_checkbox.isChecked(),
-            include_speed=self.info_log_widget.log_speed_checkbox.isChecked(),
+            include_acceleration=self.info_log_widget.log_acc_checkbox.isChecked(),
         )
 
         log_data = []

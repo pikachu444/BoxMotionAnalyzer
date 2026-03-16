@@ -17,10 +17,10 @@ class InfoLogWidget(QGroupBox):
         self.log_pos_checkbox = QCheckBox(config.LBL_POSITION)
         self.log_pos_checkbox.setChecked(True)
         self.log_vel_checkbox = QCheckBox(config.LBL_VELOCITY)
-        self.log_speed_checkbox = QCheckBox(config.LBL_SPEED)
+        self.log_acc_checkbox = QCheckBox(config.LBL_ACCELERATION)
         options_layout.addWidget(self.log_pos_checkbox)
         options_layout.addWidget(self.log_vel_checkbox)
-        options_layout.addWidget(self.log_speed_checkbox)
+        options_layout.addWidget(self.log_acc_checkbox)
         options_layout.addStretch()
 
         # --- Table for displaying data ---

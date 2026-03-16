@@ -172,7 +172,9 @@ def classify_entity_id(entity_id: str) -> str:
 # -----------------------------------------
 LBL_POSITION = "Position"
 LBL_VELOCITY = "Velocity"
-LBL_SPEED = "Speed"
+LBL_ACCELERATION = "Acceleration"
+LBL_VELOCITY_NORM = "Velocity Norm"
+LBL_SPEED = LBL_VELOCITY_NORM
 LBL_USE_FRAME_RANGE = "Use Frame Range"
 LBL_START = "Start:"
 LBL_END = "End:"
@@ -225,10 +227,19 @@ DF_POS_GLOBAL_Z = "position_global_z"
 DF_VEL_GLOBAL_X = "velocity_global_x"
 DF_VEL_GLOBAL_Y = "velocity_global_y"
 DF_VEL_GLOBAL_Z = "velocity_global_z"
-DF_SPEED_GLOBAL = "speed_global"
+DF_VEL_GLOBAL_NORM = "velocity_global_norm"
 DF_VEL_BOX_LOCAL_X = "velocity_box_local_x"
 DF_VEL_BOX_LOCAL_Y = "velocity_box_local_y"
 DF_VEL_BOX_LOCAL_Z = "velocity_box_local_z"
+DF_VEL_BOX_LOCAL_NORM = "velocity_box_local_norm"
+DF_ACC_GLOBAL_X = "acceleration_global_x"
+DF_ACC_GLOBAL_Y = "acceleration_global_y"
+DF_ACC_GLOBAL_Z = "acceleration_global_z"
+DF_ACC_GLOBAL_NORM = "acceleration_global_norm"
+DF_ACC_BOX_LOCAL_X = "acceleration_box_local_x"
+DF_ACC_BOX_LOCAL_Y = "acceleration_box_local_y"
+DF_ACC_BOX_LOCAL_Z = "acceleration_box_local_z"
+DF_ACC_BOX_LOCAL_NORM = "acceleration_box_local_norm"
 
 # Backward-compatible aliases used by existing visualization code and tests.
 DF_POS_X = DF_POS_GLOBAL_X
@@ -237,6 +248,7 @@ DF_POS_Z = DF_POS_GLOBAL_Z
 DF_VEL_X = DF_VEL_GLOBAL_X
 DF_VEL_Y = DF_VEL_GLOBAL_Y
 DF_VEL_Z = DF_VEL_GLOBAL_Z
+DF_SPEED_GLOBAL = DF_VEL_GLOBAL_NORM
 
 # Legacy constants kept for compatibility with older code paths.
 MH_LEVEL_DATATYPE = "data_type"
@@ -252,10 +264,19 @@ PLOT_METRIC_LABELS = OrderedDict([
     (DF_VEL_GLOBAL_X, "Velocity X (Global Frame)"),
     (DF_VEL_GLOBAL_Y, "Velocity Y (Global Frame)"),
     (DF_VEL_GLOBAL_Z, "Velocity Z (Global Frame)"),
-    (DF_SPEED_GLOBAL, "Speed (Global Frame)"),
+    (DF_VEL_GLOBAL_NORM, "Velocity Norm (Global Frame)"),
     (DF_VEL_BOX_LOCAL_X, "Velocity X (Box Local Frame)"),
     (DF_VEL_BOX_LOCAL_Y, "Velocity Y (Box Local Frame)"),
     (DF_VEL_BOX_LOCAL_Z, "Velocity Z (Box Local Frame)"),
+    (DF_VEL_BOX_LOCAL_NORM, "Velocity Norm (Box Local Frame)"),
+    (DF_ACC_GLOBAL_X, "Acceleration X (Global Frame)"),
+    (DF_ACC_GLOBAL_Y, "Acceleration Y (Global Frame)"),
+    (DF_ACC_GLOBAL_Z, "Acceleration Z (Global Frame)"),
+    (DF_ACC_GLOBAL_NORM, "Acceleration Norm (Global Frame)"),
+    (DF_ACC_BOX_LOCAL_X, "Acceleration X (Box Local Frame)"),
+    (DF_ACC_BOX_LOCAL_Y, "Acceleration Y (Box Local Frame)"),
+    (DF_ACC_BOX_LOCAL_Z, "Acceleration Z (Box Local Frame)"),
+    (DF_ACC_BOX_LOCAL_NORM, "Acceleration Norm (Box Local Frame)"),
 ])
 
 ENTITY_TYPE_METRICS = {
@@ -266,10 +287,19 @@ ENTITY_TYPE_METRICS = {
         DF_VEL_GLOBAL_X,
         DF_VEL_GLOBAL_Y,
         DF_VEL_GLOBAL_Z,
-        DF_SPEED_GLOBAL,
+        DF_VEL_GLOBAL_NORM,
         DF_VEL_BOX_LOCAL_X,
         DF_VEL_BOX_LOCAL_Y,
         DF_VEL_BOX_LOCAL_Z,
+        DF_VEL_BOX_LOCAL_NORM,
+        DF_ACC_GLOBAL_X,
+        DF_ACC_GLOBAL_Y,
+        DF_ACC_GLOBAL_Z,
+        DF_ACC_GLOBAL_NORM,
+        DF_ACC_BOX_LOCAL_X,
+        DF_ACC_BOX_LOCAL_Y,
+        DF_ACC_BOX_LOCAL_Z,
+        DF_ACC_BOX_LOCAL_NORM,
     ],
     ENTITY_TYPE_CORNER: [
         DF_POS_GLOBAL_X,
@@ -278,7 +308,11 @@ ENTITY_TYPE_METRICS = {
         DF_VEL_GLOBAL_X,
         DF_VEL_GLOBAL_Y,
         DF_VEL_GLOBAL_Z,
-        DF_SPEED_GLOBAL,
+        DF_VEL_GLOBAL_NORM,
+        DF_ACC_GLOBAL_X,
+        DF_ACC_GLOBAL_Y,
+        DF_ACC_GLOBAL_Z,
+        DF_ACC_GLOBAL_NORM,
     ],
     ENTITY_TYPE_MARKER: [
         DF_POS_GLOBAL_X,
@@ -299,22 +333,40 @@ FRAME_INSPECTOR_ROWS = {
             DF_VEL_GLOBAL_X,
             DF_VEL_GLOBAL_Y,
             DF_VEL_GLOBAL_Z,
+            DF_VEL_GLOBAL_NORM,
             DF_VEL_BOX_LOCAL_X,
             DF_VEL_BOX_LOCAL_Y,
             DF_VEL_BOX_LOCAL_Z,
+            DF_VEL_BOX_LOCAL_NORM,
         ],
-        "speed": [DF_SPEED_GLOBAL],
+        "acceleration": [
+            DF_ACC_GLOBAL_X,
+            DF_ACC_GLOBAL_Y,
+            DF_ACC_GLOBAL_Z,
+            DF_ACC_GLOBAL_NORM,
+            DF_ACC_BOX_LOCAL_X,
+            DF_ACC_BOX_LOCAL_Y,
+            DF_ACC_BOX_LOCAL_Z,
+            DF_ACC_BOX_LOCAL_NORM,
+        ],
     },
     ENTITY_TYPE_CORNER: {
         "position": [DF_POS_GLOBAL_X, DF_POS_GLOBAL_Y, DF_POS_GLOBAL_Z],
-        "velocity": [DF_VEL_GLOBAL_X, DF_VEL_GLOBAL_Y, DF_VEL_GLOBAL_Z],
-        "speed": [DF_SPEED_GLOBAL],
+        "velocity": [DF_VEL_GLOBAL_X, DF_VEL_GLOBAL_Y, DF_VEL_GLOBAL_Z, DF_VEL_GLOBAL_NORM],
+        "acceleration": [DF_ACC_GLOBAL_X, DF_ACC_GLOBAL_Y, DF_ACC_GLOBAL_Z, DF_ACC_GLOBAL_NORM],
     },
     ENTITY_TYPE_MARKER: {
         "position": [DF_POS_GLOBAL_X, DF_POS_GLOBAL_Y, DF_POS_GLOBAL_Z],
         "velocity": [],
-        "speed": [],
+        "acceleration": [],
     },
+}
+
+
+INSPECTOR_HELP_TEXT = {
+    ENTITY_TYPE_COM: "CoM supports Global Frame and Box Local Frame velocity/acceleration metrics.",
+    ENTITY_TYPE_CORNER: "Corners support Global Frame position, velocity, velocity norm, and acceleration metrics.",
+    ENTITY_TYPE_MARKER: "Markers support Global Frame position metrics only.",
 }
 
 
@@ -336,7 +388,7 @@ def get_frame_inspector_rows(
     *,
     include_position: bool,
     include_velocity: bool,
-    include_speed: bool,
+    include_acceleration: bool,
 ) -> list[tuple[str, str]]:
     rows = [(LBL_FRAME, DF_FRAME), (LBL_TIME_SECONDS, DF_TIME)]
     if entity_type is None:
@@ -347,9 +399,15 @@ def get_frame_inspector_rows(
         rows.extend((get_metric_label(column), column) for column in sections["position"])
     if include_velocity:
         rows.extend((get_metric_label(column), column) for column in sections["velocity"])
-    if include_speed:
-        rows.extend((get_metric_label(column), column) for column in sections["speed"])
+    if include_acceleration:
+        rows.extend((get_metric_label(column), column) for column in sections["acceleration"])
     return rows
+
+
+def get_inspector_help_text(entity_type: str | None) -> str:
+    if entity_type is None:
+        entity_type = ENTITY_TYPE_COM
+    return INSPECTOR_HELP_TEXT.get(entity_type, "")
 
 
 # 9. Launcher Window Configuration

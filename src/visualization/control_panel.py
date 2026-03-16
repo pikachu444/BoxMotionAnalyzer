@@ -72,6 +72,8 @@ class ControlPanel(QWidget):
 
         self.plot_data_combobox = QComboBox()
         self._refresh_metric_options(config.ENTITY_TYPE_COM)
+        self.inspector_help_label = QLabel(config.get_inspector_help_text(config.ENTITY_TYPE_COM))
+        self.inspector_help_label.setWordWrap(True)
 
         self.object_tree = QTreeWidget()
         self.object_tree.setHeaderHidden(True)
@@ -98,6 +100,7 @@ class ControlPanel(QWidget):
 
         layout.addWidget(QLabel(config.LBL_PLOT_DATA))
         layout.addWidget(self.plot_data_combobox)
+        layout.addWidget(self.inspector_help_label)
         layout.addLayout(range_layout)
         layout.addWidget(self.object_tree)
         return group
@@ -154,6 +157,7 @@ class ControlPanel(QWidget):
         if selected_items:
             selected_type = selected_items[0].data(0, ENTITY_TYPE_ROLE)
         self._refresh_metric_options(selected_type)
+        self.inspector_help_label.setText(config.get_inspector_help_text(selected_type))
         self.object_selected.emit([item.data(0, ENTITY_ID_ROLE) for item in selected_items])
 
     def populate_scene_inspector(self, grouped_entity_ids: dict[str, list[str]]):
@@ -174,6 +178,7 @@ class ControlPanel(QWidget):
             group_item.setExpanded(True)
 
         self._refresh_metric_options(config.ENTITY_TYPE_COM)
+        self.inspector_help_label.setText(config.get_inspector_help_text(config.ENTITY_TYPE_COM))
 
     def populate_object_list(self, object_ids: list[str]):
         grouped = {
