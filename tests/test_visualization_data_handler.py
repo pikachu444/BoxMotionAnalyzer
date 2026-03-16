@@ -110,6 +110,15 @@ class TestVisualizationDataHandler(unittest.TestCase):
         for metric_key in expected_metric_keys:
             self.assertIn(metric_key, plot_metric_keys)
 
+    def test_visualization_help_text_covers_default_and_entity_specific_guidance(self):
+        default_text = config.get_inspector_help_text(None)
+        self.assertIn("mixed-type selection", default_text)
+        self.assertIn("one entity type", default_text)
+
+        self.assertIn("Box Local Frame", config.get_inspector_help_text(config.ENTITY_TYPE_COM))
+        self.assertIn("Global Frame", config.get_inspector_help_text(config.ENTITY_TYPE_CORNER))
+        self.assertIn("position", config.get_inspector_help_text(config.ENTITY_TYPE_MARKER).lower())
+
 
 if __name__ == "__main__":
     unittest.main()

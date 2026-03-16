@@ -366,10 +366,14 @@ FRAME_INSPECTOR_ROWS = {
 
 
 INSPECTOR_HELP_TEXT = {
-    ENTITY_TYPE_COM: "CoM supports Global Frame and Box Local Frame velocity/acceleration metrics.",
-    ENTITY_TYPE_CORNER: "Corners support Global Frame position, velocity, velocity norm, and acceleration metrics.",
-    ENTITY_TYPE_MARKER: "Markers support Global Frame position metrics only.",
+    ENTITY_TYPE_COM: "CoM shows position plus Global Frame and Box Local Frame velocity/acceleration metrics.",
+    ENTITY_TYPE_CORNER: "Corners show position plus Global Frame velocity/acceleration metrics.",
+    ENTITY_TYPE_MARKER: "Markers show Global Frame position metrics only.",
 }
+
+DEFAULT_INSPECTOR_HELP_TEXT = (
+    "Select entities from one group at a time. Metric options change by group and mixed-type selection stays limited to one entity type."
+)
 
 
 def get_metric_options(entity_type: str | None) -> list[tuple[str, str]]:
@@ -408,8 +412,8 @@ def get_frame_inspector_rows(
 
 def get_inspector_help_text(entity_type: str | None) -> str:
     if entity_type is None:
-        entity_type = ENTITY_TYPE_COM
-    return INSPECTOR_HELP_TEXT.get(entity_type, "")
+        return DEFAULT_INSPECTOR_HELP_TEXT
+    return INSPECTOR_HELP_TEXT.get(entity_type, DEFAULT_INSPECTOR_HELP_TEXT)
 
 
 # 9. Launcher Window Configuration

@@ -71,8 +71,8 @@ class ControlPanel(QWidget):
         layout = QVBoxLayout(group)
 
         self.plot_data_combobox = QComboBox()
-        self._refresh_metric_options(config.ENTITY_TYPE_COM)
-        self.inspector_help_label = QLabel(config.get_inspector_help_text(config.ENTITY_TYPE_COM))
+        self._refresh_metric_options(None)
+        self.inspector_help_label = QLabel(config.get_inspector_help_text(None))
         self.inspector_help_label.setWordWrap(True)
 
         self.object_tree = QTreeWidget()
@@ -177,8 +177,8 @@ class ControlPanel(QWidget):
 
             group_item.setExpanded(True)
 
-        self._refresh_metric_options(config.ENTITY_TYPE_COM)
-        self.inspector_help_label.setText(config.get_inspector_help_text(config.ENTITY_TYPE_COM))
+        self._refresh_metric_options(None)
+        self.inspector_help_label.setText(config.get_inspector_help_text(None))
 
     def populate_object_list(self, object_ids: list[str]):
         grouped = {

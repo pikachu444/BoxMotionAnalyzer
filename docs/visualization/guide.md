@@ -55,6 +55,7 @@ Last Reviewed: 2026-03-16
   - `Corners`: position, global velocity/velocity norm, global acceleration
   - `Markers`: position만 지원
 - metric 콤보박스 아래 help label이 현재 선택 유형에서 지원되는 좌표계와 metric 범위를 설명한다.
+- 선택이 없을 때는 mixed-type selection 제한과 “metric 목록이 그룹에 따라 바뀐다”는 기본 안내를 먼저 보여준다.
 - 1차 구현에서는 서로 다른 entity type의 동시 선택을 제한한다.
 - `PlotWidget` 더블클릭 시 `PlotDialog`가 열려 확대 플롯을 볼 수 있다.
 - frame range 체크박스와 spinbox로 선택 구간만 플롯할 수 있다.

@@ -118,6 +118,11 @@ class WidgetResultsAnalyzer(QWidget):
         self.result_data_tree.setHeaderLabel("Select Data to Plot")
         self.result_data_tree.setEnabled(False)
         selection_layout.addWidget(self.result_data_tree)
+        self.selection_help_label = QLabel(
+            "Displayed names expand export keys into readable labels, for example Velocity X (Box Local Frame)."
+        )
+        self.selection_help_label.setWordWrap(True)
+        selection_layout.addWidget(self.selection_help_label)
 
         selection_buttons_row = QHBoxLayout()
         self.clear_selection_button = QPushButton("Clear Selection")
@@ -153,6 +158,11 @@ class WidgetResultsAnalyzer(QWidget):
         self.find_max_target_combo = QComboBox()
         target_layout.addWidget(self.find_max_target_combo)
         point_analysis_layout.addLayout(target_layout)
+        self.target_help_label = QLabel(
+            "Peak search uses the metric currently selected in Target."
+        )
+        self.target_help_label.setWordWrap(True)
+        point_analysis_layout.addWidget(self.target_help_label)
 
         find_layout = QHBoxLayout()
         find_layout.addWidget(QLabel("Find:"))

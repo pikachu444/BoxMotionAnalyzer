@@ -62,7 +62,9 @@ Last Reviewed: 2026-03-16
 *   주요 UI 요소:
     *   `Time Window`
     *   `Select Result Folder...`
+    *   결과 트리 아래 표시명 안내 라벨
     *   `Plot Selected Results`
+    *   Target 아래 peak search 안내 라벨
     *   `Open Popup (Current Selection)`
     *   `Close All Popups`
     *   `Find Abs. Max`

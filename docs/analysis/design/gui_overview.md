@@ -71,6 +71,7 @@ Last Reviewed: 2026-03-16
 - `2. Data Selection`
   - 결과 컬럼 트리 (`QTreeWidget`)
   - 내부 선택값은 `(L1, L2, L3)` tuple을 유지하지만, 사용자에게는 `Velocity X (Box Local Frame)` 같은 표시명을 노출
+  - 트리 아래 안내 라벨이 raw export key 대신 표시명이 보인다는 점을 예시와 함께 설명
   - `Clear Selection`
   - `Plot Selected Results`
   - `Open Popup (Current Selection)`
@@ -78,6 +79,7 @@ Last Reviewed: 2026-03-16
   - Opened Popups / Checked Columns 상태 표시
 - `3. Peak & Point Selection`
   - `Target`
+  - 현재 Target 기준으로 peak search가 동작한다는 안내 라벨
   - `Find: Abs Max / Max / Min`
   - `Selected Point`
   - `Export Point Data...`
