@@ -110,7 +110,7 @@ FIELD_LABELS = {
 }
 
 FIELD_HINTS = {
-    "enable_marker_smoothing": "Recommended for standard processing. Disabling this keeps the marker data closer to the raw input.",
+    "enable_marker_smoothing": "Recommended for smoothing mode. Disabling this keeps the marker data closer to the raw input.",
     "marker_savgol": "Savitzky-Golay can preserve local peak shape better than a low-pass filter, but large windows can still smear impact timing.",
     "range_edge_handling": "Stable keeps a small hidden margin around the selected range during calculations. Fast trims earlier and can be less reliable near the boundaries.",
     "pose_lowpass_filter": "Reduces fast pose jitter before derivatives are computed.",
