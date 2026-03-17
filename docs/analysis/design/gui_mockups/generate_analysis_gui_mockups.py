@@ -1,3 +1,12 @@
+"""
+Temporary mockup/reference generator for analysis GUI layout exploration.
+
+This script is not the current source of truth for the implemented UI.
+Keep it only as a reference when discussing future GUI ideas or comparing
+rough layout directions. If it diverges from the shipped UI, trust the code
+under `src/analysis/` and the current-state docs first.
+"""
+
 import os
 import sys
 
@@ -35,10 +44,10 @@ from matplotlib.figure import Figure
 import numpy as np
 
 
-class Step1MockWindowV31(QMainWindow):
+class Step1MockWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Step 1 - Raw Data Processing (Current Mock)")
+        self.setWindowTitle("Step 1 - Raw Data Processing (Temporary Mock Reference)")
         self.resize(1320, 860)
 
         root = QWidget()
@@ -133,10 +142,10 @@ class Step1MockWindowV31(QMainWindow):
         layout.addWidget(group, 1)
 
 
-class Step2MockWindowV31(QMainWindow):
+class Step2MockWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Step 2 - Results Analysis (Current Mock)")
+        self.setWindowTitle("Step 2 - Results Analysis (Temporary Mock Reference)")
         self.resize(1460, 980)
 
         root = QWidget()
@@ -322,7 +331,7 @@ class Step2MockWindowV31(QMainWindow):
         layout.addWidget(plot_group)
 
 
-class PopupMockWindowV31(QDialog):
+class PopupMockWindow(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Popup Plot - Popup_1")
@@ -351,7 +360,7 @@ class PopupMockWindowV31(QDialog):
         l.addWidget(QLabel("Clicking the popup plot syncs the selected time back to Step 2."))
 
 
-class Step1ProcessingModeMockWindowV32(QMainWindow):
+class Step1ProcessingModeMockWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Step 1 - Raw Data Processing (Processing Mode Mock)")
@@ -410,8 +419,9 @@ class Step1ProcessingModeMockWindowV32(QMainWindow):
         log_output.setPlainText(
             "[INFO] Loaded C:/Data/Experiment1.csv\n"
             "[INFO] Preview parsing complete.\n"
-            "[INFO] Current mode: Standard\n"
-            "[INFO] Standard uses the default smoothing and filtering pipeline."
+            "[INFO] Temporary mock reference only.\n"
+            "[INFO] Current mode: Raw\n"
+            "[INFO] Smoothing mode uses the default smoothing and filtering pipeline."
         )
         right_panel.addWidget(log_output)
 
@@ -445,12 +455,12 @@ class Step1ProcessingModeMockWindowV32(QMainWindow):
         processing_layout = QVBoxLayout(processing_group)
 
         radio_row = QHBoxLayout()
-        standard = QRadioButton("Standard")
-        standard.setChecked(True)
         raw = QRadioButton("Raw")
+        raw.setChecked(True)
+        smoothing = QRadioButton("Smoothing")
         advanced = QRadioButton("Advanced")
-        radio_row.addWidget(standard)
         radio_row.addWidget(raw)
+        radio_row.addWidget(smoothing)
         radio_row.addWidget(advanced)
         radio_row.addStretch()
         adv_button = QPushButton("Advanced Settings...")
@@ -459,7 +469,7 @@ class Step1ProcessingModeMockWindowV32(QMainWindow):
         processing_layout.addLayout(radio_row)
 
         mode_description = QLabel(
-            "Standard uses smoothing/filtering for more stable velocity and acceleration."
+            "Raw minimizes processing and may produce noisier velocity and acceleration."
         )
         mode_description.setWordWrap(True)
         mode_description.setStyleSheet("color: #4a5568;")
@@ -475,7 +485,7 @@ class Step1ProcessingModeMockWindowV32(QMainWindow):
         layout.addWidget(group, 1)
 
 
-class AdvancedProcessingDialogMockV32(QDialog):
+class AdvancedProcessingDialogMock(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Advanced Processing Settings")
@@ -508,7 +518,7 @@ class AdvancedProcessingDialogMockV32(QDialog):
         marker_toggle.setChecked(True)
         marker_layout.addWidget(marker_toggle)
         marker_toggle_note = QLabel(
-            "Recommended for standard processing. Disabling this keeps the marker data closer to the raw input."
+            "Recommended for smoothing mode. Disabling this keeps the marker data closer to the raw input."
         )
         marker_toggle_note.setWordWrap(True)
         marker_toggle_note.setStyleSheet("color: #718096; font-size: 11px; margin-left: 18px;")
@@ -645,6 +655,361 @@ class AdvancedProcessingDialogMockV32(QDialog):
         root.addLayout(buttons)
 
 
+class Step1SliceWorkflowMockWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Step 1 - Slice First Workflow (Temporary Mock Reference)")
+        self.resize(1500, 940)
+
+        root = QWidget()
+        self.setCentralWidget(root)
+        layout = QVBoxLayout(root)
+
+        title = QLabel("Step 1: Load, Slice, and Process")
+        title.setStyleSheet("font-weight: 600; font-size: 18px;")
+        layout.addWidget(title)
+
+        status_row = QHBoxLayout()
+        for text, style in [
+            ("Source: Loaded", "background:#e6fffa; color:#234e52;"),
+            ("Slice: Ready", "background:#ebf8ff; color:#2a4365;"),
+            ("Result: In Memory", "background:#f0fff4; color:#22543d;"),
+        ]:
+            chip = QLabel(text)
+            chip.setStyleSheet(
+                "padding: 6px 10px; border-radius: 11px; font-weight: 600; "
+                f"{style}"
+            )
+            status_row.addWidget(chip)
+        status_row.addStretch()
+        layout.addLayout(status_row)
+
+        group = QGroupBox("Raw Data Processing")
+        group_layout = QVBoxLayout(group)
+
+        top_layout = QHBoxLayout()
+
+        plot_container = QWidget()
+        plot_layout = QVBoxLayout(plot_container)
+        plot_layout.setContentsMargins(0, 0, 0, 0)
+
+        fig = Figure(figsize=(8.4, 4.5), dpi=100)
+        preview_canvas = FigureCanvas(fig)
+        plot_layout.addWidget(NavigationToolbar(preview_canvas, self))
+        plot_layout.addWidget(preview_canvas)
+
+        ax = fig.subplots()
+        x = np.linspace(0, 120, 600)
+        y = 50 + 6 * np.sin(x / 8) + 1.2 * np.cos(x / 2.5)
+        ax.plot(x, y, color="#1f4f8a", linewidth=1.7, label="RigidBody Center / Position-X")
+        ax.axvspan(39.2, 70.8, color="#b2f5ea", alpha=0.45, label="Processing Range (with padding)")
+        ax.axvspan(40, 70, color="#68d391", alpha=0.55, label="User Slice")
+        ax.set_title("Raw Data Preview")
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("Value")
+        ax.grid(True, alpha=0.25)
+        ax.legend(loc="upper right")
+        fig.tight_layout()
+
+        right_panel = QVBoxLayout()
+        right_panel.addWidget(QPushButton("Load CSV File..."))
+        right_panel.addWidget(QLabel("D:/DropTest/Run_07.csv"))
+
+        source_group = QGroupBox("Source Summary")
+        source_layout = QFormLayout(source_group)
+        source_layout.addRow("Full Range:", QLabel("0.000s ~ 120.000s"))
+        source_layout.addRow("Rows:", QLabel("4,812,114"))
+        source_layout.addRow("Selected Target:", QLabel("RigidBody Center"))
+        right_panel.addWidget(source_group)
+
+        slice_summary = QGroupBox("Slice Summary")
+        slice_summary_layout = QFormLayout(slice_summary)
+        slice_summary_layout.addRow("User Slice:", QLabel("40.000s ~ 70.000s"))
+        slice_summary_layout.addRow("Padding:", QLabel("0.800s on each side"))
+        slice_summary_layout.addRow("Processing Range:", QLabel("39.200s ~ 70.800s"))
+        slice_summary_layout.addRow("Prepared Slice Rows:", QLabel("128,401"))
+        right_panel.addWidget(slice_summary)
+
+        log_output = QTextEdit()
+        log_output.setReadOnly(True)
+        log_output.setPlainText(
+            "[INFO] Loaded D:/DropTest/Run_07.csv\n"
+            "[INFO] Preview parsing complete.\n"
+            "[INFO] Slice prepared and cached.\n"
+            "[INFO] Saved slice artifact: run_07_slice_40_70.parquet\n"
+            "[INFO] Processing completed. Result is available in memory.\n"
+            "[INFO] Open Step 2 to inspect before exporting."
+        )
+        right_panel.addWidget(log_output)
+
+        top_layout.addWidget(plot_container, 8)
+        top_layout.addLayout(right_panel, 3)
+        group_layout.addLayout(top_layout)
+
+        middle_controls = QHBoxLayout()
+
+        plot_options = QGroupBox("Plot Options")
+        plot_options_layout = QHBoxLayout(plot_options)
+        plot_options_layout.addWidget(QPushButton("Select Data..."))
+        plot_options_layout.addWidget(QLabel("Selected: RigidBody Center"))
+        plot_options_layout.addWidget(QLabel("Axis:"))
+        axis_combo = QComboBox()
+        axis_combo.addItems(["Position-X", "Position-Y", "Position-Z"])
+        plot_options_layout.addWidget(axis_combo)
+        middle_controls.addWidget(plot_options, 4)
+
+        slice_group = QGroupBox("Slice Settings")
+        slice_layout = QGridLayout(slice_group)
+        slice_layout.addWidget(QLabel("Start:"), 0, 0)
+        slice_layout.addWidget(QLineEdit("40.0"), 0, 1)
+        slice_layout.addWidget(QLabel("End:"), 0, 2)
+        slice_layout.addWidget(QLineEdit("70.0"), 0, 3)
+        slice_layout.addWidget(QLabel("Padding Mode:"), 1, 0)
+        padding_combo = QComboBox()
+        padding_combo.addItems(["Auto (from processing settings)", "Manual"])
+        slice_layout.addWidget(padding_combo, 1, 1, 1, 3)
+        middle_controls.addWidget(slice_group, 5)
+
+        processing_group = QGroupBox("Processing Settings")
+        processing_layout = QVBoxLayout(processing_group)
+        mode_row = QHBoxLayout()
+        raw = QRadioButton("Raw")
+        standard = QRadioButton("Standard")
+        standard.setChecked(True)
+        advanced = QRadioButton("Advanced")
+        mode_row.addWidget(raw)
+        mode_row.addWidget(standard)
+        mode_row.addWidget(advanced)
+        mode_row.addStretch()
+        settings_btn = QPushButton("Advanced Settings...")
+        mode_row.addWidget(settings_btn)
+        processing_layout.addLayout(mode_row)
+
+        resampling_row = QHBoxLayout()
+        resampling_row.addWidget(QCheckBox("Enable Resampling"))
+        resampling_factor = QComboBox()
+        resampling_factor.addItems(["2x", "3x", "4x"])
+        resampling_row.addWidget(resampling_factor)
+        resampling_row.addStretch()
+        processing_layout.addLayout(resampling_row)
+
+        processing_hint = QLabel(
+            "Processing settings can change without rebuilding the raw slice. "
+            "Only the in-memory result becomes stale."
+        )
+        processing_hint.setWordWrap(True)
+        processing_hint.setStyleSheet("color: #4a5568;")
+        processing_layout.addWidget(processing_hint)
+        middle_controls.addWidget(processing_group, 5)
+
+        group_layout.addLayout(middle_controls)
+
+        action_group = QGroupBox("Workflow Actions")
+        action_layout = QGridLayout(action_group)
+        action_layout.addWidget(QPushButton("Prepare Slice"), 0, 0)
+        action_layout.addWidget(QPushButton("Save Slice As..."), 0, 1)
+        action_layout.addWidget(QPushButton("Run Processing"), 0, 2)
+        action_layout.addWidget(QPushButton("Open in Step 2"), 0, 3)
+        action_layout.addWidget(QPushButton("Export Final Result"), 0, 4)
+
+        slice_state = QLabel("Slice state: Ready")
+        slice_state.setStyleSheet("font-weight: 600; color: #2a4365;")
+        action_layout.addWidget(slice_state, 1, 0, 1, 2)
+
+        process_state = QLabel("Result state: Processed in memory")
+        process_state.setStyleSheet("font-weight: 600; color: #22543d;")
+        action_layout.addWidget(process_state, 1, 2, 1, 2)
+
+        export_state = QLabel("Export state: Not exported yet")
+        export_state.setStyleSheet("font-weight: 600; color: #744210;")
+        action_layout.addWidget(export_state, 1, 4)
+        group_layout.addWidget(action_group)
+
+        stale_notice = QLabel(
+            "If slice range changes: re-prepare slice and re-run processing. "
+            "If only processing settings change: re-run processing only."
+        )
+        stale_notice.setStyleSheet("color: #744210;")
+        group_layout.addWidget(stale_notice)
+
+        layout.addWidget(group, 1)
+
+
+class Step2InMemoryResultMockWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Step 2 - In-Memory Result Review (Temporary Mock Reference)")
+        self.resize(1500, 980)
+
+        root = QWidget()
+        self.setCentralWidget(root)
+        layout = QVBoxLayout(root)
+
+        title = QLabel("Step 2: Results Analysis")
+        title.setStyleSheet("font-weight: 600; font-size: 18px;")
+        layout.addWidget(title)
+
+        info_banner = QLabel(
+            "Viewing in-memory result from Step 1. Export is optional and can be done after review."
+        )
+        info_banner.setStyleSheet(
+            "background:#fffaf0; color:#744210; border:1px solid #f6ad55; "
+            "padding:8px 10px; border-radius:6px;"
+        )
+        layout.addWidget(info_banner)
+
+        context_group = QGroupBox("Time Window")
+        context_layout = QVBoxLayout(context_group)
+
+        row1 = QHBoxLayout()
+        row1.addWidget(QLabel("Active Source:"))
+        row1.addWidget(QLabel("run_07_slice_40_70.parquet"))
+        row1.addStretch()
+        row1.addWidget(QLabel("Result State:"))
+        row1.addWidget(QLabel("In Memory"))
+        row1.addStretch()
+        row1.addWidget(QLabel("Samples:"))
+        row1.addWidget(QLabel("12,801"))
+        context_layout.addLayout(row1)
+        context_layout.addWidget(QLabel("Full: 0.000s ~ 120.000s | Slice: 40.000s ~ 70.000s | Processing Range: 39.200s ~ 70.800s"))
+
+        timeline = QFrame()
+        timeline.setFrameShape(QFrame.StyledPanel)
+        timeline_l = QHBoxLayout(timeline)
+        timeline_l.setContentsMargins(0, 0, 0, 0)
+        timeline_l.setSpacing(0)
+        left = QWidget()
+        left.setStyleSheet("background:#d7dbe0;")
+        mid = QWidget()
+        mid.setStyleSheet("background:#68d391;")
+        right = QWidget()
+        right.setStyleSheet("background:#d7dbe0;")
+        timeline_l.addWidget(left, 333)
+        timeline_l.addWidget(mid, 250)
+        timeline_l.addWidget(right, 417)
+        timeline.setFixedHeight(18)
+        context_layout.addWidget(timeline)
+        layout.addWidget(context_group)
+
+        splitter = QSplitter(Qt.Horizontal)
+
+        left_panel = QGroupBox("1. Result Source")
+        left_l = QVBoxLayout(left_panel)
+        left_l.addWidget(QLabel("Current Session Result"))
+        session_list = QListWidget()
+        session_list.addItems(
+            [
+                "In-memory result (current)",
+                "run_05_result.csv",
+                "run_06_result.csv",
+            ]
+        )
+        session_list.setCurrentRow(0)
+        left_l.addWidget(session_list)
+        left_l.addWidget(QPushButton("Import Exported Result..."))
+        splitter.addWidget(left_panel)
+
+        mid_panel = QGroupBox("2. Data Selection")
+        mid_l = QVBoxLayout(mid_panel)
+        tree = QTreeWidget()
+        tree.setHeaderLabel("Select Data to Plot")
+
+        velocity = QTreeWidgetItem(tree, ["Velocity"])
+        vel_com = QTreeWidgetItem(velocity, ["CoM"])
+        for key in ["Box Local X", "Box Local Y", "Box Local Z", "Global Norm"]:
+            item = QTreeWidgetItem(vel_com, [key])
+            item.setCheckState(0, Qt.Checked)
+
+        acceleration = QTreeWidgetItem(tree, ["Acceleration"])
+        acc_com = QTreeWidgetItem(acceleration, ["CoM"])
+        for key in ["Box Local X", "Box Local Y", "Box Local Z"]:
+            item = QTreeWidgetItem(acc_com, [key])
+            item.setCheckState(0, Qt.Unchecked)
+
+        analysis = QTreeWidgetItem(tree, ["Analysis"])
+        c1 = QTreeWidgetItem(analysis, ["C1"])
+        rel_h = QTreeWidgetItem(c1, ["Relative Height"])
+        rel_h.setCheckState(0, Qt.Checked)
+
+        tree.expandAll()
+        mid_l.addWidget(tree)
+
+        btn_row = QHBoxLayout()
+        btn_row.addWidget(QPushButton("Clear Selection"))
+        btn_row.addWidget(QPushButton("Plot Selected Results"))
+        btn_row.addWidget(QPushButton("Open Popup"))
+        mid_l.addLayout(btn_row)
+
+        status_row = QHBoxLayout()
+        status_row.addWidget(QLabel("Checked Columns: 5"))
+        status_row.addStretch()
+        status_row.addWidget(QPushButton("Export Final Result"))
+        mid_l.addLayout(status_row)
+        splitter.addWidget(mid_panel)
+
+        right_panel = QGroupBox("3. Review Actions")
+        right_l = QVBoxLayout(right_panel)
+
+        summary_group = QGroupBox("Session Summary")
+        summary_layout = QFormLayout(summary_group)
+        summary_layout.addRow("Source File:", QLabel("Run_07.csv"))
+        summary_layout.addRow("Slice Artifact:", QLabel("run_07_slice_40_70.parquet"))
+        summary_layout.addRow("Processing Mode:", QLabel("Standard"))
+        summary_layout.addRow("Export:", QLabel("Pending"))
+        right_l.addWidget(summary_group)
+
+        action_row = QHBoxLayout()
+        action_row.addWidget(QPushButton("Back to Step 1"))
+        action_row.addWidget(QPushButton("Export Final Result"))
+        right_l.addLayout(action_row)
+
+        point_group = QGroupBox("Point Analysis")
+        point_layout = QVBoxLayout(point_group)
+        target_row = QHBoxLayout()
+        target_row.addWidget(QLabel("Target:"))
+        target_combo = QComboBox()
+        target_combo.addItems(["Velocity / CoM / Box Local X", "Velocity / CoM / Global Norm"])
+        target_row.addWidget(target_combo)
+        point_layout.addLayout(target_row)
+        find_row = QHBoxLayout()
+        find_row.addWidget(QPushButton("Abs Max"))
+        find_row.addWidget(QPushButton("Max"))
+        find_row.addWidget(QPushButton("Min"))
+        find_row.addStretch()
+        point_layout.addLayout(find_row)
+        point_layout.addWidget(QLabel("Selected Point: 54.270s"))
+        point_layout.addWidget(QPushButton("Export Point Data..."))
+        right_l.addWidget(point_group)
+
+        right_l.addStretch()
+        splitter.addWidget(right_panel)
+
+        splitter.setSizes([300, 700, 430])
+        layout.addWidget(splitter, 1)
+
+        plot_group = QGroupBox("Main Plot")
+        plot_l = QVBoxLayout(plot_group)
+
+        fig = Figure(figsize=(11, 3.4), dpi=100)
+        canvas = FigureCanvas(fig)
+        plot_l.addWidget(NavigationToolbar(canvas, self))
+        plot_l.addWidget(canvas)
+
+        ax = fig.subplots()
+        x = np.linspace(40, 70, 400)
+        ax.plot(x, 0.45 * np.sin(x * 0.45), label="Velocity / CoM / Box Local X")
+        ax.plot(x, 0.30 * np.cos(x * 0.52), label="Velocity / CoM / Box Local Y")
+        ax.plot(x, 0.25 * np.sin(x * 0.34 + 1.4), label="Velocity / CoM / Box Local Z")
+        ax.plot(x, 4.3 + 0.6 * np.sin(x * 0.16), label="Analysis / C1 / Relative Height")
+        ax.axvline(54.27, color="#c53030", linestyle="--", linewidth=1.2)
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("Value")
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc="upper right", ncol=2)
+        fig.tight_layout()
+        layout.addWidget(plot_group)
+
+
 def save_widget(widget, path):
     widget.show()
     QApplication.processEvents()
@@ -659,19 +1024,23 @@ if __name__ == "__main__":
     out_dir = os.path.join("docs", "analysis", "design", "gui_mockups")
     os.makedirs(out_dir, exist_ok=True)
 
-    step1 = Step1MockWindowV31()
-    step2 = Step2MockWindowV31()
-    popup = PopupMockWindowV31()
+    step1 = Step1MockWindow()
+    step2 = Step2MockWindow()
+    popup = PopupMockWindow()
 
     save_widget(step1, os.path.join(out_dir, "step1_improved_mock_v31.png"))
     save_widget(step2, os.path.join(out_dir, "step2_improved_mock_v31.png"))
     save_widget(popup, os.path.join(out_dir, "step2_popup_improved_mock_v31.png"))
 
-    step1_modes = Step1ProcessingModeMockWindowV32()
-    advanced_dialog = AdvancedProcessingDialogMockV32()
+    step1_modes = Step1ProcessingModeMockWindow()
+    advanced_dialog = AdvancedProcessingDialogMock()
+    step1_slice_workflow = Step1SliceWorkflowMockWindow()
+    step2_in_memory = Step2InMemoryResultMockWindow()
 
     save_widget(step1_modes, os.path.join(out_dir, "step1_processing_mode_mock_v32.png"))
     save_widget(advanced_dialog, os.path.join(out_dir, "step1_advanced_settings_mock_v32.png"))
+    save_widget(step1_slice_workflow, os.path.join(out_dir, "step1_slice_workflow_mock_v33.png"))
+    save_widget(step2_in_memory, os.path.join(out_dir, "step2_in_memory_result_mock_v33.png"))
 
     print("Saved:")
     print(os.path.join(out_dir, "step1_improved_mock_v31.png"))
@@ -679,3 +1048,5 @@ if __name__ == "__main__":
     print(os.path.join(out_dir, "step2_popup_improved_mock_v31.png"))
     print(os.path.join(out_dir, "step1_processing_mode_mock_v32.png"))
     print(os.path.join(out_dir, "step1_advanced_settings_mock_v32.png"))
+    print(os.path.join(out_dir, "step1_slice_workflow_mock_v33.png"))
+    print(os.path.join(out_dir, "step2_in_memory_result_mock_v33.png"))

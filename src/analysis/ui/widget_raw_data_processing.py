@@ -33,8 +33,8 @@ class WidgetRawDataProcessing(QWidget):
         self.header_info = None
         self.parsed_data = None
         self.current_selected_targets = []
-        self.current_processing_mode = config_analysis_ui.PROCESSING_MODE_STANDARD
-        self.advanced_processing_options = config_analysis_ui.get_default_advanced_options()
+        self.current_processing_mode = config_analysis_ui.DEFAULT_PROCESSING_MODE
+        self.advanced_processing_options = config_analysis_ui.get_initial_advanced_options()
 
         self._setup_ui()
         self._connect_signals()
@@ -188,18 +188,23 @@ class WidgetRawDataProcessing(QWidget):
         )
 
         radio_row = QHBoxLayout()
+        self.rb_processing_raw = QRadioButton(
+            config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_RAW]
+        )
+        self.rb_processing_raw.setChecked(
+            self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_RAW
+        )
         self.rb_processing_standard = QRadioButton(
             config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_STANDARD]
         )
-        self.rb_processing_standard.setChecked(True)
-        self.rb_processing_raw = QRadioButton(
-            config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_RAW]
+        self.rb_processing_standard.setChecked(
+            self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_STANDARD
         )
         self.rb_processing_advanced = QRadioButton(
             config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_ADVANCED]
         )
-        radio_row.addWidget(self.rb_processing_standard)
         radio_row.addWidget(self.rb_processing_raw)
+        radio_row.addWidget(self.rb_processing_standard)
         radio_row.addWidget(self.rb_processing_advanced)
         radio_row.addStretch()
         processing_layout.addLayout(radio_row)

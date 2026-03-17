@@ -3,6 +3,12 @@ from src.config import config_analysis
 PROCESSING_MODE_STANDARD = "standard"
 PROCESSING_MODE_RAW = "raw"
 PROCESSING_MODE_ADVANCED = "advanced"
+DEFAULT_PROCESSING_MODE = PROCESSING_MODE_RAW
+PROCESSING_MODE_ORDER = [
+    PROCESSING_MODE_RAW,
+    PROCESSING_MODE_STANDARD,
+    PROCESSING_MODE_ADVANCED,
+]
 
 PROCESSING_MODE_GROUP_TITLE = "Processing Mode"
 RESAMPLING_GROUP_TITLE = "Resampling"
@@ -21,14 +27,14 @@ RESAMPLING_FACTOR_CHOICES = [
 ]
 
 PROCESSING_MODE_LABELS = {
-    PROCESSING_MODE_STANDARD: "Standard",
     PROCESSING_MODE_RAW: "Raw",
+    PROCESSING_MODE_STANDARD: "Smoothing",
     PROCESSING_MODE_ADVANCED: "Advanced",
 }
 
 PROCESSING_MODE_DESCRIPTIONS = {
-    PROCESSING_MODE_STANDARD: "Standard uses smoothing and filtering for more stable results.",
     PROCESSING_MODE_RAW: "Raw minimizes processing and may produce noisier velocity and acceleration.",
+    PROCESSING_MODE_STANDARD: "Smoothing uses smoothing and filtering for more stable results.",
     PROCESSING_MODE_ADVANCED: "Advanced lets you customize each processing stage.",
 }
 
@@ -104,7 +110,7 @@ FIELD_LABELS = {
 }
 
 FIELD_HINTS = {
-    "enable_marker_smoothing": "Recommended for standard processing. Disabling this keeps the marker data closer to the raw input.",
+    "enable_marker_smoothing": "Recommended for smoothing mode. Disabling this keeps the marker data closer to the raw input.",
     "marker_savgol": "Savitzky-Golay can preserve local peak shape better than a low-pass filter, but large windows can still smear impact timing.",
     "range_edge_handling": "Stable keeps a small hidden margin around the selected range during calculations. Fast trims earlier and can be less reliable near the boundaries.",
     "pose_lowpass_filter": "Reduces fast pose jitter before derivatives are computed.",
@@ -189,3 +195,9 @@ def get_raw_mode_options():
         "acceleration_lpf_cutoff_hz": config_analysis.ACCELERATION_LPF_CUTOFF_HZ,
         "acceleration_lpf_order": config_analysis.ACCELERATION_LPF_ORDER,
     }
+
+
+def get_initial_advanced_options():
+    if DEFAULT_PROCESSING_MODE == PROCESSING_MODE_RAW:
+        return get_raw_mode_options()
+    return get_default_advanced_options()
