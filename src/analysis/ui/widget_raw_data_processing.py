@@ -2,7 +2,7 @@ import os
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton, QCheckBox,
+    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QCheckBox,
     QSizePolicy, QSplitter
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -11,18 +11,22 @@ from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
-from src.analysis.ui.dialog_processing_settings import ProcessingSettingsDialog
 from src.config import config_app, config_analysis_ui
 from src.config.data_columns import (
     PoseCols, RawMarkerCols, DisplayNames, RigidBodyCols
+)
+from src.analysis.pipeline.artifact_io import (
+    DEFAULT_SLICE_PADDING_ROWS,
+    build_slice_default_name,
+    save_slice_file,
 )
 
 class WidgetRawDataProcessing(QWidget):
     # Signals to communicate with MainApp
     file_loaded = Signal(dict, object, object) # header_info, raw_data, parsed_data
-    analysis_requested = Signal(dict) # config
-    export_requested = Signal()
     log_message = Signal(str)
+    slice_saved = Signal(str)
+    open_processing_requested = Signal(str)
 
     def __init__(self, data_loader, parser):
         super().__init__()
@@ -32,9 +36,9 @@ class WidgetRawDataProcessing(QWidget):
         self.raw_data = None
         self.header_info = None
         self.parsed_data = None
+        self.source_path = None
+        self.latest_slice_path = None
         self.current_selected_targets = []
-        self.current_processing_mode = config_analysis_ui.DEFAULT_PROCESSING_MODE
-        self.advanced_processing_options = config_analysis_ui.get_initial_advanced_options()
 
         self._setup_ui()
         self._connect_signals()
@@ -42,7 +46,7 @@ class WidgetRawDataProcessing(QWidget):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
 
-        group_box = QGroupBox("Raw Data Processing")
+        group_box = QGroupBox("Raw Data Slice")
         group_layout = QVBoxLayout(group_box)
 
         main_splitter = QSplitter(Qt.Orientation.Vertical)
@@ -85,13 +89,13 @@ class WidgetRawDataProcessing(QWidget):
         self.box_dims_group = QGroupBox("Box Dimensions (mm)")
         box_dims_layout = QGridLayout(self.box_dims_group)
         box_dims_layout.addWidget(QLabel("L:"), 0, 0)
-        self.le_box_l = QLineEdit("1820.0")
+        self.le_box_l = QLineEdit(str(config_app.BOX_DIMS[0]))
         box_dims_layout.addWidget(self.le_box_l, 0, 1)
         box_dims_layout.addWidget(QLabel("W:"), 1, 0)
-        self.le_box_w = QLineEdit("1110.0")
+        self.le_box_w = QLineEdit(str(config_app.BOX_DIMS[1]))
         box_dims_layout.addWidget(self.le_box_w, 1, 1)
         box_dims_layout.addWidget(QLabel("H:"), 2, 0)
-        self.le_box_h = QLineEdit("164.0")
+        self.le_box_h = QLineEdit(str(config_app.BOX_DIMS[2]))
         box_dims_layout.addWidget(self.le_box_h, 2, 1)
         right_panel_layout.addWidget(self.box_dims_group)
 
@@ -161,74 +165,40 @@ class WidgetRawDataProcessing(QWidget):
         slice_layout.addLayout(slice_end_row)
         h_controls_layout.addWidget(self.slice_group)
 
-        self.resampling_group = QGroupBox(config_analysis_ui.RESAMPLING_GROUP_TITLE)
-        resampling_layout = QGridLayout(self.resampling_group)
-        self.cb_enable_resampling = QCheckBox(config_analysis_ui.RESAMPLING_ENABLE_LABEL)
-        resampling_layout.addWidget(self.cb_enable_resampling, 0, 0, 1, 2)
-        resampling_layout.addWidget(QLabel(config_analysis_ui.RESAMPLING_FACTOR_LABEL), 1, 0)
-        self.combo_resampling_factor = QComboBox()
-        for label, factor in config_analysis_ui.RESAMPLING_FACTOR_CHOICES:
-            self.combo_resampling_factor.addItem(label, userData=factor)
-        self.combo_resampling_factor.setEnabled(False)
-        resampling_layout.addWidget(self.combo_resampling_factor, 1, 1)
-        self.resampling_description = QLabel(config_analysis_ui.RESAMPLING_DESCRIPTION)
-        self.resampling_description.setWordWrap(True)
-        self.resampling_description.setStyleSheet("color: #4a5568;")
-        self.resampling_description.setFixedHeight(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["resampling_description_fixed_height"]
-        )
-        self.resampling_description.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        resampling_layout.addWidget(self.resampling_description, 2, 0, 1, 2)
-        h_controls_layout.addWidget(self.resampling_group)
+        self.slice_output_group = QGroupBox("Slice Output")
+        slice_output_layout = QGridLayout(self.slice_output_group)
+        slice_output_layout.addWidget(QLabel("Scene Name:"), 0, 0)
+        self.le_scene_name = QLineEdit("scene")
+        slice_output_layout.addWidget(self.le_scene_name, 0, 1)
+        slice_output_layout.addWidget(QLabel("Padding:"), 1, 0)
+        self.slice_padding_label = QLabel(f"{DEFAULT_SLICE_PADDING_ROWS} rows on each side")
+        slice_output_layout.addWidget(self.slice_padding_label, 1, 1)
+        slice_output_layout.addWidget(QLabel("Last Saved:"), 2, 0)
+        self.slice_path_label = QLabel("Not saved yet.")
+        self.slice_path_label.setWordWrap(True)
+        slice_output_layout.addWidget(self.slice_path_label, 2, 1)
+        h_controls_layout.addWidget(self.slice_output_group)
 
-        processing_group = QGroupBox(config_analysis_ui.PROCESSING_MODE_GROUP_TITLE)
-        processing_layout = QVBoxLayout(processing_group)
-        processing_group.setMinimumWidth(
+        next_step_group = QGroupBox("Next Step")
+        next_step_layout = QVBoxLayout(next_step_group)
+        next_step_group.setMinimumWidth(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_group_min_width"]
         )
-
-        radio_row = QHBoxLayout()
-        self.rb_processing_raw = QRadioButton(
-            config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_RAW]
+        self.next_step_description = QLabel(
+            "Processing settings moved to Step 1.5. Save a scene slice first, then continue with processing."
         )
-        self.rb_processing_raw.setChecked(
-            self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_RAW
-        )
-        self.rb_processing_standard = QRadioButton(
-            config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_STANDARD]
-        )
-        self.rb_processing_standard.setChecked(
-            self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_STANDARD
-        )
-        self.rb_processing_advanced = QRadioButton(
-            config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_ADVANCED]
-        )
-        radio_row.addWidget(self.rb_processing_raw)
-        radio_row.addWidget(self.rb_processing_standard)
-        radio_row.addWidget(self.rb_processing_advanced)
-        radio_row.addStretch()
-        processing_layout.addLayout(radio_row)
-
-        settings_row = QHBoxLayout()
-        settings_row.addStretch()
-        self.processing_settings_button = QPushButton(config_analysis_ui.ADVANCED_BUTTON_TEXT)
-        self.processing_settings_button.setEnabled(False)
-        self.processing_settings_button.setMinimumWidth(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_settings_button_min_width"]
-        )
-        self.processing_settings_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        settings_row.addWidget(self.processing_settings_button)
-        processing_layout.addLayout(settings_row)
-
-        self.processing_mode_description = QLabel()
-        self.processing_mode_description.setWordWrap(True)
-        self.processing_mode_description.setStyleSheet("color: #4a5568;")
-        self.processing_mode_description.setFixedHeight(
+        self.next_step_description.setWordWrap(True)
+        self.next_step_description.setStyleSheet("color: #4a5568;")
+        self.next_step_description.setFixedHeight(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_mode_description_fixed_height"]
         )
-        self.processing_mode_description.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        processing_layout.addWidget(self.processing_mode_description)
-        h_controls_layout.addWidget(processing_group)
+        self.next_step_description.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        next_step_layout.addWidget(self.next_step_description)
+        self.open_processing_button = QPushButton("Open in Step 1.5")
+        self.open_processing_button.setEnabled(False)
+        next_step_layout.addWidget(self.open_processing_button)
+        next_step_layout.addStretch()
+        h_controls_layout.addWidget(next_step_group)
 
         # Keep bottom controls stable across processing mode text changes.
         plot_options_group.setMinimumWidth(
@@ -237,16 +207,17 @@ class WidgetRawDataProcessing(QWidget):
         self.slice_group.setMinimumWidth(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["slice_group_min_width"]
         )
-        self.resampling_group.setMinimumWidth(
+        self.slice_output_group.setMinimumWidth(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["resampling_group_min_width"]
         )
         # Run/Export Buttons
         run_button_layout = QVBoxLayout()
-        self.run_button = QPushButton("Run Analysis")
-        self.export_button = QPushButton("Export Results to CSV")
-        self.export_button.setEnabled(False)
-        run_button_layout.addWidget(self.run_button)
-        run_button_layout.addWidget(self.export_button)
+        self.save_slice_button = QPushButton("Save Scene Slice")
+        self.save_slice_button.setEnabled(False)
+        self.save_and_open_button = QPushButton("Save and Open Step 1.5")
+        self.save_and_open_button.setEnabled(False)
+        run_button_layout.addWidget(self.save_slice_button)
+        run_button_layout.addWidget(self.save_and_open_button)
         h_controls_layout.addLayout(run_button_layout)
 
         # Stretch mapping order:
@@ -265,19 +236,14 @@ class WidgetRawDataProcessing(QWidget):
     def _connect_signals(self):
         self.load_csv_button.clicked.connect(self.open_csv_file)
         self.select_data_button.clicked.connect(self.open_data_selection_dialog)
-        self.run_button.clicked.connect(self.emit_run_analysis)
-        self.export_button.clicked.connect(self.export_requested.emit)
+        self.save_slice_button.clicked.connect(self.save_scene_slice)
+        self.save_and_open_button.clicked.connect(self.save_scene_slice_and_open_processing)
+        self.open_processing_button.clicked.connect(self.emit_open_processing)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
         self.slice_group.toggled.connect(self.toggle_slicing_widgets)
         self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
         self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
-        self.cb_enable_resampling.toggled.connect(self.combo_resampling_factor.setEnabled)
-        self.rb_processing_standard.toggled.connect(self._on_processing_mode_changed)
-        self.rb_processing_raw.toggled.connect(self._on_processing_mode_changed)
-        self.rb_processing_advanced.toggled.connect(self._on_processing_mode_changed)
-        self.processing_settings_button.clicked.connect(self.open_processing_settings_dialog)
-        self._update_processing_mode_ui()
 
     def append_log(self, message):
         self.log_output.append(message)
@@ -287,6 +253,8 @@ class WidgetRawDataProcessing(QWidget):
         if filepath:
             try:
                 self.header_info, self.raw_data = self.data_loader.load_csv(filepath)
+                self.source_path = filepath
+                self.latest_slice_path = None
                 self.file_path_label.setText(filepath)
                 self.log_message.emit(f"[INFO] Loaded {filepath}. Parsing for preview...")
                 self.append_log(f"[INFO] Loaded {filepath}. Parsing for preview...")
@@ -304,7 +272,10 @@ class WidgetRawDataProcessing(QWidget):
                 self.update_plot()
                 self.plot_manager.enable_interactions(self.parsed_data)
                 self.slice_group.setChecked(False)
-                self.export_button.setEnabled(False)
+                self.save_slice_button.setEnabled(True)
+                self.save_and_open_button.setEnabled(True)
+                self.open_processing_button.setEnabled(False)
+                self.slice_path_label.setText("Not saved yet.")
                 
                 # Emit signal to MainApp
                 self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
@@ -384,68 +355,81 @@ class WidgetRawDataProcessing(QWidget):
         except (ValueError, TypeError):
             pass
 
-    def _on_processing_mode_changed(self):
-        if self.rb_processing_standard.isChecked():
-            self.current_processing_mode = config_analysis_ui.PROCESSING_MODE_STANDARD
-        elif self.rb_processing_raw.isChecked():
-            self.current_processing_mode = config_analysis_ui.PROCESSING_MODE_RAW
-        elif self.rb_processing_advanced.isChecked():
-            self.current_processing_mode = config_analysis_ui.PROCESSING_MODE_ADVANCED
-        self._update_processing_mode_ui()
+    def _get_slice_bounds(self):
+        if self.parsed_data is None or self.parsed_data.empty:
+            raise ValueError("No parsed data is available.")
 
-    def _update_processing_mode_ui(self):
-        self.processing_settings_button.setEnabled(
-            self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_ADVANCED
-        )
-        self.processing_mode_description.setText(
-            config_analysis_ui.PROCESSING_MODE_DESCRIPTIONS[self.current_processing_mode]
-        )
-
-    def open_processing_settings_dialog(self):
-        dialog = ProcessingSettingsDialog(self.advanced_processing_options, self)
-        if dialog.exec():
-            self.advanced_processing_options = dialog.get_settings()
-            self._update_processing_mode_ui()
-
-    def _build_analysis_overrides(self):
-        if self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_STANDARD:
-            return config_analysis_ui.get_default_advanced_options()
-        if self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_RAW:
-            return config_analysis_ui.get_raw_mode_options()
-        return dict(self.advanced_processing_options)
-
-    def emit_run_analysis(self):
-        if self.raw_data is None: return
-        try:
-            # Update box dimensions globally
-            l = float(self.le_box_l.text())
-            w = float(self.le_box_w.text())
-            h = float(self.le_box_h.text())
-            config_app.BOX_DIMS = [l, w, h]
-
-            config = {
-                'slice_filter_by': 'time',
-                'slice_start_val': float(self.le_slice_start.text()) if self.slice_group.isChecked() else self.parsed_data.index.min(),
-                'slice_end_val': float(self.le_slice_end.text()) if self.slice_group.isChecked() else self.parsed_data.index.max(),
-                'enable_resampling': self.cb_enable_resampling.isChecked(),
-                'resampling_factor': self.combo_resampling_factor.currentData(),
-                'resampling_method': 'linear',
-                'processing_mode': self.current_processing_mode,
-                'analysis_options': self._build_analysis_overrides(),
-            }
-            self.analysis_requested.emit(config)
-            self.run_button.setEnabled(False)
-            self.export_button.setEnabled(False)
-            self.log_output.clear()
-            self.append_log("[INFO] Starting analysis...")
-            
-        except Exception as e:
-            self.append_log(f"[ERROR] Invalid configuration: {e}")
-
-    def on_analysis_finished(self, success: bool):
-        self.run_button.setEnabled(True)
-        self.export_button.setEnabled(success)
-        if success:
-            self.append_log("[INFO] Analysis completed successfully.")
+        if self.slice_group.isChecked():
+            start_val = float(self.le_slice_start.text())
+            end_val = float(self.le_slice_end.text())
         else:
-            self.append_log("[ERROR] Analysis failed.")
+            start_val = float(self.parsed_data.index.min())
+            end_val = float(self.parsed_data.index.max())
+
+        if start_val > end_val:
+            start_val, end_val = end_val, start_val
+        return start_val, end_val
+
+    def _update_box_dimensions(self):
+        l = float(self.le_box_l.text())
+        w = float(self.le_box_w.text())
+        h = float(self.le_box_h.text())
+        config_app.BOX_DIMS = [l, w, h]
+
+    def _save_slice(self, open_after_save: bool) -> bool:
+        if self.raw_data is None or self.parsed_data is None:
+            return False
+
+        try:
+            self._update_box_dimensions()
+            start_val, end_val = self._get_slice_bounds()
+            scene_name = self.le_scene_name.text().strip() or "scene"
+            default_name = build_slice_default_name(self.source_path or "", scene_name=scene_name)
+            filepath, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save Scene Slice",
+                os.path.join(os.path.dirname(self.source_path or ""), default_name),
+                "Slice Files (*.slice)",
+            )
+            if not filepath:
+                return False
+
+            metadata = save_slice_file(
+                filepath=filepath,
+                header_info=self.header_info,
+                raw_data=self.raw_data,
+                source_path=self.source_path or "",
+                box_dims=tuple(config_app.BOX_DIMS),
+                full_start=float(self.parsed_data.index.min()),
+                full_end=float(self.parsed_data.index.max()),
+                user_start=start_val,
+                user_end=end_val,
+                pad_rows=DEFAULT_SLICE_PADDING_ROWS,
+                scene_name=scene_name,
+            )
+            self.latest_slice_path = filepath
+            self.slice_path_label.setText(filepath)
+            self.open_processing_button.setEnabled(True)
+            self.append_log(
+                "[INFO] Scene slice saved: "
+                f"{filepath} "
+                f"(user={metadata.user_start:.3f}s~{metadata.user_end:.3f}s, "
+                f"padded={metadata.padded_start:.3f}s~{metadata.padded_end:.3f}s)"
+            )
+            self.slice_saved.emit(filepath)
+            if open_after_save:
+                self.open_processing_requested.emit(filepath)
+            return True
+        except Exception as e:
+            self.append_log(f"[ERROR] Failed to save scene slice: {e}")
+            return False
+
+    def save_scene_slice(self):
+        self._save_slice(open_after_save=False)
+
+    def save_scene_slice_and_open_processing(self):
+        self._save_slice(open_after_save=True)
+
+    def emit_open_processing(self):
+        if self.latest_slice_path:
+            self.open_processing_requested.emit(self.latest_slice_path)

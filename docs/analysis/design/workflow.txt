@@ -2,7 +2,7 @@
 |   현재 분석 GUI 작업 흐름도            |
 =========================================
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-17
 
 (시작)
    |
@@ -30,39 +30,49 @@ Last Reviewed: 2026-03-08
    +-----> [그래프 구간 선택기로 슬라이스 범위 조정]
    |
    V
-[5. 사용자가 "Run Analysis" 클릭]
+[5. 사용자가 "Save Scene Slice" 클릭]
    |
-   +-----> [MainApp이 config dict 생성]
+   +-----> [현재 Box Dimensions 반영]
+   +-----> [선택 구간 + 좌우 50 rows padding 계산]
+   +-----> [.slice 파일 저장]
+   +-----> [line 0~1에 scene/box/timeline metadata 기록]
+   |
+   V
+[6. Step 1.5에서 ".slice" 로드]
+   |
+   +-----> [DataLoader가 .slice를 raw CSV처럼 다시 읽음]
+   +-----> [Parser가 parsed slice 생성]
+   +-----> [slice metadata에서 Box Dimensions 복원]
+   +-----> [Step 1.5 미리보기 플롯 갱신]
+   |
+   V
+[7. 사용자가 Step 1.5 설정 조정]
+   |
+   +-----> [Processing Mode 선택]
+   +-----> [Advanced Settings 조정]
+   +-----> [Resampling factor 선택]
+   |
+   V
+[8. 사용자가 "Run Processing" 클릭]
+   |
    +-----> [PipelineController를 worker thread에서 실행]
-   +-----> [status bar / log에 진행 상태 표시]
+   +-----> [parsed slice 기준 processing 수행]
+   +-----> [timeline metadata를 결과 DataFrame에 추가]
    |
    V
-[6. PipelineController 실행]
+[9. 사용자가 "Save Processed Result" 클릭]
    |
-   +-----> [Validator]
-   +-----> [Slicer]
-   +-----> [Smoother]
-   +-----> [PoseOptimizer]
-   +-----> [VelocityCalculator]
-   +-----> [FrameAnalyzer]
-   |
-   V
-[7. 분석 완료]
-   |
-   +-----> [final_result 저장]
-   +-----> ["Export Results to CSV" 활성화]
-   |
-   V
-[8. 사용자가 "Export Results to CSV" 클릭]
-   |
-   +-----> [timeline metadata 추가]
    +-----> [convert_to_multi_header() 실행]
-   +-----> [CSV 저장]
-   +-----> [Step 2가 해당 파일을 자동 로드]
-   +-----> [탭이 Step 2로 전환]
+   +-----> [.proc 저장]
    |
    V
-[9. Step 2에서 결과 분석]
+[10. Step 2에서 저장된 ".proc" 열기]
+   |
+   +-----> ["Open Saved .proc in Step 2"] 또는
+   +-----> [Step 2의 "Open Processed Result..." 또는 폴더 목록 사용]
+   |
+   V
+[11. Step 2에서 결과 분석]
    |
    +-----> [Time Window 영역에 active file / samples / full/slice 범위 표시]
    +-----> [결과 트리에서 컬럼 체크]
@@ -70,7 +80,7 @@ Last Reviewed: 2026-03-08
    +-----> ["Open Popup (Current Selection)"로 팝업 플롯 생성]
    |
    V
-[10. 특정 시점 선택]
+[12. 특정 시점 선택]
    |
    +-----> [메인 플롯 클릭]
    |         또는
@@ -80,7 +90,7 @@ Last Reviewed: 2026-03-08
    +-----> [팝업 플롯 커서 동기화]
    |
    V
-[11. 결과 내보내기]
+[13. 결과 내보내기]
    |
    +-----> ["Export Point Data..."] -> 단일 시점 row 저장
    +-----> ["Export Scenario CSV"] -> 외부 해석용 7줄 포맷 저장

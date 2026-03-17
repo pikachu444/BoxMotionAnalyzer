@@ -33,10 +33,7 @@ class PipelineController(QObject):
             floor_level=config_app.FLOOR_LEVEL
         )
 
-    def run_analysis(self, gui_config: dict, header_info: dict, raw_data: pd.DataFrame, parsed_data: pd.DataFrame = None):
-        """
-        전체 분석 파이프라인을 순차적으로 실행합니다.
-        """
+    def _run_analysis_from_parsed(self, gui_config: dict, parsed_data: pd.DataFrame):
         try:
             analysis_options = gui_config.get('analysis_options', {})
             processing_mode = gui_config.get('processing_mode', 'standard')
@@ -51,15 +48,7 @@ class PipelineController(QObject):
 
             self.log_message.emit(f"[INFO] Using Box Dimensions (L,W,H): {config_app.BOX_DIMS}")
             self.log_message.emit(f"[INFO] Processing mode: {processing_mode}")
-            # 파싱된 데이터가 있으면 재사용하고, 스무딩을 위해 패딩/트리밍을 수행합니다.
-
-            # 1. 파싱 단계
-            if parsed_data is not None:
-                self.log_message.emit("[1/8] Using cached parsed data...")
-                data = parsed_data
-            else:
-                self.log_message.emit("[1/8] Parsing data...")
-                data = self.parser.process(header_info, raw_data)
+            data = parsed_data
             self.log_message.emit(f"    Parser output shape: {data.shape}")
 
             # 1.5 데이터 검증
@@ -166,3 +155,23 @@ class PipelineController(QObject):
             self.log_message.emit(f"Traceback: {traceback.format_exc()}")
             self.analysis_finished.emit(pd.DataFrame())
             self.analysis_failed.emit(str(e))
+
+    def run_analysis(self, gui_config: dict, header_info: dict, raw_data: pd.DataFrame, parsed_data: pd.DataFrame = None):
+        """
+        전체 분석 파이프라인을 순차적으로 실행합니다.
+        """
+        if parsed_data is not None:
+            self.log_message.emit("[1/8] Using cached parsed data...")
+            self._run_analysis_from_parsed(gui_config, parsed_data)
+            return
+
+        self.log_message.emit("[1/8] Parsing data...")
+        data = self.parser.process(header_info, raw_data)
+        self._run_analysis_from_parsed(gui_config, data)
+
+    def run_analysis_from_parsed(self, gui_config: dict, parsed_data: pd.DataFrame):
+        """
+        이미 파싱된 slice 데이터를 대상으로 processing 단계부터 실행합니다.
+        """
+        self.log_message.emit("[1/8] Using parsed slice data...")
+        self._run_analysis_from_parsed(gui_config, parsed_data)

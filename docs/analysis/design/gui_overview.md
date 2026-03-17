@@ -3,17 +3,19 @@
 Last Reviewed: 2026-03-17
 
 ## 개요
-이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
+이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
 
 ## 1. 전체 구조
-- 메인 분석 창은 `QTabWidget` 기반의 2단계 흐름으로 구성된다.
-- `Step 1: Raw Data Processing`
-  - 원본 CSV 로드, 미리보기, 슬라이스 범위 지정, 분석 실행, 결과 CSV 내보내기
+- 메인 분석 창은 `QTabWidget` 기반의 3단계 흐름으로 구성된다.
+- `Step 1: Raw Data Slice`
+  - 원본 CSV 로드, 미리보기, 슬라이스 범위 지정, `.slice` 저장
+- `Step 1.5: Slice Processing`
+  - `.slice` 로드, processing mode / resampling 설정, processing 실행, `.proc` 저장
 - `Step 2: Results Analysis`
-  - 결과 CSV 로드, 컬럼 선택 플롯, 팝업 플롯, 지점 분석, 시나리오 CSV 내보내기
-- 하단 `QStatusBar`는 파일 로드, 분석 진행, 내보내기 성공/실패 상태를 표시한다.
+  - `.proc` 또는 기존 결과 `.csv` 로드, 컬럼 선택 플롯, 팝업 플롯, 지점 분석, 시나리오 CSV 내보내기
+- 하단 `QStatusBar`는 파일 로드, 처리 진행, 저장 성공/실패 상태를 표시한다.
 
-## 2. Step 1: Raw Data Processing
+## 2. Step 1: Raw Data Slice
 `WidgetRawDataProcessing`이 담당한다.
 
 ### 2.1. 상단 레이아웃
@@ -34,41 +36,78 @@ Last Reviewed: 2026-03-17
 - `Slice Range`
   - 체크 가능한 그룹 박스
   - 활성화 시 `Start`, `End` 입력값과 그래프 구간 선택기가 동기화된다
-- `Resampling`
-  - 분석 전에 uniform time grid로 샘플을 보간할지 결정한다
-  - `Enable Resampling` 체크 시 factor(`2x` ~ `5x`)를 선택할 수 있다
-  - 설명 라벨로 interpolation 기반 시간 해상도 증가 기능임을 안내한다
-- `Processing Mode`
-  - Raw / Smoothing / Advanced 라디오 버튼
-  - 기본 선택은 `Raw`
-  - 아래 설명 라벨로 현재 모드의 성격을 안내한다
-  - `Advanced Settings...` 다이얼로그는 2-column 레이아웃을 사용한다
-    - Left: `Marker Smoothing`, `Range Edge Handling`, `Pose`
-    - Right: `Derivative Method`, `Velocity`, `Acceleration`
+- `Slice Output`
+  - `Scene Name`
+  - 고정 padding 설명 (`50 rows on each side`)
+  - 최근 저장된 `.slice` 경로 표시
+- `Next Step`
+  - processing 설정은 Step 1.5로 이동되었다는 설명
+  - `Open in Step 1.5`
 - 실행 버튼
-  - `Run Analysis`
-  - `Export Results to CSV`
+  - `Save Scene Slice`
+  - `Save and Open Step 1.5`
 
 ### 2.3. 주요 동작
 - 파일 로드 시 `DataLoader`와 `Parser`가 즉시 미리보기용 데이터를 준비한다.
-- `Run Analysis`는 현재 박스 크기, 슬라이스 범위, resampling 옵션, processing mode를 설정 딕셔너리로 만들어 `PipelineController`에 전달한다.
-- `Export Results to CSV`는 최종 분석 결과에 Full/Slice timeline metadata를 추가한 뒤 multi-header CSV로 저장한다.
-- 내보내기 성공 시 저장한 결과 파일을 Step 2에 즉시 로드하고, 탭도 Step 2로 전환한다.
+- `Save Scene Slice`는 현재 박스 크기, 슬라이스 범위, scene 이름을 사용해 `.slice` 파일을 저장한다.
+- `.slice`는 기존 raw CSV 구조를 유지하지만, 상단 2줄에는 scene / box / timeline metadata를 추가한다.
+- 저장 시 선택 구간 양옆에 `50 rows` padding을 포함한다.
+- `Save and Open Step 1.5`는 저장 직후 해당 `.slice`를 Step 1.5에 로드한다.
 
-## 3. Step 2: Results Analysis
+## 3. Step 1.5: Slice Processing
+`WidgetSliceProcessing`이 담당한다.
+
+### 3.1. 상단 레이아웃
+- 좌측: Matplotlib 그래프와 네비게이션 툴바
+  - `.slice`를 다시 파싱한 `parsed_data`를 기준으로 preview를 그린다.
+- 우측: 제어 패널
+  - `Load Slice File...`
+  - 선택된 `.slice` 경로 표시
+  - `Slice Summary`
+    - source
+    - user range
+    - padded range
+  - `Box Dimensions (mm)`
+    - `.slice` 메타에 저장된 box 치수를 읽어 자동으로 채운다
+  - 로그 출력 텍스트 영역
+
+### 3.2. 하단 컨트롤
+- `Plot Options`
+  - Step 1과 같은 preview 선택 구조를 유지한다
+- `Resampling`
+  - processing 전에 uniform time grid로 샘플을 보간할지 결정한다
+- `Processing Mode`
+  - Raw / Smoothing / Advanced
+  - `Advanced Settings...` 다이얼로그 재사용
+- `Processing Output`
+  - 현재 처리 상태
+  - 최근 저장된 `.proc` 경로
+- 실행 버튼
+  - `Run Processing`
+  - `Save Processed Result`
+  - `Open Saved .proc in Step 2`
+
+### 3.3. 주요 동작
+- `.slice`를 열면 `DataLoader.load_csv()`와 `Parser.process()`를 다시 사용해 parsed slice를 준비한다.
+- processing은 `PipelineController.run_analysis_from_parsed()`를 통해 실행한다.
+- 완료된 결과는 `.proc` 저장 전까지 임시 상태로 유지된다.
+- `Open Saved .proc in Step 2`는 저장된 `.proc` 파일 경로를 Step 2에 전달한다.
+
+## 4. Step 2: Results Analysis
 `WidgetResultsAnalyzer`가 담당한다.
 
-### 3.1. Time Window 영역
+### 4.1. Time Window 영역
 - Active File
 - Number of Samples
 - Full timeline / Slice timeline 정보 문자열
 - Slice 구간을 시각적으로 보여주는 막대형 타임라인
 
-### 3.2. 본문 3분할 레이아웃
+### 4.2. 본문 3분할 레이아웃
 - `1. Result Files`
   - `Select Result Folder...`
+  - `Open Processed Result...`
   - 읽기 전용 Folder Path
-  - 결과 CSV 목록
+  - 결과 `.proc` / `.csv` 목록
 - `2. Data Selection`
   - 결과 컬럼 트리 (`QTreeWidget`)
   - 내부 선택값은 `(L1, L2, L3)` tuple을 유지하지만, 사용자에게는 `Velocity X (Box Local Frame)` 같은 표시명을 노출
@@ -93,23 +132,25 @@ Last Reviewed: 2026-03-17
   - `Scene Name`
   - `Export Scenario CSV`
 
-### 3.3. 하단 메인 플롯
+### 4.3. 하단 메인 플롯
 - 현재 체크된 결과 컬럼을 한 그래프에 겹쳐서 표시한다.
 - 범례와 타겟 선택 문자열은 raw schema key를 직접 이어붙이지 않고, export 의미를 풀어쓴 표시명을 사용한다.
 - 그래프 클릭 시 가장 가까운 시점을 선택한다.
 - 선택된 시점은 붉은 수직선 커서와 선택 정보 레이블로 반영된다.
 
-### 3.4. 팝업 플롯
+### 4.4. 팝업 플롯
 - `PlotPopupDialog`는 현재 체크된 컬럼 집합으로 별도 창을 연다.
 - 팝업 그래프도 클릭 가능하며, 선택된 시간이 메인 Step 2와 동기화된다.
 - 현재 구현은 "현재 선택 항목으로 팝업 열기"만 지원하며, 별도 subset 편집 버튼은 노출하지 않는다.
 
-## 4. 현재 사용자 흐름
+## 5. 현재 사용자 흐름
 1. Step 1에서 원본 CSV를 로드한다.
 2. 필요한 데이터와 축, 슬라이스 범위를 조정한다.
-3. 필요하면 resampling factor를 선택한다.
-4. 분석을 실행한다.
-5. 결과를 CSV로 내보낸다.
-6. 저장 직후 Step 2가 열리고 방금 저장한 결과 파일이 자동 로드된다.
-7. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
-8. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
+3. `.slice`를 저장한다.
+4. Step 1.5에서 저장한 `.slice`를 연다.
+5. 필요하면 resampling factor와 processing mode를 조정한다.
+6. processing을 실행한다.
+7. `.proc`를 저장한다.
+8. 저장된 `.proc`를 Step 2에서 연다.
+9. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
+10. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.

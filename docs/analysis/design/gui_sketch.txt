@@ -1,18 +1,18 @@
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-03-17
 
 +--------------------------------------------------------------------------------------------------+
 | Box Motion Analyzer v2.2                                                                         |
 +--------------------------------------------------------------------------------------------------+
-| [ Step 1: Raw Data Processing ] [ Step 2: Results Analysis ]                                     |
+| [ Step 1: Raw Data Slice ] [ Step 1.5: Slice Processing ] [ Step 2: Results Analysis ]          |
 +--------------------------------------------------------------------------------------------------+
 | Step 1                                                                                            |
 |                                                                                                   |
-| +--- Raw Data Processing -----------------------------------------------------------------------+ |
+| +--- Raw Data Slice ----------------------------------------------------------------------------+ |
 | | +---------------------------------------------+ +--------------------------------------------+ | |
 | | |                                             | | [Load CSV File...]                         | | |
-| | |                                             | | C:/.../raw.csv                             | | |
-| | |           Matplotlib Preview Plot           | | +------------------------+                 | | |
-| | |              (with toolbar)                 | | | Box Dimensions (mm)    |                 | | |
+| | |           Matplotlib Preview Plot           | | C:/.../raw.csv                             | | |
+| | |              (with toolbar)                 | | +------------------------+                 | | |
+| | |                                             | | | Box Dimensions (mm)    |                 | | |
 | | |                                             | | | L:[1820] W:[1110] H:[164]               | | |
 | | |                                             | | +------------------------+                 | | |
 | | |                                             | | Log Output                                  | | |
@@ -20,17 +20,52 @@ Last Reviewed: 2026-03-08
 | | +---------------------------------------------+ +--------------------------------------------+ | |
 | |                                                                                                  | |
 | | +----------------------------+ +----------------------------+ +-------------------------------+ | |
-| | | Plot Options               | | Slice Range                | | [Run Analysis]               | | |
-| | | [Select Data...]           | | [x] Start:[20.0] End:[30.0]| | [Export Results to CSV]      | | |
-| | | Selected: RigidBody Center | |                            | |                               | | |
+| | | Plot Options               | | Slice Range                | | Slice Output                  | | |
+| | | [Select Data...]           | | [x] Start:[20.0] End:[30.0]| | Scene:[impact_02]            | | |
+| | | Selected: RigidBody Center | |                            | | Padding: 50 rows             | | |
+| | | Axis: [Position-X v]       | |                            | | Last Saved: ...slice         | | |
+| | +----------------------------+ +----------------------------+ +-------------------------------+ | |
+| | +----------------------------+ +----------------------------+                                   | |
+| | | Next Step                  | | [Save Scene Slice]         |                                   | |
+| | | Processing moved to 1.5    | | [Save and Open Step 1.5]   |                                   | |
+| | | [Open in Step 1.5]         | |                            |                                   | |
+| | +----------------------------+ +----------------------------+                                   | |
+| +--------------------------------------------------------------------------------------------------+ |
+|                                                                                                   |
+| Step 1.5                                                                                          |
+|                                                                                                   |
+| +--- Slice Processing -------------------------------------------------------------------------+ |
+| | +---------------------------------------------+ +--------------------------------------------+ | |
+| | |                                             | | [Load Slice File...]                        | | |
+| | |           Matplotlib Preview Plot           | | C:/.../impact_02.slice                      | | |
+| | |              (with toolbar)                 | | +------------------------+                 | | |
+| | |                                             | | | Slice Summary          |                 | | |
+| | |                                             | | | Source / User / Padded |                 | | |
+| | |                                             | | +------------------------+                 | | |
+| | |                                             | | +------------------------+                 | | |
+| | |                                             | | | Box Dimensions (mm)    |                 | | |
+| | |                                             | | | L:[1820] W:[1110] H:[164]               | | |
+| | |                                             | | +------------------------+                 | | |
+| | |                                             | | Log Output                                  | | |
+| | +---------------------------------------------+ +--------------------------------------------+ | |
+| |                                                                                                  | |
+| | +----------------------------+ +----------------------------+ +-------------------------------+ | |
+| | | Plot Options               | | Resampling                 | | Processing Mode               | | |
+| | | [Select Data...]           | | [ ] Enable  [2x v]         | | Raw / Smoothing / Advanced   | | |
+| | | Selected: RigidBody Center | |                            | | [Advanced Settings...]        | | |
 | | | Axis: [Position-X v]       | |                            | |                               | | |
 | | +----------------------------+ +----------------------------+ +-------------------------------+ | |
+| | +----------------------------+ +----------------------------+                                   | |
+| | | Processing Output          | | [Run Processing]           |                                   | |
+| | | Current Result: Ready      | | [Save Processed Result]    |                                   | |
+| | | Saved File: ...proc        | | [Open Saved .proc in Step2]|                                   | |
+| | +----------------------------+ +----------------------------+                                   | |
 | +--------------------------------------------------------------------------------------------------+ |
 |                                                                                                   |
 | Step 2                                                                                            |
 |                                                                                                   |
 | +--- Time Window ------------------------------------------------------------------------------+ |
-| | Active File: result_01.csv                         Number of Samples: 1201                    | |
+| | Active File: impact_02_standard.proc                  Number of Samples: 1201                | |
 | | Full: 0.000s ~ 100.000s | Slice: 20.000s ~ 30.000s                                           | |
 | | [--------------------##########------------------------------------------------------------]   | |
 | +------------------------------------------------------------------------------------------------+ |
@@ -38,11 +73,11 @@ Last Reviewed: 2026-03-08
 | +-----------------------+ +-----------------------------------+ +-------------------------------+ |
 | | 1. Result Files       | | 2. Data Selection                | | 3. Point Analysis & Export   | |
 | | [Select Result Folder]| | Select Data to Plot              | | Target: [ ... v ] [Find Max] | |
-| | Folder Path: C:/...   | | [tree of Position/Velocity/... ] | | Selected: T=...              | |
-| | - result_01.csv       | | [Clear] [Plot Selected]          | | [Export Point Data...]        | |
-| | - result_02.csv       | | [Open Popup (Current Selection)] | |                               | |
-| | - result_03.csv       | |                 [Close All Popups]| | Manual Offset [ ]            | |
-| |                       | | Opened Popups: 2                 | | Manual Height [ ]            | |
+| | [Open Processed Result]| | [tree of Position/Velocity/... ]| | Selected: T=...              | |
+| | Folder Path: C:/...   | | [Clear] [Plot Selected]          | | [Export Point Data...]        | |
+| | - impact_01.proc      | | [Open Popup (Current Selection)] | |                               | |
+| | - impact_02.proc      | |                 [Close All Popups]| | Manual Offset [ ]            | |
+| | - legacy_result.csv   | | Opened Popups: 2                 | | Manual Height [ ]            | |
 | |                       | | Checked Columns: 8               | | Offset0~2 / Run Time / Step  | |
 | |                       | |                                   | | Scene Name / Export Scenario  | |
 | +-----------------------+ +-----------------------------------+ +-------------------------------+ |

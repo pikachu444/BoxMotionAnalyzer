@@ -19,13 +19,12 @@ Last Reviewed: 2026-03-17
 ---
 *   위치: `src/analysis/app/main_window.py`
 *   책임:
-    *   Step 1 / Step 2 탭 구성
+    *   Step 1 / Step 1.5 / Step 2 탭 구성
     *   `DataLoader`, `Parser`, `PipelineController` 생성 및 연결
-    *   분석 완료 결과를 보관하고 CSV export 처리
-    *   Step 1 export 후 Step 2 자동 로드 및 탭 전환
+    *   `.slice` -> Step 1.5, `.proc` -> Step 2 흐름 연결
+    *   processing 완료 결과에 timeline metadata 추가
 *   주요 상태:
-    *   `final_result`
-    *   `last_analysis_context`
+    *   `current_timeline_context`
 
 ---
 ### 3. `WidgetRawDataProcessing`
@@ -35,22 +34,42 @@ Last Reviewed: 2026-03-17
     *   원본 CSV 로드
     *   미리보기 플롯 표시
     *   박스 크기, 축, 슬라이스 범위 설정
-    *   optional uniform resampling factor 설정
-    *   분석 실행 요청
-    *   결과 CSV export 요청
+    *   `.slice` 저장 요청
+    *   Step 1.5 열기 요청
 *   주요 UI 요소:
     *   `Load CSV File...`
     *   `Box Dimensions (mm)`
     *   `Select Data...`
     *   `Slice Range`
-    *   `Resampling`
-    *   `Processing Mode` (`Raw` 기본, `Raw / Smoothing / Advanced`)
-    *   `Run Analysis`
-    *   `Export Results to CSV`
+    *   `Scene Name`
+    *   `Save Scene Slice`
+    *   `Save and Open Step 1.5`
+    *   `Open in Step 1.5`
     *   로그 텍스트 영역
 
 ---
-### 4. `WidgetResultsAnalyzer`
+### 4. `WidgetSliceProcessing`
+---
+*   위치: `src/analysis/ui/widget_slice_processing.py`
+*   책임:
+    *   `.slice` 로드
+    *   `.slice` 메타에서 box dimensions 복원
+    *   resampling / processing mode / advanced settings 수집
+    *   processing 실행 요청
+    *   `.proc` 저장
+    *   저장된 `.proc`를 Step 2로 전달
+*   주요 UI 요소:
+    *   `Load Slice File...`
+    *   `Slice Summary`
+    *   `Box Dimensions (mm)`
+    *   `Resampling`
+    *   `Processing Mode`
+    *   `Run Processing`
+    *   `Save Processed Result`
+    *   `Open Saved .proc in Step 2`
+
+---
+### 5. `WidgetResultsAnalyzer`
 ---
 *   위치: `src/analysis/ui/widget_results_analyzer.py`
 *   책임:
@@ -63,6 +82,7 @@ Last Reviewed: 2026-03-17
 *   주요 UI 요소:
     *   `Time Window`
     *   `Select Result Folder...`
+    *   `Open Processed Result...`
     *   결과 트리 아래 표시명 안내 라벨
     *   `Plot Selected Results`
     *   Target 아래 peak search 안내 라벨
@@ -73,7 +93,7 @@ Last Reviewed: 2026-03-17
     *   `Export Scenario CSV`
 
 ---
-### 5. `PlotPopupDialog`
+### 6. `PlotPopupDialog`
 ---
 *   위치: `src/analysis/ui/plot_popup_dialog.py`
 *   책임:
@@ -82,32 +102,43 @@ Last Reviewed: 2026-03-17
     *   팝업 내 클릭으로 선택 시간을 다시 부모 위젯에 전달
 
 ---
-### 6. `DataSelectionDialog`
+### 7. `DataSelectionDialog`
 ---
 *   위치: `src/analysis/ui/data_selection_dialog.py`
 *   책임:
-    *   Step 1에서 미리보기 플롯 대상을 다중 선택하는 체크리스트 제공
+    *   Step 1과 Step 1.5에서 미리보기 플롯 대상을 다중 선택하는 체크리스트 제공
 
 ---
-### 7. `PlotManager`
+### 8. `PlotManager`
 ---
-*   위치: `src/analysis/core/plot_manager.py`
+*   위치: `src/analysis/ui/plot_manager.py`
 *   책임:
     *   Matplotlib 캔버스와 축 관리
     *   데이터 플롯 갱신
     *   hover probe, 선택 구간, 축 초기화 등 공통 플롯 동작 처리
 
 ---
-### 8. `PipelineController`
+### 9. `PipelineController`
 ---
 *   위치: `src/analysis/pipeline/pipeline_controller.py`
 *   책임:
     *   분석 모듈 호출 순서 제어
     *   로그 / 성공 / 실패 시그널 발행
-    *   `parsed_data`를 입력으로 받아 중복 파싱 없이 분석 수행
+    *   raw CSV 진입과 parsed slice 진입을 분리
+    *   `run_analysis_from_parsed()`로 Step 1.5 재사용 흐름 지원
 
 ---
-### 9. `UniformResampler`
+### 10. `artifact_io`
+---
+*   위치: `src/analysis/pipeline/artifact_io.py`
+*   책임:
+    *   `.slice` 메타/헤더/row 저장
+    *   `.slice` 메타 읽기
+    *   `.proc` 저장
+    *   processing 결과에 timeline metadata 추가
+
+---
+### 11. `UniformResampler`
 ---
 *   위치: `src/analysis/pipeline/resampler.py`
 *   책임:
@@ -115,8 +146,9 @@ Last Reviewed: 2026-03-17
     *   numeric 컬럼 linear interpolation
     *   문자열/범주형 컬럼 ffill/bfill
     *   `Frame` 컬럼 재번호
+
 ---
-### 10. 분석 모듈 집합
+### 12. 분석 모듈 집합
 ---
 *   위치: `src/analysis/`
 *   주요 구성:
@@ -130,7 +162,7 @@ Last Reviewed: 2026-03-17
     *   `UniformResampler`
 
 ---
-### 11. 컬럼/헤더 단일 진실원
+### 13. 컬럼/헤더 단일 진실원
 ---
 *   위치: `src/config/data_columns.py`
 *   책임:

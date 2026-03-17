@@ -97,7 +97,9 @@ class WidgetResultsAnalyzer(QWidget):
         files_layout = QVBoxLayout(files_group)
         button_row = QHBoxLayout()
         self.select_result_folder_button = QPushButton("Select Result Folder...")
+        self.open_result_file_button = QPushButton("Open Processed Result...")
         button_row.addWidget(self.select_result_folder_button)
+        button_row.addWidget(self.open_result_file_button)
         button_row.addStretch()
         files_layout.addLayout(button_row)
 
@@ -259,6 +261,7 @@ class WidgetResultsAnalyzer(QWidget):
 
     def _connect_signals(self):
         self.select_result_folder_button.clicked.connect(self.select_result_folder)
+        self.open_result_file_button.clicked.connect(self.open_result_file)
         self.result_file_list.itemClicked.connect(self.on_result_file_selected)
         self.result_data_tree.itemChanged.connect(self.on_tree_item_changed)
         self.clear_selection_button.clicked.connect(self.clear_selection)
@@ -377,9 +380,12 @@ class WidgetResultsAnalyzer(QWidget):
     def _refresh_result_file_list(self, folder_path, selected_file=None):
         self.result_file_list.clear()
         try:
-            files = sorted(f for f in os.listdir(folder_path) if f.lower().endswith(".csv"))
+            files = sorted(
+                f for f in os.listdir(folder_path)
+                if f.lower().endswith(".proc") or f.lower().endswith(".csv")
+            )
             self.result_file_list.addItems(files)
-            self.log_message.emit(f"[INFO] Found {len(files)} CSV files in {folder_path}")
+            self.log_message.emit(f"[INFO] Found {len(files)} result files in {folder_path}")
             if selected_file:
                 for i in range(self.result_file_list.count()):
                     if self.result_file_list.item(i).text() == selected_file:
@@ -411,6 +417,16 @@ class WidgetResultsAnalyzer(QWidget):
         folder_path = self.result_folder_path_label.text()
         file_path = os.path.join(folder_path, item.text())
         self.load_result_file(file_path)
+
+    def open_result_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Processed Result",
+            "",
+            "Processed Files (*.proc);;CSV Files (*.csv)",
+        )
+        if file_path:
+            self.load_result_file(file_path)
 
     def load_result_file(self, file_path):
         if not file_path or not os.path.isfile(file_path):
