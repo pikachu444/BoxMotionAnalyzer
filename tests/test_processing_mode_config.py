@@ -36,6 +36,19 @@ class TestProcessingModeConfig(unittest.TestCase):
             ],
         )
 
+    def test_initial_advanced_options_follow_default_processing_mode(self):
+        initial = config_analysis_ui.get_initial_advanced_options()
+        raw = config_analysis_ui.get_raw_mode_options()
+
+        self.assertEqual(initial["enable_marker_smoothing"], raw["enable_marker_smoothing"])
+        self.assertEqual(initial["marker_smoothing_method_sequence"], raw["marker_smoothing_method_sequence"])
+        self.assertEqual(initial["use_pose_lowpass_filter"], raw["use_pose_lowpass_filter"])
+        self.assertEqual(initial["use_pose_moving_average"], raw["use_pose_moving_average"])
+        self.assertEqual(initial["velocity_method"], raw["velocity_method"])
+        self.assertEqual(initial["acceleration_method"], raw["acceleration_method"])
+        self.assertEqual(initial["use_velocity_lowpass_filter"], raw["use_velocity_lowpass_filter"])
+        self.assertEqual(initial["use_acceleration_lowpass_filter"], raw["use_acceleration_lowpass_filter"])
+
 
 if __name__ == "__main__":
     unittest.main()

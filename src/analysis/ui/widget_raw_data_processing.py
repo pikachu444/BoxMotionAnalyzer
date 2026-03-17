@@ -34,7 +34,7 @@ class WidgetRawDataProcessing(QWidget):
         self.parsed_data = None
         self.current_selected_targets = []
         self.current_processing_mode = config_analysis_ui.DEFAULT_PROCESSING_MODE
-        self.advanced_processing_options = config_analysis_ui.get_default_advanced_options()
+        self.advanced_processing_options = config_analysis_ui.get_initial_advanced_options()
 
         self._setup_ui()
         self._connect_signals()

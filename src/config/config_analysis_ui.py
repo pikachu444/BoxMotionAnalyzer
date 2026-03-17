@@ -195,3 +195,9 @@ def get_raw_mode_options():
         "acceleration_lpf_cutoff_hz": config_analysis.ACCELERATION_LPF_CUTOFF_HZ,
         "acceleration_lpf_order": config_analysis.ACCELERATION_LPF_ORDER,
     }
+
+
+def get_initial_advanced_options():
+    if DEFAULT_PROCESSING_MODE == PROCESSING_MODE_RAW:
+        return get_raw_mode_options()
+    return get_default_advanced_options()
