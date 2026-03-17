@@ -3,6 +3,12 @@ from src.config import config_analysis
 PROCESSING_MODE_STANDARD = "standard"
 PROCESSING_MODE_RAW = "raw"
 PROCESSING_MODE_ADVANCED = "advanced"
+DEFAULT_PROCESSING_MODE = PROCESSING_MODE_RAW
+PROCESSING_MODE_ORDER = [
+    PROCESSING_MODE_RAW,
+    PROCESSING_MODE_STANDARD,
+    PROCESSING_MODE_ADVANCED,
+]
 
 PROCESSING_MODE_GROUP_TITLE = "Processing Mode"
 RESAMPLING_GROUP_TITLE = "Resampling"
@@ -21,14 +27,14 @@ RESAMPLING_FACTOR_CHOICES = [
 ]
 
 PROCESSING_MODE_LABELS = {
-    PROCESSING_MODE_STANDARD: "Standard",
     PROCESSING_MODE_RAW: "Raw",
+    PROCESSING_MODE_STANDARD: "Smoothing",
     PROCESSING_MODE_ADVANCED: "Advanced",
 }
 
 PROCESSING_MODE_DESCRIPTIONS = {
-    PROCESSING_MODE_STANDARD: "Standard uses smoothing and filtering for more stable results.",
     PROCESSING_MODE_RAW: "Raw minimizes processing and may produce noisier velocity and acceleration.",
+    PROCESSING_MODE_STANDARD: "Smoothing uses smoothing and filtering for more stable results.",
     PROCESSING_MODE_ADVANCED: "Advanced lets you customize each processing stage.",
 }
 

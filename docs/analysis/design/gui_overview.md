@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-03-16
+Last Reviewed: 2026-03-17
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -39,7 +39,8 @@ Last Reviewed: 2026-03-16
   - `Enable Resampling` 체크 시 factor(`2x` ~ `5x`)를 선택할 수 있다
   - 설명 라벨로 interpolation 기반 시간 해상도 증가 기능임을 안내한다
 - `Processing Mode`
-  - Standard / Raw / Advanced 라디오 버튼
+  - Raw / Smoothing / Advanced 라디오 버튼
+  - 기본 선택은 `Raw`
   - 아래 설명 라벨로 현재 모드의 성격을 안내한다
   - `Advanced Settings...` 다이얼로그는 2-column 레이아웃을 사용한다
     - Left: `Marker Smoothing`, `Range Edge Handling`, `Pose`

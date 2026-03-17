@@ -1,30 +1,30 @@
-Last Reviewed: 2026-03-15
+Last Reviewed: 2026-03-17
 
 # Processing Mode Implementation Plan
 
 이 문서는 Step 1의 processing mode 확장 작업을 다음 세션에서도 이어서 진행할 수 있도록 임시 계획을 정리한 문서다.
 
 ## 작업 목표
-- Step 1에 `Standard / Raw / Advanced` processing mode를 추가한다.
+- Step 1에 `Raw / Smoothing / Advanced` processing mode를 추가한다.
 - `Advanced Settings...` 다이얼로그를 통해 세부 처리 단계를 제어할 수 있게 한다.
 - 이후 velocity/acceleration 미분 방식을 분리하고, 마지막으로 실제 수치 파라미터까지 GUI와 연결한다.
 
 ## 현재 합의된 방향
 - Step 1 메인 화면에 `Processing Mode` 그룹을 추가한다.
 - 선택 방식은 `QRadioButton` 3개를 사용한다.
-  - `Standard`
   - `Raw`
+  - `Smoothing`
   - `Advanced`
 - `Advanced`를 선택하면 `Advanced Settings...` 버튼이 활성화된다.
 - 모드 설명은 `Summary:` 같은 라벨 없이, 아래 한 줄 설명만 표시한다.
-  - `Standard uses smoothing and filtering for more stable results.`
+  - `Smoothing uses smoothing and filtering for more stable results.`
   - `Raw minimizes processing and may produce noisier velocity and acceleration.`
   - `Advanced lets you customize each processing stage.`
 - 실제 GUI 구현에서는 설명 문자열을 위젯 생성 코드에 직접 하드코딩하지 않고, 한 곳에 모은 문자열 상수 또는 설정용 변수로 관리한다.
 
 ## 확정된 작업 순서
 1. mockup 확정
-2. `Standard / Raw / Advanced` 1차 GUI + 동작 구현
+2. `Raw / Smoothing / Advanced` 1차 GUI + 동작 구현
 3. velocity / acceleration 미분 방식 분리
 4. 실제 수치 파라미터 편집 GUI와 동작 연결
 
@@ -45,15 +45,15 @@ Last Reviewed: 2026-03-15
 ## 2단계: 1차 GUI + 동작 구현
 
 ### 목적
-- 사용자가 `Standard`, `Raw`, `Advanced` 중 하나를 고를 수 있게 한다.
+- 사용자가 `Raw`, `Smoothing`, `Advanced` 중 하나를 고를 수 있게 한다.
 - `Advanced`일 때만 세부 설정 다이얼로그를 열 수 있게 한다.
 - 이 단계에서는 숫자 파라미터 편집까지는 하지 않는다.
 
 ### Step 1 메인 화면
 - `Processing Mode` 그룹 추가
 - `QRadioButton`
-  - `Standard`
   - `Raw`
+  - `Smoothing`
   - `Advanced`
 - `QPushButton("Advanced Settings...")`
 - 현재 선택 모드 설명 라벨 1개
@@ -104,7 +104,7 @@ Last Reviewed: 2026-03-15
   - acceleration low-pass filter on/off
 
 ### 동작 원칙
-- `Standard`
+- `Smoothing`
   - 현재 기본 config 기반
   - smoothing/filtering 사용
 - `Raw`
