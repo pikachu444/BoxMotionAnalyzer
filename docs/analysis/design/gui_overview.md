@@ -84,7 +84,7 @@ Last Reviewed: 2026-03-18
 ### 3.3. 주요 동작
 - `.slice`를 열면 `DataLoader.load_csv()`와 `Parser.process()`를 다시 사용해 parsed slice를 준비한다.
 - processing은 `PipelineController.run_analysis_from_parsed()`를 통해 실행한다.
-- 완료된 결과는 `.proc` 저장 전까지 임시 상태로 유지된다.
+- 완료된 결과는 Step 1.5 내부에서 확인한 뒤 `.proc`로 저장한다.
 
 ## 4. Step 2: Results Analysis
 `WidgetResultsAnalyzer`가 담당한다.

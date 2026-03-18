@@ -1,6 +1,6 @@
 ﻿# Design Docs Guide
 
-Last Reviewed: 2026-03-17
+Last Reviewed: 2026-03-18
 
 이 문서는 `docs/analysis/design/` 아래 분석 기능 설계 문서를 정리하거나 갱신할 때 참고하는 가이드다.
 
@@ -36,7 +36,8 @@ Last Reviewed: 2026-03-17
 - `gui_sketch.txt`
   - 현재 레이아웃 개요
 - `gui_mockups/`
-  - 설계 mockup 이미지와 생성 스크립트
+  - historical/reference mockup 이미지와 생성 스크립트
+  - 현재 구현을 설명하는 기준 문서는 아니므로, 코드와 현재 구조 문서보다 우선하지 않는다
 
 ## 함께 확인할 reference 문서
 - `../reference/pipeline_data_structures.txt`

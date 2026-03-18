@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-03-17
+Last Reviewed: 2026-03-18
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -36,12 +36,11 @@ Last Reviewed: 2026-03-17
 - `Advanced Settings...` 다이얼로그 사용
 - processing 실행
 - `.proc` 저장
-- 저장된 `.proc`를 Step 2로 전달
 - Step 1과 같은 splitter 기반 상단 plot / 우측 패널 / 하단 controls 구조를 유지한다.
 
 ### 3.3. Step 2: Results Analysis
-- 결과 폴더 / 파일 선택
-- 단일 `.proc` 파일 직접 열기
+- 결과 폴더 선택
+- 결과 목록에서 `.proc` 또는 기존 결과 `.csv` 선택
 - Multi-header 결과 컬럼 트리 표시
 - 메인 플롯 비교
 - 팝업 플롯 열기
@@ -51,8 +50,9 @@ Last Reviewed: 2026-03-17
 - 상단 분석 제어 영역과 하단 메인 플롯 사이에는 세로 splitter가 있어, 기본 레이아웃을 유지하면서도 메인 플롯 높이를 수동 조절할 수 있다.
 
 ### 3.4. Step 간 연결
-- Step 1은 `.slice`를 만든 뒤 Step 1.5로 넘긴다.
-- Step 1.5는 `.proc`를 저장한 뒤 Step 2가 그 파일을 열게 한다.
+- Step 1은 `.slice`를 생성한다.
+- Step 1.5는 `.slice`를 열어 `.proc`를 생성한다.
+- Step 2는 결과 폴더에서 `.proc`를 선택해 연다.
 - `.proc`는 기존 result CSV와 동일한 multi-header 구조를 사용한다.
 - processing 결과에는 Full/Slice timeline metadata가 함께 포함된다.
 
