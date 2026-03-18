@@ -2,7 +2,7 @@
 |   현재 분석 GUI 작업 흐름도            |
 =========================================
 
-Last Reviewed: 2026-03-17
+Last Reviewed: 2026-03-18
 
 (시작)
    |
@@ -66,10 +66,10 @@ Last Reviewed: 2026-03-17
    +-----> [.proc 저장]
    |
    V
-[10. Step 2에서 저장된 ".proc" 열기]
+[10. Step 2에서 결과 폴더 선택 후 저장된 ".proc" 열기]
    |
-   +-----> ["Open Saved .proc in Step 2"] 또는
-   +-----> [Step 2의 "Open Processed Result..." 또는 폴더 목록 사용]
+   +-----> ["Select Result Folder..."로 폴더 선택]
+   +-----> [결과 파일 목록에서 ".proc" 선택]
    |
    V
 [11. Step 2에서 결과 분석]

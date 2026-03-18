@@ -2,7 +2,7 @@
 |    컴포넌트 및 기능 명세서 (현재 기준)  |
 =========================================
 
-Last Reviewed: 2026-03-17
+Last Reviewed: 2026-03-18
 
 이 문서는 현재 코드 기준으로 주요 컴포넌트와 책임을 정리한다.
 
@@ -35,7 +35,6 @@ Last Reviewed: 2026-03-17
     *   미리보기 플롯 표시
     *   박스 크기, 축, 슬라이스 범위 설정
     *   `.slice` 저장 요청
-    *   Step 1.5 열기 요청
 *   주요 UI 요소:
     *   `Load CSV File...`
     *   `Box Dimensions (mm)`
@@ -43,8 +42,6 @@ Last Reviewed: 2026-03-17
     *   `Slice Range`
     *   `Scene Name`
     *   `Save Scene Slice`
-    *   `Save and Open Step 1.5`
-    *   `Open in Step 1.5`
     *   로그 텍스트 영역
 
 ---
@@ -57,7 +54,6 @@ Last Reviewed: 2026-03-17
     *   resampling / processing mode / advanced settings 수집
     *   processing 실행 요청
     *   `.proc` 저장
-    *   저장된 `.proc`를 Step 2로 전달
 *   주요 UI 요소:
     *   `Load Slice File...`
     *   `Slice Summary`
@@ -66,14 +62,13 @@ Last Reviewed: 2026-03-17
     *   `Processing Mode`
     *   `Run Processing`
     *   `Save Processed Result`
-    *   `Open Saved .proc in Step 2`
 
 ---
 ### 5. `WidgetResultsAnalyzer`
 ---
 *   위치: `src/analysis/ui/widget_results_analyzer.py`
 *   책임:
-    *   결과 폴더/파일 로드
+    *   결과 폴더 로드 및 파일 목록 탐색
     *   결과 컬럼 트리 구성
     *   메인 결과 플롯 표시
     *   팝업 플롯 생성 및 상태 관리
@@ -82,7 +77,6 @@ Last Reviewed: 2026-03-17
 *   주요 UI 요소:
     *   `Time Window`
     *   `Select Result Folder...`
-    *   `Open Processed Result...`
     *   결과 트리 아래 표시명 안내 라벨
     *   `Plot Selected Results`
     *   Target 아래 peak search 안내 라벨

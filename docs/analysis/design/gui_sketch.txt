@@ -1,4 +1,4 @@
-Last Reviewed: 2026-03-17
+Last Reviewed: 2026-03-18
 
 +--------------------------------------------------------------------------------------------------+
 | Box Motion Analyzer v2.2                                                                         |
@@ -25,11 +25,9 @@ Last Reviewed: 2026-03-17
 | | | Selected: RigidBody Center | |                            | | Padding: 50 rows             | | |
 | | | Axis: [Position-X v]       | |                            | | Last Saved: ...slice         | | |
 | | +----------------------------+ +----------------------------+ +-------------------------------+ | |
-| | +----------------------------+ +----------------------------+                                   | |
-| | | Next Step                  | | [Save Scene Slice]         |                                   | |
-| | | Processing moved to 1.5    | | [Save and Open Step 1.5]   |                                   | |
-| | | [Open in Step 1.5]         | |                            |                                   | |
-| | +----------------------------+ +----------------------------+                                   | |
+| | +----------------------------+                                                                  | |
+| | | [Save Scene Slice]         |                                                                  | |
+| | +----------------------------+                                                                  | |
 | +--------------------------------------------------------------------------------------------------+ |
 |                                                                                                   |
 | Step 1.5                                                                                          |
@@ -58,7 +56,7 @@ Last Reviewed: 2026-03-17
 | | +----------------------------+ +----------------------------+                                   | |
 | | | Processing Output          | | [Run Processing]           |                                   | |
 | | | Current Result: Ready      | | [Save Processed Result]    |                                   | |
-| | | Saved File: ...proc        | | [Open Saved .proc in Step2]|                                   | |
+| | | Saved File: ...proc        | |                            |                                   | |
 | | +----------------------------+ +----------------------------+                                   | |
 | +--------------------------------------------------------------------------------------------------+ |
 |                                                                                                   |
@@ -73,7 +71,7 @@ Last Reviewed: 2026-03-17
 | +-----------------------+ +-----------------------------------+ +-------------------------------+ |
 | | 1. Result Files       | | 2. Data Selection                | | 3. Point Analysis & Export   | |
 | | [Select Result Folder]| | Select Data to Plot              | | Target: [ ... v ] [Find Max] | |
-| | [Open Processed Result]| | [tree of Position/Velocity/... ]| | Selected: T=...              | |
+| |                       | | [tree of Position/Velocity/... ]| | Selected: T=...              | |
 | | Folder Path: C:/...   | | [Clear] [Plot Selected]          | | [Export Point Data...]        | |
 | | - impact_01.proc      | | [Open Popup (Current Selection)] | |                               | |
 | | - impact_02.proc      | |                 [Close All Popups]| | Manual Offset [ ]            | |

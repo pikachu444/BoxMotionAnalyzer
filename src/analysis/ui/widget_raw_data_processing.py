@@ -26,7 +26,6 @@ class WidgetRawDataProcessing(QWidget):
     file_loaded = Signal(dict, object, object) # header_info, raw_data, parsed_data
     log_message = Signal(str)
     slice_saved = Signal(str)
-    open_processing_requested = Signal(str)
 
     def __init__(self, data_loader, parser):
         super().__init__()
@@ -37,7 +36,6 @@ class WidgetRawDataProcessing(QWidget):
         self.header_info = None
         self.parsed_data = None
         self.source_path = None
-        self.latest_slice_path = None
         self.current_selected_targets = []
 
         self._setup_ui()
@@ -179,27 +177,6 @@ class WidgetRawDataProcessing(QWidget):
         slice_output_layout.addWidget(self.slice_path_label, 2, 1)
         h_controls_layout.addWidget(self.slice_output_group)
 
-        next_step_group = QGroupBox("Next Step")
-        next_step_layout = QVBoxLayout(next_step_group)
-        next_step_group.setMinimumWidth(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_group_min_width"]
-        )
-        self.next_step_description = QLabel(
-            "Processing settings moved to Step 1.5. Save a scene slice first, then continue with processing."
-        )
-        self.next_step_description.setWordWrap(True)
-        self.next_step_description.setStyleSheet("color: #4a5568;")
-        self.next_step_description.setFixedHeight(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_mode_description_fixed_height"]
-        )
-        self.next_step_description.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        next_step_layout.addWidget(self.next_step_description)
-        self.open_processing_button = QPushButton("Open in Step 1.5")
-        self.open_processing_button.setEnabled(False)
-        next_step_layout.addWidget(self.open_processing_button)
-        next_step_layout.addStretch()
-        h_controls_layout.addWidget(next_step_group)
-
         # Keep bottom controls stable across processing mode text changes.
         plot_options_group.setMinimumWidth(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["plot_options_group_min_width"]
@@ -214,16 +191,15 @@ class WidgetRawDataProcessing(QWidget):
         run_button_layout = QVBoxLayout()
         self.save_slice_button = QPushButton("Save Scene Slice")
         self.save_slice_button.setEnabled(False)
-        self.save_and_open_button = QPushButton("Save and Open Step 1.5")
-        self.save_and_open_button.setEnabled(False)
         run_button_layout.addWidget(self.save_slice_button)
-        run_button_layout.addWidget(self.save_and_open_button)
         h_controls_layout.addLayout(run_button_layout)
 
-        # Stretch mapping order:
-        #   0: plot_options_group, 1: slice_group, 2: resampling_group, 3: processing_group, 4: run_button_layout
-        for index, stretch in enumerate(config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["bottom_controls_stretch"]):
-            h_controls_layout.setStretch(index, stretch)
+        stretch_values = config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["bottom_controls_stretch"]
+        # Reuse the existing layout tuning while Step 1 now only keeps slice-related controls.
+        h_controls_layout.setStretch(0, stretch_values[0])
+        h_controls_layout.setStretch(1, stretch_values[1])
+        h_controls_layout.setStretch(2, stretch_values[2])
+        h_controls_layout.setStretch(3, stretch_values[4])
 
         main_splitter.addWidget(controls_widget)
         main_splitter.setStretchFactor(0, 6)
@@ -237,8 +213,6 @@ class WidgetRawDataProcessing(QWidget):
         self.load_csv_button.clicked.connect(self.open_csv_file)
         self.select_data_button.clicked.connect(self.open_data_selection_dialog)
         self.save_slice_button.clicked.connect(self.save_scene_slice)
-        self.save_and_open_button.clicked.connect(self.save_scene_slice_and_open_processing)
-        self.open_processing_button.clicked.connect(self.emit_open_processing)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
         self.slice_group.toggled.connect(self.toggle_slicing_widgets)
@@ -254,7 +228,6 @@ class WidgetRawDataProcessing(QWidget):
             try:
                 self.header_info, self.raw_data = self.data_loader.load_csv(filepath)
                 self.source_path = filepath
-                self.latest_slice_path = None
                 self.file_path_label.setText(filepath)
                 self.log_message.emit(f"[INFO] Loaded {filepath}. Parsing for preview...")
                 self.append_log(f"[INFO] Loaded {filepath}. Parsing for preview...")
@@ -273,8 +246,6 @@ class WidgetRawDataProcessing(QWidget):
                 self.plot_manager.enable_interactions(self.parsed_data)
                 self.slice_group.setChecked(False)
                 self.save_slice_button.setEnabled(True)
-                self.save_and_open_button.setEnabled(True)
-                self.open_processing_button.setEnabled(False)
                 self.slice_path_label.setText("Not saved yet.")
                 
                 # Emit signal to MainApp
@@ -376,7 +347,7 @@ class WidgetRawDataProcessing(QWidget):
         h = float(self.le_box_h.text())
         config_app.BOX_DIMS = [l, w, h]
 
-    def _save_slice(self, open_after_save: bool) -> bool:
+    def _save_slice(self) -> bool:
         if self.raw_data is None or self.parsed_data is None:
             return False
 
@@ -407,9 +378,7 @@ class WidgetRawDataProcessing(QWidget):
                 pad_rows=DEFAULT_SLICE_PADDING_ROWS,
                 scene_name=scene_name,
             )
-            self.latest_slice_path = filepath
             self.slice_path_label.setText(filepath)
-            self.open_processing_button.setEnabled(True)
             self.append_log(
                 "[INFO] Scene slice saved: "
                 f"{filepath} "
@@ -417,19 +386,10 @@ class WidgetRawDataProcessing(QWidget):
                 f"padded={metadata.padded_start:.3f}s~{metadata.padded_end:.3f}s)"
             )
             self.slice_saved.emit(filepath)
-            if open_after_save:
-                self.open_processing_requested.emit(filepath)
             return True
         except Exception as e:
             self.append_log(f"[ERROR] Failed to save scene slice: {e}")
             return False
 
     def save_scene_slice(self):
-        self._save_slice(open_after_save=False)
-
-    def save_scene_slice_and_open_processing(self):
-        self._save_slice(open_after_save=True)
-
-    def emit_open_processing(self):
-        if self.latest_slice_path:
-            self.open_processing_requested.emit(self.latest_slice_path)
+        self._save_slice()

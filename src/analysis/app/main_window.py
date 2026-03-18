@@ -79,13 +79,11 @@ class MainApp(QMainWindow):
     def _connect_signals(self):
         self.original_widget.file_loaded.connect(self.on_file_loaded)
         self.original_widget.slice_saved.connect(self.on_slice_saved)
-        self.original_widget.open_processing_requested.connect(self.open_slice_in_processing)
         self.original_widget.log_message.connect(self.original_widget.append_log)
 
         self.result_widget.log_message.connect(self.original_widget.append_log)
         self.result_widget.log_message.connect(self.processing_widget.append_log)
         self.processing_widget.processing_requested.connect(self.run_processing_pipeline)
-        self.processing_widget.open_results_requested.connect(self.open_processed_result_in_step2)
         self.processing_widget.log_message.connect(self.processing_widget.append_log)
 
         self.pipeline_controller.log_message.connect(self.processing_widget.append_log)
@@ -109,11 +107,6 @@ class MainApp(QMainWindow):
 
     def on_slice_saved(self, slice_path):
         self.statusBar().showMessage(f"Scene slice saved: {slice_path}")
-
-    def open_slice_in_processing(self, slice_path):
-        self.processing_widget.load_slice_file(slice_path)
-        self.tab_widget.setCurrentWidget(self.processing_widget)
-        self.statusBar().showMessage(f"Slice loaded into Step 1.5: {slice_path}")
 
     def run_processing_pipeline(self, config, header_info, raw_data, parsed_data, timeline_context):
         if parsed_data is None:
@@ -145,11 +138,6 @@ class MainApp(QMainWindow):
         QMessageBox.critical(self, "Processing Failed", f"An error occurred during processing:\n{error_message}")
         self.processing_widget.on_processing_failed()
         self.statusBar().showMessage("Processing failed.")
-
-    def open_processed_result_in_step2(self, result_path):
-        if self.result_widget.load_result_file(result_path):
-            self.tab_widget.setCurrentWidget(self.result_widget)
-            self.statusBar().showMessage("Processed result opened in Step 2.")
 
 
 if __name__ == '__main__':

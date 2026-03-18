@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-03-17
+Last Reviewed: 2026-03-18
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -40,19 +40,14 @@ Last Reviewed: 2026-03-17
   - `Scene Name`
   - 고정 padding 설명 (`50 rows on each side`)
   - 최근 저장된 `.slice` 경로 표시
-- `Next Step`
-  - processing 설정은 Step 1.5로 이동되었다는 설명
-  - `Open in Step 1.5`
 - 실행 버튼
   - `Save Scene Slice`
-  - `Save and Open Step 1.5`
 
 ### 2.3. 주요 동작
 - 파일 로드 시 `DataLoader`와 `Parser`가 즉시 미리보기용 데이터를 준비한다.
 - `Save Scene Slice`는 현재 박스 크기, 슬라이스 범위, scene 이름을 사용해 `.slice` 파일을 저장한다.
 - `.slice`는 기존 raw CSV 구조를 유지하지만, 상단 2줄에는 scene / box / timeline metadata를 추가한다.
 - 저장 시 선택 구간 양옆에 `50 rows` padding을 포함한다.
-- `Save and Open Step 1.5`는 저장 직후 해당 `.slice`를 Step 1.5에 로드한다.
 
 ## 3. Step 1.5: Slice Processing
 `WidgetSliceProcessing`이 담당한다.
@@ -85,13 +80,11 @@ Last Reviewed: 2026-03-17
 - 실행 버튼
   - `Run Processing`
   - `Save Processed Result`
-  - `Open Saved .proc in Step 2`
 
 ### 3.3. 주요 동작
 - `.slice`를 열면 `DataLoader.load_csv()`와 `Parser.process()`를 다시 사용해 parsed slice를 준비한다.
 - processing은 `PipelineController.run_analysis_from_parsed()`를 통해 실행한다.
 - 완료된 결과는 `.proc` 저장 전까지 임시 상태로 유지된다.
-- `Open Saved .proc in Step 2`는 저장된 `.proc` 파일 경로를 Step 2에 전달한다.
 
 ## 4. Step 2: Results Analysis
 `WidgetResultsAnalyzer`가 담당한다.
@@ -105,7 +98,6 @@ Last Reviewed: 2026-03-17
 ### 4.2. 본문 3분할 레이아웃
 - `1. Result Files`
   - `Select Result Folder...`
-  - `Open Processed Result...`
   - 읽기 전용 Folder Path
   - 결과 `.proc` / `.csv` 목록
 - `2. Data Selection`
@@ -151,6 +143,6 @@ Last Reviewed: 2026-03-17
 5. 필요하면 resampling factor와 processing mode를 조정한다.
 6. processing을 실행한다.
 7. `.proc`를 저장한다.
-8. 저장된 `.proc`를 Step 2에서 연다.
+8. Step 2에서 결과 폴더를 선택하고 저장된 `.proc`를 목록에서 연다.
 9. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
 10. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.

@@ -25,7 +25,6 @@ from src.config.data_columns import DisplayNames, PoseCols, RawMarkerCols, Rigid
 
 class WidgetSliceProcessing(QWidget):
     processing_requested = Signal(dict, object, object, object, dict)
-    open_results_requested = Signal(str)
     log_message = Signal(str)
 
     def __init__(self, data_loader, parser):
@@ -245,11 +244,8 @@ class WidgetSliceProcessing(QWidget):
         self.run_button.setEnabled(False)
         self.save_proc_button = QPushButton("Save Processed Result")
         self.save_proc_button.setEnabled(False)
-        self.open_step2_button = QPushButton("Open Saved .proc in Step 2")
-        self.open_step2_button.setEnabled(False)
         action_layout.addWidget(self.run_button)
         action_layout.addWidget(self.save_proc_button)
-        action_layout.addWidget(self.open_step2_button)
         h_controls_layout.addLayout(action_layout)
 
         for index, stretch in enumerate(config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["bottom_controls_stretch"]):
@@ -278,7 +274,6 @@ class WidgetSliceProcessing(QWidget):
         self.processing_settings_button.clicked.connect(self.open_processing_settings_dialog)
         self.run_button.clicked.connect(self.emit_run_processing)
         self.save_proc_button.clicked.connect(self.save_processed_result)
-        self.open_step2_button.clicked.connect(self.emit_open_results)
 
     def append_log(self, message):
         self.log_output.append(message)
@@ -328,7 +323,6 @@ class WidgetSliceProcessing(QWidget):
             self.proc_path_label.setText("Not saved yet.")
             self.result_status_label.setText("Ready to process.")
             self.save_proc_button.setEnabled(False)
-            self.open_step2_button.setEnabled(False)
             self.run_button.setEnabled(True)
 
             all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
@@ -471,7 +465,6 @@ class WidgetSliceProcessing(QWidget):
             }
             self.run_button.setEnabled(False)
             self.save_proc_button.setEnabled(False)
-            self.open_step2_button.setEnabled(False)
             self.current_proc_path = None
             self.proc_path_label.setText("Not saved yet.")
             self.result_status_label.setText("Processing...")
@@ -492,20 +485,17 @@ class WidgetSliceProcessing(QWidget):
         if processed_df is not None and not processed_df.empty:
             self.result_status_label.setText("Processed result ready.")
             self.save_proc_button.setEnabled(True)
-            self.open_step2_button.setEnabled(False)
             self.append_log("[INFO] Processing completed successfully.")
-            self.append_log("[INFO] Save the processed result as a .proc file to open it in Step 2.")
+            self.append_log("[INFO] Save the processed result as a .proc file for Step 2 analysis.")
         else:
             self.result_status_label.setText("Processing failed.")
             self.save_proc_button.setEnabled(False)
-            self.open_step2_button.setEnabled(False)
             self.append_log("[ERROR] Processing failed.")
 
     def on_processing_failed(self):
         self.run_button.setEnabled(True)
         self.result_status_label.setText("Processing failed.")
         self.save_proc_button.setEnabled(False)
-        self.open_step2_button.setEnabled(False)
 
     def save_processed_result(self):
         if self.current_processed_result is None or self.current_processed_result.empty:
@@ -525,12 +515,6 @@ class WidgetSliceProcessing(QWidget):
             save_proc_file(filepath, self.current_processed_result)
             self.current_proc_path = filepath
             self.proc_path_label.setText(filepath)
-            self.open_step2_button.setEnabled(True)
             self.append_log(f"[INFO] Processed result saved: {filepath}")
         except Exception as e:
             self.append_log(f"[ERROR] Failed to save processed result: {e}")
-
-    def emit_open_results(self):
-        if not self.current_proc_path:
-            return
-        self.open_results_requested.emit(self.current_proc_path)

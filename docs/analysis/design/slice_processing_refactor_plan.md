@@ -1,6 +1,6 @@
 # Slice / Processing Refactor Plan
 
-Last Reviewed: 2026-03-17
+Last Reviewed: 2026-03-18
 
 ## 목적
 이 문서는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들기 위해, 현재 Step 1 중심 구조를 `Step 1 / Step 1.5 / Step 2`로 재구성하는 작업 계획을 정리한다.
@@ -52,11 +52,11 @@ Last Reviewed: 2026-03-17
   - processing mode / resampling / advanced settings 적용
   - processing 실행
   - `.proc` 저장
-  - 저장된 `.proc`를 Step 2에서 열 수 있게 함
 
 ### Step 2: Results Analysis
 - 입력: `.proc`
 - 역할:
+  - 결과 폴더 선택 및 파일 목록 탐색
   - 결과 시각화
   - peak / point 선택
   - point export
@@ -121,7 +121,7 @@ scene=impact_02,box_l=1820.000,box_w=1110.000,box_h=164.000,full_start=0.000,ful
 - 새 `WidgetSliceProcessing` 추가
 - `.slice` load 후 current DataLoader / Parser 재사용
 - processing mode / resampling / advanced settings UI 배치
-- `Run Processing`, `Save Processed Result`, `Open Saved .proc in Step 2` 추가
+- `Run Processing`, `Save Processed Result` 추가
 
 ### Phase 3. Processing 파이프라인 단계화
 - 현재 `PipelineController.run_analysis()` 내부를 재구성
@@ -155,8 +155,8 @@ scene=impact_02,box_l=1820.000,box_w=1110.000,box_h=164.000,full_start=0.000,ful
 ## 구현 시 주의점
 - Step 1과 Step 2의 기존 plot 크기, splitter 동작, min width 정책을 먼저 보존해야 한다.
 - Step 2는 processing 입력 UI를 흡수하지 않고 결과 분석 탭으로 유지해야 한다.
+- 다음 Step을 대신 열어주는 cross-step 버튼은 두지 않고, 각 Step이 자기 단계 파일을 직접 열도록 유지한다.
 - `.slice` / `.proc`는 앱 사용자가 단계 의미를 쉽게 이해할 수 있도록 단순하게 유지한다.
-- 새로운 단계가 추가되더라도 기존 사용자 흐름을 완전히 끊지 않도록 transitional path를 고려한다.
 
 ## 다음 세션 재개 기준
 - 현재 작업 브랜치: `codex/slice-first-workflow-followup`
