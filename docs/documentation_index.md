@@ -30,6 +30,7 @@ Last Reviewed: 2026-03-18
 - `docs/analysis/design/system_design.md`
 - `docs/analysis/design/gui_overview.md`
 - `docs/analysis/design/workflow.txt`
+- `docs/analysis/design/analysis_followup_plan.md`
 - `docs/analysis/reference/csv_multi_header_schema.md`
 - `docs/analysis/reference/result_schema_notes.md`
 - `docs/visualization/guide.md`

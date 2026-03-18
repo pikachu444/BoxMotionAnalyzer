@@ -28,6 +28,7 @@ Last Reviewed: 2026-03-18
 - 현재 구현된 `Step 1 / Step 1.5 / Step 2` 흐름은 먼저 `docs/analysis/design/gui_overview.md`에서 확인한다.
 - 상위 구조와 설계 원칙은 `docs/analysis/design/system_design.md`를 기준으로 본다.
 - batch processing 같은 후속 기능은 현재 구현 범위에 포함되지 않으므로, 문서와 코드에서 별도 확인 전에는 구현된 기능처럼 취급하지 않는다.
+- 후속 개발을 다시 시작할 때는 `docs/analysis/design/analysis_followup_plan.md`를 먼저 확인한다.
 
 ## 코드 작업 원칙
 - 현재 구현과 맞지 않는 구 버전 스크립트, 테스트, 문서는 유지 이유가 없으면 정리 대상이 될 수 있다.
