@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-03-18
+Last Reviewed: 2026-03-19
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -40,7 +40,7 @@ Last Reviewed: 2026-03-18
 
 ### 3.3. Step 2: Results Analysis
 - 결과 폴더 선택
-- 결과 목록에서 `.proc` 또는 기존 결과 `.csv` 선택
+- 결과 목록에서 `.proc` 선택
 - Multi-header 결과 컬럼 트리 표시
 - 메인 플롯 비교
 - 팝업 플롯 열기
@@ -98,7 +98,7 @@ Last Reviewed: 2026-03-18
 ## 6. 현재 설계상 유의점
 - `.slice`는 line 0~1에 scene / box / timeline metadata를 가진다.
 - `.slice`는 processing 재개용 파일이며, 원본 `.csv`를 다시 열지 않고 Step 1.5부터 시작할 수 있다.
-- Step 2는 저장된 `.proc` 또는 기존 결과 `.csv`만 열 수 있다.
+- Step 2는 저장된 `.proc`만 직접 열 수 있다.
 - Results Analyzer에는 현재 "현재 선택 컬럼으로 팝업 열기" 흐름이 구현되어 있다.
 - popup subset 편집용 대화상자 파일은 존재하지만 메인 UI 버튼 흐름에는 노출되지 않는다.
 - 문서상 과거 `main_app.py`나 prototype 기반 흐름은 더 이상 기준으로 보지 않는다.

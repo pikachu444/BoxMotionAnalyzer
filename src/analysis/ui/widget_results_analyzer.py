@@ -11,6 +11,7 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
+from src.analysis.pipeline.artifact_io import list_result_files
 from src.analysis.ui.plot_popup_dialog import PlotPopupDialog
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS,
@@ -377,10 +378,7 @@ class WidgetResultsAnalyzer(QWidget):
     def _refresh_result_file_list(self, folder_path, selected_file=None):
         self.result_file_list.clear()
         try:
-            files = sorted(
-                f for f in os.listdir(folder_path)
-                if f.lower().endswith(".proc") or f.lower().endswith(".csv")
-            )
+            files = list_result_files(folder_path)
             self.result_file_list.addItems(files)
             self.log_message.emit(f"[INFO] Found {len(files)} result files in {folder_path}")
             if selected_file:

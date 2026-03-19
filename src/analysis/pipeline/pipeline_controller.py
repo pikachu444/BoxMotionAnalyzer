@@ -33,121 +33,139 @@ class PipelineController(QObject):
             floor_level=config_app.FLOOR_LEVEL
         )
 
+    def _execute_analysis_from_parsed(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
+        analysis_options = gui_config.get('analysis_options', {})
+        processing_mode = gui_config.get('processing_mode', 'standard')
+        resampling_enabled = bool(gui_config.get('enable_resampling', False))
+        resampling_factor = int(gui_config.get('resampling_factor') or 1)
+        effective_analysis_options = build_effective_analysis_options(
+            analysis_options,
+            resampling_factor if resampling_enabled else 1,
+        )
+        self.smoother.configure(effective_analysis_options)
+        self.velocity_calculator.configure(effective_analysis_options)
+
+        self.log_message.emit(f"[INFO] Using Box Dimensions (L,W,H): {config_app.BOX_DIMS}")
+        self.log_message.emit(f"[INFO] Processing mode: {processing_mode}")
+        data = parsed_data
+        self.log_message.emit(f"    Parser output shape: {data.shape}")
+
+        # 1.5 데이터 검증
+        # - Raw Data 검증은 DataLoader 단계에서 이미 수행됨 (Time/Frame 존재 여부 등)
+        # - 여기서는 데이터 길이(Rows) 등 분석 가능 여부만 최소한으로 확인
+        self.log_message.emit("[1.5/8] Validating data sufficiency...")
+        DataValidator.validate_data_sufficiency(data, min_rows=50)
+
+        # Note: 파서(Parser) 결과에 대한 컬럼 검증은 제거함.
+        # 원본 데이터에 필수 컬럼이 있다면 Parser가 처리해야 하며,
+        # 여기서 에러를 내면 사용자에게 원본 파일 문제로 오인될 수 있음.
+
+        # 2. 패딩된 슬라이스 생성
+        self.log_message.emit("[2/8] Slicing data with padding...")
+        original_start = gui_config.get('slice_start_val')
+        original_end = gui_config.get('slice_end_val')
+        padding_size_frames = (
+            config_analysis.SMOOTHING_PADDING_SIZE
+            if analysis_options.get('enable_marker_smoothing', True)
+            else 0
+        )
+        time_index = pd.Series(data.index)
+        time_diffs = time_index.diff().dropna()
+        mean_delta_t = time_diffs.mean() if not time_diffs.empty else 0
+        time_padding = padding_size_frames * mean_delta_t if mean_delta_t > 0 else 0
+        padded_start = max(original_start - time_padding, time_index.min())
+        padded_end = min(original_end + time_padding, time_index.max())
+
+        self.log_message.emit(f"    Original slice: {original_start:.2f}s - {original_end:.2f}s")
+        self.log_message.emit(f"    Padding: {padding_size_frames} frames ({time_padding:.3f}s)")
+        self.log_message.emit(f"    Padded slice for processing: {padded_start:.2f}s - {padded_end:.2f}s")
+
+        slicer_for_padding = Slicer(
+            filter_by=gui_config.get('slice_filter_by', 'time'),
+            start_val=padded_start,
+            end_val=padded_end
+        )
+        padded_data = slicer_for_padding.process(data)
+        self.log_message.emit(f"    Padded slicer done. Shape: {padded_data.shape}")
+
+        if resampling_enabled and resampling_factor > 1:
+            self.log_message.emit("[2.5/8] Resampling data on a uniform time grid...")
+            resampler = UniformResampler(resampling_factor)
+            original_rows = len(padded_data)
+            original_mean_dt = (
+                float(pd.Series(padded_data.index).diff().dropna().mean())
+                if len(padded_data) > 1
+                else 0.0
+            )
+            padded_data = resampler.process(padded_data)
+            new_mean_dt = (
+                float(pd.Series(padded_data.index).diff().dropna().mean())
+                if len(padded_data) > 1
+                else 0.0
+            )
+            self.log_message.emit(f"    Resampling factor: {resampling_factor}x")
+            self.log_message.emit(f"    Rows: {original_rows} -> {len(padded_data)}")
+            self.log_message.emit(f"    Mean dt: {original_mean_dt:.6f}s -> {new_mean_dt:.6f}s")
+
+        # 3. 스무딩
+        if effective_analysis_options.get('enable_marker_smoothing', True):
+            self.log_message.emit("[3/8] Smoothing markers...")
+            data_to_process = self.smoother.process(padded_data)
+            self.log_message.emit(f"    Smoother done. Shape: {data_to_process.shape}")
+        else:
+            self.log_message.emit("[3/8] Marker smoothing skipped by processing mode.")
+            data_to_process = padded_data.copy()
+
+        # --- 전략적 분기점 ---
+        trimming_strategy = effective_analysis_options.get('trimming_strategy', config_analysis.TRIMMING_STRATEGY)
+        self.log_message.emit(f"\n[INFO] Using Trimming Strategy: '{trimming_strategy}'")
+
+        slicer_for_trimming = Slicer(
+            filter_by=gui_config.get('slice_filter_by', 'time'),
+            start_val=original_start,
+            end_val=original_end
+        )
+
+        if trimming_strategy == 'early':
+            # 4. 조기 트리밍 (Early Trimming)
+            self.log_message.emit("[4/8] Trimming data early (before pose/velocity)...")
+            data_to_process = slicer_for_trimming.process(data_to_process)
+            self.log_message.emit(f"    Trimming done. Shape for analysis: {data_to_process.shape}")
+        else:
+            # 5. 후기 트리밍 (Late Trimming)
+            self.log_message.emit("[4/8] data will be trimmed after all calculations...")
+
+        # 5. 자세 최적화
+        self.log_message.emit("[5/8] Optimizing pose...")
+        data_to_process = self.pose_optimizer.process(data_to_process)
+        self.log_message.emit(f"    PoseOptimizer done. Shape: {data_to_process.shape}")
+
+        # 6. 속도 계산
+        self.log_message.emit("[6/8] Calculating velocity...")
+        data_to_process = self.velocity_calculator.process(data_to_process)
+        self.log_message.emit(f"    VelocityCalculator done. Shape: {data_to_process.shape}")
+
+        # 7. 최종 프레임 분석
+        self.log_message.emit("[7/8] Analyzing frames...")
+        final_result = self.frame_analyzer.process(data_to_process)
+        self.log_message.emit(f"    FrameAnalyzer done. Shape: {final_result.shape}")
+
+        if trimming_strategy == 'late':
+            # 8. 후기 트리밍 (Late Trimming)
+            self.log_message.emit("[8/8] Trimming data late (after all calculations)...")
+            final_result = slicer_for_trimming.process(final_result)
+            self.log_message.emit(f"    Trimming done. Final shape: {final_result.shape}")
+
+        self.log_message.emit("\nAnalysis pipeline completed successfully.")
+        return final_result
+
+    def process_parsed_data(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
+        return self._execute_analysis_from_parsed(gui_config, parsed_data)
+
     def _run_analysis_from_parsed(self, gui_config: dict, parsed_data: pd.DataFrame):
         try:
-            analysis_options = gui_config.get('analysis_options', {})
-            processing_mode = gui_config.get('processing_mode', 'standard')
-            resampling_enabled = bool(gui_config.get('enable_resampling', False))
-            resampling_factor = int(gui_config.get('resampling_factor') or 1)
-            effective_analysis_options = build_effective_analysis_options(
-                analysis_options,
-                resampling_factor if resampling_enabled else 1,
-            )
-            self.smoother.configure(effective_analysis_options)
-            self.velocity_calculator.configure(effective_analysis_options)
-
-            self.log_message.emit(f"[INFO] Using Box Dimensions (L,W,H): {config_app.BOX_DIMS}")
-            self.log_message.emit(f"[INFO] Processing mode: {processing_mode}")
-            data = parsed_data
-            self.log_message.emit(f"    Parser output shape: {data.shape}")
-
-            # 1.5 데이터 검증
-            # - Raw Data 검증은 DataLoader 단계에서 이미 수행됨 (Time/Frame 존재 여부 등)
-            # - 여기서는 데이터 길이(Rows) 등 분석 가능 여부만 최소한으로 확인
-            self.log_message.emit("[1.5/8] Validating data sufficiency...")
-            DataValidator.validate_data_sufficiency(data, min_rows=50)
-            
-            # Note: 파서(Parser) 결과에 대한 컬럼 검증은 제거함.
-            # 원본 데이터에 필수 컬럼이 있다면 Parser가 처리해야 하며,
-            # 여기서 에러를 내면 사용자에게 원본 파일 문제로 오인될 수 있음.
-
-            # 2. 패딩된 슬라이스 생성
-            self.log_message.emit("[2/8] Slicing data with padding...")
-            original_start = gui_config.get('slice_start_val')
-            original_end = gui_config.get('slice_end_val')
-            padding_size_frames = config_analysis.SMOOTHING_PADDING_SIZE if analysis_options.get('enable_marker_smoothing', True) else 0
-            time_index = pd.Series(data.index)
-            time_diffs = time_index.diff().dropna()
-            mean_delta_t = time_diffs.mean() if not time_diffs.empty else 0
-            time_padding = padding_size_frames * mean_delta_t if mean_delta_t > 0 else 0
-            padded_start = max(original_start - time_padding, time_index.min())
-            padded_end = min(original_end + time_padding, time_index.max())
-
-            self.log_message.emit(f"    Original slice: {original_start:.2f}s - {original_end:.2f}s")
-            self.log_message.emit(f"    Padding: {padding_size_frames} frames ({time_padding:.3f}s)")
-            self.log_message.emit(f"    Padded slice for processing: {padded_start:.2f}s - {padded_end:.2f}s")
-
-            slicer_for_padding = Slicer(
-                filter_by=gui_config.get('slice_filter_by', 'time'),
-                start_val=padded_start,
-                end_val=padded_end
-            )
-            padded_data = slicer_for_padding.process(data)
-            self.log_message.emit(f"    Padded slicer done. Shape: {padded_data.shape}")
-
-            if resampling_enabled and resampling_factor > 1:
-                self.log_message.emit("[2.5/8] Resampling data on a uniform time grid...")
-                resampler = UniformResampler(resampling_factor)
-                original_rows = len(padded_data)
-                original_mean_dt = float(pd.Series(padded_data.index).diff().dropna().mean()) if len(padded_data) > 1 else 0.0
-                padded_data = resampler.process(padded_data)
-                new_mean_dt = float(pd.Series(padded_data.index).diff().dropna().mean()) if len(padded_data) > 1 else 0.0
-                self.log_message.emit(f"    Resampling factor: {resampling_factor}x")
-                self.log_message.emit(f"    Rows: {original_rows} -> {len(padded_data)}")
-                self.log_message.emit(f"    Mean dt: {original_mean_dt:.6f}s -> {new_mean_dt:.6f}s")
-
-            # 3. 스무딩
-            if effective_analysis_options.get('enable_marker_smoothing', True):
-                self.log_message.emit("[3/8] Smoothing markers...")
-                data_to_process = self.smoother.process(padded_data)
-                self.log_message.emit(f"    Smoother done. Shape: {data_to_process.shape}")
-            else:
-                self.log_message.emit("[3/8] Marker smoothing skipped by processing mode.")
-                data_to_process = padded_data.copy()
-
-            # --- 전략적 분기점 ---
-            trimming_strategy = effective_analysis_options.get('trimming_strategy', config_analysis.TRIMMING_STRATEGY)
-            self.log_message.emit(f"\n[INFO] Using Trimming Strategy: '{trimming_strategy}'")
-
-            slicer_for_trimming = Slicer(
-                filter_by=gui_config.get('slice_filter_by', 'time'),
-                start_val=original_start,
-                end_val=original_end
-            )
-
-            if trimming_strategy == 'early':
-                # 4. 조기 트리밍 (Early Trimming)
-                self.log_message.emit("[4/8] Trimming data early (before pose/velocity)...")
-                data_to_process = slicer_for_trimming.process(data_to_process)
-                self.log_message.emit(f"    Trimming done. Shape for analysis: {data_to_process.shape}")
-            else :
-              # 5. 후기 트리밍 (Late Trimming)
-                self.log_message.emit("[4/8] data will be trimmed after all calculations...")
-            
-            # 5. 자세 최적화
-            self.log_message.emit("[5/8] Optimizing pose...")
-            data_to_process = self.pose_optimizer.process(data_to_process)
-            self.log_message.emit(f"    PoseOptimizer done. Shape: {data_to_process.shape}")
-
-            # 6. 속도 계산
-            self.log_message.emit("[6/8] Calculating velocity...")
-            data_to_process = self.velocity_calculator.process(data_to_process)
-            self.log_message.emit(f"    VelocityCalculator done. Shape: {data_to_process.shape}")
-
-            # 7. 최종 프레임 분석
-            self.log_message.emit("[7/8] Analyzing frames...")
-            final_result = self.frame_analyzer.process(data_to_process)
-            self.log_message.emit(f"    FrameAnalyzer done. Shape: {final_result.shape}")
-
-            if trimming_strategy == 'late':
-                # 8. 후기 트리밍 (Late Trimming)
-                self.log_message.emit("[8/8] Trimming data late (after all calculations)...")
-                final_result = slicer_for_trimming.process(final_result)
-                self.log_message.emit(f"    Trimming done. Final shape: {final_result.shape}")
-
-            self.log_message.emit("\nAnalysis pipeline completed successfully.")
+            final_result = self._execute_analysis_from_parsed(gui_config, parsed_data)
             self.analysis_finished.emit(final_result)
-
         except Exception as e:
             import traceback
             error_msg = f"[ERROR] An error occurred in the pipeline: {e}"

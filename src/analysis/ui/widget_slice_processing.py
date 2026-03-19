@@ -2,6 +2,7 @@ import os
 
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
+    QApplication,
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton, QCheckBox,
     QSizePolicy, QSplitter
@@ -12,10 +13,16 @@ from matplotlib.figure import Figure
 
 from src.analysis.pipeline.artifact_io import (
     PROC_FILE_EXTENSION,
+    add_timeline_context_columns,
+    build_batch_proc_path,
     build_proc_default_name,
+    list_slice_files,
+    proc_file_filter,
     read_slice_metadata,
+    slice_file_filter,
     save_proc_file,
 )
+from src.analysis.pipeline.pipeline_controller import PipelineController
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
 from src.analysis.ui.dialog_processing_settings import ProcessingSettingsDialog
 from src.analysis.ui.plot_manager import PlotManager
@@ -42,6 +49,8 @@ class WidgetSliceProcessing(QWidget):
         self.advanced_processing_options = config_analysis_ui.get_initial_advanced_options()
         self.current_processed_result = None
         self.current_proc_path = None
+        self.batch_slice_folder = None
+        self.pipeline_controller_factory = PipelineController
 
         self._setup_ui()
         self._connect_signals()
@@ -232,6 +241,24 @@ class WidgetSliceProcessing(QWidget):
         result_layout.addWidget(self.proc_path_label, 1, 1)
         h_controls_layout.addWidget(result_group)
 
+        batch_group = QGroupBox("Batch Processing")
+        batch_layout = QGridLayout(batch_group)
+        self.select_slice_folder_button = QPushButton("Select Slice Folder...")
+        batch_layout.addWidget(self.select_slice_folder_button, 0, 0, 1, 2)
+        batch_layout.addWidget(QLabel("Folder:"), 1, 0)
+        self.batch_folder_label = QLabel("No folder selected.")
+        self.batch_folder_label.setWordWrap(True)
+        batch_layout.addWidget(self.batch_folder_label, 1, 1)
+        self.overwrite_proc_checkbox = QCheckBox("Overwrite existing .proc")
+        batch_layout.addWidget(self.overwrite_proc_checkbox, 2, 0, 1, 2)
+        batch_layout.addWidget(QLabel("Summary:"), 3, 0)
+        self.batch_summary_label = QLabel("Not run yet.")
+        self.batch_summary_label.setWordWrap(True)
+        batch_layout.addWidget(self.batch_summary_label, 3, 1)
+        self.run_batch_button = QPushButton("Run Batch Processing")
+        batch_layout.addWidget(self.run_batch_button, 4, 0, 1, 2)
+        h_controls_layout.addWidget(batch_group)
+
         plot_options_group.setMinimumWidth(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["plot_options_group_min_width"]
         )
@@ -252,7 +279,8 @@ class WidgetSliceProcessing(QWidget):
             if index <= 3:
                 h_controls_layout.setStretch(index, stretch)
         h_controls_layout.setStretch(4, 4)
-        h_controls_layout.setStretch(5, 2)
+        h_controls_layout.setStretch(5, 4)
+        h_controls_layout.setStretch(6, 2)
 
         main_splitter.addWidget(controls_widget)
         main_splitter.setStretchFactor(0, 6)
@@ -274,6 +302,8 @@ class WidgetSliceProcessing(QWidget):
         self.processing_settings_button.clicked.connect(self.open_processing_settings_dialog)
         self.run_button.clicked.connect(self.emit_run_processing)
         self.save_proc_button.clicked.connect(self.save_processed_result)
+        self.select_slice_folder_button.clicked.connect(self.select_slice_folder)
+        self.run_batch_button.clicked.connect(self.run_batch_processing)
 
     def append_log(self, message):
         self.log_output.append(message)
@@ -293,27 +323,32 @@ class WidgetSliceProcessing(QWidget):
             f"{self.slice_metadata.padded_start:.3f}s ~ {self.slice_metadata.padded_end:.3f}s"
         )
 
-    def _apply_box_dims_from_metadata(self):
-        if self.slice_metadata is None:
+    def _apply_box_dims_from_metadata(self, metadata=None):
+        metadata = self.slice_metadata if metadata is None else metadata
+        if metadata is None:
             return
 
-        if self.slice_metadata.box_l is not None:
-            self.le_box_l.setText(f"{self.slice_metadata.box_l:g}")
-        if self.slice_metadata.box_w is not None:
-            self.le_box_w.setText(f"{self.slice_metadata.box_w:g}")
-        if self.slice_metadata.box_h is not None:
-            self.le_box_h.setText(f"{self.slice_metadata.box_h:g}")
+        if metadata.box_l is not None:
+            self.le_box_l.setText(f"{metadata.box_l:g}")
+        if metadata.box_w is not None:
+            self.le_box_w.setText(f"{metadata.box_w:g}")
+        if metadata.box_h is not None:
+            self.le_box_h.setText(f"{metadata.box_h:g}")
+
+    def _load_slice_bundle(self, filepath: str):
+        metadata = read_slice_metadata(filepath)
+        header_info, raw_data = self.data_loader.load_csv(filepath)
+        parsed_data = self.parser.process(header_info, raw_data)
+        return metadata, header_info, raw_data, parsed_data
 
     def open_slice_file(self):
-        filepath, _ = QFileDialog.getOpenFileName(self, "Select Slice File", "", "Slice Files (*.slice)")
+        filepath, _ = QFileDialog.getOpenFileName(self, "Select Slice File", "", slice_file_filter())
         if filepath:
             self.load_slice_file(filepath)
 
     def load_slice_file(self, filepath: str):
         try:
-            self.slice_metadata = read_slice_metadata(filepath)
-            self.header_info, self.raw_data = self.data_loader.load_csv(filepath)
-            self.parsed_data = self.parser.process(self.header_info, self.raw_data)
+            self.slice_metadata, self.header_info, self.raw_data, self.parsed_data = self._load_slice_bundle(filepath)
             self.slice_path = filepath
             self.slice_path_label.setText(filepath)
             self._set_slice_summary()
@@ -430,17 +465,33 @@ class WidgetSliceProcessing(QWidget):
             return config_analysis_ui.get_raw_mode_options()
         return dict(self.advanced_processing_options)
 
-    def _update_box_dimensions(self):
-        l = float(self.le_box_l.text())
-        w = float(self.le_box_w.text())
-        h = float(self.le_box_h.text())
-        config_app.BOX_DIMS = [l, w, h]
+    def _get_current_box_dimensions(self) -> tuple[float, float, float]:
+        return (
+            float(self.le_box_l.text()),
+            float(self.le_box_w.text()),
+            float(self.le_box_h.text()),
+        )
 
-    def _build_timeline_context(self) -> dict:
-        full_start = None if self.slice_metadata is None else self.slice_metadata.full_start
-        full_end = None if self.slice_metadata is None else self.slice_metadata.full_end
-        slice_start = None if self.slice_metadata is None else self.slice_metadata.user_start
-        slice_end = None if self.slice_metadata is None else self.slice_metadata.user_end
+    def _set_box_dimensions(self, box_dims: tuple[float, float, float]):
+        config_app.BOX_DIMS = [float(box_dims[0]), float(box_dims[1]), float(box_dims[2])]
+
+    def _resolve_box_dimensions(self, metadata=None) -> tuple[float, float, float]:
+        metadata = self.slice_metadata if metadata is None else metadata
+        if (
+            metadata is not None
+            and metadata.box_l is not None
+            and metadata.box_w is not None
+            and metadata.box_h is not None
+        ):
+            return (float(metadata.box_l), float(metadata.box_w), float(metadata.box_h))
+        return self._get_current_box_dimensions()
+
+    def _build_timeline_context(self, metadata=None) -> dict:
+        metadata = self.slice_metadata if metadata is None else metadata
+        full_start = None if metadata is None else metadata.full_start
+        full_end = None if metadata is None else metadata.full_end
+        slice_start = None if metadata is None else metadata.user_start
+        slice_end = None if metadata is None else metadata.user_end
         return {
             "full_start_sec": full_start,
             "full_end_sec": full_end,
@@ -448,21 +499,29 @@ class WidgetSliceProcessing(QWidget):
             "slice_end_sec": slice_end,
         }
 
+    def _build_processing_config(self, parsed_data, metadata=None) -> dict:
+        metadata = self.slice_metadata if metadata is None else metadata
+        return {
+            "slice_filter_by": "time",
+            "slice_start_val": (
+                metadata.user_start if metadata else float(parsed_data.index.min())
+            ),
+            "slice_end_val": (
+                metadata.user_end if metadata else float(parsed_data.index.max())
+            ),
+            "enable_resampling": self.cb_enable_resampling.isChecked(),
+            "resampling_factor": self.combo_resampling_factor.currentData(),
+            "resampling_method": "linear",
+            "processing_mode": self.current_processing_mode,
+            "analysis_options": self._build_analysis_overrides(),
+        }
+
     def emit_run_processing(self):
         if self.parsed_data is None:
             return
         try:
-            self._update_box_dimensions()
-            config = {
-                "slice_filter_by": "time",
-                "slice_start_val": self.slice_metadata.user_start if self.slice_metadata else float(self.parsed_data.index.min()),
-                "slice_end_val": self.slice_metadata.user_end if self.slice_metadata else float(self.parsed_data.index.max()),
-                "enable_resampling": self.cb_enable_resampling.isChecked(),
-                "resampling_factor": self.combo_resampling_factor.currentData(),
-                "resampling_method": "linear",
-                "processing_mode": self.current_processing_mode,
-                "analysis_options": self._build_analysis_overrides(),
-            }
+            self._set_box_dimensions(self._get_current_box_dimensions())
+            config = self._build_processing_config(self.parsed_data, self.slice_metadata)
             self.run_button.setEnabled(False)
             self.save_proc_button.setEnabled(False)
             self.current_proc_path = None
@@ -497,6 +556,100 @@ class WidgetSliceProcessing(QWidget):
         self.result_status_label.setText("Processing failed.")
         self.save_proc_button.setEnabled(False)
 
+    def select_slice_folder(self):
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Slice Folder")
+        if not folder_path:
+            return
+
+        self.batch_slice_folder = folder_path
+        self.batch_folder_label.setText(folder_path)
+        self.batch_summary_label.setText("Ready to run.")
+        self.append_log(f"[INFO] Selected slice folder for batch processing: {folder_path}")
+
+    def _set_batch_controls_enabled(self, enabled: bool):
+        self.select_slice_folder_button.setEnabled(enabled)
+        self.run_batch_button.setEnabled(enabled)
+        self.load_slice_button.setEnabled(enabled)
+        self.run_button.setEnabled(enabled and self.parsed_data is not None)
+
+    def run_batch_processing(self):
+        folder_path = self.batch_slice_folder
+        if not folder_path:
+            self.append_log("[ERROR] Select a slice folder before running batch processing.")
+            return
+
+        try:
+            slice_filenames = list_slice_files(folder_path)
+        except Exception as e:
+            self.append_log(f"[ERROR] Failed to read slice folder: {e}")
+            return
+
+        if not slice_filenames:
+            self.batch_summary_label.setText("No .slice files found.")
+            self.append_log(f"[ERROR] No .slice files found in {folder_path}")
+            return
+
+        controller = self.pipeline_controller_factory()
+        controller.log_message.connect(self.append_log)
+        overwrite_existing = self.overwrite_proc_checkbox.isChecked()
+        total_files = len(slice_filenames)
+        processed_count = 0
+        skipped_count = 0
+        failed_count = 0
+        original_box_dims = list(config_app.BOX_DIMS)
+
+        self._set_batch_controls_enabled(False)
+        self.save_proc_button.setEnabled(False)
+        self.current_processed_result = None
+        self.current_proc_path = None
+        self.proc_path_label.setText("Not saved yet.")
+        self.result_status_label.setText("Batch processing...")
+        self.batch_summary_label.setText("Running...")
+        self.append_log(
+            f"[INFO] Starting batch processing in {folder_path} "
+            f"(total={total_files}, overwrite={overwrite_existing})"
+        )
+
+        try:
+            for filename in slice_filenames:
+                QApplication.processEvents()
+                slice_path = os.path.join(folder_path, filename)
+                proc_path = build_batch_proc_path(slice_path)
+
+                if os.path.exists(proc_path) and not overwrite_existing:
+                    skipped_count += 1
+                    self.append_log(f"[INFO] Skipped existing proc: {proc_path}")
+                    continue
+
+                try:
+                    metadata, _, _, parsed_data = self._load_slice_bundle(slice_path)
+                    self._set_box_dimensions(self._resolve_box_dimensions(metadata))
+                    processed_df = controller.process_parsed_data(
+                        self._build_processing_config(parsed_data, metadata),
+                        parsed_data,
+                    )
+                    processed_with_context = add_timeline_context_columns(
+                        processed_df,
+                        self._build_timeline_context(metadata),
+                    )
+                    save_proc_file(proc_path, processed_with_context)
+                    processed_count += 1
+                    self.append_log(f"[INFO] Batch saved: {proc_path}")
+                except Exception as e:
+                    failed_count += 1
+                    self.append_log(f"[ERROR] Batch processing failed for {slice_path}: {e}")
+        finally:
+            config_app.BOX_DIMS = original_box_dims
+            self._set_batch_controls_enabled(True)
+
+        summary = (
+            f"Batch complete: total={total_files}, processed={processed_count}, "
+            f"skipped={skipped_count}, failed={failed_count}"
+        )
+        self.batch_summary_label.setText(summary)
+        self.result_status_label.setText("Batch complete.")
+        self.append_log(f"[INFO] {summary}")
+
     def save_processed_result(self):
         if self.current_processed_result is None or self.current_processed_result.empty:
             return
@@ -506,7 +659,7 @@ class WidgetSliceProcessing(QWidget):
             self,
             "Save Processed Result",
             os.path.join(os.path.dirname(self.slice_path or ""), default_name),
-            "Processed Files (*.proc)",
+            proc_file_filter(),
         )
         if not filepath:
             return

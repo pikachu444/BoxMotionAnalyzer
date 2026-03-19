@@ -1,6 +1,6 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-03-16
+Last Reviewed: 2026-03-19
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
@@ -31,7 +31,7 @@ Last Reviewed: 2026-03-16
         *   `app/`: 분석 메인 윈도우(`MainApp`)와 상위 UI 조립 코드
         *   `pipeline/`: parser, slicer, smoother, pose optimizer, velocity calculator, frame analyzer 등 분석 파이프라인
         *   `ui/`: Step 1/Step 2 위젯, 플롯, 대화상자
-    *   **`visualization/`**: 3D 시각화 관련 코드(PyVista, Qt 위젯, 결과 CSV 로더)
+    *   **`visualization/`**: 3D 시각화 관련 코드(PyVista, Qt 위젯, 결과 로더)
     *   **`config/`**: 설정 파일, 컬럼 정의, 아이콘/이미지 리소스
     *   **`utils/`**: 공용 유틸리티 스크립트.
 *   **`docs/`**: 개발 문서 및 참고 자료.
@@ -49,7 +49,7 @@ Last Reviewed: 2026-03-16
     *   Step 1/Step 2의 메인 플롯은 창 크기 변화에 따라 더 크게 확장되도록 조정되어 있으며, 세로 splitter로 높이를 수동 조절할 수 있습니다.
 *   **3D Visualization**
     *   `src/visualization/main_window.py`
-    *   입력은 분석 결과로 export한 multi-header CSV입니다.
+    *   입력은 분석 결과로 export한 multi-header `.proc` 파일입니다.
 
 ---
 
@@ -82,13 +82,14 @@ python src/main.py
 ```
 실행 시 **Launcher Window**가 열리며, 여기서 아래 두 흐름 중 하나를 시작할 수 있습니다.
 
-*   **Data Processing**: 원본 CSV를 불러와 분석하고 결과를 CSV로 export
-*   **3D Visualization**: export된 결과 CSV를 열어 3D/2D로 탐색
+*   **Data Processing**: 원본 CSV를 불러와 분석하고 결과를 `.proc` 중심 workflow로 저장
+*   **3D Visualization**: export된 `.proc` 결과 파일을 열어 3D/2D로 탐색
 
 ### 3. 분석 결과 export와 visualization의 관계
 
 시각화 창은 원본 raw CSV를 직접 읽지 않습니다.  
-분석 GUI에서 export한 **multi-header 결과 CSV**를 입력으로 사용합니다.
+분석 GUI에서 export한 **multi-header `.proc` 결과 파일**을 입력으로 사용합니다.
+UI 기준으로는 `.proc`만 노출합니다.
 
 ---
 

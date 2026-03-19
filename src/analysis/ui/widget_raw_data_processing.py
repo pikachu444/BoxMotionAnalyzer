@@ -18,7 +18,9 @@ from src.config.data_columns import (
 from src.analysis.pipeline.artifact_io import (
     DEFAULT_SLICE_PADDING_ROWS,
     build_slice_default_name,
+    raw_csv_file_filter,
     save_slice_file,
+    slice_file_filter,
 )
 
 class WidgetRawDataProcessing(QWidget):
@@ -223,7 +225,7 @@ class WidgetRawDataProcessing(QWidget):
         self.log_output.append(message)
 
     def open_csv_file(self):
-        filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
+        filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", raw_csv_file_filter())
         if filepath:
             try:
                 self.header_info, self.raw_data = self.data_loader.load_csv(filepath)
@@ -360,7 +362,7 @@ class WidgetRawDataProcessing(QWidget):
                 self,
                 "Save Scene Slice",
                 os.path.join(os.path.dirname(self.source_path or ""), default_name),
-                "Slice Files (*.slice)",
+                slice_file_filter(),
             )
             if not filepath:
                 return False

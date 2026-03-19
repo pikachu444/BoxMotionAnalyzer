@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-03-18
+Last Reviewed: 2026-03-19
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -12,7 +12,7 @@ Last Reviewed: 2026-03-18
 - `Step 1.5: Slice Processing`
   - `.slice` 로드, processing mode / resampling 설정, processing 실행, `.proc` 저장
 - `Step 2: Results Analysis`
-  - `.proc` 또는 기존 결과 `.csv` 로드, 컬럼 선택 플롯, 팝업 플롯, 지점 분석, 시나리오 CSV 내보내기
+  - `.proc` 로드, 컬럼 선택 플롯, 팝업 플롯, 지점 분석, 시나리오 CSV 내보내기
 - 하단 `QStatusBar`는 파일 로드, 처리 진행, 저장 성공/실패 상태를 표시한다.
 
 ## 2. Step 1: Raw Data Slice
@@ -99,7 +99,7 @@ Last Reviewed: 2026-03-18
 - `1. Result Files`
   - `Select Result Folder...`
   - 읽기 전용 Folder Path
-  - 결과 `.proc` / `.csv` 목록
+  - 결과 `.proc` 목록
 - `2. Data Selection`
   - 결과 컬럼 트리 (`QTreeWidget`)
   - 내부 선택값은 `(L1, L2, L3)` tuple을 유지하지만, 사용자에게는 `Velocity X (Box Local Frame)` 같은 표시명을 노출
@@ -146,3 +146,6 @@ Last Reviewed: 2026-03-18
 8. Step 2에서 결과 폴더를 선택하고 저장된 `.proc`를 목록에서 연다.
 9. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
 10. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
+
+참고:
+- legacy 결과 `.csv`가 필요하면 파일 확장자를 `.proc`로 바꾼 뒤 연다.

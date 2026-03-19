@@ -1,4 +1,5 @@
 import csv
+import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -9,8 +10,10 @@ from src.config.data_columns import TimeCols, TimelineMetaCols
 from src.utils.header_converter import convert_to_multi_header
 
 
+CSV_FILE_EXTENSION = ".csv"
 SLICE_FILE_EXTENSION = ".slice"
 PROC_FILE_EXTENSION = ".proc"
+RESULT_FILE_EXTENSIONS = (PROC_FILE_EXTENSION,)
 SLICE_FILE_MAGIC = "BoxMotionAnalyzer Slice File"
 SLICE_FILE_VERSION = "1"
 DEFAULT_SLICE_PADDING_ROWS = 50
@@ -150,6 +153,51 @@ def build_proc_default_name(slice_path: str, processing_mode: str) -> str:
     source_stem = Path(slice_path).stem if slice_path else "processed"
     normalized_mode = (processing_mode or "proc").strip().replace(" ", "_")
     return f"{source_stem}_{normalized_mode}{PROC_FILE_EXTENSION}"
+
+
+def build_batch_proc_path(slice_path: str) -> str:
+    return str(Path(slice_path).with_suffix(PROC_FILE_EXTENSION))
+
+
+def raw_csv_file_filter() -> str:
+    return f"CSV Files (*{CSV_FILE_EXTENSION})"
+
+
+def slice_file_filter() -> str:
+    return f"Slice Files (*{SLICE_FILE_EXTENSION})"
+
+
+def proc_file_filter() -> str:
+    return f"Processed Files (*{PROC_FILE_EXTENSION})"
+
+
+def result_file_filter() -> str:
+    patterns = " ".join(f"*{extension}" for extension in RESULT_FILE_EXTENSIONS)
+    return f"Result Files ({patterns})"
+
+
+def is_result_file(filename: str) -> bool:
+    return Path(filename).suffix.lower() in RESULT_FILE_EXTENSIONS
+
+
+def is_slice_file(filename: str) -> bool:
+    return Path(filename).suffix.lower() == SLICE_FILE_EXTENSION
+
+
+def list_result_files(folder_path: str) -> list[str]:
+    return sorted(
+        filename
+        for filename in os.listdir(folder_path)
+        if is_result_file(filename)
+    )
+
+
+def list_slice_files(folder_path: str) -> list[str]:
+    return sorted(
+        filename
+        for filename in os.listdir(folder_path)
+        if is_slice_file(filename)
+    )
 
 
 def read_slice_metadata(filepath: str) -> SliceMetadata:
