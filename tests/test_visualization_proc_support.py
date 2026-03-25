@@ -90,6 +90,9 @@ class TestVisualizationProcSupport(unittest.TestCase):
         finally:
             window.close()
 
+    def test_result_file_filter_prefers_proc_files(self):
+        self.assertEqual(result_file_filter(), "Result Files (*.proc)")
+
 
 if __name__ == "__main__":
     unittest.main()
