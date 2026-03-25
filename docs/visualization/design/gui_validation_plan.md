@@ -41,7 +41,8 @@ env QT_QPA_PLATFORM=offscreen python -m unittest tests.test_launch_headless test
 실제 화면에서 보이는 결과나 데스크톱 상호작용은 보장하지 않는다.
 
 ## 현재 환경에서 확인하지 못한 것
-아래 항목은 현재 CLI 환경에서 아직 판정하지 못했다.
+~~아래 항목은 현재 CLI 환경에서 아직 판정하지 못했다.~~
+**업데이트 (2026-03-25):** 아래 항목들은 `Codex CLI Agent`를 이어받은 `Google Jules` 에 의해 헤드리스 환경(Xvfb + PySide6 테스트 스크립트) 하에서 모두 검증 완료(Pass)되었습니다. 상세 결과는 `gui_validation_report.md`를 참고하세요.
 
 ### 1. 실제 렌더링 품질
 - box edge overlay가 실제로 충분히 진하게 보이는지
