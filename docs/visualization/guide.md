@@ -1,12 +1,12 @@
 # Visualization Guide
 
-Last Reviewed: 2026-03-16
+Last Reviewed: 2026-03-19
 
 이 문서는 `src/visualization/` 아래 3D 시각화 기능이 어떤 구조로 동작하는지 설명한다.
 
 ## 1. 목적
-- Step 1/Step 2 분석 GUI와 별도로, 결과 CSV를 3D/2D로 탐색하는 전용 창을 제공한다.
-- 입력은 Box Motion Analyzer가 export한 multi-header 결과 CSV이다.
+- Step 1/Step 2 분석 GUI와 별도로, 결과 파일을 3D/2D로 탐색하는 전용 창을 제공한다.
+- UI 기준 입력은 Box Motion Analyzer가 export한 multi-header `.proc` 결과 파일이다.
 
 ## 2. 진입점
 - 전체 앱 진입점: `src/main.py`
@@ -32,8 +32,8 @@ Last Reviewed: 2026-03-16
   - 재생/정지와 프레임 이동 제어
 
 ## 4. 데이터 흐름
-1. 사용자가 visualization 창에서 결과 CSV를 연다.
-2. `DataHandler.load_analysis_result()`가 multi-header CSV를 읽는다.
+1. 사용자가 visualization 창에서 `.proc` 결과 파일을 연다.
+2. `DataHandler.load_analysis_result()`가 multi-header 결과 파일을 읽는다.
 3. Position 계열 컬럼을 기준으로 `CoM / Corners / Markers` entity를 식별한다.
 4. 각 entity에 대해 frame/time/position/velocity/acceleration을 long-format DataFrame으로 정리한다.
    이때 metric 컬럼 키는 visualization 전용 이름을 새로 만들지 않고 export의 `HeaderL3` 키를 그대로 재사용한다.
@@ -45,8 +45,9 @@ Last Reviewed: 2026-03-16
 - 과거 단일 `config.py` 구조는 더 이상 현재 기준 문서가 아니다.
 
 ## 6. 현재 동작 특성
-- visualization은 분석 결과 CSV를 직접 읽는다. 원본 raw CSV를 바로 읽는 흐름이 아니다.
-- `DataHandler`는 결과 CSV의 `Position`, `Velocity`, `Acceleration`, `Info` multi-header를 해석한다.
+- visualization은 분석 결과 파일을 직접 읽는다. 원본 raw CSV를 바로 읽는 흐름이 아니다.
+- `DataHandler`는 결과 파일의 `Position`, `Velocity`, `Acceleration`, `Info` multi-header를 해석한다.
+- UI에서는 `.proc`만 노출해 raw `.csv`와의 혼동을 줄인다.
 - visualization 내부 metric 키도 export 스키마를 그대로 따른다.
   - 예: `P_TX`, `Global_V_TX`, `Global_V_T_Norm`, `BoxLocal_A_T_Norm`
 - `Scene Inspector`는 `Center of Mass / Corners / Markers` 그룹으로 entity를 나눠 보여준다.
@@ -61,7 +62,7 @@ Last Reviewed: 2026-03-16
 - frame range 체크박스와 spinbox로 선택 구간만 플롯할 수 있다.
 
 ## 7. 참고할 구현 포인트
-- 결과 CSV 헤더 규칙이 바뀌면 다음을 함께 확인해야 한다.
+- 결과 파일 헤더 규칙이 바뀌면 다음을 함께 확인해야 한다.
   - `src/config/data_columns.py`
   - `src/visualization/data_handler.py`
   - `docs/analysis/reference/csv_multi_header_schema.md`

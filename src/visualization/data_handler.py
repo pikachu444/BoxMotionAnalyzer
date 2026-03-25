@@ -19,7 +19,7 @@ class DataHandler:
 
     def load_analysis_result(self, filepath: str) -> bool:
         """
-        Loads the BoxMotionAnalyzer exported multi-header CSV and transforms it
+        Loads the BoxMotionAnalyzer exported multi-header result file and transforms it
         into the long-format DataFrame consumed by the visualization GUI.
         """
         try:
@@ -46,7 +46,7 @@ class DataHandler:
                     long_data_list.append(entity_df)
 
             if not long_data_list:
-                print("[ERROR] Failed to build visualization rows from exported CSV.")
+                print("[ERROR] Failed to build visualization rows from exported result file.")
                 return False
 
             self.visualization_dataframe = pd.concat(long_data_list, ignore_index=True)

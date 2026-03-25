@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QAction
 from PySide6.QtCore import QTimer, Qt
 
+from src.analysis.pipeline.artifact_io import result_file_filter
 from src.config import config_visualization as config
 from .data_handler import DataHandler
 from .vista_widget import VistaWidget
@@ -54,7 +55,7 @@ class MainWindow(QMainWindow):
         main_layout.setStretchFactor(top_layout, 1) # Give more space to the top part
 
         self._create_menu_bar()
-        self.statusBar().showMessage("Ready. Please open a CSV file.")
+        self.statusBar().showMessage("Ready. Please open a result file.")
 
         self.animation_timer = QTimer(self)
         self.animation_timer.timeout.connect(self.advance_frame)
@@ -90,8 +91,8 @@ class MainWindow(QMainWindow):
 
         # File Menu
         file_menu = menu_bar.addMenu("&File")
-        open_action = QAction("&Open Visualization CSV...", self)
-        open_action.triggered.connect(self.open_csv_file)
+        open_action = QAction("&Open Result File...", self)
+        open_action.triggered.connect(self.open_result_file)
         file_menu.addAction(open_action)
         file_menu.addSeparator()
         exit_action = QAction("&Exit", self)
@@ -128,8 +129,8 @@ class MainWindow(QMainWindow):
         view_iso_action.triggered.connect(self.vista_widget.view_isometric)
         view_menu.addAction(view_iso_action)
 
-    def open_csv_file(self):
-        filepath, _ = QFileDialog.getOpenFileName(self, "Open CSV", "", "CSV Files (*.csv)")
+    def open_result_file(self):
+        filepath, _ = QFileDialog.getOpenFileName(self, "Open Result File", "", result_file_filter())
         if filepath:
             self.statusBar().showMessage(f"Loading {filepath}...")
             success = self.data_handler.load_analysis_result(filepath)
@@ -150,6 +151,9 @@ class MainWindow(QMainWindow):
                 self.statusBar().showMessage("File loaded successfully.", 5000)
             else:
                 self.statusBar().showMessage("Failed to load file.", 5000)
+
+    def open_csv_file(self):
+        self.open_result_file()
 
     def set_frame(self, frame_number: int):
         self.current_frame = frame_number

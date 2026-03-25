@@ -74,7 +74,7 @@ class DataLoader:
 
     def load_result_csv(self, filepath: str) -> pd.DataFrame:
         """
-        분석 완료 후 Export된, 멀티헤더를 가진 결과 CSV 파일을 읽어 DataFrame으로 반환합니다.
+        분석 완료 후 Export된 멀티헤더 결과 파일을 읽어 DataFrame으로 반환합니다.
         """
         try:
             # 멀티헤더(3줄)를 올바르게 읽기 위해 header=[0, 1, 2] 옵션을 사용합니다.
@@ -92,7 +92,7 @@ class DataLoader:
                 df.set_index(TimeCols.TIME, inplace=True)
                 df.index.name = TimeCols.TIME
 
-            print(f"[DataLoader INFO] Result CSV loaded successfully from {filepath}")
+            print(f"[DataLoader INFO] Result file loaded successfully from {filepath}")
             return df
         except FileNotFoundError:
             raise FileNotFoundError(f"결과 파일을 찾을 수 없습니다: {filepath}")

@@ -1034,13 +1034,9 @@ if __name__ == "__main__":
 
     step1_modes = Step1ProcessingModeMockWindow()
     advanced_dialog = AdvancedProcessingDialogMock()
-    step1_slice_workflow = Step1SliceWorkflowMockWindow()
-    step2_in_memory = Step2InMemoryResultMockWindow()
 
     save_widget(step1_modes, os.path.join(out_dir, "step1_processing_mode_mock_v32.png"))
     save_widget(advanced_dialog, os.path.join(out_dir, "step1_advanced_settings_mock_v32.png"))
-    save_widget(step1_slice_workflow, os.path.join(out_dir, "step1_slice_workflow_mock_v33.png"))
-    save_widget(step2_in_memory, os.path.join(out_dir, "step2_in_memory_result_mock_v33.png"))
 
     print("Saved:")
     print(os.path.join(out_dir, "step1_improved_mock_v31.png"))
@@ -1048,5 +1044,3 @@ if __name__ == "__main__":
     print(os.path.join(out_dir, "step2_popup_improved_mock_v31.png"))
     print(os.path.join(out_dir, "step1_processing_mode_mock_v32.png"))
     print(os.path.join(out_dir, "step1_advanced_settings_mock_v32.png"))
-    print(os.path.join(out_dir, "step1_slice_workflow_mock_v33.png"))
-    print(os.path.join(out_dir, "step2_in_memory_result_mock_v33.png"))

@@ -1,6 +1,6 @@
 # Repository AGENTS Guide
 
-Last Reviewed: 2026-03-16
+Last Reviewed: 2026-03-19
 
 이 문서는 저장소 전체에 공통으로 적용하는 작업 원칙을 정리한다.
 
@@ -24,9 +24,13 @@ Last Reviewed: 2026-03-16
 - 저장소에서 관리하는 모든 문서(`.md`, `.txt`)에는 문서 상단에 `Last Reviewed: YYYY-MM-DD`를 유지한다.
 - 문서 내용을 검토하거나 의미 있게 수정했으면 `Last Reviewed` 날짜도 함께 갱신한다.
 
-## 임시 작업 메모
-- 진행 중인 `3D Visualization Inspector` 개편 작업을 다시 시작할 때는 먼저 `docs/visualization/design/inspector_redesign_plan.md`를 참고한다.
-- 이 메모는 해당 작업이 완료되고 문서가 더 이상 임시 계획 문서가 아니게 되면 제거하거나 현재 상태에 맞게 갱신한다.
+## 현재 Analysis Workflow 기준 문서
+- 현재 구현된 `Step 1 / Step 1.5 / Step 2` 흐름은 먼저 `docs/analysis/design/gui_overview.md`에서 확인한다.
+- 상위 구조와 설계 원칙은 `docs/analysis/design/system_design.md`를 기준으로 본다.
+- batch processing 같은 후속 기능은 현재 구현 범위에 포함되지 않으므로, 문서와 코드에서 별도 확인 전에는 구현된 기능처럼 취급하지 않는다.
+- 후속 개발을 다시 시작할 때는 `docs/analysis/design/analysis_followup_plan.md`를 먼저 확인한다.
+- `PySide6` GUI를 실제로 실행해 검증해야 하는 세션이라면, 임시 handoff 문서인 `docs/analysis/design/gui_validation_plan.md`를 먼저 확인한다.
+- `docs/analysis/design/gui_validation_plan.md`는 장기 기준 문서가 아니라 GUI 검증용 임시 작업 문서이므로, 검증 작업이 끝나고 더 이상 handoff가 필요 없으면 정리 대상이 될 수 있다.
 
 ## 코드 작업 원칙
 - 현재 구현과 맞지 않는 구 버전 스크립트, 테스트, 문서는 유지 이유가 없으면 정리 대상이 될 수 있다.
