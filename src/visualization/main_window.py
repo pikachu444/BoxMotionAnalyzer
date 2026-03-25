@@ -142,6 +142,20 @@ class MainWindow(QMainWindow):
         view_iso_action.triggered.connect(self.vista_widget.view_isometric)
         view_menu.addAction(view_iso_action)
 
+        view_menu.addSeparator()
+
+        self.perspective_projection_action = QAction("&Perspective Projection (Alt+5)", self)
+        self.perspective_projection_action.setShortcut("Alt+5")
+        self.perspective_projection_action.triggered.connect(self.enable_perspective_projection)
+        view_menu.addAction(self.perspective_projection_action)
+
+        self.parallel_projection_action = QAction("&Parallel Projection (Alt+6)", self)
+        self.parallel_projection_action.setShortcut("Alt+6")
+        self.parallel_projection_action.triggered.connect(self.enable_parallel_projection)
+        view_menu.addAction(self.parallel_projection_action)
+
+        self._sync_projection_actions()
+
     def open_result_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Result File", "", result_file_filter())
         if filepath:
@@ -198,6 +212,23 @@ class MainWindow(QMainWindow):
     def open_new_visualization_window(self):
         offset_position = (self.x() + 40, self.y() + 40)
         self.create_and_show(position_hint=offset_position)
+
+    def _sync_projection_actions(self):
+        is_parallel = self.vista_widget.is_parallel_projection_enabled()
+        self.perspective_projection_action.setCheckable(True)
+        self.parallel_projection_action.setCheckable(True)
+        self.perspective_projection_action.setChecked(not is_parallel)
+        self.parallel_projection_action.setChecked(is_parallel)
+
+    def enable_perspective_projection(self):
+        self.vista_widget.set_parallel_projection(False)
+        self._sync_projection_actions()
+        self.statusBar().showMessage("Perspective projection enabled.", 3000)
+
+    def enable_parallel_projection(self):
+        self.vista_widget.set_parallel_projection(True)
+        self._sync_projection_actions()
+        self.statusBar().showMessage("Parallel projection enabled.", 3000)
 
     def set_frame(self, frame_number: int):
         self.current_frame = frame_number

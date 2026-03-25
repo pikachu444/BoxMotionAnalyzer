@@ -188,6 +188,17 @@ class VistaWidget(QWidget):
         if self.plotter:
             self.plotter.reset_camera()
 
+    def is_parallel_projection_enabled(self):
+        if self.plotter is None:
+            return False
+        return bool(self.plotter.camera.GetParallelProjection())
+
+    def set_parallel_projection(self, enabled: bool):
+        if self.plotter is None:
+            return
+        self.plotter.camera.SetParallelProjection(bool(enabled))
+        self.plotter.render()
+
     def view_xy_plane(self):
         """Sets view to XY plane (Looking along Z axis)."""
         if self.plotter:

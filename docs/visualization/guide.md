@@ -63,6 +63,7 @@ Last Reviewed: 2026-03-25
 - 1차 구현에서는 서로 다른 entity type의 동시 선택을 제한한다.
 - `PlotWidget` 더블클릭 시 `PlotDialog`가 열려 확대 플롯을 볼 수 있다.
 - frame range 체크박스와 spinbox로 선택 구간만 플롯할 수 있다.
+- `View -> Perspective Projection (Alt+5)`와 `View -> Parallel Projection (Alt+6)`로 투영 방식을 명시적으로 전환할 수 있다.
 
 ## 7. 참고할 구현 포인트
 - 결과 파일 헤더 규칙이 바뀌면 다음을 함께 확인해야 한다.
