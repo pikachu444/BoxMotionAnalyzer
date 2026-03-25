@@ -23,7 +23,6 @@ class LauncherWindow(QMainWindow):
         self.setWindowIcon(get_window_icon())
         self.resize(840, 380)
 
-        self.main_window = None
         self.data_processing_window = None
 
         # --- Main Layout ---
@@ -67,6 +66,15 @@ class LauncherWindow(QMainWindow):
         self.btn_visualization.setFixedSize(320, 50)
         right_panel_layout.addWidget(self.btn_visualization, 0, Qt.AlignHCenter)
 
+        self.visualization_hint_label = QLabel(
+            "Click again to open another independent 3D visualization window."
+        )
+        self.visualization_hint_label.setWordWrap(True)
+        self.visualization_hint_label.setAlignment(Qt.AlignCenter)
+        self.visualization_hint_label.setFixedWidth(320)
+        self.visualization_hint_label.setStyleSheet("color: #4a5568;")
+        right_panel_layout.addWidget(self.visualization_hint_label, 0, Qt.AlignHCenter)
+
         right_panel_layout.addStretch(1)
 
         main_layout.addWidget(right_panel, 0, Qt.AlignVCenter)
@@ -74,12 +82,7 @@ class LauncherWindow(QMainWindow):
 
     def open_visualization(self):
         """Opens the main 3D visualization window."""
-        # Ensure any existing window is closed and a fresh instance is created
-        if self.main_window is not None:
-            self.main_window.close()
-
-        self.main_window = MainWindow()
-        self.main_window.show()
+        MainWindow.create_and_show()
 
     def open_data_processing(self):
         """Opens the data processing window (MainApp)."""

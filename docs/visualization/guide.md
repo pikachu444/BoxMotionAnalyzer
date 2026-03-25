@@ -1,6 +1,6 @@
 # Visualization Guide
 
-Last Reviewed: 2026-03-19
+Last Reviewed: 2026-03-25
 
 이 문서는 `src/visualization/` 아래 3D 시각화 기능이 어떤 구조로 동작하는지 설명한다.
 
@@ -11,6 +11,8 @@ Last Reviewed: 2026-03-19
 ## 2. 진입점
 - 전체 앱 진입점: `src/main.py`
 - 시각화 창 진입점: `src/launcher.py` -> `LauncherWindow` -> `src.visualization.main_window.MainWindow`
+- 런처에서 `3D Visualization` 버튼을 다시 누르면 독립적인 시각화 창이 추가로 열린다.
+- 시각화 창 내부에서도 `File -> New Visualization Window`로 같은 종류의 새 메인 창을 열 수 있다.
 
 ## 3. 현재 구조
 - `src/visualization/main_window.py`
@@ -48,6 +50,7 @@ Last Reviewed: 2026-03-19
 - visualization은 분석 결과 파일을 직접 읽는다. 원본 raw CSV를 바로 읽는 흐름이 아니다.
 - `DataHandler`는 결과 파일의 `Position`, `Velocity`, `Acceleration`, `Info` multi-header를 해석한다.
 - UI에서는 `.proc`만 노출해 raw `.csv`와의 혼동을 줄인다.
+- 각 시각화 창은 독립적으로 결과 파일을 열고 재생 상태를 유지한다.
 - visualization 내부 metric 키도 export 스키마를 그대로 따른다.
   - 예: `P_TX`, `Global_V_TX`, `Global_V_T_Norm`, `BoxLocal_A_T_Norm`
 - `Scene Inspector`는 `Center of Mass / Corners / Markers` 그룹으로 entity를 나눠 보여준다.

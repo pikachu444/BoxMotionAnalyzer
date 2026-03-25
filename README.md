@@ -1,6 +1,6 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-03-19
+Last Reviewed: 2026-03-25
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
@@ -17,6 +17,7 @@ Last Reviewed: 2026-03-19
 *   **인터랙티브 제어:** 재생/일시정지, 프레임 슬라이더 이동, 시점 제어 등이 가능합니다.
 *   **데이터 플로팅:** 선택한 객체의 위치, 속도, 가속도, velocity norm 시계열을 2D 그래프로 확인하고 비교할 수 있습니다.
 *   **심층 분석:** 프레임 구간 필터와 상세 플롯 팝업을 제공하며, 팝업에서는 마우스 오버로 정확한 수치를 확인할 수 있습니다.
+*   **다중 창 비교:** 런처에서 3D Visualization 버튼을 다시 누르거나 시각화 창의 `File > New Visualization Window`를 사용해 독립적인 viewer 창을 여러 개 열 수 있습니다.
 
 ---
 
@@ -84,6 +85,8 @@ python src/main.py
 
 *   **Data Processing**: 원본 CSV를 불러와 분석하고 결과를 `.proc` 중심 workflow로 저장
 *   **3D Visualization**: export된 `.proc` 결과 파일을 열어 3D/2D로 탐색
+    *   런처 버튼을 반복 클릭하면 새 시각화 창이 추가로 열립니다.
+    *   시각화 창 안에서는 `File > New Visualization Window`로 새 창을 바로 만들 수 있습니다.
 
 ### 3. 분석 결과 export와 visualization의 관계
 
