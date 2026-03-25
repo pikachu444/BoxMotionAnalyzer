@@ -115,6 +115,7 @@ STYLE = {
     "box": {
         "color": "lightblue",
         "opacity": 0.5,
+        "edge_color": "#2f3640",
         "line_width": 2
     },
     "labels": {
@@ -200,6 +201,7 @@ SK_CENTER = 'center'
 SK_SIZE = 'size'
 SK_COLOR = 'color'
 SK_OPACITY = 'opacity'
+SK_EDGE_COLOR = 'edge_color'
 SK_LINE_WIDTH = 'line_width'
 SK_FONT_SIZE_BOX = 'box_font_size'
 SK_FONT_SIZE_MARKER = 'marker_font_size'
@@ -208,6 +210,7 @@ SK_COLOR_MAP = 'color_map'
 
 # For Actor/PolyData dictionaries and face definitions
 SK_ACTOR_BOX = 'box'
+SK_ACTOR_BOX_EDGES = 'box_edges'
 SK_ACTOR_MARKERS = 'markers'
 SK_ACTOR_LABELS = 'labels'
 SK_FACE_LABEL = 'label'

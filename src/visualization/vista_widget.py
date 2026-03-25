@@ -22,11 +22,58 @@ class VistaWidget(QWidget):
 
         # --- Centralized Actor and PolyData Management ---
         k = config
-        self.actors = {k.SK_ACTOR_BOX: None, k.SK_ACTOR_MARKERS: {}, k.SK_ACTOR_LABELS: {}}
+        self.actors = {
+            k.SK_ACTOR_BOX: None,
+            k.SK_ACTOR_BOX_EDGES: None,
+            k.SK_ACTOR_MARKERS: {},
+            k.SK_ACTOR_LABELS: {},
+        }
         self.polydata = {k.SK_ACTOR_BOX: None, k.SK_ACTOR_MARKERS: {}, k.SK_ACTOR_LABELS: {}}
 
         if not testing_mode:
             self._setup_scene()
+
+    def _create_box_visuals(self, box_points):
+        s = config.STYLE
+        k = config
+        faces = np.hstack([([4] + face[k.SK_CORNER_INDICES]) for face in k.BOX_FACES])
+        self.polydata[k.SK_ACTOR_BOX] = pv.PolyData(box_points, faces=faces)
+        self.actors[k.SK_ACTOR_BOX] = self.plotter.add_mesh(
+            self.polydata[k.SK_ACTOR_BOX],
+            style='surface',
+            color=s[k.SK_BOX][k.SK_COLOR],
+            opacity=s[k.SK_BOX][k.SK_OPACITY],
+            name="box",
+        )
+        self.actors[k.SK_ACTOR_BOX_EDGES] = self.plotter.add_mesh(
+            self.polydata[k.SK_ACTOR_BOX],
+            style='wireframe',
+            color=s[k.SK_BOX][k.SK_EDGE_COLOR],
+            line_width=s[k.SK_BOX][k.SK_LINE_WIDTH],
+            name="box_edges",
+        )
+        self.polydata[k.SK_ACTOR_LABELS][k.SK_ACTOR_BOX] = pv.PolyData(box_points)
+        self.actors[k.SK_ACTOR_LABELS][k.SK_ACTOR_BOX] = self.plotter.add_point_labels(
+            self.polydata[k.SK_ACTOR_LABELS][k.SK_ACTOR_BOX],
+            k.BOX_CORNERS_LABELS,
+            name="box_labels",
+            font_size=s[k.SK_LABELS][k.SK_FONT_SIZE_BOX],
+        )
+
+    def _update_box_visuals(self, box_points):
+        k = config
+        if self.actors[k.SK_ACTOR_BOX] is None:
+            self._create_box_visuals(box_points)
+            return
+
+        self.polydata[k.SK_ACTOR_BOX].points = box_points
+        self.polydata[k.SK_ACTOR_BOX].Modified()
+        self._update_polydata_points(self.polydata[k.SK_ACTOR_LABELS], k.SK_ACTOR_BOX, box_points)
+
+    def _set_box_actor_visibility(self, actor_name: str, is_visible: bool):
+        actor = self.actors.get(actor_name)
+        if actor:
+            actor.SetVisibility(is_visible)
 
     def _setup_scene(self):
         """Initial setup of the plotter and permanent actors."""
@@ -85,23 +132,7 @@ class VistaWidget(QWidget):
         # --- Update Box ---
         box_points = self._get_points_for_ids(frame_df, k.BOX_CORNERS_LABELS)
         if box_points is not None:
-            if self.actors[k.SK_ACTOR_BOX] is None:
-                faces = np.hstack([([4] + face[k.SK_CORNER_INDICES]) for face in k.BOX_FACES])
-                self.polydata[k.SK_ACTOR_BOX] = pv.PolyData(box_points, faces=faces)
-                self.actors[k.SK_ACTOR_BOX] = self.plotter.add_mesh(
-                    self.polydata[k.SK_ACTOR_BOX], style='surface',
-                    color=s[k.SK_BOX][k.SK_COLOR], opacity=s[k.SK_BOX][k.SK_OPACITY],
-                    name="box"
-                )
-                self.polydata[k.SK_ACTOR_LABELS][k.SK_ACTOR_BOX] = pv.PolyData(box_points)
-                self.actors[k.SK_ACTOR_LABELS][k.SK_ACTOR_BOX] = self.plotter.add_point_labels(
-                    self.polydata[k.SK_ACTOR_LABELS][k.SK_ACTOR_BOX], k.BOX_CORNERS_LABELS,
-                    name="box_labels", font_size=s[k.SK_LABELS][k.SK_FONT_SIZE_BOX]
-                )
-            else:
-                self.polydata[k.SK_ACTOR_BOX].points = box_points
-                self.polydata[k.SK_ACTOR_BOX].Modified()
-                self._update_polydata_points(self.polydata[k.SK_ACTOR_LABELS], k.SK_ACTOR_BOX, box_points)
+            self._update_box_visuals(box_points)
 
         # --- Update Markers (Dynamic) ---
         # 1. Identify marker entities from the exported visualization data model.
@@ -156,6 +187,17 @@ class VistaWidget(QWidget):
         """Resets the camera to fit all actors in the view."""
         if self.plotter:
             self.plotter.reset_camera()
+
+    def is_parallel_projection_enabled(self):
+        if self.plotter is None:
+            return False
+        return bool(self.plotter.camera.GetParallelProjection())
+
+    def set_parallel_projection(self, enabled: bool):
+        if self.plotter is None:
+            return
+        self.plotter.camera.SetParallelProjection(bool(enabled))
+        self.plotter.render()
 
     def view_xy_plane(self):
         """Sets view to XY plane (Looking along Z axis)."""
@@ -266,8 +308,8 @@ class VistaWidget(QWidget):
         """Sets the visibility of actors."""
         if self.plotter is None: return
         k = config
-        if actor_name == k.SK_ACTOR_BOX and self.actors[k.SK_ACTOR_BOX]:
-            self.actors[k.SK_ACTOR_BOX].SetVisibility(is_visible)
+        if actor_name in {k.SK_ACTOR_BOX, k.SK_ACTOR_BOX_EDGES}:
+            self._set_box_actor_visibility(actor_name, is_visible)
         elif actor_name == k.SK_ACTOR_MARKERS:
             for actor in self.actors[k.SK_ACTOR_MARKERS].values():
                 actor.SetVisibility(is_visible)

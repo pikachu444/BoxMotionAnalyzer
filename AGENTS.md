@@ -1,6 +1,6 @@
 # Repository AGENTS Guide
 
-Last Reviewed: 2026-03-19
+Last Reviewed: 2026-03-25
 
 이 문서는 저장소 전체에 공통으로 적용하는 작업 원칙을 정리한다.
 
@@ -31,6 +31,11 @@ Last Reviewed: 2026-03-19
 - 후속 개발을 다시 시작할 때는 `docs/analysis/design/analysis_followup_plan.md`를 먼저 확인한다.
 - `PySide6` GUI를 실제로 실행해 검증해야 하는 세션이라면, 임시 handoff 문서인 `docs/analysis/design/gui_validation_plan.md`를 먼저 확인한다.
 - `docs/analysis/design/gui_validation_plan.md`는 장기 기준 문서가 아니라 GUI 검증용 임시 작업 문서이므로, 검증 작업이 끝나고 더 이상 handoff가 필요 없으면 정리 대상이 될 수 있다.
+
+## 현재 Visualization GUI 검증 기준 문서
+- visualization 관련 실제 GUI 검증이 필요한 세션이라면 먼저 `docs/visualization/design/gui_validation_plan.md`를 확인한다.
+- 이 문서는 특히 다중 visualization 창, box edge overlay, projection action 같은 최근 visualization 변경의 실제 화면 검증을 다른 AGENT에게 넘기기 위한 handoff 문서다.
+- `docs/visualization/design/gui_validation_plan.md`도 임시 GUI 검증용 문서이므로, 검증 작업이 끝나고 더 이상 handoff가 필요 없으면 정리 대상이 될 수 있다.
 
 ## 코드 작업 원칙
 - 현재 구현과 맞지 않는 구 버전 스크립트, 테스트, 문서는 유지 이유가 없으면 정리 대상이 될 수 있다.

@@ -1,7 +1,7 @@
 import os
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pandas as pd
 
@@ -78,6 +78,31 @@ class TestVisualizationProcSupport(unittest.TestCase):
             mock_dialog.assert_called_once_with(window, "Open Result File", "", result_file_filter())
         finally:
             window.close()
+
+    @unittest.skipUnless(HAS_QT, "PySide6 is required for visualization window tests.")
+    def test_main_window_can_request_a_new_visualization_window(self):
+        window = MainWindow()
+        try:
+            with patch.object(MainWindow, "create_and_show", return_value=MagicMock()) as mock_create:
+                window.open_new_visualization_window()
+
+            mock_create.assert_called_once()
+        finally:
+            window.close()
+
+    @unittest.skipUnless(HAS_QT, "PySide6 is required for visualization window tests.")
+    def test_main_window_exposes_projection_shortcuts(self):
+        window = MainWindow()
+        try:
+            self.assertTrue(window.perspective_projection_action.isCheckable())
+            self.assertTrue(window.parallel_projection_action.isCheckable())
+            self.assertEqual(window.perspective_projection_action.shortcut().toString(), "Alt+5")
+            self.assertEqual(window.parallel_projection_action.shortcut().toString(), "Alt+6")
+        finally:
+            window.close()
+
+    def test_result_file_filter_prefers_proc_files(self):
+        self.assertEqual(result_file_filter(), "Result Files (*.proc)")
 
 
 if __name__ == "__main__":

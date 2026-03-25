@@ -48,6 +48,12 @@ class ControlPanel(QWidget):
             lambda checked: self.visibility_changed.emit(config.SK_ACTOR_BOX, checked)
         )
 
+        self.box_edges_checkbox = QCheckBox("Box Edges")
+        self.box_edges_checkbox.setChecked(True)
+        self.box_edges_checkbox.toggled.connect(
+            lambda checked: self.visibility_changed.emit(config.SK_ACTOR_BOX_EDGES, checked)
+        )
+
         self.markers_checkbox = QCheckBox("Markers")
         self.markers_checkbox.setChecked(True)
         self.markers_checkbox.toggled.connect(
@@ -61,6 +67,7 @@ class ControlPanel(QWidget):
         )
 
         layout.addWidget(self.box_checkbox)
+        layout.addWidget(self.box_edges_checkbox)
         layout.addWidget(self.markers_checkbox)
         layout.addWidget(self.labels_checkbox)
         layout.addStretch()

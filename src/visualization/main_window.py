@@ -1,3 +1,4 @@
+import os
 import sys
 from PySide6.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QApplication
@@ -17,14 +18,21 @@ from .info_log_widget import InfoLogWidget
 from src.utils.app_identity import configure_qt_application, get_window_icon
 
 class MainWindow(QMainWindow):
+    open_windows = []
+    _window_sequence = 0
+
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("3D Motion Analyzer")
         self.setWindowIcon(get_window_icon())
         self.setGeometry(100, 100, 1800, 1000)
+        self.setAttribute(Qt.WA_DeleteOnClose, True)
 
         self.current_frame = 0
+        self.loaded_result_path = None
         self.plot_dialogs = []
+        self.window_sequence = self._next_window_sequence()
+
+        self._update_window_title()
 
         # 1. Create core components
         self.data_handler = DataHandler()
@@ -91,6 +99,11 @@ class MainWindow(QMainWindow):
 
         # File Menu
         file_menu = menu_bar.addMenu("&File")
+        new_window_action = QAction("&New Visualization Window", self)
+        new_window_action.setShortcut("Ctrl+N")
+        new_window_action.triggered.connect(self.open_new_visualization_window)
+        file_menu.addAction(new_window_action)
+        file_menu.addSeparator()
         open_action = QAction("&Open Result File...", self)
         open_action.triggered.connect(self.open_result_file)
         file_menu.addAction(open_action)
@@ -129,12 +142,28 @@ class MainWindow(QMainWindow):
         view_iso_action.triggered.connect(self.vista_widget.view_isometric)
         view_menu.addAction(view_iso_action)
 
+        view_menu.addSeparator()
+
+        self.perspective_projection_action = QAction("&Perspective Projection (Alt+5)", self)
+        self.perspective_projection_action.setShortcut("Alt+5")
+        self.perspective_projection_action.triggered.connect(self.enable_perspective_projection)
+        view_menu.addAction(self.perspective_projection_action)
+
+        self.parallel_projection_action = QAction("&Parallel Projection (Alt+6)", self)
+        self.parallel_projection_action.setShortcut("Alt+6")
+        self.parallel_projection_action.triggered.connect(self.enable_parallel_projection)
+        view_menu.addAction(self.parallel_projection_action)
+
+        self._sync_projection_actions()
+
     def open_result_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Open Result File", "", result_file_filter())
         if filepath:
             self.statusBar().showMessage(f"Loading {filepath}...")
             success = self.data_handler.load_analysis_result(filepath)
             if success:
+                self.loaded_result_path = filepath
+                self._update_window_title()
                 self.animation_widget.set_frame_range(self.data_handler.n_frames)
                 self.control_panel.populate_scene_inspector(self.data_handler.get_entities_by_type())
 
@@ -154,6 +183,52 @@ class MainWindow(QMainWindow):
 
     def open_csv_file(self):
         self.open_result_file()
+
+    @classmethod
+    def _next_window_sequence(cls):
+        cls._window_sequence += 1
+        return cls._window_sequence
+
+    @classmethod
+    def create_and_show(cls, *, position_hint=None):
+        window = cls()
+        cls.open_windows.append(window)
+        window.destroyed.connect(
+            lambda *_: cls.open_windows.remove(window) if window in cls.open_windows else None
+        )
+        if position_hint is not None:
+            window.move(*position_hint)
+        window.show()
+        return window
+
+    def _update_window_title(self):
+        base_title = "3D Motion Analyzer"
+        if self.loaded_result_path:
+            self.setWindowTitle(f"{base_title} - {os.path.basename(self.loaded_result_path)}")
+            return
+
+        self.setWindowTitle(f"{base_title} - Window {self.window_sequence}")
+
+    def open_new_visualization_window(self):
+        offset_position = (self.x() + 40, self.y() + 40)
+        self.create_and_show(position_hint=offset_position)
+
+    def _sync_projection_actions(self):
+        is_parallel = self.vista_widget.is_parallel_projection_enabled()
+        self.perspective_projection_action.setCheckable(True)
+        self.parallel_projection_action.setCheckable(True)
+        self.perspective_projection_action.setChecked(not is_parallel)
+        self.parallel_projection_action.setChecked(is_parallel)
+
+    def enable_perspective_projection(self):
+        self.vista_widget.set_parallel_projection(False)
+        self._sync_projection_actions()
+        self.statusBar().showMessage("Perspective projection enabled.", 3000)
+
+    def enable_parallel_projection(self):
+        self.vista_widget.set_parallel_projection(True)
+        self._sync_projection_actions()
+        self.statusBar().showMessage("Parallel projection enabled.", 3000)
 
     def set_frame(self, frame_number: int):
         self.current_frame = frame_number
