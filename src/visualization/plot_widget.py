@@ -5,11 +5,12 @@ from PySide6.QtCore import Signal
 
 class PlotWidget(QWidget):
     doubleClicked = Signal()
+    DEFAULT_Y_AXIS_LABEL = "Value"
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_plot_args = []
-        self.y_axis_label = "Value"
+        self.y_axis_label = self.DEFAULT_Y_AXIS_LABEL
 
         # --- Create a frame to provide a border ---
         frame = QFrame(self)
@@ -23,6 +24,7 @@ class PlotWidget(QWidget):
 
         # Layout for the contents of the frame
         frame_layout = QVBoxLayout(frame)
+        frame_layout.setContentsMargins(0, 0, 0, 0)
         self.canvas = FigureCanvas(Figure(figsize=(5, 3)))
         frame_layout.addWidget(self.canvas)
 
@@ -33,7 +35,7 @@ class PlotWidget(QWidget):
     def plot_multiple_data(self, plot_args: list[dict], y_axis_label: str = "Value"):
         """Plots multiple lines on the same graph and stores the data for the popup."""
         self.current_plot_args = plot_args
-        self.y_axis_label = y_axis_label
+        self.y_axis_label = self.DEFAULT_Y_AXIS_LABEL
 
         self.ax.clear()
 
@@ -42,16 +44,22 @@ class PlotWidget(QWidget):
 
         self.ax.set_title("")
         self.ax.set_xlabel("Time (s)")
-        self.ax.set_ylabel(y_axis_label)
+        self.ax.set_ylabel(self.DEFAULT_Y_AXIS_LABEL)
 
-        # Add a legend only if there are multiple lines to distinguish
-        if len(plot_args) > 1:
+        if plot_args:
             self.ax.legend()
 
         self.ax.grid(True)
-        self.canvas.figure.tight_layout()  # Adjust layout to prevent labels from being cut off
-        self.canvas.draw()
+        self._refresh_layout()
 
     def on_double_click(self, event):
         """Emits a signal when the canvas is double-clicked."""
         self.doubleClicked.emit()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._refresh_layout()
+
+    def _refresh_layout(self):
+        self.canvas.figure.tight_layout()
+        self.canvas.draw_idle()
