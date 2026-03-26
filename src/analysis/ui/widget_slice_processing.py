@@ -72,7 +72,6 @@ class WidgetSliceProcessing(QWidget):
         plot_layout.setContentsMargins(0, 0, 0, 0)
 
         self.fig = Figure(figsize=(5, 4), dpi=100)
-        self.fig.subplots_adjust(left=0.08, right=0.98, bottom=0.1, top=0.95)
         self.canvas = FigureCanvas(self.fig)
         self.toolbar = NavigationToolbar(self.canvas, self)
         plot_layout.addWidget(self.toolbar)

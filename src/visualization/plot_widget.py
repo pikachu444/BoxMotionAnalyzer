@@ -27,7 +27,6 @@ class PlotWidget(QWidget):
         frame_layout.addWidget(self.canvas)
 
         self.ax = self.canvas.figure.subplots()
-        self.ax.set_title("Data Plot")
 
         self.canvas.mouseDoubleClickEvent = self.on_double_click
 
@@ -41,7 +40,7 @@ class PlotWidget(QWidget):
         for args in plot_args:
             self.ax.plot(args["x"], args["y"], label=args["label"])
 
-        self.ax.set_title(f"{y_axis_label} Timeseries")
+        self.ax.set_title("")
         self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel(y_axis_label)
 
