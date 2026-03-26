@@ -45,7 +45,7 @@ class PlotPopupDialog(QDialog):
 
         plot_df = result_data[available_columns].copy()
         self.plot_manager.draw_plot(plot_df, available_columns)
-        self.plot_manager.ax.set_title(f"Popup Plot - {self.window_name}")
+        self.plot_manager.ax.set_title("")
         self.plot_manager.canvas.draw_idle()
 
     def set_selected_time_cursor(self, selected_time):

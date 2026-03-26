@@ -49,7 +49,7 @@ class PlotManager(QObject):
         self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel("Value")
         self.ax.grid(True)
-        if len(columns_to_plot) > 1:
+        if labels_to_plot:
             self.ax.legend()
 
         self._initialize_hover_annotation()
