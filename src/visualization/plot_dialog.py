@@ -42,7 +42,7 @@ class PlotDialog(QWidget):
         self.ax.clear()
         for args in plot_args:
             self.ax.plot(args["x"], args["y"], label=args["label"])
-        self.ax.set_title(f"{y_axis_label} Timeseries (Detailed View)")
+        self.ax.set_title("")
         self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel(y_axis_label)
         if len(plot_args) > 1:
