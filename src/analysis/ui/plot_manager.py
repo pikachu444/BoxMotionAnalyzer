@@ -45,7 +45,6 @@ class PlotManager(QObject):
             color = colors[i % len(colors)]
             self.ax.plot(x_data, y_data, color=color, label=label)
 
-        self.ax.set_title(f"Plot for: {', '.join(labels_to_plot)}")
         self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel("Value")
         self.ax.grid(True)
@@ -53,6 +52,7 @@ class PlotManager(QObject):
             self.ax.legend()
 
         self._initialize_hover_annotation()
+        self.fig.tight_layout()
         self.canvas.draw()
 
     def clear_plot(self):

@@ -245,7 +245,6 @@ class WidgetResultsAnalyzer(QWidget):
         main_plot_layout.setSpacing(2)
 
         self.fig = Figure(figsize=(5, 4), dpi=100)
-        self.fig.subplots_adjust(left=0.055, right=0.995, bottom=0.085, top=0.995)
         self.canvas = FigureCanvas(self.fig)
         self.toolbar = NavigationToolbar(self.canvas, self)
         main_plot_layout.addWidget(self.toolbar)
