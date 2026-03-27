@@ -99,14 +99,14 @@ class MainWindow(QMainWindow):
 
         # File Menu
         file_menu = menu_bar.addMenu("&File")
+        open_action = QAction("&Open Result File...", self)
+        open_action.triggered.connect(self.open_result_file)
+        file_menu.addAction(open_action)
+        file_menu.addSeparator()
         new_window_action = QAction("&New Visualization Window", self)
         new_window_action.setShortcut("Ctrl+N")
         new_window_action.triggered.connect(self.open_new_visualization_window)
         file_menu.addAction(new_window_action)
-        file_menu.addSeparator()
-        open_action = QAction("&Open Result File...", self)
-        open_action.triggered.connect(self.open_result_file)
-        file_menu.addAction(open_action)
         file_menu.addSeparator()
         exit_action = QAction("&Exit", self)
         exit_action.triggered.connect(self.close)
