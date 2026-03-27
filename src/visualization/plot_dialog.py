@@ -1,9 +1,11 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT, FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 class PlotDialog(QWidget):
+    DEFAULT_Y_AXIS_LABEL = "Value"
+
     def __init__(self, plot_args: list[dict], y_axis_label: str, parent=None):
         super().__init__(parent)
         self.setWindowFlag(Qt.Window, True)
@@ -12,6 +14,7 @@ class PlotDialog(QWidget):
         self.setGeometry(200, 200, 800, 600)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         # Create a new FigureCanvas and Axes for the dialog
         self.canvas = FigureCanvas(Figure(figsize=(10, 8)))
@@ -44,12 +47,19 @@ class PlotDialog(QWidget):
             self.ax.plot(args["x"], args["y"], label=args["label"])
         self.ax.set_title("")
         self.ax.set_xlabel("Time (s)")
-        self.ax.set_ylabel(y_axis_label)
-        if len(plot_args) > 1:
+        self.ax.set_ylabel(self.DEFAULT_Y_AXIS_LABEL)
+        if plot_args:
             self.ax.legend()
         self.ax.grid(True)
-        self.canvas.figure.tight_layout()
-        self.canvas.draw()
+        self._refresh_layout()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        QTimer.singleShot(0, self._refresh_layout)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._refresh_layout()
 
     def on_motion(self, event):
         """Callback for mouse motion event to show data annotations."""
@@ -88,4 +98,8 @@ class PlotDialog(QWidget):
         else:
             self.annot.set_visible(False)
 
+        self.canvas.draw_idle()
+
+    def _refresh_layout(self):
+        self.canvas.figure.tight_layout()
         self.canvas.draw_idle()
