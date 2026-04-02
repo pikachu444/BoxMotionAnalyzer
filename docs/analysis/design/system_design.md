@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-03-19
+Last Reviewed: 2026-04-02
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -42,6 +42,8 @@ Last Reviewed: 2026-03-19
 - 결과 폴더 선택
 - 결과 목록에서 `.proc` 선택
 - Multi-header 결과 컬럼 트리 표시
+- `Group By (Metric / Object)` 전환
+- 현재 트리를 유지한 검색 필터
 - 메인 플롯 비교
 - 팝업 플롯 열기
 - 선택 시점 분석
@@ -66,6 +68,7 @@ Last Reviewed: 2026-03-19
 
 ### 4.2. 컬럼 정의의 중앙 관리
 - 컬럼명, Multi-header 규칙, Results Analyzer 표시 순서는 `src/config/data_columns.py`에서 관리한다.
+- Results Analyzer는 raw multi-header tuple을 유지한 채, UI에서만 `Metric-first`와 `Object-first` 두 가지 계층으로 재구성한다.
 - 새 분석 결과를 추가할 때도 우선 이 파일 기준으로 맞춘다.
 
 ### 4.3. 단계 파일 기반 처리

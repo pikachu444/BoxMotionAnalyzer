@@ -2,7 +2,7 @@
 |    컴포넌트 및 기능 명세서 (현재 기준)  |
 =========================================
 
-Last Reviewed: 2026-03-18
+Last Reviewed: 2026-04-02
 
 이 문서는 현재 코드 기준으로 주요 컴포넌트와 책임을 정리한다.
 
@@ -70,6 +70,8 @@ Last Reviewed: 2026-03-18
 *   책임:
     *   결과 폴더 로드 및 파일 목록 탐색
     *   결과 컬럼 트리 구성
+    *   결과 컬럼을 `Metric-first` / `Object-first` 기준으로 재구성
+    *   트리를 유지한 검색 필터 적용
     *   메인 결과 플롯 표시
     *   팝업 플롯 생성 및 상태 관리
     *   선택 시점 기반 point export / scenario export
@@ -77,6 +79,8 @@ Last Reviewed: 2026-03-18
 *   주요 UI 요소:
     *   `Time Window`
     *   `Select Result Folder...`
+    *   `Group By`
+    *   `Search`
     *   결과 트리 아래 표시명 안내 라벨
     *   `Plot Selected Results`
     *   Target 아래 peak search 안내 라벨

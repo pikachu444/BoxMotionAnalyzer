@@ -1,4 +1,4 @@
-Last Reviewed: 2026-03-18
+Last Reviewed: 2026-04-02
 
 +--------------------------------------------------------------------------------------------------+
 | Box Motion Analyzer v2.2                                                                         |
@@ -70,14 +70,15 @@ Last Reviewed: 2026-03-18
 |                                                                                                   |
 | +-----------------------+ +-----------------------------------+ +-------------------------------+ |
 | | 1. Result Files       | | 2. Data Selection                | | 3. Point Analysis & Export   | |
-| | [Select Result Folder]| | Select Data to Plot              | | Target: [ ... v ] [Find Max] | |
-| |                       | | [tree of Position/Velocity/... ]| | Selected: T=...              | |
-| | Folder Path: C:/...   | | [Clear] [Plot Selected]          | | [Export Point Data...]        | |
-| | - impact_01.proc      | | [Open Popup (Current Selection)] | |                               | |
-| | - impact_02.proc      | |                 [Close All Popups]| | Manual Offset [ ]            | |
-| | - legacy_result.csv   | | Opened Popups: 2                 | | Manual Height [ ]            | |
-| |                       | | Checked Columns: 8               | | Offset0~2 / Run Time / Step  | |
-| |                       | |                                   | | Scene Name / Export Scenario  | |
+| | [Select Result Folder]| | Group By: [Metric v]             | | Target: [ ... v ] [Find Max] | |
+| |                       | | Search: [C1 velocity         ]   | | Selected: T=...              | |
+| | Folder Path: C:/...   | | Select Data to Plot              | | [Export Point Data...]        | |
+| | - impact_01.proc      | | [tree of Metric/Object results ] | |                               | |
+| | - impact_02.proc      | | [Clear] [Plot Selected]          | | Manual Offset [ ]            | |
+| | - legacy_result.csv   | | [Open Popup (Current Selection)] | | Manual Height [ ]            | |
+| |                       | |                 [Close All Popups]| | Offset0~2 / Run Time / Step  | |
+| |                       | | Opened Popups: 2                 | | Scene Name / Export Scenario  | |
+| |                       | | Checked Columns: 8               | |                               | |
 | +-----------------------+ +-----------------------------------+ +-------------------------------+ |
 |                                                                                                   |
 | +--- Main Plot --------------------------------------------------------------------------------+ |

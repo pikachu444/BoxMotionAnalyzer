@@ -1,10 +1,10 @@
 # GUI Validation Plan
 
-Last Reviewed: 2026-03-19
+Last Reviewed: 2026-04-02
 
 ## 목적
 이 문서는 `Codex CLI Agent`가 직접 GUI를 검증하지 못하는 현재 환경을 전제로,
-GUI 실행이 가능한 다른 AGENT에게 `BoxMotionAnalyzer-slice-mockup`의 GUI 검증 작업을 넘기기 위한 실행 계획서다.
+GUI 실행이 가능한 다른 AGENT에게 `BoxMotionAnalyzer`의 GUI 검증 작업을 넘기기 위한 실행 계획서다.
 
 현재 `Codex CLI Agent`가 작업 중인 환경에서는 `PySide6` 기반 GUI를 직접 띄워 검증할 수 없다.
 따라서 이 문서는 "Codex CLI Agent가 대신 수행하는 문서 검토/코드 검토"가 아니라,
@@ -26,7 +26,7 @@ GUI 검증이 가능한 AGENT가 실제 화면을 열어 workflow와 파일 포�
 - 각 항목은 `Pass / Fail / Blocked` 중 하나로 판정한다.
 
 ## 사전 준비
-- 작업 경로: `/root/BoxMotionAnalyzer-slice-mockup`
+- 작업 경로: `/root/BoxMotionAnalyzer`
 - 권장 실행 명령:
 
 ```bash
@@ -111,12 +111,18 @@ python src/main.py
 - batch 또는 single run으로 만든 `.proc`가 있는 폴더를 선택한다.
 - 결과 목록에 `.proc`가 보이는지 확인한다.
 - legacy 결과 `.csv`는 그대로는 목록에 보이지 않는지 확인한다.
-- 컬럼 트리 체크, 메인 플롯, 팝업 플롯, point export, scenario export를 확인한다.
+- `Group By`를 `Metric`과 `Object`로 바꿔가며 컬럼 트리가 같은 결과 컬럼 집합을 다른 계층으로 보여주는지 확인한다.
+- `Search`에 객체/metric/component를 입력했을 때, 매칭된 leaf와 부모 경로만 남는지 확인한다.
+- 결과 폴더를 다시 선택했을 때 `Search`가 초기화되는지 확인한다.
+- 검색 상태에서도 컬럼 트리 체크, 메인 플롯, 팝업 플롯, point export, scenario export를 확인한다.
 
 기대 결과:
 - Step 2는 `.proc`만 직접 다룬다.
 - UI 목록에는 raw/legacy `.csv`가 섞여 보이지 않는다.
 - 파일 전환 시 타임라인 바와 컨텍스트 라벨이 갱신된다.
+- `Group By`를 바꿔도 체크 상태가 유지된다.
+- `Search`는 결과를 평면 리스트로 바꾸지 않고, 매칭 경로만 남기는 트리 필터로 동작한다.
+- 결과 폴더를 다시 고르면 `Search`는 초기화된다.
 - plot / popup / export 흐름이 깨지지 않는다.
 
 ### 6. 3D Visualization
@@ -185,7 +191,7 @@ Findings
 아래 프롬프트를 그대로 넘겨도 된다.
 
 ```text
-Work in /root/BoxMotionAnalyzer-slice-mockup.
+Work in /root/BoxMotionAnalyzer.
 Read docs/analysis/design/gui_validation_plan.md first and execute the GUI validation exactly as written.
 Assume Codex CLI Agent already reviewed the code and prepared this handoff because the current CLI environment cannot run PySide6 GUI validation.
 Do not change code during the validation pass unless explicitly asked.
