@@ -40,6 +40,8 @@ class WidgetResultsAnalyzer(QWidget):
         
         self.result_data = None
         self.current_result_file = None
+        self.available_result_columns = []
+        self.checked_result_columns = set()
         self.last_selected_result_columns = set()
         self.selected_point_info = {'time': None, 'index': None}
         self.result_point_cursor = None
@@ -116,6 +118,25 @@ class WidgetResultsAnalyzer(QWidget):
 
         selection_group = QGroupBox("2. Data Selection")
         selection_layout = QVBoxLayout(selection_group)
+
+        selection_controls_row = QHBoxLayout()
+        selection_controls_row.addWidget(QLabel("Group By:"))
+        self.selection_group_by_combo = QComboBox()
+        self.selection_group_by_combo.addItem("Metric", userData="metric")
+        self.selection_group_by_combo.addItem("Object", userData="object")
+        self.selection_group_by_combo.setEnabled(False)
+        selection_controls_row.addWidget(self.selection_group_by_combo)
+        selection_controls_row.addStretch()
+        selection_layout.addLayout(selection_controls_row)
+
+        selection_search_row = QHBoxLayout()
+        selection_search_row.addWidget(QLabel("Search:"))
+        self.selection_search_input = QLineEdit()
+        self.selection_search_input.setPlaceholderText("Search object, metric, or component")
+        self.selection_search_input.setEnabled(False)
+        selection_search_row.addWidget(self.selection_search_input)
+        selection_layout.addLayout(selection_search_row)
+
         self.result_data_tree = QTreeWidget()
         self.result_data_tree.setHeaderLabel("Select Data to Plot")
         self.result_data_tree.setEnabled(False)
@@ -260,6 +281,8 @@ class WidgetResultsAnalyzer(QWidget):
     def _connect_signals(self):
         self.select_result_folder_button.clicked.connect(self.select_result_folder)
         self.result_file_list.itemClicked.connect(self.on_result_file_selected)
+        self.selection_group_by_combo.currentIndexChanged.connect(self.refresh_result_tree)
+        self.selection_search_input.textChanged.connect(self.refresh_result_tree)
         self.result_data_tree.itemChanged.connect(self.on_tree_item_changed)
         self.clear_selection_button.clicked.connect(self.clear_selection)
         self.plot_results_button.clicked.connect(self.plot_selected_results)
@@ -393,13 +416,20 @@ class WidgetResultsAnalyzer(QWidget):
         if not folder_path:
             return
 
+        self.selection_search_input.blockSignals(True)
+        self.selection_search_input.clear()
+        self.selection_search_input.blockSignals(False)
         self.result_folder_path_label.setText(folder_path)
         self.result_data_tree.clear()
         self.result_data_tree.setEnabled(False)
+        self.selection_group_by_combo.setEnabled(False)
+        self.selection_search_input.setEnabled(False)
         self.plot_results_button.setEnabled(False)
         self.find_max_target_combo.clear()
         self.result_data = None
+        self.available_result_columns = []
         self.current_result_file = None
+        self.checked_result_columns.clear()
         self.last_selected_result_columns.clear()
         self.selected_point_info = {'time': None, 'index': None}
         self.update_point_selection_ui()
@@ -443,6 +473,8 @@ class WidgetResultsAnalyzer(QWidget):
 
             self.populate_result_tree(self.result_data)
             self.result_data_tree.setEnabled(True)
+            self.selection_group_by_combo.setEnabled(True)
+            self.selection_search_input.setEnabled(True)
             self.plot_results_button.setEnabled(True)
             self.selected_point_info = {'time': None, 'index': None}
             self.update_point_selection_ui()
@@ -454,70 +486,99 @@ class WidgetResultsAnalyzer(QWidget):
             return True
         except Exception as e:
             self.log_message.emit(f"[ERROR] Failed to load result file: {e}")
+            self.selection_search_input.blockSignals(True)
+            self.selection_search_input.clear()
+            self.selection_search_input.blockSignals(False)
+            self.result_data = None
+            self.current_result_file = None
             self.result_data_tree.clear()
             self.result_data_tree.setEnabled(False)
+            self.selection_group_by_combo.setEnabled(False)
+            self.selection_search_input.setEnabled(False)
             self.plot_results_button.setEnabled(False)
             self.find_max_target_combo.clear()
+            self.available_result_columns = []
+            self.checked_result_columns.clear()
             self._reset_context_labels()
             return False
 
     def populate_result_tree(self, df):
+        self.available_result_columns = [
+            normalize_result_column(col) for col in df.columns if col in DISPLAY_RESULT_COLUMNS
+        ]
+        self.available_result_columns.sort(
+            key=lambda column: self._result_tree_sort_key(column, self._get_group_by_mode())
+        )
+        self.checked_result_columns.intersection_update(self.available_result_columns)
+        self.refresh_result_tree()
+
+    def refresh_result_tree(self):
         self.result_data_tree.blockSignals(True)
         self.result_data_tree.clear()
         top_level_items = {}
-        columns_to_plot = [col for col in df.columns if col in DISPLAY_RESULT_COLUMNS]
-        columns_to_plot.sort(key=self._result_tree_sort_key)
+        search_terms = self._get_search_terms()
 
-        for l1, l2, l3 in columns_to_plot:
-            if l1 not in top_level_items:
-                top_item = QTreeWidgetItem(self.result_data_tree, [l1])
-                top_level_items[l1] = {'item': top_item, 'children': {}}
-            top_level_node = top_level_items[l1]
+        for entry in self._build_result_tree_entries():
+            if not self._entry_matches_search(entry, search_terms):
+                continue
 
-            if l2 not in top_level_node['children']:
-                mid_item = QTreeWidgetItem(top_level_node['item'], [l2])
-                top_level_node['children'][l2] = mid_item
-            mid_item = top_level_node['children'][l2]
+            top_label = entry["top_label"]
+            mid_label = entry["mid_label"]
+            column_tuple = entry["column"]
 
-            leaf_item = QTreeWidgetItem(mid_item, [get_result_metric_display_name(l1, l2, l3)])
+            if top_label not in top_level_items:
+                top_item = QTreeWidgetItem(self.result_data_tree, [top_label])
+                top_level_items[top_label] = {'item': top_item, 'children': {}}
+            top_level_node = top_level_items[top_label]
+
+            if mid_label not in top_level_node['children']:
+                mid_item = QTreeWidgetItem(top_level_node['item'], [mid_label])
+                top_level_node['children'][mid_label] = mid_item
+            mid_item = top_level_node['children'][mid_label]
+
+            leaf_item = QTreeWidgetItem(mid_item, [entry["leaf_label"]])
             leaf_item.setFlags(leaf_item.flags() | Qt.ItemIsUserCheckable)
-            leaf_item.setData(0, Qt.ItemDataRole.UserRole, (l1, l2, l3))
+            leaf_item.setData(0, Qt.ItemDataRole.UserRole, column_tuple)
 
-            column_tuple = (l1, l2, l3)
-            if column_tuple in self.last_selected_result_columns:
+            if column_tuple in self.checked_result_columns:
                 leaf_item.setCheckState(0, Qt.Checked)
             else:
                 leaf_item.setCheckState(0, Qt.Unchecked)
 
         self.result_data_tree.expandAll()
         self.result_data_tree.blockSignals(False)
-        self._set_selected_columns_context(len(self._get_checked_columns()))
+        checked_columns = self._get_checked_columns()
+        self._set_selected_columns_context(len(checked_columns))
+        self._update_find_max_targets(checked_columns)
 
     @staticmethod
-    def _result_tree_sort_key(column_tuple):
-        l1, l2, l3 = column_tuple
-        l1_order = {
+    def _result_metric_rank(l1):
+        return {
             HeaderL1.POS: 0,
             HeaderL1.VEL: 1,
             HeaderL1.ACC: 2,
             HeaderL1.ANALYSIS: 3,
             HeaderL1.ANALYSIS_SCENARIO: 4
-        }
-        if l2 == HeaderL2.COM:
-            l2_rank = 0
-        elif isinstance(l2, str) and l2.startswith("C") and l2[1:].isdigit():
-            l2_rank = int(l2[1:])
-        else:
-            l2_rank = 99
+        }.get(l1, 99)
 
+    @staticmethod
+    def _result_object_rank(l2):
+        if l2 == HeaderL2.COM:
+            return 0
+        if isinstance(l2, str) and l2.startswith("C") and l2[1:].isdigit():
+            return int(l2[1:])
+        return 99
+
+    @classmethod
+    def _result_component_rank(cls, l1, l2, l3):
+        del cls
         l3_str = str(l3)
         if l1 == HeaderL1.POS and l2 == HeaderL2.COM:
             pos_order = ["P_TX", "P_TY", "P_TZ", "P_RX", "P_RY", "P_RZ"]
             if l3_str in pos_order:
-                l3_rank = pos_order.index(l3_str)
-            else:
-                l3_rank = 999
-        elif l1 in {HeaderL1.VEL, HeaderL1.ACC} and l2 == HeaderL2.COM:
+                return pos_order.index(l3_str)
+            return 999
+        if l1 in {HeaderL1.VEL, HeaderL1.ACC} and l2 == HeaderL2.COM:
             local_order = [
                 f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_TX",
                 f"BoxLocal_{'V' if l1 == HeaderL1.VEL else 'A'}_TY",
@@ -539,18 +600,77 @@ class WidgetResultsAnalyzer(QWidget):
                 f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_R_Norm",
             ]
             stacked = local_order + global_order
-            l3_rank = stacked.index(l3_str) if l3_str in stacked else 999
-        elif l1 in {HeaderL1.VEL, HeaderL1.ACC} and isinstance(l2, str) and l2.startswith("C") and l2[1:].isdigit():
+            return stacked.index(l3_str) if l3_str in stacked else 999
+        if l1 in {HeaderL1.VEL, HeaderL1.ACC} and isinstance(l2, str) and l2.startswith("C") and l2[1:].isdigit():
             corner_order = [
                 f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TX",
                 f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TY",
                 f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_TZ",
                 f"Global_{'V' if l1 == HeaderL1.VEL else 'A'}_T_Norm",
             ]
-            l3_rank = corner_order.index(l3_str) if l3_str in corner_order else 999
-        else:
-            l3_rank = 999
-        return (l1_order.get(l1, 99), l2_rank, l3_rank, l3_str)
+            return corner_order.index(l3_str) if l3_str in corner_order else 999
+        return 999
+
+    @classmethod
+    def _result_tree_sort_key(cls, column_tuple, group_by="metric"):
+        l1, l2, l3 = column_tuple
+        metric_rank = cls._result_metric_rank(l1)
+        object_rank = cls._result_object_rank(l2)
+        component_rank = cls._result_component_rank(l1, l2, l3)
+        l3_str = str(l3)
+        if group_by == "object":
+            return (object_rank, metric_rank, component_rank, l3_str)
+        return (metric_rank, object_rank, component_rank, l3_str)
+
+    def _get_group_by_mode(self):
+        return self.selection_group_by_combo.currentData() or "metric"
+
+    def _get_search_terms(self):
+        return [token for token in self.selection_search_input.text().lower().split() if token]
+
+    def _build_result_tree_entries(self):
+        group_by = self._get_group_by_mode()
+        entries = []
+        sorted_columns = sorted(
+            self.available_result_columns,
+            key=lambda column: self._result_tree_sort_key(column, group_by),
+        )
+
+        for column in sorted_columns:
+            l1, l2, l3 = column
+            leaf_label = get_result_metric_display_name(l1, l2, l3)
+            path_label = get_result_column_display_path(column)
+            search_text = " ".join([
+                str(l1),
+                str(l2),
+                str(l3),
+                leaf_label,
+                path_label,
+            ]).lower()
+
+            if group_by == "object":
+                top_label = str(l2)
+                mid_label = str(l1)
+            else:
+                top_label = str(l1)
+                mid_label = str(l2)
+
+            entries.append({
+                "column": column,
+                "top_label": top_label,
+                "mid_label": mid_label,
+                "leaf_label": leaf_label,
+                "search_text": search_text,
+            })
+
+        return entries
+
+    @staticmethod
+    def _entry_matches_search(entry, search_terms):
+        if not search_terms:
+            return True
+        search_text = entry["search_text"]
+        return all(term in search_text for term in search_terms)
 
     def _iter_leaf_items(self):
         root = self.result_data_tree.invisibleRootItem()
@@ -562,29 +682,41 @@ class WidgetResultsAnalyzer(QWidget):
                     yield top_item, mid_item, mid_item.child(k)
 
     def _get_checked_columns(self):
-        checked_columns = []
-        for top_item, mid_item, leaf_item in self._iter_leaf_items():
-            if leaf_item.checkState(0) == Qt.Checked:
-                column_tuple = leaf_item.data(0, Qt.ItemDataRole.UserRole)
-                if column_tuple is None:
-                    column_tuple = (top_item.text(0), mid_item.text(0), leaf_item.text(0))
-                checked_columns.append(normalize_result_column(column_tuple))
-        return checked_columns
+        return [
+            entry["column"]
+            for entry in self._build_result_tree_entries()
+            if entry["column"] in self.checked_result_columns
+        ]
 
-    def on_tree_item_changed(self, _item, _column):
-        self._set_selected_columns_context(len(self._get_checked_columns()))
+    def on_tree_item_changed(self, item, _column):
+        column_tuple = item.data(0, Qt.ItemDataRole.UserRole)
+        if column_tuple is None:
+            return
+
+        normalized_column = normalize_result_column(column_tuple)
+        if item.checkState(0) == Qt.Checked:
+            self.checked_result_columns.add(normalized_column)
+        else:
+            self.checked_result_columns.discard(normalized_column)
+
+        checked_columns = self._get_checked_columns()
+        self._set_selected_columns_context(len(checked_columns))
+        self._update_find_max_targets(checked_columns)
 
     def clear_selection(self):
-        self.result_data_tree.blockSignals(True)
-        for _, _, leaf_item in self._iter_leaf_items():
-            leaf_item.setCheckState(0, Qt.Unchecked)
-        self.result_data_tree.blockSignals(False)
-        self._set_selected_columns_context(0)
+        self.checked_result_columns.clear()
+        self.refresh_result_tree()
 
     def _update_find_max_targets(self, checked_columns):
+        current_target = self.find_max_target_combo.currentData()
         self.find_max_target_combo.clear()
         for col in checked_columns:
             self.find_max_target_combo.addItem(get_result_column_display_path(col), userData=col)
+
+        if current_target in checked_columns:
+            index = self.find_max_target_combo.findData(current_target)
+            if index >= 0:
+                self.find_max_target_combo.setCurrentIndex(index)
 
     def plot_selected_results(self):
         if self.result_data is None:

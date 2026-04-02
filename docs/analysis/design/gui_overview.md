@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-03-19
+Last Reviewed: 2026-04-02
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -101,8 +101,13 @@ Last Reviewed: 2026-03-19
   - 읽기 전용 Folder Path
   - 결과 `.proc` 목록
 - `2. Data Selection`
+  - `Group By` (`Metric / Object`)
+  - `Search`
   - 결과 컬럼 트리 (`QTreeWidget`)
   - 내부 선택값은 `(L1, L2, L3)` tuple을 유지하지만, 사용자에게는 `Velocity X (Box Local Frame)` 같은 표시명을 노출
+  - `Group By`는 동일한 결과 컬럼 집합을 `Metric -> Object -> Component` 또는 `Object -> Metric -> Component` 기준으로 다시 묶어 보여준다.
+  - `Search`는 현재 트리를 평면 리스트로 바꾸지 않고, 일치한 leaf와 그 부모 경로만 남기는 필터로 동작한다.
+  - 체크 상태는 `Group By` 전환이나 `Search` 필터와 무관하게 유지된다.
   - 트리 아래 안내 라벨이 raw export key 대신 표시명이 보인다는 점을 예시와 함께 설명
   - `Clear Selection`
   - `Plot Selected Results`
@@ -127,6 +132,7 @@ Last Reviewed: 2026-03-19
 ### 4.3. 하단 메인 플롯
 - 현재 체크된 결과 컬럼을 한 그래프에 겹쳐서 표시한다.
 - 범례와 타겟 선택 문자열은 raw schema key를 직접 이어붙이지 않고, export 의미를 풀어쓴 표시명을 사용한다.
+- 현재 체크된 컬럼 집합은 트리 정렬 방식과 검색 필터가 바뀌어도 유지된다.
 - 그래프 클릭 시 가장 가까운 시점을 선택한다.
 - 선택된 시점은 붉은 수직선 커서와 선택 정보 레이블로 반영된다.
 

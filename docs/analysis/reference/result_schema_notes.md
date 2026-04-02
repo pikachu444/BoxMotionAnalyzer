@@ -1,6 +1,6 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-03-16
+Last Reviewed: 2026-04-02
 
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
@@ -10,7 +10,7 @@ Last Reviewed: 2026-03-16
 2. `VelocityCalculator`가 Global 속도/가속도 및 코너 속도(`Global_V_*`)를 계산
 3. `FrameAnalyzer`가 BoxLocal 속도/가속도(`BoxLocal_*`)와 Analysis 결과를 계산
 4. Export 시 `convert_to_multi_header()`가 flat 컬럼명을 Multi-Header로 변환
-5. `WidgetResultsAnalyzer`는 `DISPLAY_RESULT_COLUMNS` 기준으로 트리/플롯 항목을 표시
+5. `WidgetResultsAnalyzer`는 `DISPLAY_RESULT_COLUMNS` 기준으로 트리/플롯 항목을 표시하고, UI에서는 `Metric-first` / `Object-first` 계층 전환과 검색 필터를 제공한다
 6. `Visualization`은 export된 `HeaderL3` metric 키를 long-format 내부 컬럼에도 그대로 재사용한다
 
 ## 3. 단일 진실원(SoT)
