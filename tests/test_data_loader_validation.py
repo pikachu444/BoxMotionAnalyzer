@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from src.analysis.core.data_loader import DataLoader
+from src.analysis.pipeline.data_loader import DataLoader
 
 class TestDataLoaderValidation(unittest.TestCase):
     def test_validate_raw_data_valid(self):

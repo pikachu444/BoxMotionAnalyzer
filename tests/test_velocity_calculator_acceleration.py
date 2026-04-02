@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from unittest.mock import patch
 
-from src.analysis.velocity_calculator import VelocityCalculator
+from src.analysis.pipeline.velocity_calculator import VelocityCalculator
 from src.config.data_columns import PoseCols, VelocityCols
 
 
@@ -67,7 +67,7 @@ def test_velocity_calculator_uses_spline_derivative_for_acceleration():
     calc.use_pose_ma = False
     calc.use_vel_lpf = False
 
-    with patch("src.analysis.velocity_calculator._numerical_derivative", side_effect=AssertionError("finite-difference should not be used in spline mode")):
+    with patch("src.analysis.pipeline.velocity_calculator._numerical_derivative", side_effect=AssertionError("finite-difference should not be used in spline mode")):
         result = calc.process(df)
 
     assert VelocityCols.T_AX in result.columns

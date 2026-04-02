@@ -33,7 +33,7 @@ class SimulationThread(QThread):
 
             # 3. Export
             exporter = DataExporter(history, self.params['add_noise'], self.params['noise_std'])
-            output_path = exporter.export_raw_csv(self.filepath)
+            output_path = exporter.export_proc_csv(self.filepath)
 
             self.finished_signal.emit(output_path)
 
@@ -84,10 +84,40 @@ class SimulationUI(QWidget):
         self.mass_input.setRange(0.1, 10000)
         self.mass_input.setValue(100.0)
 
+        # According to ASTM D4521 / TAPPI standards for corrugated board
+        # Kinetic/Static friction is typically 0.4 to 0.6. We default to 0.5.
+        self.friction_input = QDoubleSpinBox()
+        self.friction_input.setRange(0.0, 5.0)
+        self.friction_input.setSingleStep(0.1)
+        self.friction_input.setValue(0.5)
+        self.friction_input.setToolTip("Corrugated cardboard typical friction: 0.4 ~ 0.6")
+
+        # Corrugated boxes absorb energy. Restitution (bounciness) is usually low.
+        self.elasticity_input = QDoubleSpinBox()
+        self.elasticity_input.setRange(0.0, 1.0)
+        self.elasticity_input.setSingleStep(0.05)
+        self.elasticity_input.setValue(0.15)
+        self.elasticity_input.setToolTip("Corrugated cardboard typical restitution: 0.1 ~ 0.2")
+
+        self.com_x = QDoubleSpinBox()
+        self.com_x.setRange(-2500, 2500)
+        self.com_x.setValue(0.0)
+        self.com_y = QDoubleSpinBox()
+        self.com_y.setRange(-2500, 2500)
+        self.com_y.setValue(0.0)
+        self.com_z = QDoubleSpinBox()
+        self.com_z.setRange(-2500, 2500)
+        self.com_z.setValue(0.0)
+
         form.addRow("Width (mm):", self.w_input)
         form.addRow("Depth (mm):", self.d_input)
         form.addRow("Height (mm):", self.h_input)
         form.addRow("Mass (kg):", self.mass_input)
+        form.addRow("Friction:", self.friction_input)
+        form.addRow("Restitution (Elasticity):", self.elasticity_input)
+        form.addRow("CoM X Offset (mm):", self.com_x)
+        form.addRow("CoM Y Offset (mm):", self.com_y)
+        form.addRow("CoM Z Offset (mm):", self.com_z)
 
         self.layout.addWidget(group)
 
@@ -96,13 +126,13 @@ class SimulationUI(QWidget):
         form = QFormLayout(group)
 
         self.cat_combo = QComboBox()
-        self.cat_combo.addItems(["Parcel_Light", "Parcel_Medium", "Parcel_Heavy", "LTL", "Custom"])
+        self.cat_combo.addItems(Scenarios.get_categories() + ["Custom"])
         self.cat_combo.currentIndexChanged.connect(self._on_cat_changed)
 
         self.drop_combo = QComboBox()
         self.drop_combo.addItems([
             "Flat_Bottom", "Flat_Top", "Flat_Front", "Flat_Back", "Flat_Left", "Flat_Right",
-            "Edge_Bottom_Front", "Corner_Bottom_Front_Left"
+            "Edge_3_4 (Bottom-Right)", "Edge_3_5 (Front-Bottom)", "Corner_2-3-5 (Front-Bottom-Right)"
         ])
 
         self.custom_h_input = QDoubleSpinBox()
@@ -163,13 +193,23 @@ class SimulationUI(QWidget):
         self.viewer_cb = QCheckBox("Show 3D Viewer during Simulation")
         self.viewer_cb.setChecked(True)
 
+        info_label = QLabel("Tip: When the 3D Viewer opens, you can use your Mouse:\n"
+                            "- Left Click + Drag: Rotate Camera\n"
+                            "- Right Click + Drag: Translate Camera\n"
+                            "- Scroll: Zoom\n"
+                            "- Double Click on Box: Apply physical perturbation (force)")
+        info_label.setStyleSheet("color: gray; font-size: 11px;")
+
         layout.addWidget(self.viewer_cb)
+        layout.addWidget(info_label)
         self.layout.addWidget(group)
 
     def run_simulation(self):
         # 1. Gather Params
         size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
         mass = self.mass_input.value()
+        friction = self.friction_input.value()
+        elasticity = self.elasticity_input.value()
 
         cat = self.cat_combo.currentText()
         if cat == "Custom":
@@ -191,9 +231,11 @@ class SimulationUI(QWidget):
             'show_viewer': self.viewer_cb.isChecked()
         }
 
+        com_offset = (self.com_x.value(), self.com_y.value(), self.com_z.value())
+
         # 2. Select Output File
         filepath, _ = QFileDialog.getSaveFileName(
-            self, "Save Simulation CSV", str(Path("data") / "sim_data.csv"), "CSV Files (*.csv)"
+            self, "Save Simulation Data", str(Path("data") / "sim_data.proc"), "PROC Files (*.proc)"
         )
         if not filepath:
             return
@@ -202,7 +244,7 @@ class SimulationUI(QWidget):
         self.run_btn.setEnabled(False)
         self.progress_bar.show()
 
-        engine = MuJoCoEngine(size=size, mass=mass)
+        engine = MuJoCoEngine(size=size, mass=mass, friction=friction, elasticity=elasticity, com_offset=com_offset)
 
         # 4. Run Simulation
         if params['show_viewer']:
@@ -212,7 +254,7 @@ class SimulationUI(QWidget):
                 history = engine.run_simulation(show_viewer=True)
 
                 exporter = DataExporter(history, params['add_noise'], params['noise_std'])
-                output_path = exporter.export_raw_csv(filepath)
+                output_path = exporter.export_proc_csv(filepath)
 
                 self.on_sim_finished(output_path)
             except Exception as e:

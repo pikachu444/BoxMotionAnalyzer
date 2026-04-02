@@ -21,12 +21,16 @@ class Scenarios:
         return Scenarios.HEIGHTS.get(category, 810)
 
     @staticmethod
+    def get_categories():
+        return list(Scenarios.HEIGHTS.keys())
+
+    @staticmethod
     def get_orientation(drop_type: str, box_size: tuple) -> list:
         """
         Returns quaternion [w, x, y, z] for a specific drop type.
         box_size: (width, depth, height) in mm
         drop_type: "Flat_Bottom", "Flat_Top", "Flat_Front", "Flat_Back", "Flat_Left", "Flat_Right",
-                   "Edge_Bottom_Front", "Corner_Bottom_Front_Left", "Custom"
+                   "Edge_3_4 (Bottom-Right)", "Edge_3_5 (Front-Bottom)", "Corner_2-3-5 (Front-Bottom-Right)", "Custom"
         """
         w, d, h = box_size
 
@@ -55,19 +59,19 @@ class Scenarios:
             # -90 deg around Y
             r = R.from_euler('y', -90, degrees=True)
             quat = Scenarios._scipy_to_mujoco_quat(r.as_quat())
-        elif drop_type == "Edge_Bottom_Front":
-            # Rotate such that the bottom-front edge hits first
-            # We tilt around X axis by some angle so CG is over edge
+        elif drop_type == "Edge_3_4 (Bottom-Right)":
+            # ISTA edge numbering varies, this simulates tipping on a long edge
+            angle = np.degrees(np.arctan2(w, h))
+            r = R.from_euler('y', angle, degrees=True)
+            quat = Scenarios._scipy_to_mujoco_quat(r.as_quat())
+        elif drop_type == "Edge_3_5 (Front-Bottom)":
             angle = np.degrees(np.arctan2(d, h))
             r = R.from_euler('x', angle, degrees=True)
             quat = Scenarios._scipy_to_mujoco_quat(r.as_quat())
-        elif drop_type == "Corner_Bottom_Front_Left":
-            # Rotate such that the bottom-front-left corner hits first
-            # 1. Tilt around X (pitch) to balance CG over front edge
+        elif drop_type == "Corner_2-3-5 (Front-Bottom-Right)":
+            # Rotate such that the corner hits first and CoG is aligned over it
             pitch = np.degrees(np.arctan2(d, h))
-            # 2. Tilt around Y (roll) to balance CG over corner
             roll = np.degrees(np.arctan2(w, np.sqrt(d**2 + h**2)))
-
             r = R.from_euler('xy', [pitch, roll], degrees=True)
             quat = Scenarios._scipy_to_mujoco_quat(r.as_quat())
         else:
