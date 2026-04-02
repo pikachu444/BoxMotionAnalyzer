@@ -1,6 +1,6 @@
 # 3D Visualization GUI 검증 리포트 (Validation Report)
 
-본 문서는 `docs/visualization/design/gui_validation_plan.md`에 명시된 3D Visualization GUI 동작 및 안정성에 대한 검증 결과를 정리한 리포트입니다. 모든 검증은 헤드리스 Xvfb 환경에서 PySide6 프로그램적 인터페이스(스크립트 테스트)를 통해 수행되었습니다.
+본 문서는 3D Visualization GUI 동작 및 안정성에 대한 검증 결과를 정리한 리포트입니다. 모든 검증은 헤드리스 Xvfb 환경에서 PySide6 프로그램적 인터페이스(스크립트 테스트)를 통해 수행되었습니다.
 
 ## 실행 환경 (Environment)
 - OS: Linux (Docker Container)
