@@ -132,7 +132,7 @@ class WidgetResultsAnalyzer(QWidget):
         selection_search_row = QHBoxLayout()
         selection_search_row.addWidget(QLabel("Search:"))
         self.selection_search_input = QLineEdit()
-        self.selection_search_input.setPlaceholderText("Search object, metric, or component")
+        self.selection_search_input.setPlaceholderText("Search (space=AND, comma=OR)")
         self.selection_search_input.setEnabled(False)
         selection_search_row.addWidget(self.selection_search_input)
         selection_layout.addLayout(selection_search_row)
@@ -142,9 +142,10 @@ class WidgetResultsAnalyzer(QWidget):
         self.result_data_tree.setEnabled(False)
         selection_layout.addWidget(self.result_data_tree)
         self.selection_help_label = QLabel(
-            "Displayed names expand export keys into readable labels, for example Velocity X (Box Local Frame)."
+            "Search filters the current tree. Checked items stay selected when Group By changes."
         )
         self.selection_help_label.setWordWrap(True)
+        self.selection_help_label.setStyleSheet("color: #4a5568;")
         selection_layout.addWidget(self.selection_help_label)
 
         selection_buttons_row = QHBoxLayout()
@@ -185,6 +186,7 @@ class WidgetResultsAnalyzer(QWidget):
             "Peak search uses the metric currently selected in Target."
         )
         self.target_help_label.setWordWrap(True)
+        self.target_help_label.setStyleSheet("color: #4a5568;")
         point_analysis_layout.addWidget(self.target_help_label)
 
         find_layout = QHBoxLayout()
@@ -626,7 +628,13 @@ class WidgetResultsAnalyzer(QWidget):
         return self.selection_group_by_combo.currentData() or "metric"
 
     def _get_search_terms(self):
-        return [token for token in self.selection_search_input.text().lower().split() if token]
+        raw_text = self.selection_search_input.text().lower()
+        groups = []
+        for part in raw_text.split():
+            options = [token.strip() for token in part.split(",") if token.strip()]
+            if options:
+                groups.append(options)
+        return groups
 
     def _build_result_tree_entries(self):
         group_by = self._get_group_by_mode()
@@ -670,7 +678,7 @@ class WidgetResultsAnalyzer(QWidget):
         if not search_terms:
             return True
         search_text = entry["search_text"]
-        return all(term in search_text for term in search_terms)
+        return all(any(option in search_text for option in group) for group in search_terms)
 
     def _iter_leaf_items(self):
         root = self.result_data_tree.invisibleRootItem()
