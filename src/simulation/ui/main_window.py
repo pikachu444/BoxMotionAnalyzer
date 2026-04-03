@@ -158,8 +158,13 @@ class SimulationUI(QWidget):
         self.custom_y_input.setRange(-180, 180)
         self.custom_y_input.setValue(0)
 
+        self.info_label = QLabel("")
+        self.info_label.setStyleSheet("color: #4CAF50; font-size: 11px;")
+        self.info_label.setWordWrap(True)
+
         self.warning_label = QLabel("")
         self.warning_label.setStyleSheet("color: red; font-weight: bold; font-size: 11px;")
+        self.warning_label.setWordWrap(True)
 
         # Connect manual user edits to trigger warning label
         self.custom_h_input.valueChanged.connect(self._check_for_modifications)
@@ -181,6 +186,7 @@ class SimulationUI(QWidget):
         form.addRow("Roll (deg):", self.custom_r_input)
         form.addRow("Pitch (deg):", self.custom_p_input)
         form.addRow("Yaw (deg):", self.custom_y_input)
+        form.addRow("", self.info_label)
         form.addRow("", self.warning_label)
 
         self.layout.addWidget(group)
@@ -207,14 +213,56 @@ class SimulationUI(QWidget):
         # Calculate dynamic height
         height = Scenarios.calculate_drop_height(cat, seq_name, mass)
 
-        # Calculate euler angles
-        roll, pitch, yaw = Scenarios.get_euler_angles(seq_name, box_size)
+        # Calculate euler angles passing category for correct face numbering
+        roll, pitch, yaw = Scenarios.get_euler_angles(seq_name, box_size, category=cat)
 
-        # Update UI (these are disabled if not Custom, so they act as display fields)
+        self.base_h, self.base_r, self.base_p, self.base_y = height, roll, pitch, yaw
+
+        # Generate Context Info String
+        is_type_g = "Type G" in cat
+        weight_str = "< 32kg" if mass < 32.0 else ">= 32kg"
+        drop_type_str = "High Drop" if "High" in seq_name else "Standard Drop" if is_type_g else ("Tip" if "Tip" in seq_name else "Drop")
+
+        info_text = f"ℹ Standard Height: {height}mm (Rule: {cat.split(' ')[2]}, Mass {weight_str}, {drop_type_str})"
+        self.info_label.setText(info_text)
+
+        # Temporarily block signals so setting the values programmatically doesn't trigger user modification warnings
+        self.custom_h_input.blockSignals(True)
+        self.custom_r_input.blockSignals(True)
+        self.custom_p_input.blockSignals(True)
+        self.custom_y_input.blockSignals(True)
+
         self.custom_h_input.setValue(height)
         self.custom_r_input.setValue(roll)
         self.custom_p_input.setValue(pitch)
         self.custom_y_input.setValue(yaw)
+        self.warning_label.setText("")
+
+        self.custom_h_input.blockSignals(False)
+        self.custom_r_input.blockSignals(False)
+        self.custom_p_input.blockSignals(False)
+        self.custom_y_input.blockSignals(False)
+
+    def _check_for_modifications(self):
+        """Checks if current spinbox values deviate from the standard scenario base values."""
+        h = self.custom_h_input.value()
+        r = self.custom_r_input.value()
+        p = self.custom_p_input.value()
+        y = self.custom_y_input.value()
+
+        # Check if values differ from base calculation
+        if (abs(h - self.base_h) > 0.1 or abs(r - self.base_r) > 0.1 or
+            abs(p - self.base_p) > 0.1 or abs(y - self.base_y) > 0.1):
+
+            changes = []
+            if abs(h - self.base_h) > 0.1: changes.append(f"Height ({self.base_h:.1f}➔{h:.1f})")
+            if abs(r - self.base_r) > 0.1: changes.append(f"Roll ({self.base_r:.1f}➔{r:.1f})")
+            if abs(p - self.base_p) > 0.1: changes.append(f"Pitch ({self.base_p:.1f}➔{p:.1f})")
+            if abs(y - self.base_y) > 0.1: changes.append(f"Yaw ({self.base_y:.1f}➔{y:.1f})")
+
+            self.warning_label.setText("⚠ Modified: " + ", ".join(changes))
+        else:
+            self.warning_label.setText("")
 
     def _init_noise_group(self):
         group = QGroupBox("Noise Simulation")
