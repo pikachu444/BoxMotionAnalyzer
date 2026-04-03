@@ -6,14 +6,14 @@ import numpy as np
 # All time units are assumed to be in seconds (s) unless otherwise specified.
 # Box Local Coordinate System:
 # The origin is at the geometric center of the box.
-# Local X-axis: Along the length (L) of the box.
-# Local Y-axis: Along the width (W) of the box.
-# Local Z-axis: Along the height (H) of the box.
+# Local X-axis: Width / left-right direction.
+# Local Y-axis: Height / top-bottom direction.
+# Local Z-axis: Depth / screen-rear direction.
 # This forms a right-handed coordinate system.
-# The interpretation of L, W, H for BOX_DIMS = [dimX, dimY, dimZ] is:
-# L = BOX_DIMS[0] (along local X)
-# W = BOX_DIMS[1] (along local Y)
-# H = BOX_DIMS[2] (along local Z)
+# BOX_DIMS = [dimX, dimY, dimZ] therefore means:
+# dimX = Width  (along local X)
+# dimY = Height (along local Y)
+# dimZ = Depth  (along local Z)
 # World/Camera Coordinate System:
 # As defined by the motion capture system or input data.
 # The transformations (T, R) in AlignBoxMain.py map points from the
@@ -21,7 +21,7 @@ import numpy as np
 
 # --- Box Configuration ---
 # 65 incm model 65U8000F
-BOX_DIMS = np.array([1578.0, 930.0, 142.0]) # L, W, H in (mm) corresponding to local X, Y, Z axes
+BOX_DIMS = np.array([1578.0, 930.0, 142.0]) # Width, Height, Depth in (mm) for local X, Y, Z axes
 # 75 inch model 75U8000F
 # BOX_DIMS = np.array([1820.0, 1110.0, 164.0]) # L, W, H in (mm) corresponding to local X, Y, Z axes
 
@@ -30,7 +30,7 @@ _L_box, _W_box, _H_box = BOX_DIMS # Unpack for clarity in local corner/edge defi
 _hl, _hw, _hh = _L_box / 2.0, _W_box / 2.0, _H_box / 2.0
 
 # Standard 8 local corners, ordered for consistency.
-# Origin at box center. Axes: X (Length), Y (Width), Z (Height).
+# Origin at box center. Axes: X (Width), Y (Height), Z (Depth).
 # This order matches the one historically used in AlignBoxMain's get_box_world_corners
 # and is critical for FACE_DEFINITIONS.
 LOCAL_BOX_CORNERS = np.array([
