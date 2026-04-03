@@ -6,10 +6,10 @@ from src.simulation.data_exporter import DataExporter
 
 def plot_velocity_validation():
     print("Running Simulation for Velocity Validation (Edge Drop)...")
-    # TV Size & Mass
-    size = (1570/2, 300/2, 950/2) # half-extents
+    # TV Size & Mass (Matching Legacy BOX_DIMS: X=Width, Y=Height, Z=Depth)
+    size = (1578/2, 930/2, 142/2) # half-extents
     mass = 25.0
-    com_offset = (0, 0, -200)
+    com_offset = (0, -200, 0) # Offset along local Y (Height) to induce tumbling
 
     engine = MuJoCoEngine(size=size, mass=mass, friction=0.5, elasticity=0.15, com_offset=com_offset)
 

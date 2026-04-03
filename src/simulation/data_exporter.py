@@ -16,11 +16,23 @@ class DataExporter:
 
     def _convert_axes(self, vec):
         """
-        Converts MuJoCo coordinates (Z-up) to OptiTrack/System global coordinates (Y-up).
-        Mapping:
-        System X = MuJoCo X
-        System Y = MuJoCo Z
-        System Z = -MuJoCo Y
+        Converts MuJoCo coordinates (Z-up) to OptiTrack/System global coordinates (Y-up)
+        while preserving the legacy local box orientation.
+
+        In the legacy system (config_app.py):
+        - Local X: Width (e.g., 1578)
+        - Local Y: Height / Top-Bottom direction (e.g., 930)
+        - Local Z: Depth / Thickness (e.g., 142)
+
+        In MuJoCo:
+        - We build the box matching the legacy Local axes directly:
+          geom_size = [Width/2, Height/2, Depth/2] mapping to X, Y, Z.
+
+        Therefore, to match the world frame of the legacy PyVista viewer (where World Y is Up,
+        and World Z is depth):
+        System World X = MuJoCo X
+        System World Y = MuJoCo Z (Since MuJoCo drops along -Z, System must drop along -Y)
+        System World Z = -MuJoCo Y
         """
         return np.array([vec[0], vec[2], -vec[1]])
 

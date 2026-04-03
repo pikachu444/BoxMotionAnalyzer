@@ -70,15 +70,15 @@ class SimulationUI(QWidget):
 
         self.w_input = QDoubleSpinBox()
         self.w_input.setRange(10, 5000)
-        self.w_input.setValue(1570)
+        self.w_input.setValue(1578.0) # Matches BOX_DIMS[0]
 
         self.d_input = QDoubleSpinBox()
         self.d_input.setRange(10, 5000)
-        self.d_input.setValue(300)
+        self.d_input.setValue(930.0) # Matches BOX_DIMS[1] (Height in legacy system)
 
         self.h_input = QDoubleSpinBox()
         self.h_input.setRange(10, 5000)
-        self.h_input.setValue(950)
+        self.h_input.setValue(142.0) # Matches BOX_DIMS[2] (Depth/Thickness in legacy system)
 
         self.mass_input = QDoubleSpinBox()
         self.mass_input.setRange(0.1, 10000)
@@ -107,12 +107,14 @@ class SimulationUI(QWidget):
         self.com_y.setValue(0.0)
         self.com_z = QDoubleSpinBox()
         self.com_z.setRange(-2500, 2500)
-        self.com_z.setValue(-200.0)
-        self.com_z.setToolTip("A slight offset is required for tumbling to occur during corner drops in a perfect simulation.")
+        self.com_z.setValue(0.0)
+
+        self.com_y.setValue(-200.0) # Y is the height axis in legacy, offset here for tumbling
+        self.com_y.setToolTip("A slight offset along the height axis (Y) is required for tumbling to occur during corner drops.")
 
         form.addRow("Width (Local X, mm):", self.w_input)
-        form.addRow("Depth (Local Y, mm):", self.d_input)
-        form.addRow("Height (Local Z, mm):", self.h_input)
+        form.addRow("Height (Local Y, mm):", self.d_input)
+        form.addRow("Depth/Thickness (Local Z, mm):", self.h_input)
         form.addRow("Mass (kg):", self.mass_input)
         form.addRow("Friction:", self.friction_input)
         form.addRow("Restitution (Elasticity):", self.elasticity_input)
