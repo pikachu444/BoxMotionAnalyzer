@@ -1,3 +1,5 @@
+import re
+
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
@@ -9,20 +11,22 @@ class Scenarios:
 
     CATEGORIES = ["ISTA 6A Type G (TV/Monitor Parcel)", "ISTA 6A Type H (LTL)"]
 
-    # Target orientations mapping.
-    # Tuple: (Roll, Pitch, Yaw) in degrees.
-    # Note: These are rough approximations based on Box Local Frame where X=Width, Y=Height, Z=Depth.
-    # The exact ISTA edge/corner numbering logic requires identifying the shortest/longest edges.
-    # For a TV (W > Y > Z), standard orientation assumes it's sitting upright.
-    # Flat Bottom (Face 3 usually) is [0, 0, 0].
-    # Flat Back (Face 5) or Front (Face 6) requires pitching.
-    FACES = {
-        "Flat_Bottom": (0, 0, 0),
-        "Flat_Top": (180, 0, 0),
-        "Flat_Front": (90, 0, 0),  # Pitch 90
-        "Flat_Back": (-90, 0, 0),
-        "Flat_Left": (0, 0, 90),   # Yaw 90
-        "Flat_Right": (0, 0, -90)
+    # Local axes: X=Right(+), Y=Top(+), Z=Screen(+)
+    TYPE_G_FACE_NORMALS = {
+        1: np.array([0.0, 0.0, -1.0]),  # Rear
+        2: np.array([0.0, -1.0, 0.0]),  # Bottom
+        3: np.array([0.0, 0.0, 1.0]),   # Screen
+        4: np.array([0.0, 1.0, 0.0]),   # Top
+        5: np.array([1.0, 0.0, 0.0]),   # Right
+        6: np.array([-1.0, 0.0, 0.0]),  # Left
+    }
+    TYPE_H_FACE_NORMALS = {
+        1: np.array([0.0, 1.0, 0.0]),   # Top
+        2: np.array([0.0, 0.0, -1.0]),  # Rear
+        3: np.array([0.0, -1.0, 0.0]),  # Bottom
+        4: np.array([0.0, 0.0, 1.0]),   # Screen
+        5: np.array([1.0, 0.0, 0.0]),   # Right
+        6: np.array([-1.0, 0.0, 0.0]),  # Left
     }
 
     @staticmethod
@@ -101,44 +105,10 @@ class Scenarios:
         Returns (roll, pitch, yaw) in degrees to orient the box correctly.
         box_size: (w, h, d) mapping to (Local X, Local Y, Local Z)
         """
-        w, h, d = box_size
-
-        if "Face 3" in sequence_name or "Bottom" in sequence_name and "Edge" not in sequence_name and "Corner" not in sequence_name:
-            return Scenarios.FACES["Flat_Bottom"]
-        elif "Face 1" in sequence_name or "Top" in sequence_name and "Edge" not in sequence_name:
-            return Scenarios.FACES["Flat_Top"]
-        elif "Face 5" in sequence_name or "Front" in sequence_name:
-            return Scenarios.FACES["Flat_Front"]
-        elif "Face 6" in sequence_name or "Back" in sequence_name:
-            return Scenarios.FACES["Flat_Back"]
-        elif "Face 2" in sequence_name or "Left" in sequence_name:
-            return Scenarios.FACES["Flat_Left"]
-        elif "Face 4" in sequence_name or "Right" in sequence_name:
-            return Scenarios.FACES["Flat_Right"]
-
-        elif "Corner 3-4-6" in sequence_name:
-            # Approximate corner rotation
-            pitch = np.degrees(np.arctan2(d, h))
-            roll = np.degrees(np.arctan2(w, np.sqrt(d**2 + h**2)))
-            return (roll, pitch, 0.0)
-
-        elif "Corner 2-3-5" in sequence_name:
-            pitch = np.degrees(np.arctan2(d, h))
-            roll = -np.degrees(np.arctan2(w, np.sqrt(d**2 + h**2)))
-            return (roll, pitch, 0.0)
-
-        elif "Edge 3-4" in sequence_name or "Bottom-Long" in sequence_name:
-            # Roll along the long edge (X axis)
-            angle = np.degrees(np.arctan2(w, h))
-            return (angle, 0.0, 0.0)
-
-        elif "Edge 3-6" in sequence_name or "Bottom-Short" in sequence_name:
-            # Pitch along short edge (Z axis)
-            angle = np.degrees(np.arctan2(d, h))
-            return (0.0, angle, 0.0)
-
-        # Default fallback
-        return (0.0, 0.0, 0.0)
+        contact_normals = Scenarios._get_contact_normals(sequence_name, box_size, category)
+        if not contact_normals:
+            return (0.0, 0.0, 0.0)
+        return Scenarios._get_euler_from_contact_normals(contact_normals)
 
     @staticmethod
     def get_orientation_from_euler(roll: float, pitch: float, yaw: float) -> list:
@@ -156,3 +126,106 @@ class Scenarios:
         """
         x, y, z, w = scipy_quat
         return [w, x, y, z]
+
+    @staticmethod
+    def _face_normals_for_category(category: str):
+        return Scenarios.TYPE_H_FACE_NORMALS if "Type H" in category else Scenarios.TYPE_G_FACE_NORMALS
+
+    @staticmethod
+    def _normalize_sequence_name(sequence_name: str) -> str:
+        return re.sub(r"[^A-Z0-9]+", "_", sequence_name.upper()).strip("_")
+
+    @staticmethod
+    def _extract_face_numbers(sequence_name: str) -> list[int]:
+        normalized = Scenarios._normalize_sequence_name(sequence_name)
+        match = re.search(r"(?:FACE|EDGE|CORNER)_([1-6](?:_[1-6]){0,2})", normalized)
+        if not match:
+            return []
+        return [int(part) for part in match.group(1).split("_")]
+
+    @staticmethod
+    def _get_contact_normals(sequence_name: str, box_size: tuple, category: str) -> list[np.ndarray]:
+        face_normals = Scenarios._face_normals_for_category(category)
+        face_numbers = Scenarios._extract_face_numbers(sequence_name)
+        if face_numbers:
+            return [face_normals[number] for number in face_numbers]
+
+        normalized = Scenarios._normalize_sequence_name(sequence_name)
+        bottom_face = 3 if "Type H" in category else 2
+        screen_face = 4 if "Type H" in category else 3
+        right_face = 5
+        width, _, depth = box_size
+
+        if "ROTATIONALEDGE_BOTTOMLONG" in normalized:
+            side_face = screen_face if width >= depth else right_face
+            return [face_normals[bottom_face], face_normals[side_face]]
+
+        if "ROTATIONALEDGE_BOTTOMSHORT" in normalized:
+            side_face = right_face if width >= depth else screen_face
+            return [face_normals[bottom_face], face_normals[side_face]]
+
+        return []
+
+    @staticmethod
+    def _normalize_vector(vector: np.ndarray) -> np.ndarray:
+        norm = np.linalg.norm(vector)
+        if norm == 0:
+            raise ValueError("Zero-length vector cannot be normalized.")
+        return vector / norm
+
+    @staticmethod
+    def _canonicalize_axis(vector: np.ndarray) -> np.ndarray:
+        for value in vector:
+            if abs(value) > 1e-8:
+                return vector if value > 0 else -vector
+        return vector
+
+    @staticmethod
+    def _select_reference_axis(local_down: np.ndarray, normals: list[np.ndarray]) -> np.ndarray:
+        if len(normals) > 1:
+            for idx in range(len(normals)):
+                for jdx in range(idx + 1, len(normals)):
+                    axis = np.cross(normals[idx], normals[jdx])
+                    if np.linalg.norm(axis) > 1e-8:
+                        axis = axis - np.dot(axis, local_down) * local_down
+                        if np.linalg.norm(axis) > 1e-8:
+                            axis = Scenarios._canonicalize_axis(axis)
+                            return Scenarios._normalize_vector(axis)
+
+        candidates = [
+            np.array([1.0, 0.0, 0.0]),
+            np.array([0.0, 1.0, 0.0]),
+            np.array([0.0, 0.0, 1.0]),
+        ]
+        best_axis = candidates[0]
+        best_norm = -1.0
+        for candidate in candidates:
+            axis = candidate - np.dot(candidate, local_down) * local_down
+            axis_norm = np.linalg.norm(axis)
+            if axis_norm > best_norm:
+                best_axis = axis
+                best_norm = axis_norm
+        best_axis = Scenarios._canonicalize_axis(best_axis)
+        return Scenarios._normalize_vector(best_axis)
+
+    @staticmethod
+    def _get_euler_from_contact_normals(contact_normals: list[np.ndarray]) -> tuple:
+        local_down = Scenarios._normalize_vector(np.sum(contact_normals, axis=0))
+        local_x = Scenarios._select_reference_axis(local_down, contact_normals)
+        local_up = -local_down
+        local_y = Scenarios._normalize_vector(np.cross(local_up, local_x))
+
+        local_basis = np.column_stack((local_x, local_y, local_up))
+        world_basis = np.column_stack((
+            np.array([1.0, 0.0, 0.0]),
+            np.array([0.0, 1.0, 0.0]),
+            np.array([0.0, 0.0, 1.0]),
+        ))
+        rotation = R.from_matrix(world_basis @ local_basis.T)
+        euler = rotation.as_euler("xyz", degrees=True)
+
+        normalized = []
+        for angle in euler:
+            wrapped = ((float(angle) + 180.0) % 360.0) - 180.0
+            normalized.append(0.0 if abs(wrapped) < 1e-6 else wrapped)
+        return tuple(normalized)
