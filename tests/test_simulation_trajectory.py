@@ -13,14 +13,16 @@ def test_generate_trajectory_plot():
     stop_time = 3.0
 
     # 1. Flat Drop (면 낙하) from 1m (1000mm)
-    quat_flat = Scenarios.get_orientation("Flat_Bottom", (1000, 1000, 1000))
+    roll, pitch, yaw = Scenarios.get_euler_angles("Face_2_Bottom", (1000, 1000, 1000), category="Type G")
+    quat_flat = Scenarios.get_orientation_from_euler(roll, pitch, yaw)
     engine.set_initial_state(1000, quat_flat)
     history_flat = engine.run_simulation(show_viewer=False, stop_condition_time=stop_time, velocity_threshold=0.005)
 
     # 2. Corner Drop (꼭짓점 낙하) from 1m (1000mm)
     # Re-instantiate engine to clear internal data states and prevent early stopping
     engine_corner = MuJoCoEngine(size=(1000, 1000, 1000), mass=100.0)
-    quat_corner = Scenarios.get_orientation("Corner_Bottom_Front_Left", (1000, 1000, 1000))
+    roll, pitch, yaw = Scenarios.get_euler_angles("Corner_2-3-5", (1000, 1000, 1000), category="Type G")
+    quat_corner = Scenarios.get_orientation_from_euler(roll, pitch, yaw)
     engine_corner.set_initial_state(1000, quat_corner)
     history_corner = engine_corner.run_simulation(show_viewer=False, stop_condition_time=stop_time, velocity_threshold=0.005)
 

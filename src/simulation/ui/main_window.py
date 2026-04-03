@@ -53,12 +53,19 @@ class SimulationUI(QWidget):
         self._init_noise_group()
         self._init_export_group()
 
-        self.run_btn = QPushButton("Run Simulation && Export")
+        btn_layout = QHBoxLayout()
+        self.run_btn = QPushButton("Run Current Sequence")
         self.run_btn.clicked.connect(self.run_simulation)
-        self.layout.addWidget(self.run_btn)
+
+        self.batch_btn = QPushButton("Run Full Test Sequence (Batch)")
+        self.batch_btn.clicked.connect(self.run_batch_simulation)
+
+        btn_layout.addWidget(self.run_btn)
+        btn_layout.addWidget(self.batch_btn)
+        self.layout.addLayout(btn_layout)
 
         self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 0)
+        self.progress_bar.setRange(0, 100)
         self.progress_bar.hide()
         self.layout.addWidget(self.progress_bar)
 
@@ -125,55 +132,89 @@ class SimulationUI(QWidget):
         self.layout.addWidget(group)
 
     def _init_scenario_group(self):
-        group = QGroupBox("Drop Scenario (ISTA-6A)")
+        group = QGroupBox("Drop Scenario (ISTA 6-Amazon.com SIOC)")
         form = QFormLayout(group)
 
         self.cat_combo = QComboBox()
-        self.cat_combo.addItems(Scenarios.get_categories() + ["Custom"])
+        self.cat_combo.addItems(Scenarios.get_categories())
         self.cat_combo.currentIndexChanged.connect(self._on_cat_changed)
 
         self.drop_combo = QComboBox()
-        self.drop_combo.addItems([
-            "Flat_Bottom", "Flat_Top", "Flat_Front", "Flat_Back", "Flat_Left", "Flat_Right",
-            "Edge_3_4 (Bottom-Right)", "Edge_3_5 (Front-Bottom)", "Corner_2-3-5 (Front-Bottom-Right)"
-        ])
+        self.drop_combo.currentIndexChanged.connect(self._update_custom_fields_from_scenario)
 
         self.custom_h_input = QDoubleSpinBox()
         self.custom_h_input.setRange(10, 10000)
         self.custom_h_input.setValue(810)
-        self.custom_h_input.setEnabled(False)
 
         self.custom_r_input = QDoubleSpinBox()
         self.custom_r_input.setRange(-180, 180)
         self.custom_r_input.setValue(0)
-        self.custom_r_input.setEnabled(False)
 
         self.custom_p_input = QDoubleSpinBox()
         self.custom_p_input.setRange(-180, 180)
         self.custom_p_input.setValue(0)
-        self.custom_p_input.setEnabled(False)
 
         self.custom_y_input = QDoubleSpinBox()
         self.custom_y_input.setRange(-180, 180)
         self.custom_y_input.setValue(0)
-        self.custom_y_input.setEnabled(False)
+
+        self.warning_label = QLabel("")
+        self.warning_label.setStyleSheet("color: red; font-weight: bold; font-size: 11px;")
+
+        # Connect manual user edits to trigger warning label
+        self.custom_h_input.valueChanged.connect(self._check_for_modifications)
+        self.custom_r_input.valueChanged.connect(self._check_for_modifications)
+        self.custom_p_input.valueChanged.connect(self._check_for_modifications)
+        self.custom_y_input.valueChanged.connect(self._check_for_modifications)
+
+        # Connect mass/size input changes to update height/angles dynamically
+        self.mass_input.valueChanged.connect(self._update_custom_fields_from_scenario)
+        self.w_input.valueChanged.connect(self._update_custom_fields_from_scenario)
+        self.d_input.valueChanged.connect(self._update_custom_fields_from_scenario)
+        self.h_input.valueChanged.connect(self._update_custom_fields_from_scenario)
+
+        self.base_h, self.base_r, self.base_p, self.base_y = 810, 0, 0, 0
 
         form.addRow("Category:", self.cat_combo)
-        form.addRow("Drop Type:", self.drop_combo)
-        form.addRow("Custom Height (mm):", self.custom_h_input)
-        form.addRow("Custom Roll (deg):", self.custom_r_input)
-        form.addRow("Custom Pitch (deg):", self.custom_p_input)
-        form.addRow("Custom Yaw (deg):", self.custom_y_input)
+        form.addRow("Drop Sequence:", self.drop_combo)
+        form.addRow("Height (mm):", self.custom_h_input)
+        form.addRow("Roll (deg):", self.custom_r_input)
+        form.addRow("Pitch (deg):", self.custom_p_input)
+        form.addRow("Yaw (deg):", self.custom_y_input)
+        form.addRow("", self.warning_label)
 
         self.layout.addWidget(group)
+        self._on_cat_changed() # Trigger initial population
 
     def _on_cat_changed(self):
-        is_custom = self.cat_combo.currentText() == "Custom"
-        self.drop_combo.setEnabled(not is_custom)
-        self.custom_h_input.setEnabled(is_custom)
-        self.custom_r_input.setEnabled(is_custom)
-        self.custom_p_input.setEnabled(is_custom)
-        self.custom_y_input.setEnabled(is_custom)
+        cat = self.cat_combo.currentText()
+
+        self.drop_combo.blockSignals(True)
+        self.drop_combo.clear()
+        self.drop_combo.addItems(Scenarios.get_drop_sequences(cat))
+        self.drop_combo.blockSignals(False)
+        self._update_custom_fields_from_scenario()
+
+    def _update_custom_fields_from_scenario(self):
+        cat = self.cat_combo.currentText()
+        if self.drop_combo.count() == 0:
+            return
+
+        seq_name = self.drop_combo.currentText()
+        mass = self.mass_input.value()
+        box_size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
+
+        # Calculate dynamic height
+        height = Scenarios.calculate_drop_height(cat, seq_name, mass)
+
+        # Calculate euler angles
+        roll, pitch, yaw = Scenarios.get_euler_angles(seq_name, box_size)
+
+        # Update UI (these are disabled if not Custom, so they act as display fields)
+        self.custom_h_input.setValue(height)
+        self.custom_r_input.setValue(roll)
+        self.custom_p_input.setValue(pitch)
+        self.custom_y_input.setValue(yaw)
 
     def _init_noise_group(self):
         group = QGroupBox("Noise Simulation")
@@ -221,17 +262,14 @@ class SimulationUI(QWidget):
         friction = self.friction_input.value()
         elasticity = self.elasticity_input.value()
 
-        cat = self.cat_combo.currentText()
-        if cat == "Custom":
-            height = self.custom_h_input.value()
-            quat = Scenarios.custom_orientation(
-                self.custom_r_input.value(),
-                self.custom_p_input.value(),
-                self.custom_y_input.value()
-            )
-        else:
-            height = Scenarios.get_drop_height(cat)
-            quat = Scenarios.get_orientation(self.drop_combo.currentText(), size)
+        # Always use the values from the spinboxes, because _update_custom_fields_from_scenario
+        # ensures they are correctly populated based on the selection or custom user input.
+        height = self.custom_h_input.value()
+        quat = Scenarios.get_orientation_from_euler(
+            self.custom_r_input.value(),
+            self.custom_p_input.value(),
+            self.custom_y_input.value()
+        )
 
         params = {
             'height': height,
@@ -277,13 +315,93 @@ class SimulationUI(QWidget):
             self.thread.error_signal.connect(self.on_sim_error)
             self.thread.start()
 
+    def run_batch_simulation(self):
+        cat = self.cat_combo.currentText()
+        sequences = Scenarios.get_drop_sequences(cat)
+
+        if not sequences:
+            return
+
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Directory to Save Batch Data", str(Path("data")))
+        if not dir_path:
+            return
+
+        self.run_btn.setEnabled(False)
+        self.batch_btn.setEnabled(False)
+        self.progress_bar.setRange(0, len(sequences))
+        self.progress_bar.setValue(0)
+        self.progress_bar.show()
+
+        self._batch_sequences = sequences
+        self._batch_current_idx = 0
+        self._batch_dir = dir_path
+        self._batch_cat = cat
+        self._batch_success_paths = []
+
+        self._run_next_batch_sequence()
+
+    def _run_next_batch_sequence(self):
+        if self._batch_current_idx >= len(self._batch_sequences):
+            self._on_batch_completed()
+            return
+
+        seq_name = self._batch_sequences[self._batch_current_idx]
+        mass = self.mass_input.value()
+        box_size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
+
+        height = Scenarios.calculate_drop_height(self._batch_cat, seq_name, mass)
+        roll, pitch, yaw = Scenarios.get_euler_angles(seq_name, box_size, category=self._batch_cat)
+        quat = Scenarios.get_orientation_from_euler(roll, pitch, yaw)
+
+        params = {
+            'height': height,
+            'quat': quat,
+            'add_noise': self.noise_cb.isChecked(),
+            'noise_std': self.noise_std_input.value(),
+            'show_viewer': False, # Force headless for batch
+            'duration': self.duration_input.value()
+        }
+
+        com_offset = (self.com_x.value(), self.com_y.value(), self.com_z.value())
+
+        type_prefix = "TypeG" if "Type G" in self._batch_cat else "TypeH"
+        clean_seq_name = seq_name.replace(" ", "").replace("/", "_").replace("[Low]", "").replace("[High]", "")
+        file_name = f"{type_prefix}_{clean_seq_name}.proc"
+        filepath = str(Path(self._batch_dir) / file_name)
+
+        engine = MuJoCoEngine(
+            size=box_size, mass=mass,
+            friction=self.friction_input.value(),
+            elasticity=self.elasticity_input.value(),
+            com_offset=com_offset
+        )
+
+        self.thread = SimulationThread(engine, params, filepath)
+        self.thread.finished_signal.connect(self._on_batch_step_finished)
+        self.thread.error_signal.connect(self.on_sim_error)
+        self.thread.start()
+
+    def _on_batch_step_finished(self, output_path):
+        self._batch_success_paths.append(output_path)
+        self._batch_current_idx += 1
+        self.progress_bar.setValue(self._batch_current_idx)
+        self._run_next_batch_sequence()
+
+    def _on_batch_completed(self):
+        self.run_btn.setEnabled(True)
+        self.batch_btn.setEnabled(True)
+        self.progress_bar.hide()
+        QMessageBox.information(self, "Batch Success", f"Successfully generated {len(self._batch_success_paths)} files in:\n{self._batch_dir}")
+
     def on_sim_finished(self, output_path):
         self.run_btn.setEnabled(True)
+        self.batch_btn.setEnabled(True)
         self.progress_bar.hide()
         QMessageBox.information(self, "Success", f"Simulation completed and saved to:\n{output_path}\n\nYou can now load this in Data Analysis.")
 
     def on_sim_error(self, err_msg):
         self.run_btn.setEnabled(True)
+        self.batch_btn.setEnabled(True)
         self.progress_bar.hide()
         QMessageBox.critical(self, "Error", err_msg)
 

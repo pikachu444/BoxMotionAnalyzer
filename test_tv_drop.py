@@ -15,8 +15,9 @@ def plot_velocity_validation():
 
     # Run Edge Drop
     height = 500
-    # Use Scenarios.get_orientation for Edge_3_4
-    quat = Scenarios.get_orientation("Edge_3_4 (Bottom-Right)", size)
+    # Use Scenarios.get_euler_angles for Edge_3_4 (Type G)
+    roll, pitch, yaw = Scenarios.get_euler_angles("Edge 3-4", size, category="Type G")
+    quat = Scenarios.get_orientation_from_euler(roll, pitch, yaw)
     engine.set_initial_state(height, quat)
     history = engine.run_simulation(show_viewer=False, stop_condition_time=1.5)
 
