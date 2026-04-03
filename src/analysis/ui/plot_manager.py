@@ -17,6 +17,7 @@ class PlotManager(QObject):
         self.ax = self.fig.add_subplot(111)
         self.span_selector = None
         self.annot = None
+        self.canvas.mpl_connect("resize_event", self._on_resize)
 
     def draw_plot(self, data_df: pd.DataFrame, columns_to_plot: list):
         self.ax.clear()
@@ -109,6 +110,11 @@ class PlotManager(QObject):
 
     def _on_select(self, xmin: float, xmax: float):
         self.region_changed_signal.emit(xmin, xmax)
+
+    def _on_resize(self, _event):
+        # Recompute subplot padding when the embedded canvas size changes.
+        self.fig.tight_layout()
+        self.canvas.draw_idle()
 
     def _place_hover_annotation(self, x, y):
         # Keep tooltip visible inside the plot area by flipping direction
