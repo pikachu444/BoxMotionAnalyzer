@@ -29,7 +29,7 @@ class SimulationThread(QThread):
             self.engine.set_initial_state(self.params['height'], self.params['quat'])
 
             # 2. Run headless (viewer is disabled in thread to prevent GLFW crash)
-            history = self.engine.run_simulation(show_viewer=False)
+            history = self.engine.run_simulation(show_viewer=False, stop_condition_time=self.params['duration'])
 
             # 3. Export
             exporter = DataExporter(history, self.params['add_noise'], self.params['noise_std'])
@@ -70,19 +70,19 @@ class SimulationUI(QWidget):
 
         self.w_input = QDoubleSpinBox()
         self.w_input.setRange(10, 5000)
-        self.w_input.setValue(1000)
+        self.w_input.setValue(1570)
 
         self.d_input = QDoubleSpinBox()
         self.d_input.setRange(10, 5000)
-        self.d_input.setValue(1000)
+        self.d_input.setValue(300)
 
         self.h_input = QDoubleSpinBox()
         self.h_input.setRange(10, 5000)
-        self.h_input.setValue(1000)
+        self.h_input.setValue(950)
 
         self.mass_input = QDoubleSpinBox()
         self.mass_input.setRange(0.1, 10000)
-        self.mass_input.setValue(100.0)
+        self.mass_input.setValue(25.0)
 
         # According to ASTM D4521 / TAPPI standards for corrugated board
         # Kinetic/Static friction is typically 0.4 to 0.6. We default to 0.5.
@@ -107,17 +107,18 @@ class SimulationUI(QWidget):
         self.com_y.setValue(0.0)
         self.com_z = QDoubleSpinBox()
         self.com_z.setRange(-2500, 2500)
-        self.com_z.setValue(0.0)
+        self.com_z.setValue(-200.0)
+        self.com_z.setToolTip("A slight offset is required for tumbling to occur during corner drops in a perfect simulation.")
 
-        form.addRow("Width (mm):", self.w_input)
-        form.addRow("Depth (mm):", self.d_input)
-        form.addRow("Height (mm):", self.h_input)
+        form.addRow("Width (Local X, mm):", self.w_input)
+        form.addRow("Depth (Local Y, mm):", self.d_input)
+        form.addRow("Height (Local Z, mm):", self.h_input)
         form.addRow("Mass (kg):", self.mass_input)
         form.addRow("Friction:", self.friction_input)
         form.addRow("Restitution (Elasticity):", self.elasticity_input)
-        form.addRow("CoM X Offset (mm):", self.com_x)
-        form.addRow("CoM Y Offset (mm):", self.com_y)
-        form.addRow("CoM Z Offset (mm):", self.com_z)
+        form.addRow("CoM X Offset (Local mm):", self.com_x)
+        form.addRow("CoM Y Offset (Local mm):", self.com_y)
+        form.addRow("CoM Z Offset (Local mm):", self.com_z)
 
         self.layout.addWidget(group)
 
@@ -187,8 +188,13 @@ class SimulationUI(QWidget):
         self.layout.addWidget(group)
 
     def _init_export_group(self):
-        group = QGroupBox("Visualization")
-        layout = QVBoxLayout(group)
+        group = QGroupBox("Simulation Settings & Visualization")
+        form = QFormLayout(group)
+
+        self.duration_input = QDoubleSpinBox()
+        self.duration_input.setRange(0.5, 60.0)
+        self.duration_input.setSingleStep(0.5)
+        self.duration_input.setValue(2.0)
 
         self.viewer_cb = QCheckBox("Show 3D Viewer during Simulation")
         self.viewer_cb.setChecked(True)
@@ -200,8 +206,10 @@ class SimulationUI(QWidget):
                             "- Double Click on Box: Apply physical perturbation (force)")
         info_label.setStyleSheet("color: gray; font-size: 11px;")
 
-        layout.addWidget(self.viewer_cb)
-        layout.addWidget(info_label)
+        form.addRow("Simulation Duration (s):", self.duration_input)
+        form.addRow("", self.viewer_cb)
+        form.addRow("", info_label)
+
         self.layout.addWidget(group)
 
     def run_simulation(self):
@@ -228,7 +236,8 @@ class SimulationUI(QWidget):
             'quat': quat,
             'add_noise': self.noise_cb.isChecked(),
             'noise_std': self.noise_std_input.value(),
-            'show_viewer': self.viewer_cb.isChecked()
+            'show_viewer': self.viewer_cb.isChecked(),
+            'duration': self.duration_input.value()
         }
 
         com_offset = (self.com_x.value(), self.com_y.value(), self.com_z.value())
@@ -251,7 +260,7 @@ class SimulationUI(QWidget):
             # Run in main thread because mujoco.viewer (GLFW) MUST run on the main thread
             try:
                 engine.set_initial_state(params['height'], params['quat'])
-                history = engine.run_simulation(show_viewer=True)
+                history = engine.run_simulation(show_viewer=True, stop_condition_time=params['duration'])
 
                 exporter = DataExporter(history, params['add_noise'], params['noise_std'])
                 output_path = exporter.export_proc_csv(filepath)

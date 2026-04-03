@@ -14,13 +14,29 @@ class DataExporter:
         self.noise_std = noise_std
         self.dt = 1/120.0 # Standard simulation frame rate is 120 FPS
 
+    def _convert_axes(self, vec):
+        """
+        Converts MuJoCo coordinates (Z-up) to OptiTrack/System global coordinates (Y-up).
+        Mapping:
+        System X = MuJoCo X
+        System Y = MuJoCo Z
+        System Z = -MuJoCo Y
+        """
+        return np.array([vec[0], vec[2], -vec[1]])
+
     def calculate_derivatives(self):
         """
         Calculates velocities and accelerations using numerical differentiation
         (finite differences) for the CoM and all corners.
+        Also applies coordinate system transformations (Z-up to Y-up).
         """
         for i in range(len(self.history)):
             frame = self.history[i]
+
+            # Apply coordinate transformation to Position first
+            frame['Center'] = self._convert_axes(frame['Center'])
+            for j in range(1, 9):
+                frame[f'C{j}'] = self._convert_axes(frame[f'C{j}'])
 
             if i == 0:
                 frame['Center_V'] = np.zeros(3)
@@ -117,7 +133,7 @@ class DataExporter:
                 ca[0], ca[1], ca[2], np.linalg.norm(ca), # Acc CoM
             ]
 
-            # Ground Z is assumed to be 0 for relative height calculation
+            # Ground Y is assumed to be 0 for relative height calculation in Y-up system
             for j in range(1, 9):
                 cpos = frame[f'C{j}']
                 if self.add_noise:
@@ -125,7 +141,7 @@ class DataExporter:
 
                 cv_c = frame[f'C{j}_V']
                 ca_c = frame[f'C{j}_A']
-                rel_h = cpos[2] # Z is height
+                rel_h = cpos[1] # Y is height in the transformed coordinate system
 
                 row.extend([
                     cpos[0], cpos[1], cpos[2],
