@@ -8,9 +8,9 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import Analysis Modules
-from src.analysis.core.data_loader import DataLoader
-from src.analysis.parser import Parser
-from src.analysis.core.pipeline_controller import PipelineController
+from src.analysis.pipeline.data_loader import DataLoader
+from src.analysis.pipeline.parser import Parser
+from src.analysis.pipeline.pipeline_controller import PipelineController
 from src.config.data_columns import FACE_PREFIX_TO_INFO, RigidBodyCols, TimeCols, PoseCols
 
 # Import Visualization Modules

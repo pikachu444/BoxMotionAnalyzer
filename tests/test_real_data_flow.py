@@ -6,15 +6,15 @@ import pandas as pd
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.analysis.core.data_loader import DataLoader
-from src.analysis.core.pipeline_controller import PipelineController
+from src.analysis.pipeline.data_loader import DataLoader
+from src.analysis.pipeline.pipeline_controller import PipelineController
 from src.utils.header_converter import convert_to_multi_header
 from src.visualization.data_handler import DataHandler
 from src.config import config_visualization as config_vis
 
 class TestRealDataFlow(unittest.TestCase):
     def setUp(self):
-        self.raw_csv_path = "TestSets/VDTest_S5_001.csv"
+        self.raw_csv_path = "TestSets/Input/VDTest_S5_001.csv"
         self.result_csv_path = "data/test_real_data_result.csv"
         os.makedirs("data", exist_ok=True)
 

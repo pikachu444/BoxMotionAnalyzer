@@ -1,36 +1,22 @@
 # =========================================
 #    Box Corner Index & Axis Orientation
-#    (오른손 법칙/Right-Handed, 최종본)
 # =========================================
 #
-#           z+
-#           ↑
-#           |
-#           7-------6
-#          /|      /|
-#         / |     / |
-#        4-------5  |
-#        |  |    |  |
-#        |  3----|--2    ^ y+ (깊이, 화면 안쪽)
-#        | /     | /
-#        |/      |/
-#        0-------1
-#           |
-#           +----→ x+
+# Visualization consumes exported result files in the app's Y-up world
+# convention, while the box local axes remain:
+#   * x+ : Width / right
+#   * y+ : Height / top
+#   * z+ : Depth / screen side
 #
-#  인덱스 및 좌표:
-#   0: (minX, minY, minZ)  # 앞-왼-아래 (내 쪽 아래 왼쪽)
-#   1: (maxX, minY, minZ)  # 앞-오른-아래
-#   2: (maxX, maxY, minZ)  # 뒤-오른-아래 (화면 깊이+ 오른쪽)
-#   3: (minX, maxY, minZ)  # 뒤-왼-아래 (화면 깊이+ 왼쪽)
-#   4: (minX, minY, maxZ)  # 앞-왼-위
-#   5: (maxX, minY, maxZ)  # 앞-오른-위
-#   6: (maxX, maxY, maxZ)  # 뒤-오른-위
-#   7: (minX, maxY, maxZ)  # 뒤-왼-위
-#
-#  * x+ : 오른쪽
-#  * y+ : 화면 깊이(안쪽)
-#  * z+ : 위
+# Corner order matches config_app.LOCAL_BOX_CORNERS and the simulation exporter:
+#   0: C1 = (-X, -Y, -Z)
+#   1: C2 = (+X, -Y, -Z)
+#   2: C3 = (+X, +Y, -Z)
+#   3: C4 = (-X, +Y, -Z)
+#   4: C5 = (-X, -Y, +Z)
+#   5: C6 = (+X, -Y, +Z)
+#   6: C7 = (+X, +Y, +Z)
+#   7: C8 = (-X, +Y, +Z)
 # =========================================
 
 # =========================================
@@ -56,13 +42,15 @@ BOX_CORNERS_LABELS = [
     "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"
 ]
 
-# Box faces defined by corner indices
+# Box faces defined by corner indices.
+# Keep this aligned with config_app.FACE_DEFINITIONS so analysis,
+# simulation, and visualization share the same face meaning.
 BOX_FACES = [
-    {"label": "BOTTOM", "corner_indices": [0, 1, 2, 3]},
-    {"label": "TOP",    "corner_indices": [4, 5, 6, 7]},
-    {"label": "FRONT",  "corner_indices": [0, 1, 5, 4]},
-    {"label": "BACK",   "corner_indices": [3, 2, 6, 7]},
-    {"label": "LEFT",   "corner_indices": [0, 3, 7, 4]},
+    {"label": "BOTTOM", "corner_indices": [0, 1, 5, 4]},
+    {"label": "TOP",    "corner_indices": [2, 3, 7, 6]},
+    {"label": "FRONT",  "corner_indices": [4, 5, 6, 7]},
+    {"label": "BACK",   "corner_indices": [0, 3, 2, 1]},
+    {"label": "LEFT",   "corner_indices": [0, 4, 7, 3]},
     {"label": "RIGHT",  "corner_indices": [1, 2, 6, 5]},
 ]
 

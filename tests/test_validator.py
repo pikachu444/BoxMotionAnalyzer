@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from src.analysis.validator import DataValidator
+from src.analysis.pipeline.validator import DataValidator
 
 class TestDataValidator(unittest.TestCase):
     def test_validate_data_sufficiency_success(self):
