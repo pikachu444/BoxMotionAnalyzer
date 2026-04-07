@@ -11,6 +11,22 @@ TYPE_H = "ISTA 6A Type H (LTL)"
 
 
 class TestSimulationScenarios(unittest.TestCase):
+    def test_sequence_registry_matches_ui_sequence_ids(self):
+        type_g_specs = Scenarios.get_drop_sequence_specs(TYPE_G)
+        type_h_specs = Scenarios.get_drop_sequence_specs(TYPE_H)
+
+        self.assertEqual([spec.id for spec in type_g_specs], Scenarios.get_drop_sequences(TYPE_G))
+        self.assertEqual([spec.id for spec in type_h_specs], Scenarios.get_drop_sequences(TYPE_H))
+        self.assertEqual(len(type_g_specs), 17)
+        self.assertEqual(len(type_h_specs), 12)
+
+    def test_sequence_lookup_returns_structured_metadata(self):
+        spec = Scenarios.get_drop_sequence_spec(TYPE_G, "14_Edge_3-4_High")
+        self.assertIsNotNone(spec)
+        self.assertEqual(spec.kind, "edge")
+        self.assertEqual(spec.faces, (3, 4))
+        self.assertEqual(spec.height_rule, "high")
+
     def _assert_contact_vector_points_down(self, sequence_name, category, box_size, face_normals):
         roll, pitch, yaw = Scenarios.get_euler_angles(sequence_name, box_size, category=category)
         quat = Scenarios.get_orientation_from_euler(roll, pitch, yaw)

@@ -1,7 +1,17 @@
+from dataclasses import dataclass
 import re
 
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+
+
+@dataclass(frozen=True)
+class DropSequenceSpec:
+    id: str
+    kind: str
+    faces: tuple[int, ...] = ()
+    height_rule: str = "standard"
+    variant: str | None = None
 
 class Scenarios:
     """
@@ -10,6 +20,39 @@ class Scenarios:
     """
 
     CATEGORIES = ["ISTA 6A Type G (TV/Monitor Parcel)", "ISTA 6A Type H (LTL)"]
+    TYPE_G_SEQUENCES = (
+        DropSequenceSpec("01_Edge_3-4", "edge", (3, 4)),
+        DropSequenceSpec("02_Edge_3-6", "edge", (3, 6)),
+        DropSequenceSpec("03_Edge_4-6", "edge", (4, 6)),
+        DropSequenceSpec("04_Corner_3-4-6", "corner", (3, 4, 6)),
+        DropSequenceSpec("05_Corner_2-3-5", "corner", (2, 3, 5)),
+        DropSequenceSpec("06_Edge_2-3", "edge", (2, 3)),
+        DropSequenceSpec("07_Edge_1-2", "edge", (1, 2)),
+        DropSequenceSpec("08_Face_3_Screen", "face", (3,)),
+        DropSequenceSpec("09_Face_1_Rear", "face", (1,)),
+        DropSequenceSpec("10_Face_5_Right", "face", (5,)),
+        DropSequenceSpec("11_Face_6_Left", "face", (6,)),
+        DropSequenceSpec("12_Face_4_Top", "face", (4,)),
+        DropSequenceSpec("13_Face_2_Bottom", "face", (2,)),
+        DropSequenceSpec("14_Edge_3-4_High", "edge", (3, 4), height_rule="high"),
+        DropSequenceSpec("15_Edge_3-6_High", "edge", (3, 6), height_rule="high"),
+        DropSequenceSpec("16_Corner_3-4-6_High", "corner", (3, 4, 6), height_rule="high"),
+        DropSequenceSpec("17_Face_2_Bottom_High", "face", (2,), height_rule="high"),
+    )
+    TYPE_H_SEQUENCES = (
+        DropSequenceSpec("01_Tip_Face_4_Screen", "tip", (4,), height_rule="tip"),
+        DropSequenceSpec("02_Tip_Face_2_Rear", "tip", (2,), height_rule="tip"),
+        DropSequenceSpec("03_Tip_Face_6_Left", "tip", (6,), height_rule="tip"),
+        DropSequenceSpec("04_Tip_Face_5_Right", "tip", (5,), height_rule="tip"),
+        DropSequenceSpec("05_RotationalEdge_BottomLong", "rotational_edge", (3,), height_rule="tip", variant="bottom_long"),
+        DropSequenceSpec("06_RotationalEdge_BottomShort", "rotational_edge", (3,), height_rule="tip", variant="bottom_short"),
+        DropSequenceSpec("07_Face_3_Bottom", "face", (3,)),
+        DropSequenceSpec("08_Face_1_Top", "face", (1,)),
+        DropSequenceSpec("09_Face_5_Right", "face", (5,)),
+        DropSequenceSpec("10_Face_6_Left", "face", (6,)),
+        DropSequenceSpec("11_Face_2_Rear", "face", (2,)),
+        DropSequenceSpec("12_Face_4_Screen", "face", (4,)),
+    )
 
     # Local axes: X=Right(+), Y=Top(+), Z=Screen(+)
     TYPE_G_FACE_NORMALS = {
@@ -34,55 +77,43 @@ class Scenarios:
         return Scenarios.CATEGORIES
 
     @staticmethod
-    def get_drop_sequences(category: str) -> list:
-        """Returns the list of 17 (Type G) or 12 (Type H) drop sequences."""
+    def get_drop_sequence_specs(category: str) -> list[DropSequenceSpec]:
         if "Type G" in category:
-            # Type G: 1:Rear, 2:Bottom, 3:Screen, 4:Top, 5:Right, 6:Left
-            return [
-                "01_Edge_3-4",          # Screen-Top
-                "02_Edge_3-6",          # Screen-Left
-                "03_Edge_4-6",          # Top-Left
-                "04_Corner_3-4-6",      # Screen-Top-Left
-                "05_Corner_2-3-5",      # Bottom-Screen-Right
-                "06_Edge_2-3",          # Bottom-Screen
-                "07_Edge_1-2",          # Rear-Bottom
-                "08_Face_3_Screen",
-                "09_Face_1_Rear",
-                "10_Face_5_Right",
-                "11_Face_6_Left",
-                "12_Face_4_Top",
-                "13_Face_2_Bottom",
-                "14_Edge_3-4_High",
-                "15_Edge_3-6_High",
-                "16_Corner_3-4-6_High",
-                "17_Face_2_Bottom_High"
-            ]
-        elif "Type H" in category:
-            # Type H: 1:Top, 2:Rear, 3:Bottom, 4:Screen, 5:Right, 6:Left
-            return [
-                "01_Tip_Face_4_Screen",
-                "02_Tip_Face_2_Rear",
-                "03_Tip_Face_6_Left",
-                "04_Tip_Face_5_Right",
-                "05_RotationalEdge_BottomLong",
-                "06_RotationalEdge_BottomShort",
-                "07_Face_3_Bottom",
-                "08_Face_1_Top",
-                "09_Face_5_Right",
-                "10_Face_6_Left",
-                "11_Face_2_Rear",
-                "12_Face_4_Screen"
-            ]
+            return list(Scenarios.TYPE_G_SEQUENCES)
+        if "Type H" in category:
+            return list(Scenarios.TYPE_H_SEQUENCES)
         return []
 
     @staticmethod
-    def calculate_drop_height(category: str, sequence_name: str, mass_kg: float) -> float:
+    def get_drop_sequences(category: str) -> list:
+        """Returns the display ids for the current category's drop sequences."""
+        return [spec.id for spec in Scenarios.get_drop_sequence_specs(category)]
+
+    @staticmethod
+    def get_drop_sequence_spec(category: str, sequence) -> DropSequenceSpec | None:
+        if isinstance(sequence, DropSequenceSpec):
+            return sequence
+
+        for spec in Scenarios.get_drop_sequence_specs(category):
+            if spec.id == sequence:
+                return spec
+
+        normalized = Scenarios._normalize_sequence_name(str(sequence))
+        for spec in Scenarios.get_drop_sequence_specs(category):
+            if Scenarios._normalize_sequence_name(spec.id) == normalized:
+                return spec
+        return None
+
+    @staticmethod
+    def calculate_drop_height(category: str, sequence_name: str | DropSequenceSpec, mass_kg: float) -> float:
         """
         Dynamically calculates drop height (mm) based on ISTA rules and mass.
         Type G Threshold: 32kg (70 lbs). Type H uses different rules.
         """
         is_type_g = "Type G" in category
-        is_high_drop = "High" in sequence_name
+        spec = Scenarios.get_drop_sequence_spec(category, sequence_name)
+        is_high_drop = spec is not None and spec.height_rule == "high"
+        is_tip_or_rotational = spec is not None and spec.height_rule == "tip"
 
         if is_type_g:
             if mass_kg < 32.0:
@@ -91,21 +122,21 @@ class Scenarios:
                 return 610.0 if is_high_drop else 300.0
         else:
             # Type H (LTL) Drops (300, 460, 810) depending on sequence and mass
-            # Simplified map based on user's guidance
-            if "Tip" in sequence_name or "Rotational" in sequence_name:
-                return 200.0 # Standard tip height approximation
+            if is_tip_or_rotational:
+                return 200.0
             if mass_kg < 32.0:
                 return 810.0 if is_high_drop else 460.0
             else:
                 return 460.0 if is_high_drop else 300.0
 
     @staticmethod
-    def get_euler_angles(sequence_name: str, box_size: tuple, category: str = "Type G") -> tuple:
+    def get_euler_angles(sequence_name: str | DropSequenceSpec, box_size: tuple, category: str = "Type G") -> tuple:
         """
         Returns (roll, pitch, yaw) in degrees to orient the box correctly.
         box_size: (w, h, d) mapping to (Local X, Local Y, Local Z)
         """
-        contact_normals = Scenarios._get_contact_normals(sequence_name, box_size, category)
+        spec = Scenarios.get_drop_sequence_spec(category, sequence_name)
+        contact_normals = Scenarios._get_contact_normals(spec, sequence_name, box_size, category)
         if not contact_normals:
             return (0.0, 0.0, 0.0)
         return Scenarios._get_euler_from_contact_normals(contact_normals)
@@ -144,25 +175,42 @@ class Scenarios:
         return [int(part) for part in match.group(1).split("_")]
 
     @staticmethod
-    def _get_contact_normals(sequence_name: str, box_size: tuple, category: str) -> list[np.ndarray]:
+    def _get_contact_normals(
+        sequence_spec: DropSequenceSpec | None,
+        sequence_name: str | DropSequenceSpec,
+        box_size: tuple,
+        category: str,
+    ) -> list[np.ndarray]:
         face_normals = Scenarios._face_normals_for_category(category)
-        face_numbers = Scenarios._extract_face_numbers(sequence_name)
-        if face_numbers:
-            return [face_normals[number] for number in face_numbers]
+        if sequence_spec is not None and sequence_spec.faces and sequence_spec.kind != "rotational_edge":
+            return [face_normals[number] for number in sequence_spec.faces]
 
-        normalized = Scenarios._normalize_sequence_name(sequence_name)
+        normalized = Scenarios._normalize_sequence_name(str(sequence_name))
         bottom_face = 3 if "Type H" in category else 2
         screen_face = 4 if "Type H" in category else 3
         right_face = 5
         width, _, depth = box_size
 
-        if "ROTATIONALEDGE_BOTTOMLONG" in normalized:
+        if sequence_spec is not None and sequence_spec.kind == "rotational_edge":
+            variant = sequence_spec.variant
+        elif "ROTATIONALEDGE_BOTTOMLONG" in normalized:
+            variant = "bottom_long"
+        elif "ROTATIONALEDGE_BOTTOMSHORT" in normalized:
+            variant = "bottom_short"
+        else:
+            variant = None
+
+        if variant == "bottom_long":
             side_face = screen_face if width >= depth else right_face
             return [face_normals[bottom_face], face_normals[side_face]]
 
-        if "ROTATIONALEDGE_BOTTOMSHORT" in normalized:
+        if variant == "bottom_short":
             side_face = right_face if width >= depth else screen_face
             return [face_normals[bottom_face], face_normals[side_face]]
+
+        face_numbers = Scenarios._extract_face_numbers(str(sequence_name))
+        if face_numbers:
+            return [face_normals[number] for number in face_numbers]
 
         return []
 

@@ -197,7 +197,8 @@ class SimulationUI(QWidget):
 
         self.drop_combo.blockSignals(True)
         self.drop_combo.clear()
-        self.drop_combo.addItems(Scenarios.get_drop_sequences(cat))
+        for spec in Scenarios.get_drop_sequence_specs(cat):
+            self.drop_combo.addItem(spec.id, spec)
         self.drop_combo.blockSignals(False)
         self._update_custom_fields_from_scenario()
 
@@ -206,15 +207,16 @@ class SimulationUI(QWidget):
         if self.drop_combo.count() == 0:
             return
 
+        seq_spec = self.drop_combo.currentData()
         seq_name = self.drop_combo.currentText()
         mass = self.mass_input.value()
         box_size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
 
         # Calculate dynamic height
-        height = Scenarios.calculate_drop_height(cat, seq_name, mass)
+        height = Scenarios.calculate_drop_height(cat, seq_spec or seq_name, mass)
 
         # Calculate euler angles passing category for correct face numbering
-        roll, pitch, yaw = Scenarios.get_euler_angles(seq_name, box_size, category=cat)
+        roll, pitch, yaw = Scenarios.get_euler_angles(seq_spec or seq_name, box_size, category=cat)
 
         self.base_h, self.base_r, self.base_p, self.base_y = height, roll, pitch, yaw
 
@@ -365,7 +367,7 @@ class SimulationUI(QWidget):
 
     def run_batch_simulation(self):
         cat = self.cat_combo.currentText()
-        sequences = Scenarios.get_drop_sequences(cat)
+        sequences = Scenarios.get_drop_sequence_specs(cat)
 
         if not sequences:
             return
@@ -393,12 +395,13 @@ class SimulationUI(QWidget):
             self._on_batch_completed()
             return
 
-        seq_name = self._batch_sequences[self._batch_current_idx]
+        seq_spec = self._batch_sequences[self._batch_current_idx]
+        seq_name = seq_spec.id
         mass = self.mass_input.value()
         box_size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
 
-        height = Scenarios.calculate_drop_height(self._batch_cat, seq_name, mass)
-        roll, pitch, yaw = Scenarios.get_euler_angles(seq_name, box_size, category=self._batch_cat)
+        height = Scenarios.calculate_drop_height(self._batch_cat, seq_spec, mass)
+        roll, pitch, yaw = Scenarios.get_euler_angles(seq_spec, box_size, category=self._batch_cat)
         quat = Scenarios.get_orientation_from_euler(roll, pitch, yaw)
 
         params = {
