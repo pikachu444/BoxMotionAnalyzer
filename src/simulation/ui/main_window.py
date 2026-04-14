@@ -72,11 +72,12 @@ class OrientationPreviewWidget(QWidget):
     def _project(self, vertices):
         object_rot = R.from_euler("xyz", self.euler, degrees=True)
         # Floor-first preview: keep the world-down direction easy to read.
-        camera_rot = R.from_euler("xyz", [58.0, 0.0, 32.0], degrees=True)
+        # Keep camera roll at zero so the preview is not visually skewed.
+        camera_rot = R.from_euler("xyz", [60.0, -18.0, 0.0], degrees=True)
         transformed = camera_rot.apply(object_rot.apply(vertices))
         projected = transformed[:, [0, 1]]
         depth = transformed[:, 2]
-        return projected, depth, camera_rot
+        return projected, depth
 
     def _to_widget_points(self, projected):
         available_width = max(self.width() - 20, 1)
@@ -114,23 +115,23 @@ class OrientationPreviewWidget(QWidget):
         faces = "-".join(str(number) for number in self.sequence_spec.faces)
         return f"Contact: {kind} {faces}"
 
-    def _draw_fixed_axes(self, painter, camera_rot):
-        center = np.array([self.width() - 52.0, 46.0])
+    def _draw_fixed_axes(self, painter):
+        center = np.array([self.width() - 56.0, 48.0])
         axis_length = 24.0
+        # Screen-fixed icon so axis labels remain stable and easy to read.
         axes = (
-            ("X", np.array([1.0, 0.0, 0.0]), QColor("#d84315")),
-            ("Y", np.array([0.0, 1.0, 0.0]), QColor("#2e7d32")),
-            ("Z", np.array([0.0, 0.0, 1.0]), QColor("#1565c0")),
+            ("X", np.array([1.0, 0.0]), QColor("#d84315")),
+            ("Y", np.array([0.0, -1.0]), QColor("#2e7d32")),
+            ("Z", np.array([-0.68, 0.68]), QColor("#1565c0")),
         )
         painter.setPen(QColor("#607d8b"))
-        painter.drawText(int(center[0] - 32), int(center[1] - 24), "Fixed Axes")
+        painter.drawText(int(center[0] - 34), int(center[1] - 26), "Fixed Axes")
 
-        for label, axis, color in axes:
-            projected = camera_rot.apply(axis)[:2]
-            norm = np.linalg.norm(projected)
+        for label, vec2, color in axes:
+            norm = np.linalg.norm(vec2)
             if norm < 1e-8:
                 continue
-            end = center + projected / norm * axis_length
+            end = center + vec2 / norm * axis_length
             painter.setPen(QPen(color, 2.0))
             painter.drawLine(
                 QPointF(float(center[0]), float(center[1])),
@@ -143,25 +144,34 @@ class OrientationPreviewWidget(QWidget):
         if self.sequence_spec is None or not getattr(self.sequence_spec, "faces", None):
             return
 
+        contact_kind = str(getattr(self.sequence_spec, "kind", "")).lower()
+        # Tip/rotational-edge sequences still reference a primary contact face in the UI.
+        if contact_kind in {"tip", "rotational_edge"}:
+            contact_kind = "face"
+
         highlighted_faces = list(self.sequence_spec.faces)
         shared_vertices = None
         for face_number in highlighted_faces:
             vertex_set = set(face_map.get(face_number, []))
             shared_vertices = vertex_set if shared_vertices is None else shared_vertices & vertex_set
 
-        if self.sequence_spec.kind == "face" and highlighted_faces:
+        if contact_kind == "face" and highlighted_faces:
+            face_vertices = face_map.get(highlighted_faces[0])
+            if not face_vertices:
+                return
             is_visible = highlighted_faces[0] in visible_faces
             pen = QPen(QColor("#fb8c00") if is_visible else QColor(251, 140, 0, 170), 3 if is_visible else 2)
             if not is_visible:
                 pen.setStyle(Qt.DashLine)
             painter.setPen(pen)
             painter.setBrush(Qt.NoBrush)
-            painter.drawPolygon(QPolygonF([widget_points[idx] for idx in face_map[highlighted_faces[0]]]))
+            painter.drawPolygon(QPolygonF([widget_points[idx] for idx in face_vertices]))
             return
 
-        if self.sequence_spec.kind == "edge" and shared_vertices and len(shared_vertices) == 2:
+        if contact_kind == "edge" and shared_vertices and len(shared_vertices) == 2:
             points = [widget_points[idx] for idx in sorted(shared_vertices)]
-            is_visible = all(face in visible_faces for face in highlighted_faces)
+            # Edge/corner contacts remain visible when at least one adjacent face is front-facing.
+            is_visible = any(face in visible_faces for face in highlighted_faces)
             pen = QPen(QColor("#ef6c00") if is_visible else QColor(239, 108, 0, 160), 4 if is_visible else 3)
             if not is_visible:
                 pen.setStyle(Qt.DashLine)
@@ -169,9 +179,9 @@ class OrientationPreviewWidget(QWidget):
             painter.drawLine(points[0], points[1])
             return
 
-        if self.sequence_spec.kind == "corner" and shared_vertices and len(shared_vertices) == 1:
+        if contact_kind == "corner" and shared_vertices and len(shared_vertices) == 1:
             point = widget_points[next(iter(shared_vertices))]
-            is_visible = all(face in visible_faces for face in highlighted_faces)
+            is_visible = any(face in visible_faces for face in highlighted_faces)
             painter.setBrush(QBrush(QColor("#e53935")) if is_visible else Qt.NoBrush)
             corner_pen = QPen(QColor("#e53935") if is_visible else QColor(229, 57, 53, 170), 2.0)
             if not is_visible:
@@ -186,7 +196,7 @@ class OrientationPreviewWidget(QWidget):
         painter.fillRect(self.rect(), QColor("#f7f9fb"))
 
         vertices = self._box_vertices()
-        projected, depth, camera_rot = self._project(vertices)
+        projected, depth = self._project(vertices)
         widget_points = self._to_widget_points(projected)
         face_map = self._face_map()
         visible_faces = self._get_visible_faces(face_map, depth)
@@ -208,7 +218,7 @@ class OrientationPreviewWidget(QWidget):
             painter.drawPolygon(polygon)
 
         self._draw_contact_highlight(painter, face_map, widget_points, visible_faces)
-        self._draw_fixed_axes(painter, camera_rot)
+        self._draw_fixed_axes(painter)
 
         painter.setPen(QColor("#455a64"))
         painter.drawText(10, 16, "Orientation Preview")
