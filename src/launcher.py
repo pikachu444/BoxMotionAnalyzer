@@ -58,10 +58,19 @@ class LauncherWindow(QMainWindow):
         right_panel_layout.setSpacing(14)
         right_panel_layout.addStretch(1)
 
-        self.btn_simulation = QPushButton("Run Simulation")
+        self.btn_simulation = QPushButton("Run Simulation (WIP)")
         self.btn_simulation.clicked.connect(self.open_simulation)
         self.btn_simulation.setFixedSize(320, 50)
         right_panel_layout.addWidget(self.btn_simulation, 0, Qt.AlignHCenter)
+
+        self.simulation_warning_label = QLabel(
+            "⚠️ Work in progress. Please do not use this for actual tasks."
+        )
+        self.simulation_warning_label.setWordWrap(True)
+        self.simulation_warning_label.setAlignment(Qt.AlignCenter)
+        self.simulation_warning_label.setFixedWidth(320)
+        self.simulation_warning_label.setStyleSheet("color: #e53e3e; font-size: 11px;")
+        right_panel_layout.addWidget(self.simulation_warning_label, 0, Qt.AlignHCenter)
 
         self.btn_data_processing = QPushButton(config.LAUNCHER_BTN_PROCESS_TEXT)
         self.btn_data_processing.clicked.connect(self.open_data_processing)
