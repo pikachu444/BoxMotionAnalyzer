@@ -65,6 +65,8 @@ def build(mode):
         '--paths', 'src',
         '--icon', icon_path,
         '--add-data', add_data_arg,
+        '--collect-binaries', 'mujoco',
+        '--collect-binaries', 'glfw',
         entry_point    # 진입점
     ]
 
