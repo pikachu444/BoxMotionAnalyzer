@@ -31,7 +31,7 @@ Last Reviewed: 2026-04-02
 ### 3.2. Step 1.5: Slice Processing
 - `.slice` 로드
 - `.slice` 메타에 포함된 box dimensions 자동 적용
-- Optional uniform resampling 지정
+- Optional Result Resampling 지정
 - `Processing Mode` 선택 (`Raw / Smoothing / Advanced`)
 - `Advanced Settings...` 다이얼로그 사용
 - processing 실행
@@ -63,7 +63,7 @@ Last Reviewed: 2026-04-02
 ### 4.1. 파이프라인 제어와 UI 분리
 - UI는 설정 수집과 결과 표시를 담당한다.
 - 실제 분석 순서 제어는 `PipelineController`가 담당한다.
-- resampling factor 기반 옵션 보정 규칙처럼 UI/Qt와 무관한 계산 로직은 순수 모듈로 분리한다.
+- Result Resampling처럼 UI/Qt와 무관한 계산 로직은 순수 모듈로 분리한다.
 - processing mode 라벨과 기본 preset 같은 UI 정책은 `src/config/config_analysis_ui.py`에서 관리한다.
 
 ### 4.2. 컬럼 정의의 중앙 관리
@@ -76,7 +76,9 @@ Last Reviewed: 2026-04-02
 - 단, 사용자 workflow 개선을 위해 scene 재사용용 `.slice`와 processed result 재사용용 `.proc`를 도입한다.
 - `.slice`는 raw CSV 구조를 유지한 scene 파일이다.
 - `.proc`는 기존 result CSV와 같은 multi-header 결과 구조를 사용한다.
-- resampling을 사용하는 경우에도 parsed slice 이후 DataFrame을 uniform time grid로 재구성한 뒤 후속 분석을 수행한다.
+- Result Resampling을 사용하는 경우에는 전체 slice baseline processing 결과를 먼저 만들고, 최종 결과 컬럼을 보간해 새 중간 timestamp row만 merge한다.
+- `Limit to Time Range`가 켜진 경우에는 지정 구간 안에서만 중간 result row를 추가하고, 꺼진 경우에는 전체 slice 결과 구간에 추가한다.
+- Result Resampling은 분석 정확도 향상 기능이 아니라 결과 시간축 보간 기능이며, 기존 timestamp의 position/velocity/acceleration/analysis 값은 유지한다.
 
 ### 4.4. 분석 단계와 후처리의 분리
 - Step 1은 "원본에서 scene slice 만들기"에 집중한다.

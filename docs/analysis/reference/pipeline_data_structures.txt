@@ -16,6 +16,11 @@ Last Reviewed: 2026-03-08
     *   `slice_filter_by`: 현재는 `'time'` 고정
     *   `slice_start_val`: 분석 시작 시각(초)
     *   `slice_end_val`: 분석 종료 시각(초)
+    *   `enable_result_resampling`: Result Resampling 사용 여부
+    *   `result_resampling_factor`: 중간 result row 추가 배율
+    *   `limit_result_resampling_to_range`: 지정 시간 구간에만 Result Resampling을 적용할지 여부
+    *   `result_resampling_range_start`: 선택 구간 Result Resampling 시작 시각(초)
+    *   `result_resampling_range_end`: 선택 구간 Result Resampling 종료 시각(초)
 
 이 설정은 `MainApp.run_pipeline()`을 거쳐 `PipelineController.run_analysis()`에 전달된다.
 
@@ -47,6 +52,7 @@ Last Reviewed: 2026-03-08
     5. `VelocityCalculator`가 Velocity / Acceleration 컬럼을 계산
     6. `FrameAnalyzer`가 Analysis 컬럼을 계산
 *   각 단계는 입력 DataFrame에 컬럼을 추가하거나 수정한 뒤 반환한다.
+*   Result Resampling을 사용하는 경우 `PipelineController`는 전체 slice baseline 결과를 만든 뒤, 최종 결과 컬럼을 보간해 중간 timestamp row만 삽입한다. 기존 timestamp row 값은 baseline 결과를 유지한다.
 
 ---
 ### 4. 결과 컬럼 체계

@@ -98,7 +98,7 @@ python src/main.py
 실행 시 **Launcher Window**가 열리며, 여기서 아래 세 가지 흐름 중 하나를 시작할 수 있습니다.
 
 *   **Simulation**: MuJoCo를 활용하여 박스 크기/질량/낙하 조건을 설정하고 가상의 낙하 실험 데이터를 `.proc`로 생성
-*   **Data Processing**: 실제 원본 모션 캡처 데이터(CSV)를 불러와 분석하고 결과를 `.proc` 중심 workflow로 저장
+*   **Data Processing**: 실제 원본 모션 캡처 데이터(CSV)를 불러와 분석하고, 필요 시 최종 결과를 시간축에서 보간한 `.proc` 중심 workflow로 저장
 *   **3D Visualization**: 시뮬레이션에서 생성되거나 데이터 분석에서 추출된 `.proc` 결과 파일을 열어 3D/2D로 탐색
     *   런처 버튼을 반복 클릭하면 새 시각화 창이 추가로 열립니다.
     *   시각화 창 안에서는 `File > New Visualization Window`로 새 창을 바로 만들 수 있습니다.

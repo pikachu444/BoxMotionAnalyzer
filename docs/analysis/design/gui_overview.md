@@ -10,7 +10,7 @@ Last Reviewed: 2026-04-02
 - `Step 1: Raw Data Slice`
   - 원본 CSV 로드, 미리보기, 슬라이스 범위 지정, `.slice` 저장
 - `Step 1.5: Slice Processing`
-  - `.slice` 로드, processing mode / resampling 설정, processing 실행, `.proc` 저장
+  - `.slice` 로드, processing mode / Result Resampling 설정, processing 실행, `.proc` 저장
 - `Step 2: Results Analysis`
   - `.proc` 로드, 컬럼 선택 플롯, 팝업 플롯, 지점 분석, 시나리오 CSV 내보내기
 - 하단 `QStatusBar`는 파일 로드, 처리 진행, 저장 성공/실패 상태를 표시한다.
@@ -69,8 +69,10 @@ Last Reviewed: 2026-04-02
 ### 3.2. 하단 컨트롤
 - `Plot Options`
   - Step 1과 같은 preview 선택 구조를 유지한다
-- `Resampling`
-  - processing 전에 uniform time grid로 샘플을 보간할지 결정한다
+- `Result Resampling`
+  - processing 완료 후 최종 결과 컬럼을 시간축에서 보간할지 결정한다
+  - `Limit to Time Range`를 켜면 지정한 Start/End 시간 구간에만 중간 result row를 추가한다
+  - 기존 timestamp row의 결과값은 보존하고, 새 중간 timestamp row만 `.proc` 결과에 삽입한다
 - `Processing Mode`
   - Raw / Smoothing / Advanced
   - `Advanced Settings...` 다이얼로그 재사용
@@ -146,7 +148,7 @@ Last Reviewed: 2026-04-02
 2. 필요한 데이터와 축, 슬라이스 범위를 조정한다.
 3. `.slice`를 저장한다.
 4. Step 1.5에서 저장한 `.slice`를 연다.
-5. 필요하면 resampling factor와 processing mode를 조정한다.
+5. 필요하면 Result Resampling factor와 processing mode를 조정한다.
 6. processing을 실행한다.
 7. `.proc`를 저장한다.
 8. Step 2에서 결과 폴더를 선택하고 저장된 `.proc`를 목록에서 연다.

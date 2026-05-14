@@ -1,6 +1,7 @@
 import os
 
 from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import (
     QApplication,
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
@@ -136,7 +137,7 @@ class WidgetSliceProcessing(QWidget):
         controls_widget = QWidget()
         h_controls_layout = QHBoxLayout(controls_widget)
         controls_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        controls_widget.setMinimumHeight(180)
+        controls_widget.setMinimumHeight(220)
 
         plot_options_group = QGroupBox("Plot Options")
         plot_options_layout = QVBoxLayout(plot_options_group)
@@ -169,6 +170,19 @@ class WidgetSliceProcessing(QWidget):
             self.combo_resampling_factor.addItem(label, userData=factor)
         self.combo_resampling_factor.setEnabled(False)
         resampling_layout.addWidget(self.combo_resampling_factor, 1, 1)
+        self.cb_limit_resampling_range = QCheckBox(config_analysis_ui.RESAMPLING_RANGE_ENABLE_LABEL)
+        self.cb_limit_resampling_range.setEnabled(False)
+        resampling_layout.addWidget(self.cb_limit_resampling_range, 2, 0, 1, 2)
+        resampling_layout.addWidget(QLabel(config_analysis_ui.RESAMPLING_RANGE_START_LABEL), 3, 0)
+        self.le_resampling_range_start = QLineEdit()
+        self.le_resampling_range_start.setValidator(QDoubleValidator(self))
+        self.le_resampling_range_start.setEnabled(False)
+        resampling_layout.addWidget(self.le_resampling_range_start, 3, 1)
+        resampling_layout.addWidget(QLabel(config_analysis_ui.RESAMPLING_RANGE_END_LABEL), 4, 0)
+        self.le_resampling_range_end = QLineEdit()
+        self.le_resampling_range_end.setValidator(QDoubleValidator(self))
+        self.le_resampling_range_end.setEnabled(False)
+        resampling_layout.addWidget(self.le_resampling_range_end, 4, 1)
         self.resampling_description = QLabel(config_analysis_ui.RESAMPLING_DESCRIPTION)
         self.resampling_description.setWordWrap(True)
         self.resampling_description.setStyleSheet("color: #4a5568;")
@@ -176,7 +190,7 @@ class WidgetSliceProcessing(QWidget):
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["resampling_description_fixed_height"]
         )
         self.resampling_description.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        resampling_layout.addWidget(self.resampling_description, 2, 0, 1, 2)
+        resampling_layout.addWidget(self.resampling_description, 5, 0, 1, 2)
         h_controls_layout.addWidget(self.resampling_group)
 
         processing_group = QGroupBox(config_analysis_ui.PROCESSING_MODE_GROUP_TITLE)
@@ -294,7 +308,8 @@ class WidgetSliceProcessing(QWidget):
         self.load_slice_button.clicked.connect(self.open_slice_file)
         self.select_data_button.clicked.connect(self.open_data_selection_dialog)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
-        self.cb_enable_resampling.toggled.connect(self.combo_resampling_factor.setEnabled)
+        self.cb_enable_resampling.toggled.connect(self._update_resampling_controls_enabled)
+        self.cb_limit_resampling_range.toggled.connect(self._update_resampling_controls_enabled)
         self.rb_processing_standard.toggled.connect(self._on_processing_mode_changed)
         self.rb_processing_raw.toggled.connect(self._on_processing_mode_changed)
         self.rb_processing_advanced.toggled.connect(self._on_processing_mode_changed)
@@ -321,6 +336,50 @@ class WidgetSliceProcessing(QWidget):
         self.slice_padded_range_label.setText(
             f"{self.slice_metadata.padded_start:.3f}s ~ {self.slice_metadata.padded_end:.3f}s"
         )
+        self._set_default_resampling_range()
+
+    def _set_default_resampling_range(self, metadata=None):
+        metadata = self.slice_metadata if metadata is None else metadata
+        if metadata is not None:
+            start = metadata.user_start
+            end = metadata.user_end
+        elif self.parsed_data is not None and not self.parsed_data.empty:
+            start = float(self.parsed_data.index.min())
+            end = float(self.parsed_data.index.max())
+        else:
+            start = None
+            end = None
+
+        if start is not None and end is not None:
+            self.le_resampling_range_start.setText(f"{float(start):.3f}")
+            self.le_resampling_range_end.setText(f"{float(end):.3f}")
+
+    def _update_resampling_controls_enabled(self):
+        resampling_enabled = self.cb_enable_resampling.isChecked()
+        range_enabled = resampling_enabled and self.cb_limit_resampling_range.isChecked()
+        self.combo_resampling_factor.setEnabled(resampling_enabled)
+        self.cb_limit_resampling_range.setEnabled(resampling_enabled)
+        self.le_resampling_range_start.setEnabled(range_enabled)
+        self.le_resampling_range_end.setEnabled(range_enabled)
+
+    def _get_resampling_range_values(self, parsed_data, metadata=None) -> tuple[float | None, float | None]:
+        if not (self.cb_enable_resampling.isChecked() and self.cb_limit_resampling_range.isChecked()):
+            return None, None
+
+        try:
+            range_start = float(self.le_resampling_range_start.text())
+            range_end = float(self.le_resampling_range_end.text())
+        except ValueError:
+            raise ValueError("Enter numeric resampling range start/end times.")
+
+        metadata = self.slice_metadata if metadata is None else metadata
+        slice_start = metadata.user_start if metadata else float(parsed_data.index.min())
+        slice_end = metadata.user_end if metadata else float(parsed_data.index.max())
+        if range_start >= range_end:
+            raise ValueError("Result resampling range start must be smaller than end.")
+        if range_start < float(slice_start) or range_end > float(slice_end):
+            raise ValueError("Result resampling range must stay inside the slice user range.")
+        return range_start, range_end
 
     def _apply_box_dims_from_metadata(self, metadata=None):
         metadata = self.slice_metadata if metadata is None else metadata
@@ -500,6 +559,7 @@ class WidgetSliceProcessing(QWidget):
 
     def _build_processing_config(self, parsed_data, metadata=None) -> dict:
         metadata = self.slice_metadata if metadata is None else metadata
+        range_start, range_end = self._get_resampling_range_values(parsed_data, metadata)
         return {
             "slice_filter_by": "time",
             "slice_start_val": (
@@ -508,9 +568,15 @@ class WidgetSliceProcessing(QWidget):
             "slice_end_val": (
                 metadata.user_end if metadata else float(parsed_data.index.max())
             ),
-            "enable_resampling": self.cb_enable_resampling.isChecked(),
-            "resampling_factor": self.combo_resampling_factor.currentData(),
-            "resampling_method": "linear",
+            "enable_result_resampling": self.cb_enable_resampling.isChecked(),
+            "result_resampling_factor": self.combo_resampling_factor.currentData(),
+            "result_resampling_method": "linear",
+            "limit_result_resampling_to_range": (
+                self.cb_enable_resampling.isChecked()
+                and self.cb_limit_resampling_range.isChecked()
+            ),
+            "result_resampling_range_start": range_start,
+            "result_resampling_range_end": range_end,
             "processing_mode": self.current_processing_mode,
             "analysis_options": self._build_analysis_overrides(),
         }
