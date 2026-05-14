@@ -48,7 +48,7 @@ Last Reviewed: 2026-04-02
 | | +---------------------------------------------+ +--------------------------------------------+ | |
 | |                                                                                                  | |
 | | +----------------------------+ +----------------------------+ +-------------------------------+ | |
-| | | Plot Options               | | Resampling                 | | Processing Mode               | | |
+| | | Plot Options               | | Result Resampling          | | Processing Mode               | | |
 | | | [Select Data...]           | | [ ] Enable  [2x v]         | | Raw / Smoothing / Advanced   | | |
 | | | Selected: RigidBody Center | |                            | | [Advanced Settings...]        | | |
 | | | Axis: [Position-X v]       | |                            | |                               | | |

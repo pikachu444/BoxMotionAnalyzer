@@ -786,7 +786,7 @@ class Step1SliceWorkflowMockWindow(QMainWindow):
         processing_layout.addLayout(mode_row)
 
         resampling_row = QHBoxLayout()
-        resampling_row.addWidget(QCheckBox("Enable Resampling"))
+        resampling_row.addWidget(QCheckBox("Enable Result Resampling"))
         resampling_factor = QComboBox()
         resampling_factor.addItems(["2x", "3x", "4x"])
         resampling_row.addWidget(resampling_factor)

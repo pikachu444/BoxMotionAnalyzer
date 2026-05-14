@@ -51,14 +51,14 @@ Last Reviewed: 2026-04-02
 *   책임:
     *   `.slice` 로드
     *   `.slice` 메타에서 box dimensions 복원
-    *   resampling / processing mode / advanced settings 수집
+    *   Result Resampling / 선택 구간 Result Resampling / processing mode / advanced settings 수집
     *   processing 실행 요청
     *   `.proc` 저장
 *   주요 UI 요소:
     *   `Load Slice File...`
     *   `Slice Summary`
     *   `Box Dimensions (mm)`
-    *   `Resampling`
+    *   `Result Resampling`
     *   `Processing Mode`
     *   `Run Processing`
     *   `Save Processed Result`
@@ -140,10 +140,12 @@ Last Reviewed: 2026-04-02
 ---
 *   위치: `src/analysis/pipeline/resampler.py`
 *   책임:
-    *   시간 인덱스를 기준으로 uniform grid 생성
+    *   기존 시간 인덱스 구간 사이에 보간 timestamp 생성
     *   numeric 컬럼 linear interpolation
     *   문자열/범주형 컬럼 ffill/bfill
     *   `Frame` 컬럼 재번호
+
+Result Resampling orchestration은 `PipelineController`가 담당한다. `UniformResampler`는 전달받은 최종 result DataFrame의 기존 timestamp를 포함한 채 중간 timestamp row를 보간하는 단일 책임을 유지한다.
 
 ---
 ### 12. 분석 모듈 집합

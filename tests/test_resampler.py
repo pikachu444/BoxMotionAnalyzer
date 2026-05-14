@@ -27,6 +27,21 @@ class TestUniformResampler(unittest.TestCase):
         self.assertEqual(result["Marker_FaceInfo"].isna().sum(), 0)
         self.assertTrue((result["Marker_FaceInfo"] == "TOP").all())
 
+    def test_resampler_preserves_original_timestamps_for_nonuniform_input(self):
+        df = pd.DataFrame(
+            {
+                TimeCols.FRAME: [0, 1, 2],
+                "Value": [0.0, 10.0, 30.0],
+            },
+            index=pd.Index([0.0, 0.1, 0.35], name=TimeCols.TIME),
+        )
+
+        result = UniformResampler(factor=2).process(df)
+
+        for timestamp in df.index:
+            self.assertIn(timestamp, result.index)
+            self.assertEqual(result.loc[timestamp, "Value"], df.loc[timestamp, "Value"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -107,6 +107,29 @@ class TestSliceBatchProcessing(unittest.TestCase):
             self.assertIn("skipped=1", self.widget.batch_summary_label.text())
             self.assertIn("failed=0", self.widget.batch_summary_label.text())
 
+    def test_processing_config_includes_range_limited_resampling_settings(self):
+        self.widget.slice_metadata = self._metadata()
+        parsed_data = pd.DataFrame(index=pd.Index([0.0, 0.5, 1.0], name="Time"))
+        self.widget.cb_enable_resampling.setChecked(True)
+        self.widget.cb_limit_resampling_range.setChecked(True)
+        self.widget.le_resampling_range_start.setText("0.2")
+        self.widget.le_resampling_range_end.setText("0.8")
+
+        config = self.widget._build_processing_config(parsed_data, self.widget.slice_metadata)
+
+        self.assertTrue(config["enable_result_resampling"])
+        self.assertTrue(config["limit_result_resampling_to_range"])
+        self.assertEqual(config["result_resampling_range_start"], 0.2)
+        self.assertEqual(config["result_resampling_range_end"], 0.8)
+
+    def test_slice_summary_sets_default_resampling_range_from_metadata(self):
+        self.widget.slice_metadata = self._metadata()
+
+        self.widget._set_slice_summary()
+
+        self.assertEqual(self.widget.le_resampling_range_start.text(), "0.100")
+        self.assertEqual(self.widget.le_resampling_range_end.text(), "0.900")
+
 
 if __name__ == "__main__":
     unittest.main()

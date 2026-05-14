@@ -50,7 +50,7 @@ Last Reviewed: 2026-03-18
    |
    +-----> [Processing Mode 선택]
    +-----> [Advanced Settings 조정]
-   +-----> [Resampling factor 선택]
+   +-----> [Result Resampling factor / range 선택]
    |
    V
 [8. 사용자가 "Run Processing" 클릭]

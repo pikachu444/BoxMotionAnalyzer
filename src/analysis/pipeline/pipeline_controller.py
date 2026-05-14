@@ -1,7 +1,8 @@
+import numpy as np
 import pandas as pd
 from PySide6.QtCore import QObject, Signal
 from src.config import config_app, config_analysis
-from src.config.data_columns import FACE_PREFIX_TO_INFO
+from src.config.data_columns import FACE_PREFIX_TO_INFO, TimeCols
 from src.analysis.pipeline.slicer import Slicer
 from src.analysis.pipeline.parser import Parser
 from src.analysis.pipeline.smoother import MarkerSmoother
@@ -34,14 +35,14 @@ class PipelineController(QObject):
         )
 
     def _execute_analysis_from_parsed(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
+        if self._is_result_resampling_enabled(gui_config):
+            return self._execute_result_resampling(gui_config, parsed_data)
+        return self._execute_analysis_single_pass(gui_config, parsed_data)
+
+    def _execute_analysis_single_pass(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
         analysis_options = gui_config.get('analysis_options', {})
         processing_mode = gui_config.get('processing_mode', 'standard')
-        resampling_enabled = bool(gui_config.get('enable_resampling', False))
-        resampling_factor = int(gui_config.get('resampling_factor') or 1)
-        effective_analysis_options = build_effective_analysis_options(
-            analysis_options,
-            resampling_factor if resampling_enabled else 1,
-        )
+        effective_analysis_options = build_effective_analysis_options(analysis_options, 1)
         self.smoother.configure(effective_analysis_options)
         self.velocity_calculator.configure(effective_analysis_options)
 
@@ -87,25 +88,6 @@ class PipelineController(QObject):
         )
         padded_data = slicer_for_padding.process(data)
         self.log_message.emit(f"    Padded slicer done. Shape: {padded_data.shape}")
-
-        if resampling_enabled and resampling_factor > 1:
-            self.log_message.emit("[2.5/8] Resampling data on a uniform time grid...")
-            resampler = UniformResampler(resampling_factor)
-            original_rows = len(padded_data)
-            original_mean_dt = (
-                float(pd.Series(padded_data.index).diff().dropna().mean())
-                if len(padded_data) > 1
-                else 0.0
-            )
-            padded_data = resampler.process(padded_data)
-            new_mean_dt = (
-                float(pd.Series(padded_data.index).diff().dropna().mean())
-                if len(padded_data) > 1
-                else 0.0
-            )
-            self.log_message.emit(f"    Resampling factor: {resampling_factor}x")
-            self.log_message.emit(f"    Rows: {original_rows} -> {len(padded_data)}")
-            self.log_message.emit(f"    Mean dt: {original_mean_dt:.6f}s -> {new_mean_dt:.6f}s")
 
         # 3. 스무딩
         if effective_analysis_options.get('enable_marker_smoothing', True):
@@ -158,6 +140,119 @@ class PipelineController(QObject):
 
         self.log_message.emit("\nAnalysis pipeline completed successfully.")
         return final_result
+
+    def _is_result_resampling_enabled(self, gui_config: dict) -> bool:
+        enabled = gui_config.get('enable_result_resampling', gui_config.get('enable_resampling', False))
+        return bool(enabled) and self._get_result_resampling_factor(gui_config) > 1
+
+    def _get_result_resampling_factor(self, gui_config: dict) -> int:
+        return int(gui_config.get('result_resampling_factor', gui_config.get('resampling_factor') or 1) or 1)
+
+    def _is_result_resampling_range_limited(self, gui_config: dict) -> bool:
+        return bool(
+            gui_config.get(
+                'limit_result_resampling_to_range',
+                gui_config.get('limit_resampling_to_range', False),
+            )
+        )
+
+    def _copy_config_for_pass(self, gui_config: dict, **overrides) -> dict:
+        pass_config = dict(gui_config)
+        pass_config['analysis_options'] = dict(gui_config.get('analysis_options', {}))
+        pass_config.update(overrides)
+        pass_config['enable_result_resampling'] = False
+        pass_config['limit_result_resampling_to_range'] = False
+        pass_config['result_resampling_factor'] = 1
+        # Legacy key fallback: make sure a baseline pass never performs old input resampling.
+        pass_config['enable_resampling'] = False
+        pass_config['limit_resampling_to_range'] = False
+        pass_config['resampling_factor'] = 1
+        return pass_config
+
+    def _validate_resampling_range(self, gui_config: dict, parsed_data: pd.DataFrame) -> tuple[float, float]:
+        original_start = float(gui_config.get('slice_start_val'))
+        original_end = float(gui_config.get('slice_end_val'))
+        range_start = gui_config.get('result_resampling_range_start', gui_config.get('resampling_range_start'))
+        range_end = gui_config.get('result_resampling_range_end', gui_config.get('resampling_range_end'))
+        if range_start is None or range_end is None:
+            raise ValueError("Range-limited result resampling requires start and end times.")
+
+        range_start = float(range_start)
+        range_end = float(range_end)
+        if range_start >= range_end:
+            raise ValueError("Result resampling range start must be smaller than end.")
+
+        tolerance = 1e-9
+        if range_start < original_start - tolerance or range_end > original_end + tolerance:
+            raise ValueError("Result resampling range must stay inside the selected slice range.")
+
+        data_min = float(parsed_data.index.min())
+        data_max = float(parsed_data.index.max())
+        if range_start < data_min - tolerance or range_end > data_max + tolerance:
+            raise ValueError("Result resampling range must stay inside the loaded slice data.")
+
+        return range_start, range_end
+
+    def _merge_result_resampling_rows(
+        self,
+        baseline_result: pd.DataFrame,
+        resampled_result: pd.DataFrame,
+        range_start: float,
+        range_end: float,
+    ) -> pd.DataFrame:
+        if baseline_result.empty or resampled_result.empty:
+            return baseline_result.copy()
+
+        baseline_index = baseline_result.index.to_numpy(dtype=float)
+        resampled_index = resampled_result.index.to_numpy(dtype=float)
+        tolerance = 1e-9
+        inside_range = (resampled_index >= range_start - tolerance) & (resampled_index <= range_end + tolerance)
+        new_timestamp_mask = np.array(
+            [not np.any(np.isclose(timestamp, baseline_index, rtol=0.0, atol=tolerance)) for timestamp in resampled_index]
+        )
+        rows_to_insert = resampled_result.loc[inside_range & new_timestamp_mask]
+
+        merged = pd.concat([baseline_result, rows_to_insert], axis=0).sort_index(kind='mergesort')
+        merged = merged[~merged.index.duplicated(keep='first')].copy()
+        if TimeCols.FRAME in merged.columns:
+            merged[TimeCols.FRAME] = np.arange(len(merged), dtype=int)
+        return merged
+
+    def _execute_result_resampling(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
+        resampling_factor = self._get_result_resampling_factor(gui_config)
+        baseline_config = self._copy_config_for_pass(gui_config)
+        self.log_message.emit("[INFO] Running baseline processing before result resampling...")
+        baseline_result = self._execute_analysis_single_pass(baseline_config, parsed_data)
+
+        if self._is_result_resampling_range_limited(gui_config):
+            range_start, range_end = self._validate_resampling_range(gui_config, parsed_data)
+            self.log_message.emit(
+                "[INFO] Result resampling enabled for selected range: "
+                f"{range_start:.3f}s - {range_end:.3f}s at {resampling_factor}x"
+            )
+            result_to_resample = baseline_result.loc[range_start:range_end]
+        else:
+            range_start = float(baseline_result.index.min())
+            range_end = float(baseline_result.index.max())
+            self.log_message.emit(
+                "[INFO] Result resampling enabled for full slice: "
+                f"{range_start:.3f}s - {range_end:.3f}s at {resampling_factor}x"
+            )
+            result_to_resample = baseline_result
+
+        self.log_message.emit("[INFO] Interpolating processed result rows...")
+        resampled_result = UniformResampler(resampling_factor).process(result_to_resample)
+
+        merged = self._merge_result_resampling_rows(
+            baseline_result,
+            resampled_result,
+            range_start,
+            range_end,
+        )
+        inserted_rows = len(merged) - len(baseline_result)
+        self.log_message.emit(f"[INFO] Inserted {inserted_rows} interpolated result rows.")
+        self.log_message.emit("\nResult resampling pipeline completed successfully.")
+        return merged
 
     def process_parsed_data(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
         return self._execute_analysis_from_parsed(gui_config, parsed_data)
