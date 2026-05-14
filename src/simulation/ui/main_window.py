@@ -1,17 +1,235 @@
 import os
 import sys
 from pathlib import Path
+import numpy as np
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QLineEdit, QComboBox, QPushButton, QDoubleSpinBox, QCheckBox,
     QGroupBox, QFormLayout, QMessageBox, QFileDialog, QProgressBar
 )
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal, QPointF, QSize
+from PySide6.QtGui import QColor, QBrush, QPainter, QPen, QPolygonF
+from scipy.spatial.transform import Rotation as R
 
 # Import logic modules
 from src.simulation.engine import MuJoCoEngine
 from src.simulation.scenarios import Scenarios
 from src.simulation.data_exporter import DataExporter
+
+
+class OrientationPreviewWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.box_size = (1578.0, 930.0, 142.0)
+        self.euler = (0.0, 0.0, 0.0)
+        self.sequence_spec = None
+        self.category = ""
+        self.setMinimumSize(250, 180)
+
+    def sizeHint(self):
+        return QSize(260, 190)
+
+    def set_preview_state(self, box_size, euler, sequence_spec, category):
+        self.box_size = box_size
+        self.euler = euler
+        self.sequence_spec = sequence_spec
+        self.category = category
+        self.update()
+
+    def _box_vertices(self):
+        width, height, depth = self.box_size
+        hx, hy, hz = width / 2.0, height / 2.0, depth / 2.0
+        return np.array([
+            [-hx, -hy, -hz],
+            [hx, -hy, -hz],
+            [hx, hy, -hz],
+            [-hx, hy, -hz],
+            [-hx, -hy, hz],
+            [hx, -hy, hz],
+            [hx, hy, hz],
+            [-hx, hy, hz],
+        ], dtype=float)
+
+    def _face_map(self):
+        if "Type H" in self.category:
+            return {
+                1: [3, 2, 6, 7],
+                2: [0, 1, 2, 3],
+                3: [0, 1, 5, 4],
+                4: [4, 5, 6, 7],
+                5: [1, 2, 6, 5],
+                6: [0, 3, 7, 4],
+            }
+        return {
+            1: [0, 1, 2, 3],
+            2: [0, 1, 5, 4],
+            3: [4, 5, 6, 7],
+            4: [3, 2, 6, 7],
+            5: [1, 2, 6, 5],
+            6: [0, 3, 7, 4],
+        }
+
+    def _project(self, vertices):
+        object_rot = R.from_euler("xyz", self.euler, degrees=True)
+        # Floor-first preview: keep the world-down direction easy to read.
+        # Keep camera roll at zero so the preview is not visually skewed.
+        camera_rot = R.from_euler("xyz", [60.0, -18.0, 0.0], degrees=True)
+        transformed = camera_rot.apply(object_rot.apply(vertices))
+        projected = transformed[:, [0, 1]]
+        depth = transformed[:, 2]
+        return projected, depth
+
+    def _to_widget_points(self, projected):
+        available_width = max(self.width() - 20, 1)
+        available_height = max(self.height() - 30, 1)
+        mins = projected.min(axis=0)
+        maxs = projected.max(axis=0)
+        spans = np.maximum(maxs - mins, 1e-6)
+        scale = min(available_width / spans[0], available_height / spans[1]) * 0.75
+        center = (mins + maxs) / 2.0
+
+        points = []
+        for x_val, y_val in projected:
+            px = (x_val - center[0]) * scale + self.width() / 2.0
+            py = -(y_val - center[1]) * scale + self.height() / 2.0 + 6.0
+            points.append(QPointF(px, py))
+        return points
+
+    def _get_visible_faces(self, face_map, depth):
+        depth_by_face = {
+            face_number: float(np.mean([depth[idx] for idx in indices]))
+            for face_number, indices in face_map.items()
+        }
+        visible = set()
+        for first, second in ((1, 3), (2, 4), (5, 6)):
+            if depth_by_face[first] >= depth_by_face[second]:
+                visible.add(first)
+            else:
+                visible.add(second)
+        return visible
+
+    def _contact_text(self):
+        if self.sequence_spec is None or not getattr(self.sequence_spec, "faces", None):
+            return "Contact: N/A"
+        kind = str(getattr(self.sequence_spec, "kind", "contact")).capitalize()
+        faces = "-".join(str(number) for number in self.sequence_spec.faces)
+        return f"Contact: {kind} {faces}"
+
+    def _draw_fixed_axes(self, painter):
+        center = np.array([self.width() - 56.0, 48.0])
+        axis_length = 24.0
+        # Screen-fixed icon so axis labels remain stable and easy to read.
+        axes = (
+            ("X", np.array([1.0, 0.0]), QColor("#d84315")),
+            ("Y", np.array([0.0, -1.0]), QColor("#2e7d32")),
+            ("Z", np.array([-0.68, 0.68]), QColor("#1565c0")),
+        )
+        painter.setPen(QColor("#607d8b"))
+        painter.drawText(int(center[0] - 34), int(center[1] - 26), "Fixed Axes")
+
+        for label, vec2, color in axes:
+            norm = np.linalg.norm(vec2)
+            if norm < 1e-8:
+                continue
+            end = center + vec2 / norm * axis_length
+            painter.setPen(QPen(color, 2.0))
+            painter.drawLine(
+                QPointF(float(center[0]), float(center[1])),
+                QPointF(float(end[0]), float(end[1])),
+            )
+            painter.setPen(color)
+            painter.drawText(int(end[0] + 3), int(end[1] + 3), label)
+
+    def _draw_contact_highlight(self, painter, face_map, widget_points, visible_faces):
+        if self.sequence_spec is None or not getattr(self.sequence_spec, "faces", None):
+            return
+
+        contact_kind = str(getattr(self.sequence_spec, "kind", "")).lower()
+        # Tip/rotational-edge sequences still reference a primary contact face in the UI.
+        if contact_kind in {"tip", "rotational_edge"}:
+            contact_kind = "face"
+
+        highlighted_faces = list(self.sequence_spec.faces)
+        shared_vertices = None
+        for face_number in highlighted_faces:
+            vertex_set = set(face_map.get(face_number, []))
+            shared_vertices = vertex_set if shared_vertices is None else shared_vertices & vertex_set
+
+        if contact_kind == "face" and highlighted_faces:
+            face_vertices = face_map.get(highlighted_faces[0])
+            if not face_vertices:
+                return
+            is_visible = highlighted_faces[0] in visible_faces
+            pen = QPen(QColor("#fb8c00") if is_visible else QColor(251, 140, 0, 170), 3 if is_visible else 2)
+            if not is_visible:
+                pen.setStyle(Qt.DashLine)
+            painter.setPen(pen)
+            painter.setBrush(Qt.NoBrush)
+            painter.drawPolygon(QPolygonF([widget_points[idx] for idx in face_vertices]))
+            return
+
+        if contact_kind == "edge" and shared_vertices and len(shared_vertices) == 2:
+            points = [widget_points[idx] for idx in sorted(shared_vertices)]
+            # Edge/corner contacts remain visible when at least one adjacent face is front-facing.
+            is_visible = any(face in visible_faces for face in highlighted_faces)
+            pen = QPen(QColor("#ef6c00") if is_visible else QColor(239, 108, 0, 160), 4 if is_visible else 3)
+            if not is_visible:
+                pen.setStyle(Qt.DashLine)
+            painter.setPen(pen)
+            painter.drawLine(points[0], points[1])
+            return
+
+        if contact_kind == "corner" and shared_vertices and len(shared_vertices) == 1:
+            point = widget_points[next(iter(shared_vertices))]
+            is_visible = any(face in visible_faces for face in highlighted_faces)
+            painter.setBrush(QBrush(QColor("#e53935")) if is_visible else Qt.NoBrush)
+            corner_pen = QPen(QColor("#e53935") if is_visible else QColor(229, 57, 53, 170), 2.0)
+            if not is_visible:
+                corner_pen.setStyle(Qt.DashLine)
+            painter.setPen(corner_pen)
+            painter.drawEllipse(point, 6, 6)
+
+    def paintEvent(self, event):
+        del event
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.fillRect(self.rect(), QColor("#f7f9fb"))
+
+        vertices = self._box_vertices()
+        projected, depth = self._project(vertices)
+        widget_points = self._to_widget_points(projected)
+        face_map = self._face_map()
+        visible_faces = self._get_visible_faces(face_map, depth)
+
+        ordered_faces = sorted(
+            face_map.items(),
+            key=lambda item: float(np.mean([depth[idx] for idx in item[1]]))
+        )
+
+        highlight_faces = set(getattr(self.sequence_spec, "faces", ()))
+        default_brush = QBrush(QColor("#d6dde5"))
+        highlight_brush = QBrush(QColor("#ffe0b2"))
+        edge_pen = QPen(QColor("#546e7a"), 1.3)
+
+        for face_number, indices in ordered_faces:
+            polygon = QPolygonF([widget_points[idx] for idx in indices])
+            painter.setPen(edge_pen)
+            painter.setBrush(highlight_brush if face_number in highlight_faces else default_brush)
+            painter.drawPolygon(polygon)
+
+        self._draw_contact_highlight(painter, face_map, widget_points, visible_faces)
+        self._draw_fixed_axes(painter)
+
+        painter.setPen(QColor("#455a64"))
+        painter.drawText(10, 16, "Orientation Preview")
+        painter.setPen(QColor("#546e7a"))
+        painter.drawText(10, self.height() - 26, self._contact_text())
+        painter.setPen(QColor("#607d8b"))
+        painter.drawText(
+            10,
+            self.height() - 10,
+            f"Fixed X {self.euler[0]:.1f}  Y {self.euler[1]:.1f}  Z {self.euler[2]:.1f}"
+        )
 
 class SimulationThread(QThread):
     finished_signal = Signal(str)
@@ -158,6 +376,15 @@ class SimulationUI(QWidget):
         self.custom_y_input.setRange(-180, 180)
         self.custom_y_input.setValue(0)
 
+        self.preview_hint_label = QLabel(
+            "Advanced: adjust fixed-axis X/Y/Z rotations about the box center for a manual perturbation. "
+            "The preview updates live with Floor-First view and dashed hidden-contact cues."
+        )
+        self.preview_hint_label.setStyleSheet("color: gray; font-size: 11px;")
+        self.preview_hint_label.setWordWrap(True)
+
+        self.orientation_preview = OrientationPreviewWidget()
+
         self.info_label = QLabel("")
         self.info_label.setStyleSheet("color: #4CAF50; font-size: 11px;")
         self.info_label.setWordWrap(True)
@@ -177,15 +404,20 @@ class SimulationUI(QWidget):
         self.w_input.valueChanged.connect(self._update_custom_fields_from_scenario)
         self.d_input.valueChanged.connect(self._update_custom_fields_from_scenario)
         self.h_input.valueChanged.connect(self._update_custom_fields_from_scenario)
+        self.custom_r_input.valueChanged.connect(self._update_orientation_preview)
+        self.custom_p_input.valueChanged.connect(self._update_orientation_preview)
+        self.custom_y_input.valueChanged.connect(self._update_orientation_preview)
 
         self.base_h, self.base_r, self.base_p, self.base_y = 810, 0, 0, 0
 
         form.addRow("Category:", self.cat_combo)
         form.addRow("Drop Sequence:", self.drop_combo)
         form.addRow("Height (mm):", self.custom_h_input)
-        form.addRow("Roll (deg):", self.custom_r_input)
-        form.addRow("Pitch (deg):", self.custom_p_input)
-        form.addRow("Yaw (deg):", self.custom_y_input)
+        form.addRow("Fixed X Rot (deg):", self.custom_r_input)
+        form.addRow("Fixed Y Rot (deg):", self.custom_p_input)
+        form.addRow("Fixed Z Rot (deg):", self.custom_y_input)
+        form.addRow("", self.preview_hint_label)
+        form.addRow("Preview:", self.orientation_preview)
         form.addRow("", self.info_label)
         form.addRow("", self.warning_label)
 
@@ -244,6 +476,7 @@ class SimulationUI(QWidget):
         self.custom_r_input.blockSignals(False)
         self.custom_p_input.blockSignals(False)
         self.custom_y_input.blockSignals(False)
+        self._update_orientation_preview()
 
     def _check_for_modifications(self):
         """Checks if current spinbox values deviate from the standard scenario base values."""
@@ -265,6 +498,19 @@ class SimulationUI(QWidget):
             self.warning_label.setText("⚠ Modified: " + ", ".join(changes))
         else:
             self.warning_label.setText("")
+
+    def _update_orientation_preview(self):
+        if self.drop_combo.count() == 0:
+            return
+
+        spec = self.drop_combo.currentData()
+        box_size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
+        euler = (
+            self.custom_r_input.value(),
+            self.custom_p_input.value(),
+            self.custom_y_input.value(),
+        )
+        self.orientation_preview.set_preview_state(box_size, euler, spec, self.cat_combo.currentText())
 
     def _init_noise_group(self):
         group = QGroupBox("Noise Simulation")

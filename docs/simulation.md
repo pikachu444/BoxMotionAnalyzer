@@ -33,6 +33,29 @@
   - 모서리 선이 바닥과 평행하게 닿도록 회전.
   - 예: 전면-하단 선 (Front-Bottom Edge) 등.
 
+> **중요:** 특히 Type G의 `Face / Edge / Corner` 자세는 규격이 `roll / pitch / yaw` 숫자를 직접 주는 형태가 아니라,  
+> “어느 면/선/점이 먼저 충돌해야 하는가”를 정의하는 방식입니다.  
+> 따라서 시뮬레이터는 박스 치수 `(Width, Height, Depth)`를 이용해 해당 접촉 자세를 만족하는 회전을 계산해야 합니다.
+>
+> 이 동작을 확인할 때 참고한 외부 URL은 아래와 같습니다.
+> - ANSI storefront: https://webstore.ansi.org/standards/ansi/istaprojectamazonsioc2018
+> - Public excerpt used for sequence / orientation cross-checks:
+>   https://d39w7f4ix9f5s9.cloudfront.net/32/98/c52dd6b841f18bcb8af679b1f1ac/9.TESTING_thumbnail_ISTA%20Project%206-Amazon.com-SIOC%2018-18.pdf
+>
+> 관련 로컬 경로:
+> - [simulation_external_reference_notes.md](/root/BoxMotionAnalyzer/docs/simulation_external_reference_notes.md)
+> - [ISTA_6_AMAZON_SIOC_REFERENCE.md](/root/BoxMotionAnalyzer/docs/ISTA_6_AMAZON_SIOC_REFERENCE.md)
+> - [scenarios.py](/root/BoxMotionAnalyzer/src/simulation/scenarios.py)
+>
+> 참고한 외부 URL:
+> - ANSI storefront: https://webstore.ansi.org/standards/ansi/istaprojectamazonsioc2018
+> - Public excerpt used for cross-checking: https://d39w7f4ix9f5s9.cloudfront.net/32/98/c52dd6b841f18bcb8af679b1f1ac/9.TESTING_thumbnail_ISTA%20Project%206-Amazon.com-SIOC%2018-18.pdf
+>
+> 관련 로컬 문서/코드 경로:
+> - `/root/BoxMotionAnalyzer/docs/simulation_external_reference_notes.md`
+> - `/root/BoxMotionAnalyzer/docs/ISTA_6_AMAZON_SIOC_REFERENCE.md`
+> - `/root/BoxMotionAnalyzer/src/simulation/scenarios.py`
+
 ### 2.3 데이터 익스포터 (Digital Twin Data Pipeline) (`src/simulation/data_exporter.py`)
 시뮬레이션에서 생성된 1000Hz (1ms 간격)의 위치 데이터를 기반으로 속도 및 가속도를 수치 미분(Finite Difference) 방식으로 계산한 뒤, **`DataHandler`와 완벽히 호환되는 `.proc` 파일 포맷**으로 내보냅니다.
 - **포맷 구조:**
@@ -47,6 +70,15 @@
 3. **Simulation Duration(s):** 시뮬레이션을 몇 초 동안 실행할지 설정할 수 있습니다. (기본 2초. 낙하 높이가 높을 경우 시간을 늘려야 합니다.)
 4. [Run Simulation] 클릭 시 백그라운드에서 물리 연산 후 `.proc` 저장.
 5. 이후 메인 [Analysis & Visualization] 탭에서 생성된 파일을 로드하여 3D 시각화 가능.
+
+현재 GUI의 `Roll / Pitch / Yaw` 값은 표준 시나리오를 선택했을 때 **자동 계산된 결과를 보여주는 필드**로 이해해야 합니다.  
+특히 Type G에서는 `Edge` / `Corner` 자세의 기울기 크기가 박스 크기 비율에 따라 달라져야 하므로, 이 값은 수동 상수로 고정되면 안 됩니다.
+
+사용자가 표준 자세에서 작은 perturbation을 주고 싶을 수 있으므로, 시뮬레이션 UI는 다음 흐름을 지원하는 것이 적절합니다.
+- 표준 시나리오를 선택하면 `Roll / Pitch / Yaw`를 자동 계산해서 채운다.
+- 사용자가 각도를 직접 수정하면 이를 수동 perturbation으로 간주한다.
+- 현재 자세를 보여주는 작은 박스 프리뷰를 함께 표시해, 접촉 면과 기울어진 방향을 직관적으로 확인할 수 있게 한다.
+- 표준값과 다른 값이 들어오면 기존처럼 경고 메시지를 표시한다.
 
 ## 3. 박스 모델링 방법론 (Box Modeling)
 

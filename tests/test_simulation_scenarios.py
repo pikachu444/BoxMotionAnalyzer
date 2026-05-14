@@ -21,57 +21,58 @@ class TestSimulationScenarios(unittest.TestCase):
         self.assertEqual(len(type_h_specs), 12)
 
     def test_sequence_lookup_returns_structured_metadata(self):
-        spec = Scenarios.get_drop_sequence_spec(TYPE_G, "14_Edge_3-4_High")
+        spec = Scenarios.get_drop_sequence_spec(TYPE_G, "08_Face_3_Screen_High")
         self.assertIsNotNone(spec)
-        self.assertEqual(spec.kind, "edge")
-        self.assertEqual(spec.faces, (3, 4))
+        self.assertEqual(spec.kind, "face")
+        self.assertEqual(spec.faces, (3,))
         self.assertEqual(spec.height_rule, "high")
 
-    def _assert_contact_vector_points_down(self, sequence_name, category, box_size, face_normals):
+    def _assert_target_vector_points_down(self, sequence_name, category, box_size, target_vector):
         roll, pitch, yaw = Scenarios.get_euler_angles(sequence_name, box_size, category=category)
         quat = Scenarios.get_orientation_from_euler(roll, pitch, yaw)
         rotation = R.from_quat([quat[1], quat[2], quat[3], quat[0]])
-
-        local_contact = np.sum(face_normals, axis=0)
-        local_contact = local_contact / np.linalg.norm(local_contact)
-        world_contact = rotation.apply(local_contact)
+        local_target = np.array(target_vector, dtype=float)
+        local_target = local_target / np.linalg.norm(local_target)
+        world_contact = rotation.apply(local_target)
 
         np.testing.assert_allclose(world_contact, np.array([0.0, 0.0, -1.0]), atol=1e-6)
 
     def test_type_g_ui_face_sequence_uses_actual_face_numbering(self):
         box_size = (1578.0, 930.0, 142.0)
-        self._assert_contact_vector_points_down(
-            "13_Face_2_Bottom",
+        self._assert_target_vector_points_down(
+            "17_Hazard_Face2_Default",
             TYPE_G,
             box_size,
-            [np.array([0.0, -1.0, 0.0])],
+            (0.0, -930.0, 0.0),
         )
-        self._assert_contact_vector_points_down(
-            "08_Face_3_Screen",
+        self._assert_target_vector_points_down(
+            "08_Face_3_Screen_High",
             TYPE_G,
             box_size,
-            [np.array([0.0, 0.0, 1.0])],
+            (0.0, 0.0, 142.0),
         )
 
-    def test_type_g_edge_and_corner_sequences_are_not_flat_fallbacks(self):
+    def test_type_g_edge_and_corner_sequences_use_dimension_weighted_tilt(self):
         box_size = (1578.0, 930.0, 142.0)
         edge_angles = Scenarios.get_euler_angles("01_Edge_3-4", box_size, category=TYPE_G)
         corner_angles = Scenarios.get_euler_angles("04_Corner_3-4-6", box_size, category=TYPE_G)
+        second_corner_angles = Scenarios.get_euler_angles("14_Corner_1-2-6", box_size, category=TYPE_G)
 
         self.assertNotEqual(edge_angles, (0.0, 0.0, 0.0))
         self.assertNotEqual(corner_angles, (0.0, 0.0, 0.0))
+        self.assertNotEqual(corner_angles, second_corner_angles)
 
-        self._assert_contact_vector_points_down(
+        self._assert_target_vector_points_down(
             "01_Edge_3-4",
             TYPE_G,
             box_size,
-            [np.array([0.0, 0.0, 1.0]), np.array([0.0, 1.0, 0.0])],
+            (0.0, 930.0, 142.0),
         )
-        self._assert_contact_vector_points_down(
+        self._assert_target_vector_points_down(
             "04_Corner_3-4-6",
             TYPE_G,
             box_size,
-            [np.array([0.0, 0.0, 1.0]), np.array([0.0, 1.0, 0.0]), np.array([-1.0, 0.0, 0.0])],
+            (-1578.0, 930.0, 142.0),
         )
 
     def test_type_h_sequences_use_different_face_numbering(self):
@@ -81,17 +82,17 @@ class TestSimulationScenarios(unittest.TestCase):
 
         self.assertNotEqual(top_angles, rear_angles)
 
-        self._assert_contact_vector_points_down(
+        self._assert_target_vector_points_down(
             "08_Face_1_Top",
             TYPE_H,
             box_size,
-            [np.array([0.0, 1.0, 0.0])],
+            (0.0, 1.0, 0.0),
         )
-        self._assert_contact_vector_points_down(
+        self._assert_target_vector_points_down(
             "11_Face_2_Rear",
             TYPE_H,
             box_size,
-            [np.array([0.0, 0.0, -1.0])],
+            (0.0, 0.0, -1.0),
         )
 
     def test_rotational_edge_sequences_follow_box_aspect_ratio(self):
@@ -111,8 +112,12 @@ class TestSimulationScenarios(unittest.TestCase):
             460.0,
         )
         self.assertEqual(
-            Scenarios.calculate_drop_height(TYPE_G, "14_Edge_3-4_High", 25.0),
+            Scenarios.calculate_drop_height(TYPE_G, "08_Face_3_Screen_High", 25.0),
             910.0,
+        )
+        self.assertEqual(
+            Scenarios.calculate_drop_height(TYPE_G, "16_Flat_MostCritical_DefaultFace6_High", 40.0),
+            610.0,
         )
         self.assertEqual(
             Scenarios.calculate_drop_height(TYPE_H, "01_Tip_Face_4_Screen", 80.0),

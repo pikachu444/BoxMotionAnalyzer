@@ -28,16 +28,16 @@ class Scenarios:
         DropSequenceSpec("05_Corner_2-3-5", "corner", (2, 3, 5)),
         DropSequenceSpec("06_Edge_2-3", "edge", (2, 3)),
         DropSequenceSpec("07_Edge_1-2", "edge", (1, 2)),
-        DropSequenceSpec("08_Face_3_Screen", "face", (3,)),
-        DropSequenceSpec("09_Face_1_Rear", "face", (1,)),
-        DropSequenceSpec("10_Face_5_Right", "face", (5,)),
-        DropSequenceSpec("11_Face_6_Left", "face", (6,)),
-        DropSequenceSpec("12_Face_4_Top", "face", (4,)),
-        DropSequenceSpec("13_Face_2_Bottom", "face", (2,)),
-        DropSequenceSpec("14_Edge_3-4_High", "edge", (3, 4), height_rule="high"),
-        DropSequenceSpec("15_Edge_3-6_High", "edge", (3, 6), height_rule="high"),
-        DropSequenceSpec("16_Corner_3-4-6_High", "corner", (3, 4, 6), height_rule="high"),
-        DropSequenceSpec("17_Face_2_Bottom_High", "face", (2,), height_rule="high"),
+        DropSequenceSpec("08_Face_3_Screen_High", "face", (3,), height_rule="high"),
+        DropSequenceSpec("09_Face_3_Screen", "face", (3,)),
+        DropSequenceSpec("10_Edge_3-4_Second", "edge", (3, 4)),
+        DropSequenceSpec("11_Edge_3-6_Second", "edge", (3, 6)),
+        DropSequenceSpec("12_Edge_1-5", "edge", (1, 5)),
+        DropSequenceSpec("13_Corner_3-4-6_Second", "corner", (3, 4, 6)),
+        DropSequenceSpec("14_Corner_1-2-6", "corner", (1, 2, 6)),
+        DropSequenceSpec("15_Corner_1-4-5", "corner", (1, 4, 5)),
+        DropSequenceSpec("16_Flat_MostCritical_DefaultFace6_High", "face", (6,), height_rule="high", variant="default_flat_face6"),
+        DropSequenceSpec("17_Hazard_Face2_Default", "face", (2,), variant="hazard_face2"),
     )
     TYPE_H_SEQUENCES = (
         DropSequenceSpec("01_Tip_Face_4_Screen", "tip", (4,), height_rule="tip"),
@@ -136,10 +136,10 @@ class Scenarios:
         box_size: (w, h, d) mapping to (Local X, Local Y, Local Z)
         """
         spec = Scenarios.get_drop_sequence_spec(category, sequence_name)
-        contact_normals = Scenarios._get_contact_normals(spec, sequence_name, box_size, category)
-        if not contact_normals:
+        target_down = Scenarios._get_target_down_vector(spec, sequence_name, box_size, category)
+        if target_down is None:
             return (0.0, 0.0, 0.0)
-        return Scenarios._get_euler_from_contact_normals(contact_normals)
+        return Scenarios._get_euler_from_target_down(target_down)
 
     @staticmethod
     def get_orientation_from_euler(roll: float, pitch: float, yaw: float) -> list:
@@ -215,6 +215,46 @@ class Scenarios:
         return []
 
     @staticmethod
+    def _get_target_down_vector(
+        sequence_spec: DropSequenceSpec | None,
+        sequence_name: str | DropSequenceSpec,
+        box_size: tuple,
+        category: str,
+    ) -> np.ndarray | None:
+        if "Type G" in category:
+            target_vector = Scenarios._get_type_g_target_vector(sequence_spec, sequence_name, box_size)
+            if target_vector is not None:
+                return target_vector
+
+        contact_normals = Scenarios._get_contact_normals(sequence_spec, sequence_name, box_size, category)
+        if not contact_normals:
+            return None
+        return np.sum(contact_normals, axis=0)
+
+    @staticmethod
+    def _get_type_g_target_vector(
+        sequence_spec: DropSequenceSpec | None,
+        sequence_name: str | DropSequenceSpec,
+        box_size: tuple,
+    ) -> np.ndarray | None:
+        spec = sequence_spec
+        if spec is None:
+            spec = Scenarios.get_drop_sequence_spec(Scenarios.CATEGORIES[0], sequence_name)
+        if spec is None or not spec.faces:
+            return None
+
+        width, height, depth = box_size
+        weights = {
+            1: np.array([0.0, 0.0, -depth]),
+            2: np.array([0.0, -height, 0.0]),
+            3: np.array([0.0, 0.0, depth]),
+            4: np.array([0.0, height, 0.0]),
+            5: np.array([width, 0.0, 0.0]),
+            6: np.array([-width, 0.0, 0.0]),
+        }
+        return np.sum([weights[face] for face in spec.faces], axis=0)
+
+    @staticmethod
     def _normalize_vector(vector: np.ndarray) -> np.ndarray:
         norm = np.linalg.norm(vector)
         if norm == 0:
@@ -229,17 +269,7 @@ class Scenarios:
         return vector
 
     @staticmethod
-    def _select_reference_axis(local_down: np.ndarray, normals: list[np.ndarray]) -> np.ndarray:
-        if len(normals) > 1:
-            for idx in range(len(normals)):
-                for jdx in range(idx + 1, len(normals)):
-                    axis = np.cross(normals[idx], normals[jdx])
-                    if np.linalg.norm(axis) > 1e-8:
-                        axis = axis - np.dot(axis, local_down) * local_down
-                        if np.linalg.norm(axis) > 1e-8:
-                            axis = Scenarios._canonicalize_axis(axis)
-                            return Scenarios._normalize_vector(axis)
-
+    def _select_reference_axis(local_down: np.ndarray) -> np.ndarray:
         candidates = [
             np.array([1.0, 0.0, 0.0]),
             np.array([0.0, 1.0, 0.0]),
@@ -257,9 +287,9 @@ class Scenarios:
         return Scenarios._normalize_vector(best_axis)
 
     @staticmethod
-    def _get_euler_from_contact_normals(contact_normals: list[np.ndarray]) -> tuple:
-        local_down = Scenarios._normalize_vector(np.sum(contact_normals, axis=0))
-        local_x = Scenarios._select_reference_axis(local_down, contact_normals)
+    def _get_euler_from_target_down(target_down: np.ndarray) -> tuple:
+        local_down = Scenarios._normalize_vector(target_down)
+        local_x = Scenarios._select_reference_axis(local_down)
         local_up = -local_down
         local_y = Scenarios._normalize_vector(np.cross(local_up, local_x))
 
