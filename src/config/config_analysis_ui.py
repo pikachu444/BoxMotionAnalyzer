@@ -20,7 +20,7 @@ RESAMPLING_RANGE_ENABLE_LABEL = "Limit to Time Range"
 RESAMPLING_RANGE_START_LABEL = "Start (s):"
 RESAMPLING_RANGE_END_LABEL = "End (s):"
 RESAMPLING_DESCRIPTION = (
-    "Adds interpolated result rows after processing. Original sample results are preserved."
+    "Adds interpolated result rows after processing."
 )
 RESAMPLING_FACTOR_CHOICES = [
     ("2x", 2),
