@@ -112,13 +112,24 @@ class WidgetSliceProcessing(QWidget):
         box_dims_layout = QGridLayout(self.box_dims_group)
         box_dims_layout.addWidget(QLabel("L:"), 0, 0)
         self.le_box_l = QLineEdit(str(config_app.BOX_DIMS[0]))
+        self.le_box_l.setEnabled(False)
         box_dims_layout.addWidget(self.le_box_l, 0, 1)
         box_dims_layout.addWidget(QLabel("W:"), 1, 0)
         self.le_box_w = QLineEdit(str(config_app.BOX_DIMS[1]))
+        self.le_box_w.setEnabled(False)
         box_dims_layout.addWidget(self.le_box_w, 1, 1)
         box_dims_layout.addWidget(QLabel("H:"), 2, 0)
         self.le_box_h = QLineEdit(str(config_app.BOX_DIMS[2]))
+        self.le_box_h.setEnabled(False)
         box_dims_layout.addWidget(self.le_box_h, 2, 1)
+        
+        self.box_dims_warning = QLabel(
+            "These values were defined in Step 1 and imported from the .slice file."
+        )
+        self.box_dims_warning.setWordWrap(True)
+        self.box_dims_warning.setStyleSheet("color: #666666;")
+        box_dims_layout.addWidget(self.box_dims_warning, 3, 0, 1, 2)
+        
         right_panel_layout.addWidget(self.box_dims_group)
 
         self.log_output = QTextEdit()
