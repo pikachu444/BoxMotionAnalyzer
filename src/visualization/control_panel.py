@@ -84,7 +84,7 @@ class ControlPanel(QWidget):
 
         self.object_tree = QTreeWidget()
         self.object_tree.setHeaderHidden(True)
-        self.object_tree.setSelectionMode(QTreeWidget.SelectionMode.ExtendedSelection)
+        self.object_tree.setSelectionMode(QTreeWidget.SelectionMode.MultiSelection)
         self.object_tree.itemSelectionChanged.connect(self.on_object_selection_changed)
 
         range_layout = QHBoxLayout()
