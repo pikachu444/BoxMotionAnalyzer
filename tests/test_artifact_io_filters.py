@@ -1,3 +1,4 @@
+import csv
 import os
 import tempfile
 import unittest
@@ -5,6 +6,7 @@ import unittest
 from src.analysis.pipeline.artifact_io import (
     PROC_FILE_EXTENSION,
     SLICE_FILE_EXTENSION,
+    SLICE_FILE_MAGIC,
     build_batch_proc_path,
     is_result_file,
     is_slice_file,
@@ -12,8 +14,10 @@ from src.analysis.pipeline.artifact_io import (
     list_slice_files,
     proc_file_filter,
     raw_csv_file_filter,
+    read_slice_metadata,
     result_file_filter,
     slice_file_filter,
+    update_slice_box_dimensions,
 )
 
 
@@ -51,6 +55,42 @@ class TestArtifactIoFilters(unittest.TestCase):
 
             self.assertEqual(PROC_FILE_EXTENSION, ".proc")
             self.assertEqual(SLICE_FILE_EXTENSION, ".slice")
+
+    def test_update_slice_box_dimensions_updates_metadata_and_preserves_rows(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            slice_path = os.path.join(temp_dir, "scene.slice")
+            with open(slice_path, "w", encoding="utf-8", newline="") as handle:
+                writer = csv.writer(handle)
+                writer.writerow([f"magic={SLICE_FILE_MAGIC}", "version=1", "source=source.csv", "created=test"])
+                writer.writerow(
+                    [
+                        "scene=scene",
+                        "box_l=",
+                        "box_w=",
+                        "box_h=",
+                        "full_start=0.0",
+                        "full_end=1.0",
+                        "user_start=0.1",
+                        "user_end=0.9",
+                        "padded_start=0.0",
+                        "padded_end=1.0",
+                        "pad_rows=50",
+                        "row_count=1",
+                    ]
+                )
+                writer.writerow(["type", "name"])
+                writer.writerow(["data", "row"])
+
+            metadata = update_slice_box_dimensions(slice_path, (10.0, 20.0, 30.0))
+            reread_metadata = read_slice_metadata(slice_path)
+
+            self.assertEqual((metadata.box_l, metadata.box_w, metadata.box_h), (10.0, 20.0, 30.0))
+            self.assertEqual((reread_metadata.box_l, reread_metadata.box_w, reread_metadata.box_h), (10.0, 20.0, 30.0))
+
+            with open(slice_path, "r", encoding="utf-8", newline="") as handle:
+                rows = list(csv.reader(handle))
+            self.assertEqual(rows[-2], ["type", "name"])
+            self.assertEqual(rows[-1], ["data", "row"])
 
 
 if __name__ == "__main__":

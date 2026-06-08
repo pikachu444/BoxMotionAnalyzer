@@ -2,7 +2,7 @@
 |    컴포넌트 및 기능 명세서 (현재 기준)  |
 =========================================
 
-Last Reviewed: 2026-04-02
+Last Reviewed: 2026-06-05
 
 이 문서는 현재 코드 기준으로 주요 컴포넌트와 책임을 정리한다.
 
@@ -51,6 +51,8 @@ Last Reviewed: 2026-04-02
 *   책임:
     *   `.slice` 로드
     *   `.slice` 메타에서 box dimensions 복원
+    *   box dimensions 누락 시 단일 처리용 수동 입력 / `.slice` 메타 저장 옵션 제공
+    *   batch processing에서 파일별 `.slice` 메타 box dimensions 사용, 누락 파일은 파일별 실패 처리
     *   Result Resampling / 선택 구간 Result Resampling / processing mode / advanced settings 수집
     *   processing 실행 요청
     *   `.proc` 저장

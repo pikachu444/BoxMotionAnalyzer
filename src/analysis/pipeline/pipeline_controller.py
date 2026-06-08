@@ -39,7 +39,22 @@ class PipelineController(QObject):
             return self._execute_result_resampling(gui_config, parsed_data)
         return self._execute_analysis_single_pass(gui_config, parsed_data)
 
+    def _apply_box_dimensions_from_config(self, gui_config: dict) -> None:
+        box_dims = gui_config.get('box_dimensions')
+        if box_dims is None:
+            return
+
+        normalized_dims = np.array(box_dims, dtype=float)
+        if normalized_dims.shape != (3,) or np.any(normalized_dims <= 0):
+            raise ValueError("Box dimensions must include positive L, W, and H values.")
+
+        config_app.BOX_DIMS = normalized_dims
+        config_app.LOCAL_BOX_CORNERS = config_app.calculate_local_box_corners(normalized_dims)
+        self.pose_optimizer.local_box_corners = config_app.LOCAL_BOX_CORNERS
+        self.velocity_calculator.local_box_corners = config_app.LOCAL_BOX_CORNERS
+
     def _execute_analysis_single_pass(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
+        self._apply_box_dimensions_from_config(gui_config)
         analysis_options = gui_config.get('analysis_options', {})
         processing_mode = gui_config.get('processing_mode', 'standard')
         effective_analysis_options = build_effective_analysis_options(analysis_options, 1)

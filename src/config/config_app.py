@@ -26,23 +26,26 @@ BOX_DIMS = np.array([1578.0, 930.0, 142.0]) # Width, Height, Depth in (mm) for l
 # BOX_DIMS = np.array([1820.0, 1110.0, 164.0]) # L, W, H in (mm) corresponding to local X, Y, Z axes
 
 # --- Derived Box Geometry (calculated from BOX_DIMS) ---
-_L_box, _W_box, _H_box = BOX_DIMS # Unpack for clarity in local corner/edge definitions
-_hl, _hw, _hh = _L_box / 2.0, _W_box / 2.0, _H_box / 2.0
+def calculate_local_box_corners(box_dims):
+    dims = np.array(box_dims, dtype=float)
+    _L_box, _W_box, _H_box = dims # Unpack for clarity in local corner/edge definitions
+    _hl, _hw, _hh = _L_box / 2.0, _W_box / 2.0, _H_box / 2.0
+    return np.array([
+        [-_hl, -_hw, -_hh], # 0
+        [ _hl, -_hw, -_hh], # 1
+        [ _hl,  _hw, -_hh], # 2
+        [-_hl,  _hw, -_hh], # 3
+        [-_hl, -_hw,  _hh], # 4
+        [ _hl, -_hw,  _hh], # 5
+        [ _hl,  _hw,  _hh], # 6
+        [-_hl,  _hw,  _hh]  # 7
+    ])
 
 # Standard 8 local corners, ordered for consistency.
 # Origin at box center. Axes: X (Width), Y (Height), Z (Depth).
 # This order matches the one historically used in AlignBoxMain's get_box_world_corners
 # and is critical for FACE_DEFINITIONS.
-LOCAL_BOX_CORNERS = np.array([
-    [-_hl, -_hw, -_hh], # 0
-    [ _hl, -_hw, -_hh], # 1
-    [ _hl,  _hw, -_hh], # 2
-    [-_hl,  _hw, -_hh], # 3
-    [-_hl, -_hw,  _hh], # 4
-    [ _hl, -_hw,  _hh], # 5
-    [ _hl,  _hw,  _hh], # 6
-    [-_hl,  _hw,  _hh]  # 7
-])
+LOCAL_BOX_CORNERS = calculate_local_box_corners(BOX_DIMS)
 
 # Box edges defined by pairs of corner indices from LOCAL_BOX_CORNERS
 # This order is for drawing a typical box wireframe.

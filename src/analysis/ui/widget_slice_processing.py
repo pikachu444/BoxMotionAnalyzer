@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QApplication,
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton, QCheckBox,
-    QSizePolicy, QSplitter
+    QMessageBox, QSizePolicy, QSplitter
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -22,6 +22,7 @@ from src.analysis.pipeline.artifact_io import (
     read_slice_metadata,
     slice_file_filter,
     save_proc_file,
+    update_slice_box_dimensions,
 )
 from src.analysis.pipeline.pipeline_controller import PipelineController
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
@@ -51,6 +52,7 @@ class WidgetSliceProcessing(QWidget):
         self.current_processed_result = None
         self.current_proc_path = None
         self.batch_slice_folder = None
+        self.manual_box_dimensions = None
         self.pipeline_controller_factory = PipelineController
 
         self._setup_ui()
@@ -129,6 +131,15 @@ class WidgetSliceProcessing(QWidget):
         self.box_dims_warning.setWordWrap(True)
         self.box_dims_warning.setStyleSheet("color: #666666;")
         box_dims_layout.addWidget(self.box_dims_warning, 3, 0, 1, 2)
+
+        self.save_box_dims_to_slice_checkbox = QCheckBox("Save dimensions to this .slice")
+        self.save_box_dims_to_slice_checkbox.setVisible(False)
+        box_dims_layout.addWidget(self.save_box_dims_to_slice_checkbox, 4, 0, 1, 2)
+
+        self.apply_box_dims_button = QPushButton("Apply Dimensions")
+        self.apply_box_dims_button.setVisible(False)
+        self.apply_box_dims_button.setEnabled(False)
+        box_dims_layout.addWidget(self.apply_box_dims_button, 5, 0, 1, 2)
         
         right_panel_layout.addWidget(self.box_dims_group)
 
@@ -325,6 +336,7 @@ class WidgetSliceProcessing(QWidget):
         self.rb_processing_raw.toggled.connect(self._on_processing_mode_changed)
         self.rb_processing_advanced.toggled.connect(self._on_processing_mode_changed)
         self.processing_settings_button.clicked.connect(self.open_processing_settings_dialog)
+        self.apply_box_dims_button.clicked.connect(self.apply_manual_box_dimensions)
         self.run_button.clicked.connect(self.emit_run_processing)
         self.save_proc_button.clicked.connect(self.save_processed_result)
         self.select_slice_folder_button.clicked.connect(self.select_slice_folder)
@@ -392,17 +404,110 @@ class WidgetSliceProcessing(QWidget):
             raise ValueError("Result resampling range must stay inside the slice user range.")
         return range_start, range_end
 
+    def _metadata_has_box_dimensions(self, metadata) -> bool:
+        return (
+            metadata is not None
+            and metadata.box_l is not None
+            and metadata.box_w is not None
+            and metadata.box_h is not None
+        )
+
+    def _box_dimensions_from_metadata(self, metadata) -> tuple[float, float, float]:
+        if not self._metadata_has_box_dimensions(metadata):
+            raise ValueError("Missing box dimensions in slice metadata.")
+        box_dims = (float(metadata.box_l), float(metadata.box_w), float(metadata.box_h))
+        if any(value <= 0 for value in box_dims):
+            raise ValueError("Box dimensions in slice metadata must be positive values.")
+        return box_dims
+
+    def _set_box_dimension_inputs_enabled(self, enabled: bool):
+        self.le_box_l.setEnabled(enabled)
+        self.le_box_w.setEnabled(enabled)
+        self.le_box_h.setEnabled(enabled)
+
+    def _reset_box_dimension_state(self):
+        self.manual_box_dimensions = None
+        self._set_box_dimension_inputs_enabled(False)
+        self.apply_box_dims_button.setEnabled(False)
+        self.apply_box_dims_button.setVisible(False)
+        self.save_box_dims_to_slice_checkbox.setChecked(False)
+        self.save_box_dims_to_slice_checkbox.setVisible(False)
+        self.box_dims_warning.setText(
+            "These values were defined in Step 1 and imported from the .slice file."
+        )
+        self.box_dims_warning.setStyleSheet("color: #666666;")
+
+    def _enter_missing_box_dimension_mode(self):
+        self.manual_box_dimensions = None
+        self._set_box_dimension_inputs_enabled(True)
+        self.apply_box_dims_button.setEnabled(True)
+        self.apply_box_dims_button.setVisible(True)
+        self.save_box_dims_to_slice_checkbox.setVisible(True)
+        self.box_dims_warning.setText(
+            "Box dimensions are missing from this .slice. Enter L/W/H before processing."
+        )
+        self.box_dims_warning.setStyleSheet("color: #b45309;")
+        self.run_button.setEnabled(False)
+
+    def _read_box_dimensions_from_inputs(self) -> tuple[float, float, float]:
+        try:
+            box_dims = (
+                float(self.le_box_l.text()),
+                float(self.le_box_w.text()),
+                float(self.le_box_h.text()),
+            )
+        except ValueError:
+            raise ValueError("Enter numeric box dimensions for L, W, and H.")
+        if any(value <= 0 for value in box_dims):
+            raise ValueError("Box dimensions must be positive values.")
+        return box_dims
+
     def _apply_box_dims_from_metadata(self, metadata=None):
         metadata = self.slice_metadata if metadata is None else metadata
         if metadata is None:
             return
 
-        if metadata.box_l is not None:
+        if self._metadata_has_box_dimensions(metadata):
             self.le_box_l.setText(f"{metadata.box_l:g}")
-        if metadata.box_w is not None:
             self.le_box_w.setText(f"{metadata.box_w:g}")
-        if metadata.box_h is not None:
             self.le_box_h.setText(f"{metadata.box_h:g}")
+            return
+
+        self.le_box_l.setText("" if metadata.box_l is None else f"{metadata.box_l:g}")
+        self.le_box_w.setText("" if metadata.box_w is None else f"{metadata.box_w:g}")
+        self.le_box_h.setText("" if metadata.box_h is None else f"{metadata.box_h:g}")
+
+    def apply_manual_box_dimensions(self):
+        try:
+            box_dims = self._read_box_dimensions_from_inputs()
+            if self.save_box_dims_to_slice_checkbox.isChecked():
+                if not self.slice_path:
+                    raise ValueError("No slice file is loaded.")
+                self.slice_metadata = update_slice_box_dimensions(self.slice_path, box_dims)
+                self._apply_box_dims_from_metadata(self.slice_metadata)
+                self.append_log(
+                    "[INFO] Box dimensions saved to slice metadata: "
+                    f"L={box_dims[0]:g}, W={box_dims[1]:g}, H={box_dims[2]:g}"
+                )
+            else:
+                self.manual_box_dimensions = box_dims
+                self.append_log(
+                    "[INFO] Box dimensions applied for this processing session: "
+                    f"L={box_dims[0]:g}, W={box_dims[1]:g}, H={box_dims[2]:g}"
+                )
+
+            self._set_box_dimension_inputs_enabled(False)
+            self.apply_box_dims_button.setEnabled(False)
+            self.apply_box_dims_button.setVisible(False)
+            self.save_box_dims_to_slice_checkbox.setVisible(False)
+            self.box_dims_warning.setText(
+                "These values are ready for processing. Load another .slice to reset this state."
+            )
+            self.box_dims_warning.setStyleSheet("color: #666666;")
+            self.run_button.setEnabled(self.parsed_data is not None)
+        except Exception as e:
+            QMessageBox.warning(self, "Box Dimensions Required", str(e))
+            self.append_log(f"[ERROR] Invalid box dimensions: {e}")
 
     def _load_slice_bundle(self, filepath: str):
         metadata = read_slice_metadata(filepath)
@@ -417,6 +522,7 @@ class WidgetSliceProcessing(QWidget):
 
     def load_slice_file(self, filepath: str):
         try:
+            self._reset_box_dimension_state()
             self.slice_metadata, self.header_info, self.raw_data, self.parsed_data = self._load_slice_bundle(filepath)
             self.slice_path = filepath
             self.slice_path_label.setText(filepath)
@@ -427,7 +533,7 @@ class WidgetSliceProcessing(QWidget):
             self.proc_path_label.setText("Not saved yet.")
             self.result_status_label.setText("Ready to process.")
             self.save_proc_button.setEnabled(False)
-            self.run_button.setEnabled(True)
+            self.run_button.setEnabled(self._metadata_has_box_dimensions(self.slice_metadata))
 
             all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
             if DisplayNames.RB_CENTER in all_targets:
@@ -442,16 +548,21 @@ class WidgetSliceProcessing(QWidget):
 
             self.update_plot()
             self.append_log(f"[INFO] Loaded slice file: {filepath}")
-            if (
-                self.slice_metadata.box_l is not None and
-                self.slice_metadata.box_w is not None and
-                self.slice_metadata.box_h is not None
-            ):
+            if self._metadata_has_box_dimensions(self.slice_metadata):
                 self.append_log(
                     "[INFO] Box dimensions restored from slice metadata: "
                     f"L={self.slice_metadata.box_l:g}, "
                     f"W={self.slice_metadata.box_w:g}, "
                     f"H={self.slice_metadata.box_h:g}"
+                )
+            else:
+                self._enter_missing_box_dimension_mode()
+                self.append_log("[WARNING] Box dimensions are missing from slice metadata.")
+                QMessageBox.warning(
+                    self,
+                    "Box Dimensions Required",
+                    "This .slice file does not include complete box dimensions. "
+                    "Enter L/W/H before processing, or return to Step 1 and save a new .slice file.",
                 )
             self.append_log("[INFO] Slice parsed and ready for processing.")
         except Exception as e:
@@ -534,26 +645,15 @@ class WidgetSliceProcessing(QWidget):
             return config_analysis_ui.get_raw_mode_options()
         return dict(self.advanced_processing_options)
 
-    def _get_current_box_dimensions(self) -> tuple[float, float, float]:
-        return (
-            float(self.le_box_l.text()),
-            float(self.le_box_w.text()),
-            float(self.le_box_h.text()),
-        )
-
-    def _set_box_dimensions(self, box_dims: tuple[float, float, float]):
-        config_app.BOX_DIMS = [float(box_dims[0]), float(box_dims[1]), float(box_dims[2])]
-
     def _resolve_box_dimensions(self, metadata=None) -> tuple[float, float, float]:
         metadata = self.slice_metadata if metadata is None else metadata
-        if (
-            metadata is not None
-            and metadata.box_l is not None
-            and metadata.box_w is not None
-            and metadata.box_h is not None
-        ):
-            return (float(metadata.box_l), float(metadata.box_w), float(metadata.box_h))
-        return self._get_current_box_dimensions()
+        if self._metadata_has_box_dimensions(metadata):
+            return self._box_dimensions_from_metadata(metadata)
+        if self.manual_box_dimensions is not None:
+            return self.manual_box_dimensions
+        raise ValueError(
+            "Box dimensions are missing. Apply manual dimensions or save a new .slice file from Step 1."
+        )
 
     def _build_timeline_context(self, metadata=None) -> dict:
         metadata = self.slice_metadata if metadata is None else metadata
@@ -568,9 +668,10 @@ class WidgetSliceProcessing(QWidget):
             "slice_end_sec": slice_end,
         }
 
-    def _build_processing_config(self, parsed_data, metadata=None) -> dict:
+    def _build_processing_config(self, parsed_data, metadata=None, box_dims=None) -> dict:
         metadata = self.slice_metadata if metadata is None else metadata
         range_start, range_end = self._get_resampling_range_values(parsed_data, metadata)
+        resolved_box_dims = self._resolve_box_dimensions(metadata) if box_dims is None else box_dims
         return {
             "slice_filter_by": "time",
             "slice_start_val": (
@@ -590,13 +691,13 @@ class WidgetSliceProcessing(QWidget):
             "result_resampling_range_end": range_end,
             "processing_mode": self.current_processing_mode,
             "analysis_options": self._build_analysis_overrides(),
+            "box_dimensions": tuple(float(value) for value in resolved_box_dims),
         }
 
     def emit_run_processing(self):
         if self.parsed_data is None:
             return
         try:
-            self._set_box_dimensions(self._get_current_box_dimensions())
             config = self._build_processing_config(self.parsed_data, self.slice_metadata)
             self.run_button.setEnabled(False)
             self.save_proc_button.setEnabled(False)
@@ -672,7 +773,8 @@ class WidgetSliceProcessing(QWidget):
         processed_count = 0
         skipped_count = 0
         failed_count = 0
-        original_box_dims = list(config_app.BOX_DIMS)
+        original_box_dims = config_app.BOX_DIMS.copy()
+        original_local_box_corners = config_app.LOCAL_BOX_CORNERS.copy()
 
         self._set_batch_controls_enabled(False)
         self.save_proc_button.setEnabled(False)
@@ -699,9 +801,9 @@ class WidgetSliceProcessing(QWidget):
 
                 try:
                     metadata, _, _, parsed_data = self._load_slice_bundle(slice_path)
-                    self._set_box_dimensions(self._resolve_box_dimensions(metadata))
+                    box_dims = self._box_dimensions_from_metadata(metadata)
                     processed_df = controller.process_parsed_data(
-                        self._build_processing_config(parsed_data, metadata),
+                        self._build_processing_config(parsed_data, metadata, box_dims=box_dims),
                         parsed_data,
                     )
                     processed_with_context = add_timeline_context_columns(
@@ -716,6 +818,7 @@ class WidgetSliceProcessing(QWidget):
                     self.append_log(f"[ERROR] Batch processing failed for {slice_path}: {e}")
         finally:
             config_app.BOX_DIMS = original_box_dims
+            config_app.LOCAL_BOX_CORNERS = original_local_box_corners
             self._set_batch_controls_enabled(True)
 
         summary = (

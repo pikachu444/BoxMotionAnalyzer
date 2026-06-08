@@ -230,6 +230,45 @@ def read_slice_metadata(filepath: str) -> SliceMetadata:
     )
 
 
+def update_slice_box_dimensions(filepath: str, box_dims: tuple[float, float, float] | list[float]) -> SliceMetadata:
+    if box_dims is None or len(box_dims) != 3:
+        raise ValueError("Box dimensions must include L, W, and H.")
+
+    normalized_dims = tuple(float(value) for value in box_dims)
+    if any(value <= 0 for value in normalized_dims):
+        raise ValueError("Box dimensions must be positive values.")
+
+    with open(filepath, mode="r", encoding="utf-8-sig", newline="") as infile:
+        rows = list(csv.reader(infile))
+
+    if not rows:
+        raise ValueError(f"Invalid slice file header: {filepath}")
+
+    prefix_meta = _parse_metadata_row(rows[0])
+    magic = prefix_meta.get("magic") or (rows[0][0].strip() if rows[0] else "")
+    if magic != SLICE_FILE_MAGIC:
+        raise ValueError(f"Invalid slice file header: {filepath}")
+
+    while len(rows) < 2:
+        rows.append([])
+
+    detail_meta = _parse_metadata_row(rows[1])
+    detail_meta.update(
+        {
+            "box_l": normalized_dims[0],
+            "box_w": normalized_dims[1],
+            "box_h": normalized_dims[2],
+        }
+    )
+    rows[1] = _metadata_row_from_mapping(detail_meta, SLICE_META_DETAIL_KEYS)
+
+    with open(filepath, mode="w", encoding="utf-8", newline="") as outfile:
+        writer = csv.writer(outfile)
+        writer.writerows(rows)
+
+    return read_slice_metadata(filepath)
+
+
 def save_slice_file(
     *,
     filepath: str,
