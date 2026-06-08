@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-04-02
+Last Reviewed: 2026-06-05
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -64,6 +64,8 @@ Last Reviewed: 2026-04-02
     - padded range
   - `Box Dimensions (mm)`
     - `.slice` 메타에 저장된 box 치수를 읽어 자동으로 채운다
+    - 기본적으로 입력은 비활성화한다
+    - `.slice` 메타에 box 치수가 없으면 경고를 띄우고, 단일 처리에 한해 임시 수동 입력과 `.slice` 메타 저장 옵션을 제공한다
   - 로그 출력 텍스트 영역
 
 ### 3.2. 하단 컨트롤
@@ -86,6 +88,7 @@ Last Reviewed: 2026-04-02
 ### 3.3. 주요 동작
 - `.slice`를 열면 `DataLoader.load_csv()`와 `Parser.process()`를 다시 사용해 parsed slice를 준비한다.
 - processing은 `PipelineController.run_analysis_from_parsed()`를 통해 실행한다.
+- batch processing은 각 `.slice` 파일의 box 치수를 파일별 메타에서 읽어 사용하며, box 치수가 없는 파일은 해당 파일만 실패 처리한다.
 - 완료된 결과는 Step 1.5 내부에서 확인한 뒤 `.proc`로 저장한다.
 
 ## 4. Step 2: Results Analysis
