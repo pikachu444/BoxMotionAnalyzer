@@ -74,7 +74,7 @@ def _processor() -> DropPosturePostProcessor:
 
 
 class TestDropPosturePostProcessor(unittest.TestCase):
-    def test_flat_drop_has_zero_angles_and_expected_height_spread(self):
+    def test_flat_drop_has_zero_angles_and_zero_reference_face_height_spread(self):
         df = _make_result_frame(R.identity(), [10.0, 2.0, 0.5, -1.0])
         result = _processor().process(df, contact_threshold_mm=1.0)
 
@@ -84,14 +84,17 @@ class TestDropPosturePostProcessor(unittest.TestCase):
         self.assertEqual(result[DropPostureSummaryCols.REFERENCE_FACE].iloc[0], "BOTTOM")
         self.assertEqual(result[DropPostureSummaryCols.T1_MINUS_TIME_SEC].iloc[0], 0.1)
         self.assertTrue(result[DropPostureSummaryCols.T1_DETECTED].iloc[0])
-        self.assertAlmostEqual(result[DropPostureCols.DELTA_H_MM].iloc[1], BOX_DIMS[1], places=6)
+        self.assertEqual(result[DropPostureSummaryCols.CONTACT_STATE].iloc[0], "ImpactEvent")
+        self.assertAlmostEqual(result[DropPostureCols.DELTA_H_MM].iloc[1], 0.0, places=6)
 
-    def test_long_axis_tilt_matches_physical_rotation_and_corner_height_range(self):
+    def test_long_axis_tilt_matches_reference_face_height_range(self):
         rotation = R.from_euler("z", 10.0, degrees=True)
         df = _make_result_frame(rotation, [10.0, 2.0, 0.5, -1.0])
         result = _processor().process(df, contact_threshold_mm=1.0)
 
-        expected_spread = np.ptp(rotation.apply(LOCAL_CORNERS)[:, config_app.WORLD_VERTICAL_AXIS_INDEX])
+        expected_spread = np.ptp(
+            rotation.apply(LOCAL_CORNERS)[[0, 1, 5, 4], config_app.WORLD_VERTICAL_AXIS_INDEX]
+        )
         self.assertAlmostEqual(result[DropPostureCols.BETA_DEG].iloc[1], 10.0, places=6)
         self.assertAlmostEqual(result[DropPostureCols.THETA_LONG_DEG].iloc[1], 10.0, places=6)
         self.assertAlmostEqual(result[DropPostureCols.THETA_SHORT_DEG].iloc[1], 0.0, places=6)
@@ -109,12 +112,14 @@ class TestDropPosturePostProcessor(unittest.TestCase):
         self.assertAlmostEqual(result[DropPostureCols.THETA_SHORT_DEG].iloc[1], -7.0, places=6)
         self.assertAlmostEqual(result[DropPostureSummaryCols.THETA_SHORT_AT_T1_MINUS_DEG].iloc[0], -7.0, places=6)
 
-    def test_no_threshold_crossing_falls_back_to_lowest_height_frame(self):
+    def test_no_contact_does_not_create_t1_minus_fallback(self):
         df = _make_result_frame(R.identity(), [10.0, 8.0, 6.0, 4.0])
         result = _processor().process(df, contact_threshold_mm=1.0)
 
-        self.assertAlmostEqual(result[DropPostureSummaryCols.T1_MINUS_TIME_SEC].iloc[0], 0.3, places=12)
         self.assertFalse(result[DropPostureSummaryCols.T1_DETECTED].iloc[0])
+        self.assertFalse(result[DropPostureSummaryCols.IMPACT_DETECTED].iloc[0])
+        self.assertTrue(pd.isna(result[DropPostureSummaryCols.T1_MINUS_TIME_SEC].iloc[0]))
+        self.assertTrue(pd.isna(result[DropPostureSummaryCols.BETA_AT_T1_MINUS_DEG].iloc[0]))
 
     def test_pipeline_runs_drop_posture_after_result_resampling(self):
         baseline = _make_result_frame(R.from_euler("z", 10.0, degrees=True), [10.0, 2.0, -1.0])

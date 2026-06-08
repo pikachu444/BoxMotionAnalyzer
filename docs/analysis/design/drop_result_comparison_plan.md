@@ -9,10 +9,13 @@ Last Reviewed: 2026-06-09
 
 ## 2. 현재 완료 기준
 - processing 완료 및 Result Resampling merge 이후 `DropPosturePostProcessor`가 실행된다.
-- 기준면은 `t1-`에서 아래 방향을 가장 많이 향한 박스 면으로 자동 추정한다.
-- `t1-`는 최저 코너가 `floor_level + contact_threshold_mm` 이하로 처음 들어오기 직전 frame이다.
+- 접촉 판정은 단일 threshold만 사용하지 않고, 최저 코너 높이의 절대 높이, 하강/저점/반전, 낮은 높이 plateau, 접촉 corner set 지속성을 함께 보는 evidence 기반으로 수행한다.
+- 접촉 상태는 `NoContact`, `Approach`, `ImpactEvent`, `SustainedContact`로 요약한다.
+- `t1-`는 `ImpactEvent`가 확인될 때만 정의하며, 접촉이 없거나 이미 낮은 plateau 상태로 시작한 slice에서는 t1 관련 summary를 `NaN`으로 둔다.
+- 기준면은 `t1-`가 있으면 그 frame에서, 없으면 slice 첫 valid frame에서 아래 방향을 가장 많이 향한 박스 면으로 자동 추정한다.
 - frame metric은 `Analysis / DropPosture`에 저장한다.
 - summary metric은 `.proc` 호환성을 위해 `Analysis / DropPostureSummary` 상수 컬럼으로 반복 저장한다.
+- `DeltaH_mm`은 8개 전체 코너 높이 범위가 아니라, 기준면을 이루는 코너들의 높이 차이로 계산한다.
 - 충격 시퀀스 `ImpactSequence`는 최소 2 frame 이상 지속된 접촉 이벤트만 사용하며, 동시 접촉은 `{C1,C2}`처럼 그룹으로 표기한다.
 - Results Analysis는 summary를 상단 `Drop Posture Summary`에 표시하고, frame metric은 컬럼 트리에서 선택해 plot할 수 있다.
 
@@ -22,7 +25,8 @@ Last Reviewed: 2026-06-09
    - 여러 `.proc` 파일을 선택하고 기준 실험을 지정한다.
    - 빠른 비교, 낙하 자세 비교, 충격 순서 비교, 박스 중심 운동 비교, 코너 상세 비교 탭으로 나눈다.
 2. 비교 지표 테이블
-   - `BetaAtT1MinusDeg`, 방향 각도, `DeltaH`, `Cmin`, 기준면, `ImpactSequence`를 기준 실험 대비 차이와 함께 표시한다.
+   - `ContactState`, `ContactConfidence`, `BetaAtT1MinusDeg`, 방향 각도, `DeltaH`, `Cmin`, 기준면, `ImpactSequence`를 기준 실험 대비 차이와 함께 표시한다.
+   - `t1-`가 없는 실험은 t1 기반 값 대신 frame metric과 max summary를 중심으로 비교한다.
 3. 비교 그래프
    - 선택한 metric을 시간축에 겹쳐 표시한다.
    - 원시 시간과 1차 충격 기준 정렬 시간을 전환할 수 있게 한다.
@@ -32,4 +36,6 @@ Last Reviewed: 2026-06-09
 
 ## 4. 검증 방향
 - 단순 컬럼 존재 테스트가 아니라, 물리적으로 예상 가능한 synthetic 자세에서 각도와 코너 높이 차이가 수치적으로 맞는지 검증한다.
+- 실제 raw data slice에서 접촉 없음, impact event, 낮은 plateau 상태를 나눠 검증한다.
+- 실제 데이터 검증은 결과 컬럼을 그대로 신뢰하지 않고, 코너 좌표와 회전벡터에서 각도/높이/접촉 근거를 독립 재계산해 비교한다.
 - 비교 기능은 동일 실험을 두 번 로드했을 때 차이가 0에 가까운지, 의도적으로 기울인 synthetic 결과의 차이가 입력 각도와 일치하는지 확인한다.

@@ -168,6 +168,11 @@ class DropPostureSummaryCols:
     LONG_AXIS: str = "DropPostureSummary_LongAxis"
     SHORT_AXIS: str = "DropPostureSummary_ShortAxis"
     T1_DETECTED: str = "DropPostureSummary_T1Detected"
+    CONTACT_STATE: str = "DropPostureSummary_ContactState"
+    CONTACT_CONFIDENCE: str = "DropPostureSummary_ContactConfidence"
+    CONTACT_DETECTION_METHOD: str = "DropPostureSummary_ContactDetectionMethod"
+    IMPACT_DETECTED: str = "DropPostureSummary_ImpactDetected"
+    SUSTAINED_CONTACT_DETECTED: str = "DropPostureSummary_SustainedContactDetected"
     IMPACT_SEQUENCE: str = "DropPostureSummary_ImpactSequence"
     IMPACT_EVENT_COUNT: str = "DropPostureSummary_ImpactEventCount"
     FIRST_IMPACT_TIME_SEC: str = "DropPostureSummary_FirstImpactTimeSec"
@@ -322,6 +327,11 @@ class HeaderL3:
     DROP_LONG_AXIS: str = "LongAxis"
     DROP_SHORT_AXIS: str = "ShortAxis"
     DROP_T1_DETECTED: str = "T1Detected"
+    DROP_CONTACT_STATE: str = "ContactState"
+    DROP_CONTACT_CONFIDENCE: str = "ContactConfidence"
+    DROP_CONTACT_DETECTION_METHOD: str = "ContactDetectionMethod"
+    DROP_IMPACT_DETECTED: str = "ImpactDetected"
+    DROP_SUSTAINED_CONTACT_DETECTED: str = "SustainedContactDetected"
     DROP_IMPACT_SEQUENCE: str = "ImpactSequence"
     DROP_IMPACT_EVENT_COUNT: str = "ImpactEventCount"
     DROP_FIRST_IMPACT_TIME_SEC: str = "FirstImpactTimeSec"
@@ -343,6 +353,11 @@ RESULT_DROP_POSTURE_SUMMARY_COLUMNS = [
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_CMIN_AT_T1_MINUS_INDEX),
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_REFERENCE_FACE),
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_T1_DETECTED),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_CONTACT_STATE),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_CONTACT_CONFIDENCE),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_CONTACT_DETECTION_METHOD),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_IMPACT_DETECTED),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_SUSTAINED_CONTACT_DETECTED),
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_IMPACT_SEQUENCE),
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_IMPACT_EVENT_COUNT),
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_FIRST_IMPACT_TIME_SEC),
@@ -572,6 +587,11 @@ RESULT_LEVEL3_DISPLAY = {
     HeaderL3.DROP_LONG_AXIS: "Long Axis",
     HeaderL3.DROP_SHORT_AXIS: "Short Axis",
     HeaderL3.DROP_T1_DETECTED: "t1 Detected",
+    HeaderL3.DROP_CONTACT_STATE: "Contact State",
+    HeaderL3.DROP_CONTACT_CONFIDENCE: "Contact Confidence",
+    HeaderL3.DROP_CONTACT_DETECTION_METHOD: "Contact Detection Method",
+    HeaderL3.DROP_IMPACT_DETECTED: "Impact Detected",
+    HeaderL3.DROP_SUSTAINED_CONTACT_DETECTED: "Sustained Contact Detected",
     HeaderL3.DROP_IMPACT_SEQUENCE: "Impact Sequence",
     HeaderL3.DROP_IMPACT_EVENT_COUNT: "Impact Event Count",
     HeaderL3.DROP_FIRST_IMPACT_TIME_SEC: "First Impact Time",

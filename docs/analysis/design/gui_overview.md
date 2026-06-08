@@ -78,7 +78,7 @@ Last Reviewed: 2026-06-09
 - `Processing Mode`
   - Raw / Smoothing / Advanced
   - `Advanced Settings...` 다이얼로그 재사용
-  - Advanced 설정에는 낙하 자세 post-processing의 1차 접촉 검출 허용값(`Contact threshold (mm)`)도 포함된다
+  - Advanced 설정에는 낙하 자세 post-processing의 접촉 높이 허용값(`Contact threshold (mm)`)도 포함된다
 - `Processing Output`
   - 현재 처리 상태
   - 최근 저장된 `.proc` 경로
@@ -91,8 +91,10 @@ Last Reviewed: 2026-06-09
 - processing은 `PipelineController.run_analysis_from_parsed()`를 통해 실행한다.
 - batch processing은 각 `.slice` 파일의 box 치수를 파일별 메타에서 읽어 사용하며, box 치수가 없는 파일은 해당 파일만 실패 처리한다.
 - processing과 Result Resampling이 끝난 뒤 `DropPosturePostProcessor`가 낙하 자세 비교용 지표를 계산한다.
-  - 기준면은 `t1-`에서 아래 방향을 가장 많이 향한 박스 면으로 자동 추정한다.
-  - `t1-`는 최저 코너가 floor 접촉 허용값 안으로 처음 들어오기 직전 frame이다.
+  - 접촉 판정은 높이 threshold, 하강/저점/반전, 낮은 plateau, 접촉 corner set 지속성을 함께 보는 evidence 기반 summary로 계산한다.
+  - 접촉 상태는 `NoContact`, `Approach`, `ImpactEvent`, `SustainedContact`로 요약한다.
+  - 기준면은 `t1-`가 있으면 그 frame에서, 없으면 slice 첫 valid frame에서 아래 방향을 가장 많이 향한 박스 면으로 자동 추정한다.
+  - `t1-`는 `ImpactEvent`가 확인될 때만 정의한다.
 - 완료된 결과는 Step 1.5 내부에서 확인한 뒤 `.proc`로 저장한다.
 
 ## 4. Step 2: Results Analysis
@@ -104,7 +106,8 @@ Last Reviewed: 2026-06-09
 - Full timeline / Slice timeline 정보 문자열
 - Slice 구간을 시각적으로 보여주는 막대형 타임라인
 - Drop Posture Summary
-  - 새 `.proc`에 저장된 `Beta at t1-`, 방향 각도, `Cmin`, 기준면, `t1` 검출 여부를 요약 표시한다
+  - 새 `.proc`에 저장된 contact state, confidence, `Beta at t1-`, 방향 각도, `Cmin`, 기준면, `t1` 검출 여부를 요약 표시한다
+  - 접촉이 없거나 slice가 이미 낮은 plateau 상태로 시작하면 t1 기반 값은 `N/A`로 표시될 수 있다
   - 충격 시퀀스 `ImpactSequence`, 이벤트 개수, 첫 충격 시각과 첫 접촉 코너도 함께 표시한다
   - 구버전 `.proc`처럼 해당 컬럼이 없으면 `N/A`로 표시한다
 
@@ -169,6 +172,7 @@ Last Reviewed: 2026-06-09
 낙하 자세 비교 지표 확인:
 - Step 1.5 processing 후 저장한 `.proc`에는 `Analysis / DropPosture` frame metric과 `Analysis / DropPostureSummary` summary metric이 포함된다.
 - Step 2에서는 frame metric을 컬럼 트리에서 선택해 시간 이력으로 확인할 수 있고, summary metric은 상단 Drop Posture Summary 영역에서 확인한다.
+- 접촉이 없는 구간도 frame별 낙하 자세 metric과 max summary는 계산되며, `t1-` 의미가 필요한 summary만 비어 있을 수 있다.
 
 참고:
 - legacy 결과 `.csv`가 필요하면 파일 확장자를 `.proc`로 바꾼 뒤 연다.

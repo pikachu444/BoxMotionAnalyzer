@@ -58,7 +58,7 @@ Last Reviewed: 2026-06-09
 - Step 2는 결과 폴더에서 `.proc`를 선택해 연다.
 - `.proc`는 기존 result CSV와 동일한 multi-header 구조를 사용한다.
 - processing 결과에는 Full/Slice timeline metadata가 함께 포함된다.
-- processing 결과에는 낙하각, 방향 각도, 최저 코너, 코너 높이 차이와 같은 Drop Posture metric도 포함된다.
+- processing 결과에는 낙하각, 방향 각도, 최저 코너, 기준면 코너 높이 차이, 접촉 상태와 같은 Drop Posture metric도 포함된다.
 
 ## 4. 핵심 설계 원칙
 
@@ -100,6 +100,9 @@ Last Reviewed: 2026-06-09
 - `UniformResampler`
 - `Parser`, `Slicer`, `Smoother`, `PoseOptimizer`, `VelocityCalculator`, `FrameAnalyzer`
 - `DropPosturePostProcessor`
+  - processing 완료 결과에서 Drop Posture frame/summary metric을 계산한다.
+  - 접촉 판정은 threshold 단독이 아니라 높이, 하강/반전, 낮은 plateau, corner set 지속성을 함께 보는 evidence 기반 summary로 계산한다.
+  - `ImpactEvent`가 없으면 `t1-` 기반 summary는 만들지 않고, 접촉 없는 구간도 frame metric과 max summary는 유지한다.
 
 세부 책임은 `component_specs.txt`를 따른다.
 

@@ -41,7 +41,7 @@ Last Reviewed: 2026-06-09
   - `ThetaLongDeg`: 기준면의 긴 방향 높이 기울기 각도
   - `ThetaShortDeg`: 기준면의 짧은 방향 높이 기울기 각도
   - `CminIndex`: 해당 frame에서 가장 낮은 코너 번호
-  - `DeltaH_mm`: 해당 frame의 최고 코너와 최저 코너 높이 차이
+  - `DeltaH_mm`: 해당 frame에서 기준면을 이루는 코너들의 높이 차이
 - Summary metric
   - `BetaAtT1MinusDeg`, `MaxBetaDeg`
   - `ThetaLongAtT1MinusDeg`, `MaxAbsThetaLongDeg`
@@ -49,10 +49,15 @@ Last Reviewed: 2026-06-09
   - `DeltaHAtT1Minus_mm`, `MaxDeltaH_mm`
   - `CminAtT1MinusIndex`, `T1MinusTimeSec`
   - `ReferenceFace`, `LongAxis`, `ShortAxis`, `T1Detected`
+  - `ContactState`, `ContactConfidence`, `ContactDetectionMethod`
+  - `ImpactDetected`, `SustainedContactDetected`
   - `ImpactSequence`, `ImpactEventCount`, `FirstImpactTimeSec`, `FirstImpactContact`
-- `t1-`는 최저 코너가 `floor_level + contact_threshold_mm` 이하로 처음 들어오기 직전 frame이다.
-- 접촉 frame이 없으면 최저 코너 높이가 가장 낮은 frame을 fallback으로 사용하고 `T1Detected=False`로 저장한다.
-- `ImpactSequence`는 같은 threshold로 검출한 접촉 이벤트 순서다.
+- `ContactState`는 `NoContact`, `Approach`, `ImpactEvent`, `SustainedContact` 중 하나다.
+- 접촉 판정은 단일 threshold가 아니라 최저 코너 높이의 절대 높이, 하강/저점/반전, 낮은 plateau, 접촉 corner set 지속성을 함께 보는 evidence 기반 summary다.
+- `t1-`는 `ImpactEvent`가 확인될 때만 정의한다.
+- 접촉 frame이 없거나 slice가 이미 낮은 plateau 상태로 시작하면 t1 기반 summary는 `NaN`으로 저장한다.
+- 접촉이 없어도 frame metric과 `Max*` summary, 기준면, contact state summary는 계산한다.
+- `ImpactSequence`는 impact event 구간에서 검출한 접촉 이벤트 순서다.
   - 최소 2 frame 연속 접촉만 이벤트로 인정한다.
   - 동시 접촉은 `{C1,C2}`처럼 하나의 이벤트로 묶어 표기한다.
   - 예: `{C1,C2} -> C5 -> {C6,C7,C8}`
