@@ -105,6 +105,7 @@ Last Reviewed: 2026-06-09
 - Slice 구간을 시각적으로 보여주는 막대형 타임라인
 - Drop Posture Summary
   - 새 `.proc`에 저장된 `Beta at t1-`, 방향 각도, `Cmin`, 기준면, `t1` 검출 여부를 요약 표시한다
+  - 충격 시퀀스 `ImpactSequence`, 이벤트 개수, 첫 충격 시각과 첫 접촉 코너도 함께 표시한다
   - 구버전 `.proc`처럼 해당 컬럼이 없으면 `N/A`로 표시한다
 
 ### 4.2. 본문 3분할 레이아웃

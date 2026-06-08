@@ -49,8 +49,13 @@ Last Reviewed: 2026-06-09
   - `DeltaHAtT1Minus_mm`, `MaxDeltaH_mm`
   - `CminAtT1MinusIndex`, `T1MinusTimeSec`
   - `ReferenceFace`, `LongAxis`, `ShortAxis`, `T1Detected`
+  - `ImpactSequence`, `ImpactEventCount`, `FirstImpactTimeSec`, `FirstImpactContact`
 - `t1-`는 최저 코너가 `floor_level + contact_threshold_mm` 이하로 처음 들어오기 직전 frame이다.
 - 접촉 frame이 없으면 최저 코너 높이가 가장 낮은 frame을 fallback으로 사용하고 `T1Detected=False`로 저장한다.
+- `ImpactSequence`는 같은 threshold로 검출한 접촉 이벤트 순서다.
+  - 최소 2 frame 연속 접촉만 이벤트로 인정한다.
+  - 동시 접촉은 `{C1,C2}`처럼 하나의 이벤트로 묶어 표기한다.
+  - 예: `{C1,C2} -> C5 -> {C6,C7,C8}`
 
 ## 6. 구버전 대비 변경 포인트
 - `_Ana` 접미사 기반 표기 -> `BoxLocal_` 접두사 표기로 전환

@@ -62,6 +62,73 @@ class DropPosturePostProcessor:
             return 0, True
         return first_contact_idx - 1, True
 
+    def _contact_label(self, contact_set: tuple[int, ...]) -> str:
+        labels = [f"C{corner_idx}" for corner_idx in contact_set]
+        if len(labels) == 1:
+            return labels[0]
+        return "{" + ",".join(labels) + "}"
+
+    def _contact_sets(self, vertical_positions: np.ndarray, contact_threshold_mm: float) -> list[tuple[int, ...]]:
+        threshold = self.floor_level + float(contact_threshold_mm)
+        contact_sets = []
+        for frame_heights in vertical_positions:
+            contact_indices = np.flatnonzero(frame_heights <= threshold)
+            contact_sets.append(tuple(int(index) + 1 for index in contact_indices))
+        return contact_sets
+
+    def _impact_sequence_summary(
+        self,
+        *,
+        contact_sets: list[tuple[int, ...]],
+        index: pd.Index,
+        min_event_frames: int = 2,
+    ) -> dict[str, object]:
+        events = []
+        current_set = tuple()
+        current_start = None
+        current_length = 0
+
+        def flush_current():
+            if current_set and current_start is not None and current_length >= min_event_frames:
+                events.append(
+                    {
+                        "contact_set": current_set,
+                        "start_pos": current_start,
+                        "length": current_length,
+                    }
+                )
+
+        for pos, contact_set in enumerate(contact_sets):
+            if contact_set == current_set:
+                if contact_set:
+                    current_length += 1
+                continue
+
+            flush_current()
+            current_set = contact_set
+            current_start = pos if contact_set else None
+            current_length = 1 if contact_set else 0
+
+        flush_current()
+
+        if not events:
+            return {
+                DropPostureSummaryCols.IMPACT_SEQUENCE: "",
+                DropPostureSummaryCols.IMPACT_EVENT_COUNT: 0,
+                DropPostureSummaryCols.FIRST_IMPACT_TIME_SEC: np.nan,
+                DropPostureSummaryCols.FIRST_IMPACT_CONTACT: "",
+            }
+
+        sequence = " -> ".join(self._contact_label(event["contact_set"]) for event in events)
+        first_event = events[0]
+        first_time = index[int(first_event["start_pos"])]
+        return {
+            DropPostureSummaryCols.IMPACT_SEQUENCE: sequence,
+            DropPostureSummaryCols.IMPACT_EVENT_COUNT: len(events),
+            DropPostureSummaryCols.FIRST_IMPACT_TIME_SEC: float(first_time),
+            DropPostureSummaryCols.FIRST_IMPACT_CONTACT: self._contact_label(first_event["contact_set"]),
+        }
+
     def _face_world_normal(self, face: dict, rotation: R) -> np.ndarray:
         normal = np.zeros(3, dtype=float)
         normal[int(face["axis_idx"])] = float(face["direction"])
@@ -168,6 +235,7 @@ class DropPosturePostProcessor:
         reference_face_label: str,
         long_axis_idx: int,
         short_axis_idx: int,
+        impact_summary: dict[str, object],
     ) -> dict[str, object]:
         t1_row = metrics.iloc[t1_minus_pos]
         t1_time = metrics.index[t1_minus_pos]
@@ -186,6 +254,7 @@ class DropPosturePostProcessor:
             DropPostureSummaryCols.LONG_AXIS: f"LocalAxis{long_axis_idx}",
             DropPostureSummaryCols.SHORT_AXIS: f"LocalAxis{short_axis_idx}",
             DropPostureSummaryCols.T1_DETECTED: bool(t1_detected),
+            **impact_summary,
         }
 
     def process(self, df: pd.DataFrame, *, contact_threshold_mm: float = 1.0) -> pd.DataFrame:
@@ -202,6 +271,8 @@ class DropPosturePostProcessor:
         vertical_positions = corner_positions[:, :, self.vertical_axis_idx]
         min_heights = np.nanmin(vertical_positions, axis=1)
         t1_minus_pos, t1_detected = self._detect_t1_minus_index(min_heights, contact_threshold_mm)
+        contact_sets = self._contact_sets(vertical_positions, contact_threshold_mm)
+        impact_summary = self._impact_sequence_summary(contact_sets=contact_sets, index=result.index)
 
         t1_rotation = R.from_rotvec(
             result.iloc[t1_minus_pos][[PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]].to_numpy(dtype=float)
@@ -223,6 +294,7 @@ class DropPosturePostProcessor:
             reference_face_label=reference_face_label,
             long_axis_idx=long_axis_idx,
             short_axis_idx=short_axis_idx,
+            impact_summary=impact_summary,
         )
 
         result = result.join(metrics)

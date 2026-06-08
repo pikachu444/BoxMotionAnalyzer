@@ -78,6 +78,10 @@ def test_convert_to_multi_header_maps_drop_posture_metrics_and_summary():
             DropPostureCols.CMIN_INDEX: [1],
             DropPostureSummaryCols.BETA_AT_T1_MINUS_DEG: [10.0],
             DropPostureSummaryCols.REFERENCE_FACE: ["BOTTOM"],
+            DropPostureSummaryCols.IMPACT_SEQUENCE: ["{C1,C2} -> C5"],
+            DropPostureSummaryCols.IMPACT_EVENT_COUNT: [2],
+            DropPostureSummaryCols.FIRST_IMPACT_TIME_SEC: [0.2],
+            DropPostureSummaryCols.FIRST_IMPACT_CONTACT: ["{C1,C2}"],
         },
         index=[0.0],
     )
@@ -95,6 +99,26 @@ def test_convert_to_multi_header_maps_drop_posture_metrics_and_summary():
         HeaderL1.ANALYSIS,
         HeaderL2.DROP_POSTURE_SUMMARY,
         HeaderL3.DROP_REFERENCE_FACE,
+    ) in converted.columns
+    assert (
+        HeaderL1.ANALYSIS,
+        HeaderL2.DROP_POSTURE_SUMMARY,
+        HeaderL3.DROP_IMPACT_SEQUENCE,
+    ) in converted.columns
+    assert (
+        HeaderL1.ANALYSIS,
+        HeaderL2.DROP_POSTURE_SUMMARY,
+        HeaderL3.DROP_IMPACT_EVENT_COUNT,
+    ) in converted.columns
+    assert (
+        HeaderL1.ANALYSIS,
+        HeaderL2.DROP_POSTURE_SUMMARY,
+        HeaderL3.DROP_FIRST_IMPACT_TIME_SEC,
+    ) in converted.columns
+    assert (
+        HeaderL1.ANALYSIS,
+        HeaderL2.DROP_POSTURE_SUMMARY,
+        HeaderL3.DROP_FIRST_IMPACT_CONTACT,
     ) in converted.columns
 
 

@@ -168,6 +168,10 @@ class DropPostureSummaryCols:
     LONG_AXIS: str = "DropPostureSummary_LongAxis"
     SHORT_AXIS: str = "DropPostureSummary_ShortAxis"
     T1_DETECTED: str = "DropPostureSummary_T1Detected"
+    IMPACT_SEQUENCE: str = "DropPostureSummary_ImpactSequence"
+    IMPACT_EVENT_COUNT: str = "DropPostureSummary_ImpactEventCount"
+    FIRST_IMPACT_TIME_SEC: str = "DropPostureSummary_FirstImpactTimeSec"
+    FIRST_IMPACT_CONTACT: str = "DropPostureSummary_FirstImpactContact"
 
 
 # --- GUI Display Name Constants ---
@@ -318,6 +322,10 @@ class HeaderL3:
     DROP_LONG_AXIS: str = "LongAxis"
     DROP_SHORT_AXIS: str = "ShortAxis"
     DROP_T1_DETECTED: str = "T1Detected"
+    DROP_IMPACT_SEQUENCE: str = "ImpactSequence"
+    DROP_IMPACT_EVENT_COUNT: str = "ImpactEventCount"
+    DROP_FIRST_IMPACT_TIME_SEC: str = "FirstImpactTimeSec"
+    DROP_FIRST_IMPACT_CONTACT: str = "FirstImpactContact"
 
 
 # --- Result File Column Constants ---
@@ -335,6 +343,10 @@ RESULT_DROP_POSTURE_SUMMARY_COLUMNS = [
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_CMIN_AT_T1_MINUS_INDEX),
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_REFERENCE_FACE),
     (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_T1_DETECTED),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_IMPACT_SEQUENCE),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_IMPACT_EVENT_COUNT),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_FIRST_IMPACT_TIME_SEC),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_FIRST_IMPACT_CONTACT),
 ]
 
 
@@ -560,6 +572,10 @@ RESULT_LEVEL3_DISPLAY = {
     HeaderL3.DROP_LONG_AXIS: "Long Axis",
     HeaderL3.DROP_SHORT_AXIS: "Short Axis",
     HeaderL3.DROP_T1_DETECTED: "t1 Detected",
+    HeaderL3.DROP_IMPACT_SEQUENCE: "Impact Sequence",
+    HeaderL3.DROP_IMPACT_EVENT_COUNT: "Impact Event Count",
+    HeaderL3.DROP_FIRST_IMPACT_TIME_SEC: "First Impact Time",
+    HeaderL3.DROP_FIRST_IMPACT_CONTACT: "First Impact Contact",
 }
 
 

@@ -167,6 +167,14 @@ def get_conversion_rules() -> list:
          lambda m: (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_SHORT_AXIS)),
         (re.compile(f"^{DropPostureSummaryCols.T1_DETECTED}$"),
          lambda m: (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_T1_DETECTED)),
+        (re.compile(f"^{DropPostureSummaryCols.IMPACT_SEQUENCE}$"),
+         lambda m: (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_IMPACT_SEQUENCE)),
+        (re.compile(f"^{DropPostureSummaryCols.IMPACT_EVENT_COUNT}$"),
+         lambda m: (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_IMPACT_EVENT_COUNT)),
+        (re.compile(f"^{DropPostureSummaryCols.FIRST_IMPACT_TIME_SEC}$"),
+         lambda m: (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_FIRST_IMPACT_TIME_SEC)),
+        (re.compile(f"^{DropPostureSummaryCols.FIRST_IMPACT_CONTACT}$"),
+         lambda m: (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_FIRST_IMPACT_CONTACT)),
 
         # Etc
         (re.compile(f"^{AnalysisCols.FLOOR_N_X_ANA.split('_')[0]}_N_(?P<axis>[XYZ])_Ana$"),

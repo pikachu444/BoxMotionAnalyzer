@@ -45,6 +45,25 @@ def _make_result_frame(rotation: R, min_heights: list[float]) -> pd.DataFrame:
     return pd.DataFrame(rows, index=[i * 0.1 for i in range(len(rows))])
 
 
+def _make_contact_sequence_frame(contact_sets: list[tuple[int, ...]]) -> pd.DataFrame:
+    rows = []
+    for contact_set in contact_sets:
+        row = {
+            PoseCols.POS_X: 0.0,
+            PoseCols.POS_Y: 0.0,
+            PoseCols.POS_Z: 0.0,
+            PoseCols.ROT_X: 0.0,
+            PoseCols.ROT_Y: 0.0,
+            PoseCols.ROT_Z: 0.0,
+        }
+        for corner_idx, local_corner in enumerate(LOCAL_CORNERS, start=1):
+            row[f"C{corner_idx}{CornerCoordCols.X_SUFFIX}"] = local_corner[0]
+            row[f"C{corner_idx}{CornerCoordCols.Y_SUFFIX}"] = 0.0 if corner_idx in contact_set else 10.0 + corner_idx
+            row[f"C{corner_idx}{CornerCoordCols.Z_SUFFIX}"] = local_corner[2]
+        rows.append(row)
+    return pd.DataFrame(rows, index=[i * 0.1 for i in range(len(rows))])
+
+
 def _processor() -> DropPosturePostProcessor:
     return DropPosturePostProcessor(
         face_definitions=config_app.FACE_DEFINITIONS,
@@ -119,6 +138,51 @@ class TestDropPosturePostProcessor(unittest.TestCase):
         cmin_values = pd.to_numeric(result[DropPostureCols.CMIN_INDEX], errors="coerce")
         self.assertTrue(((cmin_values % 1) == 0).all())
         self.assertAlmostEqual(result[DropPostureSummaryCols.BETA_AT_T1_MINUS_DEG].iloc[0], 10.0, places=6)
+
+    def test_impact_sequence_records_single_and_simultaneous_contact_events(self):
+        df = _make_contact_sequence_frame(
+            [
+                tuple(),
+                (1, 2),
+                (1, 2),
+                tuple(),
+                (5,),
+                (5,),
+                tuple(),
+            ]
+        )
+        result = _processor().process(df, contact_threshold_mm=1.0)
+
+        self.assertEqual(result[DropPostureSummaryCols.IMPACT_SEQUENCE].iloc[0], "{C1,C2} -> C5")
+        self.assertEqual(result[DropPostureSummaryCols.IMPACT_EVENT_COUNT].iloc[0], 2)
+        self.assertAlmostEqual(result[DropPostureSummaryCols.FIRST_IMPACT_TIME_SEC].iloc[0], 0.1, places=12)
+        self.assertEqual(result[DropPostureSummaryCols.FIRST_IMPACT_CONTACT].iloc[0], "{C1,C2}")
+
+    def test_impact_sequence_filters_single_frame_contact_noise(self):
+        df = _make_contact_sequence_frame(
+            [
+                tuple(),
+                (1,),
+                tuple(),
+                (2,),
+                (2,),
+                tuple(),
+            ]
+        )
+        result = _processor().process(df, contact_threshold_mm=1.0)
+
+        self.assertEqual(result[DropPostureSummaryCols.IMPACT_SEQUENCE].iloc[0], "C2")
+        self.assertEqual(result[DropPostureSummaryCols.IMPACT_EVENT_COUNT].iloc[0], 1)
+        self.assertAlmostEqual(result[DropPostureSummaryCols.FIRST_IMPACT_TIME_SEC].iloc[0], 0.3, places=12)
+
+    def test_impact_sequence_uses_empty_summary_when_no_contact_event_is_valid(self):
+        df = _make_contact_sequence_frame([tuple(), (1,), tuple(), tuple()])
+        result = _processor().process(df, contact_threshold_mm=1.0)
+
+        self.assertEqual(result[DropPostureSummaryCols.IMPACT_SEQUENCE].iloc[0], "")
+        self.assertEqual(result[DropPostureSummaryCols.IMPACT_EVENT_COUNT].iloc[0], 0)
+        self.assertTrue(pd.isna(result[DropPostureSummaryCols.FIRST_IMPACT_TIME_SEC].iloc[0]))
+        self.assertEqual(result[DropPostureSummaryCols.FIRST_IMPACT_CONTACT].iloc[0], "")
 
 
 if __name__ == "__main__":
