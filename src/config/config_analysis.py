@@ -59,6 +59,9 @@ USE_ACCELERATION_LOWPASS_FILTER = False
 ACCELERATION_LPF_CUTOFF_HZ = 8.0
 ACCELERATION_LPF_ORDER = 4
 
+# --- Drop posture post-processing parameters ---
+DROP_POSTURE_CONTACT_THRESHOLD_MM = 1.0
+
 
 # --- Pipeline Strategy Parameters ---
 # 파이프라인에서 최종 데이터 슬라이스를 어느 시점에 할지 결정합니다.

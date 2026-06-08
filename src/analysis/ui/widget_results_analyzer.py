@@ -15,6 +15,7 @@ from src.analysis.pipeline.artifact_io import list_result_files
 from src.analysis.ui.plot_popup_dialog import PlotPopupDialog
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS,
+    RESULT_DROP_POSTURE_SUMMARY_COLUMNS,
     RESULT_TIME_COL,
     RESULT_TIMELINE_FULL_END_COL,
     RESULT_TIMELINE_FULL_START_COL,
@@ -90,6 +91,12 @@ class WidgetResultsAnalyzer(QWidget):
         timeline_bar_layout.addWidget(self.timeline_bar_right, 1)
         timeline_bar_row.addWidget(self.timeline_bar_widget)
         context_layout.addLayout(timeline_bar_row)
+        drop_posture_summary_group = QGroupBox("Drop Posture Summary")
+        drop_posture_summary_layout = QVBoxLayout(drop_posture_summary_group)
+        self.drop_posture_summary_label = QLabel("N/A")
+        self.drop_posture_summary_label.setWordWrap(True)
+        drop_posture_summary_layout.addWidget(self.drop_posture_summary_label)
+        context_layout.addWidget(drop_posture_summary_group)
         context_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         layout.addWidget(context_group)
 
@@ -308,6 +315,7 @@ class WidgetResultsAnalyzer(QWidget):
         self.context_rows_label.setText("N/A")
         self.timeline_bar_info_label.setText("Full/Slice Range: unknown")
         self.selection_checked_columns_label.setText("Checked Columns: 0")
+        self.drop_posture_summary_label.setText("N/A")
         self._set_timeline_bar_unknown()
 
     def _set_selected_columns_context(self, count):
@@ -398,6 +406,47 @@ class WidgetResultsAnalyzer(QWidget):
             pass
 
         self._update_timeline_bar(full_start, full_end, slice_start, slice_end)
+        self._update_drop_posture_summary()
+
+    def _first_value(self, column_tuple):
+        if self.result_data is None or column_tuple not in self.result_data.columns:
+            return None
+        values = self.result_data[column_tuple]
+        if isinstance(values, pd.DataFrame):
+            values = values.iloc[:, 0]
+        values = values.dropna()
+        if values.empty:
+            return None
+        return values.iloc[0]
+
+    def _format_summary_value(self, value):
+        if value is None:
+            return "N/A"
+        if isinstance(value, bool):
+            return "Yes" if value else "No"
+        try:
+            numeric_value = float(value)
+            return f"{numeric_value:.3f}"
+        except (TypeError, ValueError):
+            return str(value)
+
+    def _update_drop_posture_summary(self):
+        if self.result_data is None or self.result_data.empty:
+            self.drop_posture_summary_label.setText("N/A")
+            return
+
+        values = []
+        for column in RESULT_DROP_POSTURE_SUMMARY_COLUMNS:
+            value = self._first_value(column)
+            if value is None:
+                continue
+            label = get_result_metric_display_name(*column)
+            values.append(f"{label}: {self._format_summary_value(value)}")
+
+        if values:
+            self.drop_posture_summary_label.setText(" | ".join(values))
+        else:
+            self.drop_posture_summary_label.setText("N/A")
 
     def _refresh_result_file_list(self, folder_path, selected_file=None):
         self.result_file_list.clear()

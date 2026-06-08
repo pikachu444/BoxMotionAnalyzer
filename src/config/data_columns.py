@@ -143,6 +143,33 @@ class AnalysisInputHeightCols:
     AIH_ANA_SUFFIX: str = "_AIH_Ana"
 
 
+@dataclass(frozen=True)
+class DropPostureCols:
+    BETA_DEG: str = "DropPosture_BetaDeg"
+    THETA_LONG_DEG: str = "DropPosture_ThetaLongDeg"
+    THETA_SHORT_DEG: str = "DropPosture_ThetaShortDeg"
+    CMIN_INDEX: str = "DropPosture_CminIndex"
+    DELTA_H_MM: str = "DropPosture_DeltaH_mm"
+
+
+@dataclass(frozen=True)
+class DropPostureSummaryCols:
+    BETA_AT_T1_MINUS_DEG: str = "DropPostureSummary_BetaAtT1MinusDeg"
+    MAX_BETA_DEG: str = "DropPostureSummary_MaxBetaDeg"
+    THETA_LONG_AT_T1_MINUS_DEG: str = "DropPostureSummary_ThetaLongAtT1MinusDeg"
+    MAX_ABS_THETA_LONG_DEG: str = "DropPostureSummary_MaxAbsThetaLongDeg"
+    THETA_SHORT_AT_T1_MINUS_DEG: str = "DropPostureSummary_ThetaShortAtT1MinusDeg"
+    MAX_ABS_THETA_SHORT_DEG: str = "DropPostureSummary_MaxAbsThetaShortDeg"
+    DELTA_H_AT_T1_MINUS_MM: str = "DropPostureSummary_DeltaHAtT1Minus_mm"
+    MAX_DELTA_H_MM: str = "DropPostureSummary_MaxDeltaH_mm"
+    CMIN_AT_T1_MINUS_INDEX: str = "DropPostureSummary_CminAtT1MinusIndex"
+    T1_MINUS_TIME_SEC: str = "DropPostureSummary_T1MinusTimeSec"
+    REFERENCE_FACE: str = "DropPostureSummary_ReferenceFace"
+    LONG_AXIS: str = "DropPostureSummary_LongAxis"
+    SHORT_AXIS: str = "DropPostureSummary_ShortAxis"
+    T1_DETECTED: str = "DropPostureSummary_T1Detected"
+
+
 # --- GUI Display Name Constants ---
 @dataclass(frozen=True)
 class DisplayNames:
@@ -177,6 +204,8 @@ class HeaderL2:
     FRAME: str = "Frame"
     TIME: str = "Time"
     TIMELINE: str = "Timeline"
+    DROP_POSTURE: str = "DropPosture"
+    DROP_POSTURE_SUMMARY: str = "DropPostureSummary"
     POSE_SRC: str = "Pose"
     UNKNOWN: str = "Unknown"
 
@@ -270,6 +299,25 @@ class HeaderL3:
     SRC: str = "Source"
     REL_H: str = "RelativeHeight"
     ANALYSIS_INPUT_H: str = "AnalysisInputHeight"
+    DROP_BETA_DEG: str = "BetaDeg"
+    DROP_THETA_LONG_DEG: str = "ThetaLongDeg"
+    DROP_THETA_SHORT_DEG: str = "ThetaShortDeg"
+    DROP_CMIN_INDEX: str = "CminIndex"
+    DROP_DELTA_H_MM: str = "DeltaH_mm"
+    DROP_BETA_AT_T1_MINUS_DEG: str = "BetaAtT1MinusDeg"
+    DROP_MAX_BETA_DEG: str = "MaxBetaDeg"
+    DROP_THETA_LONG_AT_T1_MINUS_DEG: str = "ThetaLongAtT1MinusDeg"
+    DROP_MAX_ABS_THETA_LONG_DEG: str = "MaxAbsThetaLongDeg"
+    DROP_THETA_SHORT_AT_T1_MINUS_DEG: str = "ThetaShortAtT1MinusDeg"
+    DROP_MAX_ABS_THETA_SHORT_DEG: str = "MaxAbsThetaShortDeg"
+    DROP_DELTA_H_AT_T1_MINUS_MM: str = "DeltaHAtT1Minus_mm"
+    DROP_MAX_DELTA_H_MM: str = "MaxDeltaH_mm"
+    DROP_CMIN_AT_T1_MINUS_INDEX: str = "CminAtT1MinusIndex"
+    DROP_T1_MINUS_TIME_SEC: str = "T1MinusTimeSec"
+    DROP_REFERENCE_FACE: str = "ReferenceFace"
+    DROP_LONG_AXIS: str = "LongAxis"
+    DROP_SHORT_AXIS: str = "ShortAxis"
+    DROP_T1_DETECTED: str = "T1Detected"
 
 
 # --- Result File Column Constants ---
@@ -278,6 +326,16 @@ RESULT_TIMELINE_FULL_START_COL = (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_
 RESULT_TIMELINE_FULL_END_COL = (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_FULL_END_SEC)
 RESULT_TIMELINE_SLICE_START_COL = (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_SLICE_START_SEC)
 RESULT_TIMELINE_SLICE_END_COL = (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_SLICE_END_SEC)
+RESULT_DROP_POSTURE_SUMMARY_COLUMNS = [
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_T1_MINUS_TIME_SEC),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_BETA_AT_T1_MINUS_DEG),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_THETA_LONG_AT_T1_MINUS_DEG),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_THETA_SHORT_AT_T1_MINUS_DEG),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_DELTA_H_AT_T1_MINUS_MM),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_CMIN_AT_T1_MINUS_INDEX),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_REFERENCE_FACE),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, HeaderL3.DROP_T1_DETECTED),
+]
 
 
 # List of columns to be displayed in the result analyzer's selection tree.
@@ -362,6 +420,13 @@ DISPLAY_RESULT_COLUMNS = [
     (HeaderL1.ANALYSIS, "C6", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C7", HeaderL3.REL_H),
     (HeaderL1.ANALYSIS, "C8", HeaderL3.REL_H),
+
+    # Drop posture comparison metrics
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_BETA_DEG),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_THETA_LONG_DEG),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_THETA_SHORT_DEG),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_CMIN_INDEX),
+    (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_DELTA_H_MM),
 
     # Corner Velocities for each of the 8 corners (translation + norm)
     (HeaderL1.VEL, "C1", HeaderL3.V_TX),
@@ -476,6 +541,25 @@ RESULT_LEVEL3_DISPLAY = {
     HeaderL3.TL_SLICE_START_SEC: "Slice Start Time",
     HeaderL3.TL_SLICE_END_SEC: "Slice End Time",
     HeaderL3.SRC: "Pose Source",
+    HeaderL3.DROP_BETA_DEG: "Drop Angle Beta",
+    HeaderL3.DROP_THETA_LONG_DEG: "Long Direction Angle",
+    HeaderL3.DROP_THETA_SHORT_DEG: "Short Direction Angle",
+    HeaderL3.DROP_CMIN_INDEX: "Lowest Corner",
+    HeaderL3.DROP_DELTA_H_MM: "Corner Height Difference",
+    HeaderL3.DROP_BETA_AT_T1_MINUS_DEG: "Beta at t1-",
+    HeaderL3.DROP_MAX_BETA_DEG: "Max Beta",
+    HeaderL3.DROP_THETA_LONG_AT_T1_MINUS_DEG: "Long Angle at t1-",
+    HeaderL3.DROP_MAX_ABS_THETA_LONG_DEG: "Max Abs Long Angle",
+    HeaderL3.DROP_THETA_SHORT_AT_T1_MINUS_DEG: "Short Angle at t1-",
+    HeaderL3.DROP_MAX_ABS_THETA_SHORT_DEG: "Max Abs Short Angle",
+    HeaderL3.DROP_DELTA_H_AT_T1_MINUS_MM: "Corner Height Difference at t1-",
+    HeaderL3.DROP_MAX_DELTA_H_MM: "Max Corner Height Difference",
+    HeaderL3.DROP_CMIN_AT_T1_MINUS_INDEX: "Lowest Corner at t1-",
+    HeaderL3.DROP_T1_MINUS_TIME_SEC: "t1- Time",
+    HeaderL3.DROP_REFERENCE_FACE: "Reference Face",
+    HeaderL3.DROP_LONG_AXIS: "Long Axis",
+    HeaderL3.DROP_SHORT_AXIS: "Short Axis",
+    HeaderL3.DROP_T1_DETECTED: "t1 Detected",
 }
 
 

@@ -213,6 +213,25 @@ class ProcessingSettingsDialog(QDialog):
         acceleration_layout.addLayout(acceleration_form)
         right_column.addWidget(acceleration_group)
 
+        drop_posture_group = QGroupBox(ui_config.SECTION_TITLES["drop_posture"])
+        drop_posture_layout = QVBoxLayout(drop_posture_group)
+        drop_posture_note = QLabel(ui_config.SECTION_DESCRIPTIONS["drop_posture"])
+        drop_posture_note.setWordWrap(True)
+        drop_posture_note.setStyleSheet("color: #4a5568;")
+        drop_posture_layout.addWidget(drop_posture_note)
+        drop_posture_form = QFormLayout()
+        self.spin_drop_posture_contact_threshold = self._create_double_spinbox(0.0, 100.0, 3, 0.5)
+        drop_posture_form.addRow(
+            ui_config.FIELD_LABELS["drop_posture_contact_threshold"],
+            self.spin_drop_posture_contact_threshold,
+        )
+        drop_posture_layout.addLayout(drop_posture_form)
+        drop_posture_hint = QLabel(ui_config.FIELD_HINTS["drop_posture_contact_threshold"])
+        drop_posture_hint.setWordWrap(True)
+        drop_posture_hint.setStyleSheet("color: #718096; font-size: 11px;")
+        drop_posture_layout.addWidget(drop_posture_hint)
+        right_column.addWidget(drop_posture_group)
+
         left_column.addStretch()
         right_column.addStretch()
 
@@ -273,6 +292,9 @@ class ProcessingSettingsDialog(QDialog):
         self.cb_acceleration_lpf.setChecked(self._current_options.get("use_acceleration_lowpass_filter", False))
         self.spin_acceleration_lpf_cutoff.setValue(self._current_options.get("acceleration_lpf_cutoff_hz", 8.0))
         self.spin_acceleration_lpf_order.setValue(self._current_options.get("acceleration_lpf_order", 4))
+        self.spin_drop_posture_contact_threshold.setValue(
+            self._current_options.get("drop_posture_contact_threshold_mm", 1.0)
+        )
         self._update_enabled_state()
 
     def _set_combo_data(self, combo: QComboBox, target_value):
@@ -352,4 +374,5 @@ class ProcessingSettingsDialog(QDialog):
             "use_acceleration_lowpass_filter": self.cb_acceleration_lpf.isChecked(),
             "acceleration_lpf_cutoff_hz": self.spin_acceleration_lpf_cutoff.value(),
             "acceleration_lpf_order": self.spin_acceleration_lpf_order.value(),
+            "drop_posture_contact_threshold_mm": self.spin_drop_posture_contact_threshold.value(),
         }

@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-04-02
+Last Reviewed: 2026-06-09
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -35,6 +35,7 @@ Last Reviewed: 2026-04-02
 - `Processing Mode` 선택 (`Raw / Smoothing / Advanced`)
 - `Advanced Settings...` 다이얼로그 사용
 - processing 실행
+- processing 완료 후 낙하 자세 비교용 post-processing 지표 계산
 - `.proc` 저장
 - Step 1과 같은 splitter 기반 상단 plot / 우측 패널 / 하단 controls 구조를 유지한다.
 
@@ -57,6 +58,7 @@ Last Reviewed: 2026-04-02
 - Step 2는 결과 폴더에서 `.proc`를 선택해 연다.
 - `.proc`는 기존 result CSV와 동일한 multi-header 구조를 사용한다.
 - processing 결과에는 Full/Slice timeline metadata가 함께 포함된다.
+- processing 결과에는 낙하각, 방향 각도, 최저 코너, 코너 높이 차이와 같은 Drop Posture metric도 포함된다.
 
 ## 4. 핵심 설계 원칙
 
@@ -97,6 +99,7 @@ Last Reviewed: 2026-04-02
 - `artifact_io`
 - `UniformResampler`
 - `Parser`, `Slicer`, `Smoother`, `PoseOptimizer`, `VelocityCalculator`, `FrameAnalyzer`
+- `DropPosturePostProcessor`
 
 세부 책임은 `component_specs.txt`를 따른다.
 

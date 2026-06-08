@@ -48,6 +48,20 @@ class TestProcessingModeConfig(unittest.TestCase):
         self.assertEqual(initial["acceleration_method"], raw["acceleration_method"])
         self.assertEqual(initial["use_velocity_lowpass_filter"], raw["use_velocity_lowpass_filter"])
         self.assertEqual(initial["use_acceleration_lowpass_filter"], raw["use_acceleration_lowpass_filter"])
+        self.assertEqual(
+            initial["drop_posture_contact_threshold_mm"],
+            raw["drop_posture_contact_threshold_mm"],
+        )
+
+    def test_processing_options_include_drop_posture_contact_threshold(self):
+        self.assertIn(
+            "drop_posture_contact_threshold_mm",
+            config_analysis_ui.get_default_advanced_options(),
+        )
+        self.assertIn(
+            "drop_posture_contact_threshold_mm",
+            config_analysis_ui.get_raw_mode_options(),
+        )
 
 
 if __name__ == "__main__":

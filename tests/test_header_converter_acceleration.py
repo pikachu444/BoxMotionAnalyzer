@@ -3,6 +3,8 @@ import pandas as pd
 from src.config.data_columns import (
     AnalysisCols,
     DISPLAY_RESULT_COLUMNS,
+    DropPostureCols,
+    DropPostureSummaryCols,
     HeaderL1,
     HeaderL2,
     HeaderL3,
@@ -69,6 +71,33 @@ def test_convert_to_multi_header_maps_corner_velocity_norm():
     assert (HeaderL1.VEL, "C1", HeaderL3.V_TNORM) in converted.columns
 
 
+def test_convert_to_multi_header_maps_drop_posture_metrics_and_summary():
+    df = pd.DataFrame(
+        {
+            DropPostureCols.BETA_DEG: [10.0],
+            DropPostureCols.CMIN_INDEX: [1],
+            DropPostureSummaryCols.BETA_AT_T1_MINUS_DEG: [10.0],
+            DropPostureSummaryCols.REFERENCE_FACE: ["BOTTOM"],
+        },
+        index=[0.0],
+    )
+    df.index.name = "Time"
+    converted = convert_to_multi_header(df)
+
+    assert (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_BETA_DEG) in converted.columns
+    assert (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_CMIN_INDEX) in converted.columns
+    assert (
+        HeaderL1.ANALYSIS,
+        HeaderL2.DROP_POSTURE_SUMMARY,
+        HeaderL3.DROP_BETA_AT_T1_MINUS_DEG,
+    ) in converted.columns
+    assert (
+        HeaderL1.ANALYSIS,
+        HeaderL2.DROP_POSTURE_SUMMARY,
+        HeaderL3.DROP_REFERENCE_FACE,
+    ) in converted.columns
+
+
 def test_display_result_columns_include_new_com_velocity_acceleration_items():
     assert (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX_ANA) in DISPLAY_RESULT_COLUMNS
     assert (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX) in DISPLAY_RESULT_COLUMNS
@@ -76,3 +105,5 @@ def test_display_result_columns_include_new_com_velocity_acceleration_items():
     assert (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TX) in DISPLAY_RESULT_COLUMNS
     assert (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TNORM_ANA) in DISPLAY_RESULT_COLUMNS
     assert (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TNORM) in DISPLAY_RESULT_COLUMNS
+    assert (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_BETA_DEG) in DISPLAY_RESULT_COLUMNS
+    assert (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_DELTA_H_MM) in DISPLAY_RESULT_COLUMNS

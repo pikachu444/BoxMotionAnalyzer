@@ -1,0 +1,38 @@
+# Drop Result Comparison Plan
+
+Last Reviewed: 2026-06-09
+
+## 1. 목적
+여러 낙하 실험 결과 `.proc`를 같은 기준으로 비교해, 반복 실험 간 자세 편차와 충격 경로 차이를 설명할 수 있게 한다.
+
+현재 구현 범위는 단일 실험 결과에 Drop Posture frame/summary metric을 저장하고 Results Analysis에서 확인하는 것까지다. 비교 전용 윈도우와 충격 시퀀스는 후속 작업으로 남긴다.
+
+## 2. 현재 완료 기준
+- processing 완료 및 Result Resampling merge 이후 `DropPosturePostProcessor`가 실행된다.
+- 기준면은 `t1-`에서 아래 방향을 가장 많이 향한 박스 면으로 자동 추정한다.
+- `t1-`는 최저 코너가 `floor_level + contact_threshold_mm` 이하로 처음 들어오기 직전 frame이다.
+- frame metric은 `Analysis / DropPosture`에 저장한다.
+- summary metric은 `.proc` 호환성을 위해 `Analysis / DropPostureSummary` 상수 컬럼으로 반복 저장한다.
+- Results Analysis는 summary를 상단 `Drop Posture Summary`에 표시하고, frame metric은 컬럼 트리에서 선택해 plot할 수 있다.
+
+## 3. 후속 작업 계획
+1. 충격 시퀀스 `S` 계산
+   - 전체 시간 이력에서 접촉 이벤트를 검출한다.
+   - 같은 코너가 연속 접촉하는 구간은 하나의 이벤트로 묶는다.
+   - 결과는 summary metric 또는 별도 비교용 구조로 저장한다.
+2. 비교 전용 윈도우
+   - 런처에서 Results Analysis와 별도 기능으로 연다.
+   - 여러 `.proc` 파일을 선택하고 기준 실험을 지정한다.
+   - 빠른 비교, 낙하 자세 비교, 충격 순서 비교, 박스 중심 운동 비교, 코너 상세 비교 탭으로 나눈다.
+3. 비교 지표 테이블
+   - `BetaAtT1MinusDeg`, 방향 각도, `DeltaH`, `Cmin`, 기준면, `S`를 기준 실험 대비 차이와 함께 표시한다.
+4. 비교 그래프
+   - 선택한 metric을 시간축에 겹쳐 표시한다.
+   - 원시 시간과 1차 충격 기준 정렬 시간을 전환할 수 있게 한다.
+5. 3D 비교 재생
+   - 선택 실험 단일 재생과 기준/비교 좌우 재생을 제공한다.
+   - 동시 재생은 `t1` 또는 `t1-` 기준으로 정렬한다.
+
+## 4. 검증 방향
+- 단순 컬럼 존재 테스트가 아니라, 물리적으로 예상 가능한 synthetic 자세에서 각도와 코너 높이 차이가 수치적으로 맞는지 검증한다.
+- 비교 기능은 동일 실험을 두 번 로드했을 때 차이가 0에 가까운지, 의도적으로 기울인 synthetic 결과의 차이가 입력 각도와 일치하는지 확인한다.

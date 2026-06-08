@@ -1,6 +1,6 @@
 ﻿# Documentation Index
 
-Last Reviewed: 2026-04-02
+Last Reviewed: 2026-06-09
 
 이 문서는 `docs/` 아래 문서를 목적별로 안내하는 인덱스다. 루트 `README.md`가 프로젝트 전체 개요와 실행 방법을 설명한다면, 이 문서는 세부 문서를 어디서 찾아야 하는지 정리한다.
 
@@ -29,6 +29,7 @@ Last Reviewed: 2026-04-02
 ## 현재 핵심 문서 예시
 - `docs/analysis/design/system_design.md`
 - `docs/analysis/design/gui_overview.md`
+- `docs/analysis/design/drop_result_comparison_plan.md`
 - `docs/analysis/design/workflow.txt`
 - `docs/analysis/reference/csv_multi_header_schema.md`
 - `docs/analysis/reference/result_schema_notes.md`

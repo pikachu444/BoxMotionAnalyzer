@@ -69,6 +69,7 @@ SECTION_TITLES = {
     "derivative_method": "Derivative Method",
     "velocity": "Velocity",
     "acceleration": "Acceleration",
+    "drop_posture": "Drop Posture",
 }
 
 SECTION_DESCRIPTIONS = {
@@ -78,6 +79,7 @@ SECTION_DESCRIPTIONS = {
     "derivative_method": "Selects how velocity and acceleration are derived from pose data.",
     "velocity": "Post-processing applied after velocity has been calculated.",
     "acceleration": "Post-processing applied after acceleration has been calculated.",
+    "drop_posture": "Controls the first-impact posture metrics added after processing.",
 }
 
 FIELD_LABELS = {
@@ -108,6 +110,7 @@ FIELD_LABELS = {
     "acceleration_lowpass_filter": "Acceleration Butterworth low-pass filter",
     "acceleration_lpf_cutoff": "Cutoff (Hz):",
     "acceleration_lpf_order": "Order:",
+    "drop_posture_contact_threshold": "Contact threshold (mm):",
     "cancel": "Cancel",
     "ok": "OK",
 }
@@ -122,6 +125,7 @@ FIELD_HINTS = {
     "velocity_lowpass_filter": "Useful when the derived velocity still contains rapid oscillations.",
     "acceleration_lowpass_filter": "Recommended when acceleration is too noisy. Corner acceleration is derived from the filtered CoM and angular acceleration.",
     "spline_parameters": "These spline parameters are used when either derivative method is set to Spline.",
+    "drop_posture_contact_threshold": "The t1- frame is selected just before the lowest corner first enters this distance above the floor.",
 }
 
 RANGE_EDGE_HANDLING_CHOICES = [
@@ -168,6 +172,7 @@ def get_default_advanced_options():
         "use_acceleration_lowpass_filter": config_analysis.USE_ACCELERATION_LOWPASS_FILTER,
         "acceleration_lpf_cutoff_hz": config_analysis.ACCELERATION_LPF_CUTOFF_HZ,
         "acceleration_lpf_order": config_analysis.ACCELERATION_LPF_ORDER,
+        "drop_posture_contact_threshold_mm": config_analysis.DROP_POSTURE_CONTACT_THRESHOLD_MM,
     }
 
 
@@ -197,6 +202,7 @@ def get_raw_mode_options():
         "use_acceleration_lowpass_filter": False,
         "acceleration_lpf_cutoff_hz": config_analysis.ACCELERATION_LPF_CUTOFF_HZ,
         "acceleration_lpf_order": config_analysis.ACCELERATION_LPF_ORDER,
+        "drop_posture_contact_threshold_mm": config_analysis.DROP_POSTURE_CONTACT_THRESHOLD_MM,
     }
 
 

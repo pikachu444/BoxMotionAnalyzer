@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-06-05
+Last Reviewed: 2026-06-09
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -78,6 +78,7 @@ Last Reviewed: 2026-06-05
 - `Processing Mode`
   - Raw / Smoothing / Advanced
   - `Advanced Settings...` 다이얼로그 재사용
+  - Advanced 설정에는 낙하 자세 post-processing의 1차 접촉 검출 허용값(`Contact threshold (mm)`)도 포함된다
 - `Processing Output`
   - 현재 처리 상태
   - 최근 저장된 `.proc` 경로
@@ -89,6 +90,9 @@ Last Reviewed: 2026-06-05
 - `.slice`를 열면 `DataLoader.load_csv()`와 `Parser.process()`를 다시 사용해 parsed slice를 준비한다.
 - processing은 `PipelineController.run_analysis_from_parsed()`를 통해 실행한다.
 - batch processing은 각 `.slice` 파일의 box 치수를 파일별 메타에서 읽어 사용하며, box 치수가 없는 파일은 해당 파일만 실패 처리한다.
+- processing과 Result Resampling이 끝난 뒤 `DropPosturePostProcessor`가 낙하 자세 비교용 지표를 계산한다.
+  - 기준면은 `t1-`에서 아래 방향을 가장 많이 향한 박스 면으로 자동 추정한다.
+  - `t1-`는 최저 코너가 floor 접촉 허용값 안으로 처음 들어오기 직전 frame이다.
 - 완료된 결과는 Step 1.5 내부에서 확인한 뒤 `.proc`로 저장한다.
 
 ## 4. Step 2: Results Analysis
@@ -99,6 +103,9 @@ Last Reviewed: 2026-06-05
 - Number of Samples
 - Full timeline / Slice timeline 정보 문자열
 - Slice 구간을 시각적으로 보여주는 막대형 타임라인
+- Drop Posture Summary
+  - 새 `.proc`에 저장된 `Beta at t1-`, 방향 각도, `Cmin`, 기준면, `t1` 검출 여부를 요약 표시한다
+  - 구버전 `.proc`처럼 해당 컬럼이 없으면 `N/A`로 표시한다
 
 ### 4.2. 본문 3분할 레이아웃
 - `1. Result Files`
@@ -157,6 +164,10 @@ Last Reviewed: 2026-06-05
 8. Step 2에서 결과 폴더를 선택하고 저장된 `.proc`를 목록에서 연다.
 9. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
 10. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
+
+낙하 자세 비교 지표 확인:
+- Step 1.5 processing 후 저장한 `.proc`에는 `Analysis / DropPosture` frame metric과 `Analysis / DropPostureSummary` summary metric이 포함된다.
+- Step 2에서는 frame metric을 컬럼 트리에서 선택해 시간 이력으로 확인할 수 있고, summary metric은 상단 Drop Posture Summary 영역에서 확인한다.
 
 참고:
 - legacy 결과 `.csv`가 필요하면 파일 확장자를 `.proc`로 바꾼 뒤 연다.

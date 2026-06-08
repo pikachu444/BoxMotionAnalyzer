@@ -9,6 +9,7 @@ from src.analysis.pipeline.smoother import MarkerSmoother
 from src.analysis.pipeline.pose_optimizer import PoseOptimizer
 from src.analysis.pipeline.velocity_calculator import VelocityCalculator
 from src.analysis.pipeline.frame_analyzer import FrameAnalyzer
+from src.analysis.pipeline.drop_posture_post_processor import DropPosturePostProcessor
 from src.analysis.pipeline.resampling_options import build_effective_analysis_options
 from src.analysis.pipeline.resampler import UniformResampler
 from src.analysis.pipeline.validator import DataValidator
@@ -33,11 +34,19 @@ class PipelineController(QObject):
             vertical_axis_idx=config_app.WORLD_VERTICAL_AXIS_INDEX,
             floor_level=config_app.FLOOR_LEVEL
         )
+        self.drop_posture_post_processor = DropPosturePostProcessor(
+            face_definitions=getattr(config_app, 'FACE_DEFINITIONS', {}),
+            local_box_corners=config_app.LOCAL_BOX_CORNERS,
+            vertical_axis_idx=config_app.WORLD_VERTICAL_AXIS_INDEX,
+            floor_level=config_app.FLOOR_LEVEL,
+        )
 
     def _execute_analysis_from_parsed(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
         if self._is_result_resampling_enabled(gui_config):
-            return self._execute_result_resampling(gui_config, parsed_data)
-        return self._execute_analysis_single_pass(gui_config, parsed_data)
+            result = self._execute_result_resampling(gui_config, parsed_data)
+        else:
+            result = self._execute_analysis_single_pass(gui_config, parsed_data)
+        return self._execute_post_processing(gui_config, result)
 
     def _apply_box_dimensions_from_config(self, gui_config: dict) -> None:
         box_dims = gui_config.get('box_dimensions')
@@ -52,6 +61,21 @@ class PipelineController(QObject):
         config_app.LOCAL_BOX_CORNERS = config_app.calculate_local_box_corners(normalized_dims)
         self.pose_optimizer.local_box_corners = config_app.LOCAL_BOX_CORNERS
         self.velocity_calculator.local_box_corners = config_app.LOCAL_BOX_CORNERS
+        self.drop_posture_post_processor.configure_geometry(config_app.LOCAL_BOX_CORNERS)
+
+    def _execute_post_processing(self, gui_config: dict, result_df: pd.DataFrame) -> pd.DataFrame:
+        analysis_options = gui_config.get('analysis_options', {})
+        contact_threshold_mm = analysis_options.get(
+            'drop_posture_contact_threshold_mm',
+            config_analysis.DROP_POSTURE_CONTACT_THRESHOLD_MM,
+        )
+        self.log_message.emit("[INFO] Calculating drop posture post-processing metrics...")
+        processed = self.drop_posture_post_processor.process(
+            result_df,
+            contact_threshold_mm=contact_threshold_mm,
+        )
+        self.log_message.emit(f"    DropPosturePostProcessor done. Shape: {processed.shape}")
+        return processed
 
     def _execute_analysis_single_pass(self, gui_config: dict, parsed_data: pd.DataFrame) -> pd.DataFrame:
         self._apply_box_dimensions_from_config(gui_config)
