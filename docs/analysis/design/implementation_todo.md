@@ -45,11 +45,11 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   - Current behavior: face whose normal points most strongly downward at the reference frame.
   - User expectation: face or contact region associated with actual floor contact after first impact.
   - Consider splitting into `ApproachReferenceFace` and `ImpactContactFace`.
-- [ ] Review signed angle behavior for `ThetaLongDeg` and `ThetaShortDeg`.
+- [O] Review signed angle behavior for `ThetaLongDeg` and `ThetaShortDeg`.
   - Current formula is effectively `asin((positive-side height - negative-side height) / local-axis length)`.
   - Positive means the positive side of the chosen local axis is higher than the negative side.
   - Investigate plot cases where long/short angles look physically confusing outside the pre-impact interpretation window.
-- [ ] Add synthetic and real-data tests for signed angle interpretation:
+- [O] Add synthetic and real-data tests for signed angle interpretation:
   - positive long-axis lift
   - negative long-axis lift
   - positive/negative short-axis lift

@@ -112,6 +112,90 @@ class TestDropPosturePostProcessor(unittest.TestCase):
         self.assertAlmostEqual(result[DropPostureCols.THETA_SHORT_DEG].iloc[1], -7.0, places=6)
         self.assertAlmostEqual(result[DropPostureSummaryCols.THETA_SHORT_AT_T1_MINUS_DEG].iloc[0], -7.0, places=6)
 
+    def test_negative_long_axis_tilt_gives_negative_theta_long(self):
+        """Rotating -10 deg around Z makes negative-local-X side go up: ThetaLongDeg should be negative."""
+        rotation = R.from_euler("z", -10.0, degrees=True)
+        df = _make_result_frame(rotation, [10.0, 2.0, 0.5, -1.0])
+        result = _processor().process(df, contact_threshold_mm=1.0)
+
+        self.assertAlmostEqual(result[DropPostureCols.BETA_DEG].iloc[1], 10.0, places=6)
+        self.assertAlmostEqual(result[DropPostureCols.THETA_LONG_DEG].iloc[1], -10.0, places=6)
+        self.assertAlmostEqual(result[DropPostureCols.THETA_SHORT_DEG].iloc[1], 0.0, places=6)
+        self.assertAlmostEqual(result[DropPostureSummaryCols.THETA_LONG_AT_T1_MINUS_DEG].iloc[0], -10.0, places=6)
+
+    def test_positive_short_axis_tilt_gives_positive_theta_short(self):
+        """Rotating -7 deg around X makes positive-local-Z side go up: ThetaShortDeg should be positive."""
+        rotation = R.from_euler("x", -7.0, degrees=True)
+        df = _make_result_frame(rotation, [10.0, 2.0, 0.5, -1.0])
+        result = _processor().process(df, contact_threshold_mm=1.0)
+
+        self.assertAlmostEqual(result[DropPostureCols.BETA_DEG].iloc[1], 7.0, places=6)
+        self.assertAlmostEqual(result[DropPostureCols.THETA_LONG_DEG].iloc[1], 0.0, places=6)
+        self.assertAlmostEqual(result[DropPostureCols.THETA_SHORT_DEG].iloc[1], 7.0, places=6)
+        self.assertAlmostEqual(result[DropPostureSummaryCols.THETA_SHORT_AT_T1_MINUS_DEG].iloc[0], 7.0, places=6)
+
+    def test_real_contact_slice_theta_angles_are_physically_consistent_around_t1(self):
+        """
+        Sanity check: at t1-, BetaDeg and ThetaLongDeg/ThetaShortDeg from the summary
+        should agree with frame metric at the same timestamp, and BetaDeg must be non-negative.
+        Uses the real TestBox_85 contact slice (2.45s-3.05s).
+        """
+        import os
+        import sys
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+        from src.analysis.pipeline.data_loader import DataLoader
+        from src.analysis.pipeline.parser import Parser
+        from src.analysis.pipeline.pipeline_controller import PipelineController
+        from src.config.data_columns import FACE_PREFIX_TO_INFO
+
+        real_csv = "TestSets/Input/VDTest_S5_001.csv"
+        if not os.path.exists(real_csv):
+            self.skipTest("Real test data not available")
+
+        loader = DataLoader()
+        header_info, raw_data = loader.load_csv(real_csv)
+        parsed = Parser(face_prefix_map=FACE_PREFIX_TO_INFO).process(header_info, raw_data)
+        controller = PipelineController()
+        result = controller.process_parsed_data(
+            {
+                "slice_filter_by": "time",
+                "slice_start_val": 2.45,
+                "slice_end_val": 3.05,
+                "box_dimensions": (2082.9, 1046.6, 254.4),
+                "analysis_options": {
+                    "enable_marker_smoothing": False,
+                    "drop_posture_contact_threshold_mm": 1.0,
+                },
+            },
+            parsed,
+        )
+
+        first = result.iloc[0]
+        t1_time = first[DropPostureSummaryCols.T1_MINUS_TIME_SEC]
+        self.assertFalse(pd.isna(t1_time), "t1- should be detected in the contact slice")
+
+        t1_row = result.loc[t1_time]
+        # Summary BetaAtT1 must match frame BetaDeg at the same timestamp
+        self.assertAlmostEqual(
+            first[DropPostureSummaryCols.BETA_AT_T1_MINUS_DEG],
+            float(t1_row[DropPostureCols.BETA_DEG]),
+            places=5,
+        )
+        # ThetaLong and ThetaShort must also match at t1-
+        self.assertAlmostEqual(
+            first[DropPostureSummaryCols.THETA_LONG_AT_T1_MINUS_DEG],
+            float(t1_row[DropPostureCols.THETA_LONG_DEG]),
+            places=5,
+        )
+        self.assertAlmostEqual(
+            first[DropPostureSummaryCols.THETA_SHORT_AT_T1_MINUS_DEG],
+            float(t1_row[DropPostureCols.THETA_SHORT_DEG]),
+            places=5,
+        )
+        # BetaDeg must always be non-negative
+        beta_values = pd.to_numeric(result[DropPostureCols.BETA_DEG], errors="coerce")
+        self.assertTrue((beta_values.dropna() >= 0).all(), "BetaDeg must be non-negative in all frames")
+
     def test_no_contact_does_not_create_t1_minus_fallback(self):
         df = _make_result_frame(R.identity(), [10.0, 8.0, 6.0, 4.0])
         result = _processor().process(df, contact_threshold_mm=1.0)
