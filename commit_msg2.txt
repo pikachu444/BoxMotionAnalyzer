@@ -1,0 +1,6 @@
+feat(analysis): redesign metric guide layout with image assets
+
+- Generate and use technical illustration assets (`guide_posture.png`, `guide_impact.png`, `guide_contact.png`) for the Metric Guide dialog.
+- Replace custom Qt `QPainter` diagrams in `dialog_metric_guide.py` with the new grouped illustration layout using `QLabel` and `QPixmap`.
+- Update `test_results_analyzer_experiment_summary.py` to match the new dialog structure.
+- Mark tooltip verification and metric guide redesign tasks as complete in `implementation_todo.md`.

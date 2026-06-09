@@ -16,7 +16,6 @@ except ModuleNotFoundError:
     HAS_QT = False
 
 from src.analysis.ui.dialog_metric_guide import (
-    DropPostureGuideDiagram,
     DropPostureMetricGuideDialog,
 )
 from src.analysis.ui.widget_results_analyzer import WidgetResultsAnalyzer
@@ -129,11 +128,9 @@ class TestResultsAnalyzerExperimentSummary(unittest.TestCase):
         dialog = DropPostureMetricGuideDialog(descriptors, self.widget)
         try:
             labels = [label.text() for label in dialog.findChildren(QLabel)]
-            diagrams = dialog.findChildren(DropPostureGuideDiagram)
 
             self.assertTrue(any(descriptors[0].display_name in text for text in labels))
             self.assertTrue(any(descriptors[0].long_description in text for text in labels))
-            self.assertGreaterEqual(len(diagrams), len(descriptors))
         finally:
             dialog.close()
 

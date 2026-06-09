@@ -33,13 +33,13 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 - [O] Reconsider the summary panel title.
   - `Experiment Summary` is broad and may imply full experiment-level comparison.
   - Recommended default: `3. Drop/Impact Summary`.
-- [ ] Verify tooltip behavior manually and with UI tests.
+- [O] Verify tooltip behavior manually and with UI tests.
   - Intended behavior: Qt hover tooltip appears when the mouse cursor rests on a summary table row or DropPosture item in the Data Selection tree.
-- [ ] Redesign the Metric Guide layout around three grouped sections instead of many small repeated diagrams:
+- [O] Redesign the Metric Guide layout around three grouped sections instead of many small repeated diagrams:
   - `Posture`
   - `Impact`
   - `Contact`
-- [ ] Replace the current simple Qt-painted diagrams with clearer illustrations or maintainable visual assets.
+- [O] Replace the current simple Qt-painted diagrams with clearer illustrations or maintainable visual assets.
 - [ ] Document every Drop Posture result metric with calculation basis, units, sign convention, and interpretation before changing formulas.
 - [ ] Review `ReferenceFace` semantics.
   - Current behavior: face whose normal points most strongly downward at the reference frame.
