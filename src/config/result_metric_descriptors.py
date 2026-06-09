@@ -124,8 +124,12 @@ DROP_POSTURE_SUMMARY_DESCRIPTORS = (
         priority=60,
         short_description="Box face used as the posture reference for Beta and direction angles.",
         long_description=(
-            "The reference face is selected from the processed pose/corner history. Beta, "
-            "ThetaLong, ThetaShort, and DeltaH are interpreted relative to this face."
+            "The reference face is the box face whose outward normal points most strongly downward "
+            "at the t1- frame (just before first impact). It defines the approach posture — the face "
+            "the box was presenting toward the floor before contact. "
+            "Beta, ThetaLong, ThetaShort, and DeltaH are all interpreted relative to this face. "
+            "Note: this is the approach reference face, not the actual impact contact corner or face. "
+            "The actual first contact corner is recorded separately in 'First impact contact'."
         ),
         visual_guide=DropPostureVisualGuide.REFERENCE_FACE,
     ),

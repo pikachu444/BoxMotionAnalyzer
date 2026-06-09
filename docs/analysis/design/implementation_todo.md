@@ -40,8 +40,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   - `Impact`
   - `Contact`
 - [O] Replace the current simple Qt-painted diagrams with clearer illustrations or maintainable visual assets.
-- [ ] Document every Drop Posture result metric with calculation basis, units, sign convention, and interpretation before changing formulas.
-- [ ] Review `ReferenceFace` semantics.
+- [O] Document every Drop Posture result metric with calculation basis, units, sign convention, and interpretation before changing formulas.
+- [O] Review `ReferenceFace` semantics.
   - Current behavior: face whose normal points most strongly downward at the reference frame.
   - User expectation: face or contact region associated with actual floor contact after first impact.
   - Consider splitting into `ApproachReferenceFace` and `ImpactContactFace`.

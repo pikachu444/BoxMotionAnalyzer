@@ -40,22 +40,47 @@ Last Reviewed: 2026-06-09
 - Visualization long-format도 `Global_V_TX`, `BoxLocal_A_T_Norm` 같은 export metric 키를 그대로 사용
 
 ## 5. Drop Posture 스키마
-- Frame metric
-  - `BetaDeg`: 자동 기준면 normal과 아래 방향 사이 각도
-  - `ThetaLongDeg`: 기준면의 긴 방향 높이 기울기 각도
-  - `ThetaShortDeg`: 기준면의 짧은 방향 높이 기울기 각도
-  - `CminIndex`: 해당 frame에서 가장 낮은 코너 번호
-  - `DeltaH_mm`: 해당 frame에서 기준면을 이루는 코너들의 높이 차이
-- Summary metric
-  - `BetaAtT1MinusDeg`, `MaxBetaDeg`
-  - `ThetaLongAtT1MinusDeg`, `MaxAbsThetaLongDeg`
-  - `ThetaShortAtT1MinusDeg`, `MaxAbsThetaShortDeg`
-  - `DeltaHAtT1Minus_mm`, `MaxDeltaH_mm`
-  - `CminAtT1MinusIndex`, `T1MinusTimeSec`
-  - `ReferenceFace`, `LongAxis`, `ShortAxis`, `T1Detected`
-  - `ContactState`, `ContactConfidence`, `ContactDetectionMethod`
-  - `ImpactDetected`, `SustainedContactDetected`
-  - `ImpactSequence`, `ImpactEventCount`, `FirstImpactTimeSec`, `FirstImpactContact`
+- Frame metric (계산 기준 및 부호 규약)
+  - `BetaDeg` (단위: degree)
+    - **계산 기준**: 포즈에 의해 결정된 박스의 자동 기준면(Reference Face)의 법선 벡터(Normal)와 바닥 방향(Z=-1 등) 법선 벡터 사이의 절대 각도.
+    - **부호 규약**: 항상 양수(0 ~ 180도).
+  - `ThetaLongDeg` (단위: degree)
+    - **계산 기준**: 기준면에 수평하게 놓인 로컬 긴 축(Long axis) 방향의 기울기 각도.
+    - **부호 규약**: `asin((positive-side height - negative-side height) / local-axis length)`. 즉, 로컬 축의 양의 방향(Positive) 코너가 음의 방향(Negative) 코너보다 높을 때 양수(+).
+    - **해석 주의점**: 첫 충격(first impact) 이전에는 물리적으로 의미가 명확하지만, 그 이후 여러 코너가 닿으면서 요동칠 때는 직관과 다를 수 있음 (추후 검토 필요).
+  - `ThetaShortDeg` (단위: degree)
+    - **계산 기준**: 기준면에 수평하게 놓인 로컬 짧은 축(Short axis) 방향의 기울기 각도.
+    - **부호 규약**: `ThetaLongDeg`와 동일. 로컬 짧은 축의 양의 방향이 더 높을 때 양수(+).
+  - `CminIndex` (단위: index, 1~8)
+    - **계산 기준**: 해당 프레임에서 절대 높이(Z좌표)가 가장 낮은 코너의 번호. 코너 번호는 로컬 좌표계 C1~C8 기준.
+  - `DeltaH_mm` (단위: mm)
+    - **계산 기준**: 해당 프레임에서 기준면(Reference Face)을 구성하는 4개 코너 중 가장 높은 코너의 높이에서 가장 낮은 코너의 높이를 뺀 값.
+    - **부호 규약**: 항상 양수. 0에 가까울수록 기준면이 바닥과 평행함을 의미.
+
+- Summary metric (계산 기준)
+  - `BetaAtT1MinusDeg`: t1- 시점의 BetaDeg 값. `T1Detected=False`이면 NaN.
+  - `MaxBetaDeg`: 선택 구간 전체에서 BetaDeg의 최댓값.
+  - `ThetaLongAtT1MinusDeg`: t1- 시점의 ThetaLongDeg 값. `T1Detected=False`이면 NaN.
+  - `MaxAbsThetaLongDeg`: 구간 전체 |ThetaLongDeg|의 최댓값.
+  - `ThetaShortAtT1MinusDeg`: t1- 시점의 ThetaShortDeg 값. `T1Detected=False`이면 NaN.
+  - `MaxAbsThetaShortDeg`: 구간 전체 |ThetaShortDeg|의 최댓값.
+  - `DeltaHAtT1Minus_mm`: t1- 시점의 DeltaH_mm 값. `T1Detected=False`이면 NaN.
+  - `MaxDeltaH_mm`: 구간 전체 DeltaH_mm의 최댓값.
+  - `CminAtT1MinusIndex`: t1- 시점의 CminIndex 값. `T1Detected=False`이면 NaN.
+  - `T1MinusTimeSec`: t1- 시각(초). `T1Detected=False`이면 NaN.
+  - `ReferenceFace`: 기준면 레이블 (예: `BOTTOM`, `SIDE_X_POS`). 아래 별도 항목 참고.
+  - `LongAxis`, `ShortAxis`: 기준면의 긴 축/짧은 축 레이블 (예: `LocalAxis0`).
+  - `T1Detected`: `ImpactEvent`가 확인되어 t1-이 정의된 경우 True.
+  - `ImpactDetected`: 접촉 threshold 또는 motion evidence 기반으로 충격이 감지된 경우 True.
+  - `SustainedContactDetected`: slice 후반부 낮은 plateau가 지속된 경우 True.
+  - `ContactState`: `NoContact`, `Approach`, `ImpactEvent`, `SustainedContact` 중 하나.
+  - `ContactConfidence`: 0.0~1.0 사이 접촉 신뢰도. evidence 개수와 종류에 따라 산출.
+  - `ContactDetectionMethod`: 사용된 evidence 조합 (예: `threshold+motion+plateau`).
+  - `ImpactSequence`: impact event 구간 접촉 이벤트 순서 문자열 (예: `C2 -> {C2,C3} -> C5`).
+  - `ImpactEventCount`: ImpactSequence에서 집계된 별개 이벤트 수.
+  - `FirstImpactTimeSec`: ImpactSequence 첫 이벤트 시각(초).
+  - `FirstImpactContact`: ImpactSequence 첫 이벤트 접촉 코너 표기 (예: `C2`, `{C1,C2}`).
+
 - `ContactState`는 `NoContact`, `Approach`, `ImpactEvent`, `SustainedContact` 중 하나다.
 - 접촉 판정은 단일 threshold가 아니라 최저 코너 높이의 절대 높이, 하강/저점/반전, 낮은 plateau, 접촉 corner set 지속성을 함께 보는 evidence 기반 summary다.
 - `t1-`는 `ImpactEvent`가 확인될 때만 정의한다.
@@ -67,6 +92,19 @@ Last Reviewed: 2026-06-09
   - 최소 2 frame 연속 접촉만 이벤트로 인정한다.
   - 동시 접촉은 `{C1,C2}`처럼 하나의 이벤트로 묶어 표기한다.
   - 예: `{C1,C2} -> C5 -> {C6,C7,C8}`
+
+## 5-1. ReferenceFace 의미 및 설계 결정
+
+**현재 동작**: `ReferenceFace`는 t1- 시점(또는 t1-이 없으면 slice 첫 프레임)에서, 법선 벡터가 아래 방향을 가장 강하게 향하는 박스 면을 자동으로 선택한다.
+
+**사용자 기대와의 차이**: `ReferenceFace`가 낙하 직전 접근 자세의 기준면이 아니라, 첫 충격 이후 실제로 바닥과 닿은 면을 가리킨다고 오해할 수 있다.
+
+**설계 결정 (현행 유지)**:
+- `ReferenceFace`는 **접근(Approach) 자세 기준면**으로 정의한다. 즉, 충격 직전 t1-에서의 자세 기준이다.
+- 실제 충격 접촉 코너는 `FirstImpactContact`와 `ImpactSequence`가 별도로 기록하므로 중복 저장할 필요가 없다.
+- `ApproachReferenceFace` / `ImpactContactFace` 분리는 현재 범위에 포함하지 않는다. 필요하다면 향후 `ImpactContactFace` 컬럼을 `FirstImpactContact`로부터 역산해 추가할 수 있다.
+- 이 결정은 `result_metric_descriptors.py`의 `ReferenceFace` descriptor long_description에도 반영한다.
+
 
 ## 6. 구버전 대비 변경 포인트
 - `_Ana` 접미사 기반 표기 -> `BoxLocal_` 접두사 표기로 전환
