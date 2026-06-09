@@ -423,3 +423,4 @@ WINDOW_ICON_PATH = os.path.join(IMAGES_DIR, "app_icon_window.ico")
 LAUNCHER_ICON_PATH = os.path.join(IMAGES_DIR, "launcher_image.png")
 LAUNCHER_BTN_PROCESS_TEXT = "Data Processing"
 LAUNCHER_BTN_VISUALIZE_TEXT = "3D Visualization"
+LAUNCHER_BTN_COMPARE_TEXT = "Compare Results"

@@ -78,9 +78,9 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   `Technical engineering illustration for contact detection evidence in a box drop test, clean white background. Show a floor line and a small height-versus-time curve for the lowest box corner. Include threshold band near floor, descending approach slope, impact event marker, rebound/turning point, and sustained low plateau region. Next to the plot show a transparent box with one or two corners near the floor. Label ContactState examples: NoContact, Approach, ImpactEvent, SustainedContact. Minimal text, precise engineering diagram style.`
 
 ## Later Work: Experiment Comparison GUI
-- [ ] Keep the compare window as a launcher-level feature, not as another panel inside Step 2.
-- [ ] Confirm the next scope in `drop_result_comparison_plan.md`.
-- [ ] Implement first:
+- [O] Keep the compare window as a launcher-level feature, not as another panel inside Step 2.
+- [O] Confirm the next scope in `drop_result_comparison_plan.md`.
+- [O] Implement first:
   - multiple `.proc` file loading
   - baseline experiment selection
   - comparison target selection
@@ -91,6 +91,6 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   - synchronized playback
   - event-based time alignment
 - [ ] Reuse Drop Posture descriptor metadata for compare-window labels, tooltips, and metric guide text.
-- [ ] Add compare-window tests:
+- [O] Add compare-window tests:
   - loading the same `.proc` twice produces near-zero differences
   - controlled synthetic/fixture differences produce expected metric deltas

@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt, QSize
 from src.config import config_visualization as config
 from src.visualization.main_window import MainWindow
 from src.analysis.app.main_window import MainApp
+from src.analysis.compare.main_window import CompareMainWindow
 from src.simulation.ui.main_window import SimulationUI
 from src.utils.app_identity import configure_qt_application, get_window_icon
 
@@ -26,6 +27,7 @@ class LauncherWindow(QMainWindow):
 
         self.data_processing_window = None
         self.simulation_window = None
+        self.comparison_window = None
 
         # --- Main Layout ---
         central_widget = QWidget()
@@ -98,6 +100,22 @@ class LauncherWindow(QMainWindow):
         self.visualization_hint_label.setStyleSheet("color: #4a5568;")
         right_panel_layout.addWidget(self.visualization_hint_label, 0, Qt.AlignHCenter)
 
+        right_panel_layout.addSpacing(8)
+
+        self.btn_compare = QPushButton(config.LAUNCHER_BTN_COMPARE_TEXT)
+        self.btn_compare.clicked.connect(self.open_comparison)
+        self.btn_compare.setFixedSize(320, 50)
+        right_panel_layout.addWidget(self.btn_compare, 0, Qt.AlignHCenter)
+
+        self.compare_hint_label = QLabel(
+            "Compare multiple processed drop test results."
+        )
+        self.compare_hint_label.setWordWrap(True)
+        self.compare_hint_label.setAlignment(Qt.AlignCenter)
+        self.compare_hint_label.setFixedWidth(320)
+        self.compare_hint_label.setStyleSheet("color: #4a5568;")
+        right_panel_layout.addWidget(self.compare_hint_label, 0, Qt.AlignHCenter)
+
         right_panel_layout.addStretch(1)
 
         main_layout.addWidget(right_panel, 0, Qt.AlignVCenter)
@@ -123,6 +141,14 @@ class LauncherWindow(QMainWindow):
 
         self.simulation_window = SimulationUI()
         self.simulation_window.show()
+
+    def open_comparison(self):
+        """Opens the experiment comparison window."""
+        if self.comparison_window is not None:
+            self.comparison_window.close()
+
+        self.comparison_window = CompareMainWindow()
+        self.comparison_window.show()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
