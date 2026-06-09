@@ -4,9 +4,9 @@ Last Reviewed: 2026-06-09
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
-When work is completed, move it from `Next Work` to `Completed` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
+Use `[x]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[x]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
-## Completed
+## TODO List
 - [x] Add Drop Posture frame and summary metrics after processing.
 - [x] Store Drop Posture summary columns in `.proc` results.
 - [x] Add `ImpactSequence`, contact state, contact confidence, and contact detection method.
@@ -15,8 +15,6 @@ When work is completed, move it from `Next Work` to `Completed` and update the s
 - [x] Add `Metric Guide...` dialog backed by descriptor metadata.
 - [x] Add real `TestBox_85` contact-slice flow verification using `TestSets/Input/VDTest_S5_001.csv`.
 - [x] Link this handoff document from root `AGENTS.md` and `docs/documentation_index.md`.
-
-## Next Work
 - [ ] Review and update Step 2 panel numbering:
   - `1. Result Files`
   - `2. Data Selection`
