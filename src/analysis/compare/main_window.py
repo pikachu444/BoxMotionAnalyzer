@@ -1,8 +1,9 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QSplitter, QFileDialog, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QTabWidget
 from PySide6.QtCore import Qt
 
 from src.analysis.compare.data_model import ComparisonModel
 from src.analysis.compare.ui_panels import CompareControlPanel, CompareTablePanel, CompareGraphPanel
+from src.analysis.compare.playback_panel import ComparePlaybackPanel
 
 class CompareMainWindow(QMainWindow):
     def __init__(self):
@@ -25,15 +26,25 @@ class CompareMainWindow(QMainWindow):
         self.control_panel = CompareControlPanel()
         self.table_panel = CompareTablePanel()
         self.graph_panel = CompareGraphPanel()
+        self.playback_panel = ComparePlaybackPanel(self.model)
         
-        # Right side split (vertical)
+        # Right side split (vertical) for Summary Tab
+        self.summary_widget = QWidget()
+        summary_layout = QVBoxLayout(self.summary_widget)
+        summary_layout.setContentsMargins(0, 0, 0, 0)
         self.right_splitter = QSplitter(Qt.Vertical)
         self.right_splitter.addWidget(self.table_panel)
         self.right_splitter.addWidget(self.graph_panel)
         self.right_splitter.setSizes([300, 500])
+        summary_layout.addWidget(self.right_splitter)
+        
+        # Tabs for right side
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.summary_widget, "Summary Metrics")
+        self.tabs.addTab(self.playback_panel, "3D Playback")
         
         self.splitter.addWidget(self.control_panel)
-        self.splitter.addWidget(self.right_splitter)
+        self.splitter.addWidget(self.tabs)
         self.splitter.setSizes([300, 900])
         
         # Connect signals
@@ -93,4 +104,7 @@ class CompareMainWindow(QMainWindow):
                 targets = [f"Analysis | DropPosture | {m}" for m in metrics]
                 
         self.control_panel.set_plot_targets(targets)
+        
+        # Update Playback Panel Viewers
+        self.playback_panel.refresh_viewers()
 

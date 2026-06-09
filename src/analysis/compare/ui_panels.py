@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt, Signal
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from src.config.result_metric_descriptors import METRIC_DESCRIPTORS
 
 class CompareTablePanel(QWidget):
     """Displays differences in Drop Posture Summary metrics."""
@@ -39,7 +40,22 @@ class CompareTablePanel(QWidget):
         self.table.setRowCount(len(metrics))
         self.table.setColumnCount(len(datasets))
         self.table.setHorizontalHeaderLabels(datasets)
-        self.table.setVerticalHeaderLabels(metrics)
+        
+        # Set vertical header items with tooltips
+        for r, metric in enumerate(metrics):
+            desc = METRIC_DESCRIPTORS.get(metric, {})
+            label = desc.get("display_name", metric)
+            unit = desc.get("unit", "")
+            if unit:
+                label += f" ({unit})"
+                
+            header_item = QTableWidgetItem(label)
+            
+            tooltip = desc.get("tooltip", "")
+            if tooltip:
+                header_item.setToolTip(tooltip)
+                
+            self.table.setVerticalHeaderItem(r, header_item)
 
         for c, ds_name in enumerate(datasets):
             ds_info = diff_data[ds_name]

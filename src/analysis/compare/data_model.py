@@ -1,11 +1,14 @@
 import pandas as pd
 from src.analysis.pipeline.data_loader import DataLoader
+from src.visualization.data_handler import DataHandler
 import os
 
 class ComparisonModel:
     def __init__(self):
         self.data_loader = DataLoader()
         self.datasets: dict[str, pd.DataFrame] = {}
+        self.visualization_handlers: dict[str, DataHandler] = {}
+        self.alignment_frames: dict[str, int] = {}
         self.baseline_name: str | None = None
 
     def load_file(self, filepath: str) -> str:
@@ -23,6 +26,21 @@ class ComparisonModel:
 
         df = self.data_loader.load_result_csv(filepath)
         self.datasets[name] = df
+        
+        # Load data handler for 3D visualization
+        viz_handler = DataHandler()
+        viz_handler.load_analysis_result(filepath)
+        self.visualization_handlers[name] = viz_handler
+        
+        # Extract t1- frame for event alignment
+        t1_frame = 0
+        if "Analysis" in df.columns.levels[0] and "DropPostureSummary" in df.columns.levels[1]:
+            summary_df = df["Analysis"]["DropPostureSummary"]
+            if not summary_df.empty and "T1MinusFrame" in summary_df.columns:
+                val = summary_df.iloc[0]["T1MinusFrame"]
+                if not pd.isna(val):
+                    t1_frame = int(val)
+        self.alignment_frames[name] = t1_frame
         
         if self.baseline_name is None:
             self.baseline_name = name

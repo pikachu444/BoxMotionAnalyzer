@@ -10,16 +10,17 @@ def mock_proc_df():
         ("Analysis", "DropPostureSummary", "DeltaH_mm"),
         ("Analysis", "DropPostureSummary", "BetaAtT1MinusDeg"),
         ("Analysis", "DropPostureSummary", "ContactState"),
+        ("Analysis", "DropPostureSummary", "T1MinusFrame"),
         ("Analysis", "DropPosture", "ThetaLongDeg"),
     ])
     
     # 5 frames of data
     data = [
-        [150.5, 12.3, "ImpactEvent", 1.2],
-        [150.5, 12.3, "ImpactEvent", 1.5],
-        [150.5, 12.3, "ImpactEvent", 1.8],
-        [150.5, 12.3, "ImpactEvent", 2.1],
-        [150.5, 12.3, "ImpactEvent", 2.4],
+        [150.5, 12.3, "ImpactEvent", 2, 1.2],
+        [150.5, 12.3, "ImpactEvent", 2, 1.5],
+        [150.5, 12.3, "ImpactEvent", 2, 1.8],
+        [150.5, 12.3, "ImpactEvent", 2, 2.1],
+        [150.5, 12.3, "ImpactEvent", 2, 2.4],
     ]
     df = pd.DataFrame(data, columns=columns)
     df.index = [0.0, 0.01, 0.02, 0.03, 0.04]
@@ -93,3 +94,27 @@ def test_get_timeseries_data(monkeypatch, mock_proc_df):
     assert "f1.proc.csv" in series_dict
     assert "f2.proc.csv" in series_dict
     assert len(series_dict["f1.proc.csv"]) == 5
+
+def test_event_alignment_extraction(monkeypatch, mock_proc_df):
+    model = ComparisonModel()
+    
+    df2 = mock_proc_df.copy()
+    df2.loc[:, ("Analysis", "DropPostureSummary", "T1MinusFrame")] = 15
+    
+    def mock_load(filepath):
+        if "f1" in filepath:
+            return mock_proc_df.copy() # T1MinusFrame is 2
+        return df2.copy() # T1MinusFrame is 15
+        
+    monkeypatch.setattr(model.data_loader, "load_result_csv", mock_load)
+    
+    # Mock data handler to prevent crashing from missing viz data
+    class DummyHandler:
+        def load_analysis_result(self, filepath): pass
+    monkeypatch.setattr("src.analysis.compare.data_model.DataHandler", DummyHandler)
+    
+    model.load_file("f1.proc.csv")
+    model.load_file("f2.proc.csv")
+    
+    assert model.alignment_frames["f1.proc.csv"] == 2
+    assert model.alignment_frames["f2.proc.csv"] == 15
