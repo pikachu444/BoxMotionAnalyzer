@@ -54,7 +54,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   - negative long-axis lift
   - positive/negative short-axis lift
   - real `TestBox_85` sanity check around and after `t1-`
-- [ ] Update stable docs after each completed item:
+- [O] Update stable docs after each completed item:
   - `gui_overview.md`
   - `system_design.md`
   - `drop_result_comparison_plan.md`

@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-06-09
+Last Reviewed: 2026-06-10
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -125,7 +125,7 @@ Last Reviewed: 2026-06-09
   - `Open Popup (Current Selection)`
   - `Close All Popups`
   - Opened Popups / Checked Columns 상태 표시
-- `Experiment Summary`
+- `3. Drop/Impact Summary`
   - 선택된 `.proc`의 Drop Posture summary를 grouped key-value table로 표시한다.
   - 표시 순서는 `Posture -> Impact -> Contact`이다.
   - `Posture`에는 `Beta at t1-`, 방향 각도, `Cmin`, `DeltaH`, 기준면을 표시한다.
@@ -133,6 +133,9 @@ Last Reviewed: 2026-06-09
   - `Contact`에는 contact state, impact/sustained contact 여부, confidence, detection method를 낮은 우선순위로 표시한다.
   - `T1Detected=False`이면 t1 기반 값은 `N/A`로 표시한다.
   - Summary row tooltip과 `Metric Guide...` 설명창은 `src/config/result_metric_descriptors.py`의 descriptor metadata를 참조한다.
+  - `Metric Guide...` 버튼은 summary table 아래 푸터에 배치한다.
+  - Metric Guide 다이얼로그는 Posture / Impact / Contact 3개 그룹 단위 일러스트레이션과 해당 지표 설명을 표시한다.
+  - `SustainedContact` 상태는 UI에서 `Stable floor contact`로 표시한다.
 
 ### 4.3. 하단 분석 패널
 - `3. Peak & Point Selection`

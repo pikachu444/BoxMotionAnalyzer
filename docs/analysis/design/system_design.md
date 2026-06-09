@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-06-09
+Last Reviewed: 2026-06-10
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -110,7 +110,9 @@ Last Reviewed: 2026-06-09
   - `ImpactEvent`가 없으면 `t1-` 기반 summary는 만들지 않고, 접촉 없는 구간도 frame metric과 max summary는 유지한다.
 - `result_metric_descriptors`
   - Drop Posture summary UI label, tooltip, metric guide 설명, visual guide id를 정의한다.
-  - Step 2 `Experiment Summary`와 향후 compare window가 같은 설명 기준을 재사용하게 한다.
+  - Step 2 `3. Drop/Impact Summary`와 향후 compare window가 같은 설명 기준을 재사용하게 한다.
+  - `ReferenceFace` descriptor는 접근(Approach) 자세 기준면임을 명시한다. 실제 충격 코너는 `FirstImpactContact`가 별도 기록한다.
+  - `SustainedContact` 상태는 UI에서 `Stable floor contact`로 표시한다.
 
 세부 책임은 `component_specs.txt`를 따른다.
 

@@ -1,6 +1,6 @@
 # Drop Result Comparison Plan
 
-Last Reviewed: 2026-06-09
+Last Reviewed: 2026-06-10
 
 ## 1. 목적
 여러 낙하 실험 결과 `.proc`를 같은 기준으로 비교해, 반복 실험 간 자세 편차와 충격 경로 차이를 설명할 수 있게 한다.
@@ -17,9 +17,12 @@ Last Reviewed: 2026-06-09
 - summary metric은 `.proc` 호환성을 위해 `Analysis / DropPostureSummary` 상수 컬럼으로 반복 저장한다.
 - `DeltaH_mm`은 8개 전체 코너 높이 범위가 아니라, 기준면을 이루는 코너들의 높이 차이로 계산한다.
 - 충격 시퀀스 `ImpactSequence`는 최소 2 frame 이상 지속된 접촉 이벤트만 사용하며, 동시 접촉은 `{C1,C2}`처럼 그룹으로 표기한다.
-- Results Analysis는 summary를 `Experiment Summary` grouped table에 표시하고, frame metric은 컬럼 트리에서 선택해 plot할 수 있다.
-- `Experiment Summary`의 표시 순서는 `Posture -> Impact -> Contact`이다.
+- Results Analysis는 summary를 `3. Drop/Impact Summary` grouped table에 표시하고, frame metric은 컨럼 트리에서 선택해 plot할 수 있다.
+- `3. Drop/Impact Summary`의 표시 순서는 `Posture -> Impact -> Contact`이다.
 - Drop Posture summary label, tooltip, metric guide 설명은 `src/config/result_metric_descriptors.py`의 descriptor metadata를 공통 기준으로 사용한다.
+- `Metric Guide...` 버튼은 summary table 아래 푸터에 배치하며, Posture / Impact / Contact 3개 그룹 일러스트레이션과 지표 설명을 표시한다.
+- `SustainedContact` 상태는 UI에서 `Stable floor contact`로 표시한다.
+- `ReferenceFace`는 접근(Approach) 자세 기준면이다. 실제 충격 코너는 `FirstImpactContact`가 별도 기록한다.
 
 ## 3. 후속 작업 계획
 1. 비교 전용 윈도우
