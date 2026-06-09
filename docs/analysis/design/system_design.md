@@ -45,12 +45,16 @@ Last Reviewed: 2026-06-09
 - Multi-header 결과 컬럼 트리 표시
 - `Group By (Metric / Object)` 전환
 - 현재 트리를 유지한 검색 필터
+- Drop Posture `Experiment Summary` grouped table 표시
+- Drop Posture metric guide와 descriptor 기반 tooltip 표시
 - 메인 플롯 비교
 - 팝업 플롯 열기
 - 선택 시점 분석
 - point export
 - scenario export
 - 상단 분석 제어 영역과 하단 메인 플롯 사이에는 세로 splitter가 있어, 기본 레이아웃을 유지하면서도 메인 플롯 높이를 수동 조절할 수 있다.
+- Step 2의 Time Window는 현재 파일과 timeline 정보를 담당하고, 본문 상단 row는 `Result Files / Data Selection / Experiment Summary`로 구성한다.
+- `Peak & Point Selection`과 `Export Analysis Input`은 Main Plot 옆 하단 패널에 배치한다.
 
 ### 3.4. Step 간 연결
 - Step 1은 `.slice`를 생성한다.
@@ -70,6 +74,7 @@ Last Reviewed: 2026-06-09
 
 ### 4.2. 컬럼 정의의 중앙 관리
 - 컬럼명, Multi-header 규칙, Results Analyzer 표시 순서는 `src/config/data_columns.py`에서 관리한다.
+- Drop Posture summary의 표시명, group, tooltip, metric guide 설명은 `src/config/result_metric_descriptors.py`에서 관리한다.
 - Results Analyzer는 raw multi-header tuple을 유지한 채, UI에서만 `Metric-first`와 `Object-first` 두 가지 계층으로 재구성한다.
 - 새 분석 결과를 추가할 때도 우선 이 파일 기준으로 맞춘다.
 
@@ -103,6 +108,9 @@ Last Reviewed: 2026-06-09
   - processing 완료 결과에서 Drop Posture frame/summary metric을 계산한다.
   - 접촉 판정은 threshold 단독이 아니라 높이, 하강/반전, 낮은 plateau, corner set 지속성을 함께 보는 evidence 기반 summary로 계산한다.
   - `ImpactEvent`가 없으면 `t1-` 기반 summary는 만들지 않고, 접촉 없는 구간도 frame metric과 max summary는 유지한다.
+- `result_metric_descriptors`
+  - Drop Posture summary UI label, tooltip, metric guide 설명, visual guide id를 정의한다.
+  - Step 2 `Experiment Summary`와 향후 compare window가 같은 설명 기준을 재사용하게 한다.
 
 세부 책임은 `component_specs.txt`를 따른다.
 

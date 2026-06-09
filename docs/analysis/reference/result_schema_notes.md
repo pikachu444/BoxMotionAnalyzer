@@ -20,6 +20,9 @@ Last Reviewed: 2026-06-09
   - `DropPostureCols`, `DropPostureSummaryCols`: 낙하 자세 비교용 계산/저장 컬럼명
   - `HeaderL1~HeaderL3`: Multi-Header 키 정의
   - `DISPLAY_RESULT_COLUMNS`: Results Analyzer 표시 스펙
+- `src/config/result_metric_descriptors.py`
+  - Drop Posture summary의 UI 표시명, group, 단위, tooltip, metric guide 설명, visual guide id
+  - Step 2 `Experiment Summary`, Data Selection tooltip, 향후 compare window 설명의 공통 기준
 - `src/config/config_visualization.py`
   - visualization 내부 metric 키와 UI metric metadata 정의
   - `DF_*` metric 상수는 `HeaderL3` export 키를 직접 재사용
@@ -33,6 +36,7 @@ Last Reviewed: 2026-06-09
 - Corner는 Translation 성분만 사용하며 Velocity에는 `Global_V_T_Norm` 포함
 - Drop posture frame metric은 `(Analysis, DropPosture, *)`에 저장한다.
 - Drop posture summary metric은 `(Analysis, DropPostureSummary, *)`에 저장하며, `.proc` CSV 호환성을 위해 모든 row에 같은 값을 반복한다.
+- Drop posture summary 설명 metadata는 `result_metric_descriptors.py`에서 관리하며, 저장 스키마 키 자체는 `data_columns.py`의 `HeaderL1~HeaderL3`와 `DropPostureSummaryCols`를 기준으로 유지한다.
 - Visualization long-format도 `Global_V_TX`, `BoxLocal_A_T_Norm` 같은 export metric 키를 그대로 사용
 
 ## 5. Drop Posture 스키마
@@ -57,6 +61,8 @@ Last Reviewed: 2026-06-09
 - `t1-`는 `ImpactEvent`가 확인될 때만 정의한다.
 - 접촉 frame이 없거나 slice가 이미 낮은 plateau 상태로 시작하면 t1 기반 summary는 `NaN`으로 저장한다.
 - 접촉이 없어도 frame metric과 `Max*` summary, 기준면, contact state summary는 계산한다.
+- Step 2 `Experiment Summary`는 descriptor group 순서에 따라 `Posture -> Impact -> Contact`로 표시한다.
+- `T1Detected=False`이면 UI에서는 t1 기반 summary를 `N/A`로 표시한다. 저장값은 기존 `.proc` 호환을 위해 `NaN`을 유지한다.
 - `ImpactSequence`는 impact event 구간에서 검출한 접촉 이벤트 순서다.
   - 최소 2 frame 연속 접촉만 이벤트로 인정한다.
   - 동시 접촉은 `{C1,C2}`처럼 하나의 이벤트로 묶어 표기한다.
@@ -72,12 +78,18 @@ Last Reviewed: 2026-06-09
 ## 7. 유지보수 가이드
 스키마 변경 시에는 아래 4개를 항상 함께 수정해야 한다.
 1. `src/config/data_columns.py`
-2. `src/utils/header_converter.py`
-3. `src/analysis/*` 계산 모듈 (`velocity_calculator.py`, `frame_analyzer.py`, `drop_posture_post_processor.py`)
-4. `src/analysis/ui/widget_results_analyzer.py`
-5. `src/config/config_visualization.py`
-6. `src/visualization/data_handler.py`
+2. `src/config/result_metric_descriptors.py` (Drop Posture summary 설명/tooltip/guide 변경 시)
+3. `src/utils/header_converter.py`
+4. `src/analysis/*` 계산 모듈 (`velocity_calculator.py`, `frame_analyzer.py`, `drop_posture_post_processor.py`)
+5. `src/analysis/ui/widget_results_analyzer.py`
+6. `src/config/config_visualization.py`
+7. `src/visualization/data_handler.py`
 
 그리고 `tests/test_header_converter_acceleration.py`,
 `tests/test_result_format_layout.py`,
+`tests/test_results_analyzer_experiment_summary.py`,
+`tests/test_real_drop_posture_physics.py`,
+`tests/test_real_data_flow.py`,
 `tests/test_visualization_data_handler.py`를 함께 갱신해야 회귀를 방지할 수 있다.
+
+85인치 실제 데이터 검증은 `TestSets/Input/VDTest_S5_001.csv`의 `TestBox_85` 데이터를 사용한다. 접촉 flow 검증은 `2.45s-3.05s` slice를 85인치 치수로 처리하고, export/reload 후 pose/corner 좌표에서 `BetaAtT1MinusDeg`, `DeltaHAtT1Minus_mm`, `CminAtT1MinusIndex`를 독립 재계산해 summary 값과 비교한다.

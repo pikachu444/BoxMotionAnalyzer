@@ -105,13 +105,8 @@ Last Reviewed: 2026-06-09
 - Number of Samples
 - Full timeline / Slice timeline 정보 문자열
 - Slice 구간을 시각적으로 보여주는 막대형 타임라인
-- Drop Posture Summary
-  - 새 `.proc`에 저장된 contact state, confidence, `Beta at t1-`, 방향 각도, `Cmin`, 기준면, `t1` 검출 여부를 요약 표시한다
-  - 접촉이 없거나 slice가 이미 낮은 plateau 상태로 시작하면 t1 기반 값은 `N/A`로 표시될 수 있다
-  - 충격 시퀀스 `ImpactSequence`, 이벤트 개수, 첫 충격 시각과 첫 접촉 코너도 함께 표시한다
-  - 구버전 `.proc`처럼 해당 컬럼이 없으면 `N/A`로 표시한다
 
-### 4.2. 본문 3분할 레이아웃
+### 4.2. 본문 상단 3분할 레이아웃
 - `1. Result Files`
   - `Select Result Folder...`
   - 읽기 전용 Folder Path
@@ -130,6 +125,16 @@ Last Reviewed: 2026-06-09
   - `Open Popup (Current Selection)`
   - `Close All Popups`
   - Opened Popups / Checked Columns 상태 표시
+- `Experiment Summary`
+  - 선택된 `.proc`의 Drop Posture summary를 grouped key-value table로 표시한다.
+  - 표시 순서는 `Posture -> Impact -> Contact`이다.
+  - `Posture`에는 `Beta at t1-`, 방향 각도, `Cmin`, `DeltaH`, 기준면을 표시한다.
+  - `Impact`에는 `t1-`, 첫 충격 시각, 첫 접촉 코너, `ImpactSequence`를 표시한다.
+  - `Contact`에는 contact state, impact/sustained contact 여부, confidence, detection method를 낮은 우선순위로 표시한다.
+  - `T1Detected=False`이면 t1 기반 값은 `N/A`로 표시한다.
+  - Summary row tooltip과 `Metric Guide...` 설명창은 `src/config/result_metric_descriptors.py`의 descriptor metadata를 참조한다.
+
+### 4.3. 하단 분석 패널
 - `3. Peak & Point Selection`
   - `Target`
   - 현재 Target 기준으로 peak search가 동작한다는 안내 라벨
@@ -145,14 +150,14 @@ Last Reviewed: 2026-06-09
   - `Scene Name`
   - `Export Scenario CSV`
 
-### 4.3. 하단 메인 플롯
+### 4.4. 하단 메인 플롯
 - 현재 체크된 결과 컬럼을 한 그래프에 겹쳐서 표시한다.
 - 범례와 타겟 선택 문자열은 raw schema key를 직접 이어붙이지 않고, export 의미를 풀어쓴 표시명을 사용한다.
 - 현재 체크된 컬럼 집합은 트리 정렬 방식과 검색 필터가 바뀌어도 유지된다.
 - 그래프 클릭 시 가장 가까운 시점을 선택한다.
 - 선택된 시점은 붉은 수직선 커서와 선택 정보 레이블로 반영된다.
 
-### 4.4. 팝업 플롯
+### 4.5. 팝업 플롯
 - `PlotPopupDialog`는 현재 체크된 컬럼 집합으로 별도 창을 연다.
 - 팝업 그래프도 클릭 가능하며, 선택된 시간이 메인 Step 2와 동기화된다.
 - 현재 구현은 "현재 선택 항목으로 팝업 열기"만 지원하며, 별도 subset 편집 버튼은 노출하지 않는다.
@@ -171,7 +176,7 @@ Last Reviewed: 2026-06-09
 
 낙하 자세 비교 지표 확인:
 - Step 1.5 processing 후 저장한 `.proc`에는 `Analysis / DropPosture` frame metric과 `Analysis / DropPostureSummary` summary metric이 포함된다.
-- Step 2에서는 frame metric을 컬럼 트리에서 선택해 시간 이력으로 확인할 수 있고, summary metric은 상단 Drop Posture Summary 영역에서 확인한다.
+- Step 2에서는 frame metric을 컬럼 트리에서 선택해 시간 이력으로 확인할 수 있고, summary metric은 `Experiment Summary` 영역에서 확인한다.
 - 접촉이 없는 구간도 frame별 낙하 자세 metric과 max summary는 계산되며, `t1-` 의미가 필요한 summary만 비어 있을 수 있다.
 
 참고:

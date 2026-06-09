@@ -12,6 +12,7 @@ Last Reviewed: 2026-06-09
 ## analysis 문서
 - `docs/analysis/design/`
   - 분석 GUI 구조, 시스템 설계, 워크플로우 같은 설계 문서
+  - `implementation_todo.md`는 분석 GUI/Drop Posture/실험 비교 기능을 이어서 작업할 때 먼저 읽는 TODO 문서
   - `gui_mockups/`는 현재 구현의 기준이 아니라 보조 reference 자산을 둔다
 - `docs/analysis/reference/`
   - 결과 CSV 스키마, 데이터 구조, 시나리오 export 형식, 코드 구조 메모 같은 참조 문서
@@ -29,6 +30,7 @@ Last Reviewed: 2026-06-09
 ## 현재 핵심 문서 예시
 - `docs/analysis/design/system_design.md`
 - `docs/analysis/design/gui_overview.md`
+- `docs/analysis/design/implementation_todo.md`
 - `docs/analysis/design/drop_result_comparison_plan.md`
 - `docs/analysis/design/workflow.txt`
 - `docs/analysis/reference/csv_multi_header_schema.md`

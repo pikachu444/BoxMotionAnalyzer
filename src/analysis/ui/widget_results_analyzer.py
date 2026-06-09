@@ -1,10 +1,12 @@
 import os
 import pandas as pd
 from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QGroupBox, QTreeWidget, QTreeWidgetItem,
-    QFileDialog, QListWidget, QFormLayout, QCheckBox, QGridLayout, QSplitter, QFrame, QSizePolicy
+    QFileDialog, QListWidget, QFormLayout, QCheckBox, QGridLayout, QSplitter, QFrame,
+    QSizePolicy, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -12,10 +14,10 @@ from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.pipeline.artifact_io import list_result_files
+from src.analysis.ui.dialog_metric_guide import DropPostureMetricGuideDialog
 from src.analysis.ui.plot_popup_dialog import PlotPopupDialog
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS,
-    RESULT_DROP_POSTURE_SUMMARY_COLUMNS,
     RESULT_TIME_COL,
     RESULT_TIMELINE_FULL_END_COL,
     RESULT_TIMELINE_FULL_START_COL,
@@ -29,6 +31,11 @@ from src.config.data_columns import (
     get_result_column_display_path,
     get_result_metric_display_name,
     normalize_result_column,
+)
+from src.config.result_metric_descriptors import (
+    DROP_POSTURE_SUMMARY_GROUP_ORDER,
+    get_drop_posture_summary_descriptors,
+    get_result_metric_descriptor,
 )
 
 class WidgetResultsAnalyzer(QWidget):
@@ -91,12 +98,6 @@ class WidgetResultsAnalyzer(QWidget):
         timeline_bar_layout.addWidget(self.timeline_bar_right, 1)
         timeline_bar_row.addWidget(self.timeline_bar_widget)
         context_layout.addLayout(timeline_bar_row)
-        drop_posture_summary_group = QGroupBox("Drop Posture Summary")
-        drop_posture_summary_layout = QVBoxLayout(drop_posture_summary_group)
-        self.drop_posture_summary_label = QLabel("N/A")
-        self.drop_posture_summary_label.setWordWrap(True)
-        drop_posture_summary_layout.addWidget(self.drop_posture_summary_label)
-        context_layout.addWidget(drop_posture_summary_group)
         context_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         layout.addWidget(context_group)
 
@@ -176,6 +177,29 @@ class WidgetResultsAnalyzer(QWidget):
         self.selection_checked_columns_label = QLabel("Checked Columns: 0")
         selection_layout.addWidget(self.selection_checked_columns_label)
         splitter.addWidget(selection_group)
+
+        experiment_summary_group = QGroupBox("Experiment Summary")
+        experiment_summary_layout = QVBoxLayout(experiment_summary_group)
+        experiment_summary_header = QHBoxLayout()
+        self.experiment_summary_status_label = QLabel("N/A")
+        self.experiment_summary_status_label.setStyleSheet("color: #4a5568;")
+        experiment_summary_header.addWidget(self.experiment_summary_status_label)
+        experiment_summary_header.addStretch()
+        self.metric_guide_button = QPushButton("Metric Guide...")
+        experiment_summary_header.addWidget(self.metric_guide_button)
+        experiment_summary_layout.addLayout(experiment_summary_header)
+
+        self.experiment_summary_table = QTableWidget(0, 2)
+        self.experiment_summary_table.setHorizontalHeaderLabels(["Metric", "Value"])
+        self.experiment_summary_table.verticalHeader().setVisible(False)
+        self.experiment_summary_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.experiment_summary_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.experiment_summary_table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.experiment_summary_table.setAlternatingRowColors(True)
+        self.experiment_summary_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.experiment_summary_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        experiment_summary_layout.addWidget(self.experiment_summary_table)
+        splitter.addWidget(experiment_summary_group)
 
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
@@ -264,9 +288,8 @@ class WidgetResultsAnalyzer(QWidget):
         analysis_scenario_layout.addWidget(self.export_scenario_button)
         right_layout.addWidget(analysis_scenario_group)
         right_layout.addStretch()
-        splitter.addWidget(right_panel)
 
-        splitter.setSizes([320, 620, 500])
+        splitter.setSizes([320, 520, 420])
         main_splitter.addWidget(splitter)
 
         main_plot_group = QGroupBox("Main Plot")
@@ -281,10 +304,16 @@ class WidgetResultsAnalyzer(QWidget):
         main_plot_layout.addWidget(self.canvas)
         main_plot_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.plot_manager = PlotManager(self.canvas, self.fig)
-        main_splitter.addWidget(main_plot_group)
-        main_splitter.setStretchFactor(0, 3)
+
+        bottom_splitter = QSplitter(Qt.Orientation.Horizontal)
+        bottom_splitter.setChildrenCollapsible(False)
+        bottom_splitter.addWidget(main_plot_group)
+        bottom_splitter.addWidget(right_panel)
+        bottom_splitter.setSizes([820, 380])
+        main_splitter.addWidget(bottom_splitter)
+        main_splitter.setStretchFactor(0, 2)
         main_splitter.setStretchFactor(1, 5)
-        main_splitter.setSizes([420, 520])
+        main_splitter.setSizes([360, 560])
         layout.addWidget(main_splitter)
 
     def _connect_signals(self):
@@ -297,6 +326,7 @@ class WidgetResultsAnalyzer(QWidget):
         self.plot_results_button.clicked.connect(self.plot_selected_results)
         self.open_popup_current_button.clicked.connect(self.open_popup_current_selection)
         self.close_all_popups_button.clicked.connect(self.close_all_popups)
+        self.metric_guide_button.clicked.connect(self.open_metric_guide)
         self.canvas.mpl_connect('button_press_event', self.on_result_plot_click)
         self.find_abs_max_button.clicked.connect(self.on_find_abs_max_click)
         self.find_max_button.clicked.connect(self.on_find_max_click)
@@ -315,7 +345,7 @@ class WidgetResultsAnalyzer(QWidget):
         self.context_rows_label.setText("N/A")
         self.timeline_bar_info_label.setText("Full/Slice Range: unknown")
         self.selection_checked_columns_label.setText("Checked Columns: 0")
-        self.drop_posture_summary_label.setText("N/A")
+        self._clear_experiment_summary()
         self._set_timeline_bar_unknown()
 
     def _set_selected_columns_context(self, count):
@@ -419,34 +449,112 @@ class WidgetResultsAnalyzer(QWidget):
             return None
         return values.iloc[0]
 
-    def _format_summary_value(self, value):
+    @staticmethod
+    def _is_missing_value(value):
         if value is None:
+            return True
+        if isinstance(value, str) and value.strip() == "":
+            return True
+        try:
+            return bool(pd.isna(value))
+        except (TypeError, ValueError):
+            return False
+
+    def _format_summary_value(self, value, descriptor=None):
+        if self._is_missing_value(value):
             return "N/A"
         if isinstance(value, bool):
             return "Yes" if value else "No"
         try:
             numeric_value = float(value)
-            return f"{numeric_value:.3f}"
+            formatted = f"{numeric_value:.3f}"
         except (TypeError, ValueError):
-            return str(value)
+            formatted = str(value)
+        if descriptor is not None and descriptor.unit:
+            return f"{formatted} {descriptor.unit}"
+        return formatted
+
+    def _clear_experiment_summary(self):
+        self.experiment_summary_status_label.setText("N/A")
+        self.experiment_summary_table.setRowCount(0)
+
+    def _is_t1_summary_available(self):
+        t1_detected_column = (
+            HeaderL1.ANALYSIS,
+            HeaderL2.DROP_POSTURE_SUMMARY,
+            HeaderL3.DROP_T1_DETECTED,
+        )
+        value = self._first_value(t1_detected_column)
+        if self._is_missing_value(value):
+            return True
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.strip().lower() in {"true", "1", "yes"}
+        try:
+            return bool(float(value))
+        except (TypeError, ValueError):
+            return bool(value)
+
+    def _add_experiment_summary_group_row(self, group_label):
+        row = self.experiment_summary_table.rowCount()
+        self.experiment_summary_table.insertRow(row)
+        item = QTableWidgetItem(group_label)
+        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        item.setBackground(QColor("#edf2f7"))
+        self.experiment_summary_table.setItem(row, 0, item)
+        self.experiment_summary_table.setSpan(row, 0, 1, 2)
+
+    def _add_experiment_summary_value_row(self, descriptor, value):
+        row = self.experiment_summary_table.rowCount()
+        self.experiment_summary_table.insertRow(row)
+
+        metric_item = QTableWidgetItem(descriptor.display_name)
+        value_item = QTableWidgetItem(self._format_summary_value(value, descriptor))
+        for item in (metric_item, value_item):
+            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            item.setToolTip(descriptor.short_description)
+
+        self.experiment_summary_table.setItem(row, 0, metric_item)
+        self.experiment_summary_table.setItem(row, 1, value_item)
 
     def _update_drop_posture_summary(self):
         if self.result_data is None or self.result_data.empty:
-            self.drop_posture_summary_label.setText("N/A")
+            self._clear_experiment_summary()
             return
 
-        values = []
-        for column in RESULT_DROP_POSTURE_SUMMARY_COLUMNS:
-            value = self._first_value(column)
-            if value is None:
-                continue
-            label = get_result_metric_display_name(*column)
-            values.append(f"{label}: {self._format_summary_value(value)}")
+        descriptors = get_drop_posture_summary_descriptors()
+        available_columns = {descriptor.column for descriptor in descriptors if descriptor.column in self.result_data.columns}
+        if not available_columns:
+            self._clear_experiment_summary()
+            return
 
-        if values:
-            self.drop_posture_summary_label.setText(" | ".join(values))
-        else:
-            self.drop_posture_summary_label.setText("N/A")
+        self.experiment_summary_table.setRowCount(0)
+        t1_available = self._is_t1_summary_available()
+        populated_count = 0
+
+        for group in DROP_POSTURE_SUMMARY_GROUP_ORDER:
+            group_descriptors = [descriptor for descriptor in descriptors if descriptor.group == group]
+            present_descriptors = [
+                descriptor for descriptor in group_descriptors if descriptor.column in available_columns
+            ]
+            if not present_descriptors:
+                continue
+
+            self._add_experiment_summary_group_row(group.value)
+            for descriptor in present_descriptors:
+                value = None if descriptor.t1_based and not t1_available else self._first_value(descriptor.column)
+                self._add_experiment_summary_value_row(descriptor, value)
+                populated_count += 1
+
+        self.experiment_summary_status_label.setText(
+            f"{populated_count} metrics" if populated_count else "N/A"
+        )
+        self.experiment_summary_table.resizeRowsToContents()
+
+    def open_metric_guide(self):
+        dialog = DropPostureMetricGuideDialog(get_drop_posture_summary_descriptors(), self)
+        dialog.exec()
 
     def _refresh_result_file_list(self, folder_path, selected_file=None):
         self.result_file_list.clear()
@@ -590,6 +698,9 @@ class WidgetResultsAnalyzer(QWidget):
             leaf_item = QTreeWidgetItem(mid_item, [entry["leaf_label"]])
             leaf_item.setFlags(leaf_item.flags() | Qt.ItemIsUserCheckable)
             leaf_item.setData(0, Qt.ItemDataRole.UserRole, column_tuple)
+            descriptor = get_result_metric_descriptor(column_tuple)
+            if descriptor is not None:
+                leaf_item.setToolTip(0, descriptor.short_description)
 
             if column_tuple in self.checked_result_columns:
                 leaf_item.setCheckState(0, Qt.Checked)

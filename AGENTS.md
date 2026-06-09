@@ -1,6 +1,6 @@
 # Repository AGENTS Guide
 
-Last Reviewed: 2026-04-02
+Last Reviewed: 2026-06-09
 
 이 문서는 저장소 전체에 공통으로 적용하는 작업 원칙을 정리한다.
 
@@ -27,6 +27,7 @@ Last Reviewed: 2026-04-02
 ## 현재 Analysis Workflow 기준 문서
 - 현재 구현된 `Step 1 / Step 1.5 / Step 2` 흐름은 먼저 `docs/analysis/design/gui_overview.md`에서 확인한다.
 - 상위 구조와 설계 원칙은 `docs/analysis/design/system_design.md`를 기준으로 본다.
+- 진행 중이거나 다음 세션에서 이어받을 분석 GUI/Drop Posture/비교 기능 작업은 `docs/analysis/design/implementation_todo.md`를 먼저 확인한다.
 - batch processing 같은 후속 기능은 현재 구현 범위에 포함되지 않으므로, 문서와 코드에서 별도 확인 전에는 구현된 기능처럼 취급하지 않는다.
 
 ## 코드 작업 원칙

@@ -10,6 +10,10 @@ from src.config.data_columns import (
     get_result_metric_display_name,
     normalize_result_column,
 )
+from src.config.result_metric_descriptors import (
+    DROP_POSTURE_SUMMARY_GROUP_ORDER,
+    get_drop_posture_summary_descriptors,
+)
 
 
 def _l3_for(l1: str, l2: str) -> list[str]:
@@ -108,6 +112,19 @@ class TestResultFormatLayout(unittest.TestCase):
         self.assertEqual(len(set(normalized_columns)), len(normalized_columns))
         selected_df = df[normalized_columns].copy()
         self.assertFalse(selected_df.empty)
+
+    def test_drop_posture_summary_descriptors_are_grouped_for_experiment_summary(self):
+        descriptors = get_drop_posture_summary_descriptors()
+        self.assertTrue(descriptors)
+        group_values = [descriptor.group for descriptor in descriptors]
+        ordered_group_values = sorted(
+            group_values,
+            key=lambda group: DROP_POSTURE_SUMMARY_GROUP_ORDER.index(group),
+        )
+        self.assertEqual(group_values, ordered_group_values)
+        self.assertEqual(descriptors[0].display_name, "Beta at t1-")
+        self.assertTrue(all(descriptor.short_description for descriptor in descriptors))
+        self.assertTrue(all(descriptor.long_description for descriptor in descriptors))
 
 
 if __name__ == "__main__":
