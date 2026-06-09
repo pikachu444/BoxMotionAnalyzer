@@ -178,15 +178,13 @@ class WidgetResultsAnalyzer(QWidget):
         selection_layout.addWidget(self.selection_checked_columns_label)
         splitter.addWidget(selection_group)
 
-        experiment_summary_group = QGroupBox("Experiment Summary")
+        experiment_summary_group = QGroupBox("3. Drop/Impact Summary")
         experiment_summary_layout = QVBoxLayout(experiment_summary_group)
         experiment_summary_header = QHBoxLayout()
         self.experiment_summary_status_label = QLabel("N/A")
         self.experiment_summary_status_label.setStyleSheet("color: #4a5568;")
         experiment_summary_header.addWidget(self.experiment_summary_status_label)
         experiment_summary_header.addStretch()
-        self.metric_guide_button = QPushButton("Metric Guide...")
-        experiment_summary_header.addWidget(self.metric_guide_button)
         experiment_summary_layout.addLayout(experiment_summary_header)
 
         self.experiment_summary_table = QTableWidget(0, 2)
@@ -199,13 +197,20 @@ class WidgetResultsAnalyzer(QWidget):
         self.experiment_summary_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.experiment_summary_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         experiment_summary_layout.addWidget(self.experiment_summary_table)
+
+        experiment_summary_footer = QHBoxLayout()
+        experiment_summary_footer.addStretch()
+        self.metric_guide_button = QPushButton("Metric Guide...")
+        experiment_summary_footer.addWidget(self.metric_guide_button)
+        experiment_summary_layout.addLayout(experiment_summary_footer)
+
         splitter.addWidget(experiment_summary_group)
 
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
         right_layout.setContentsMargins(0, 0, 0, 0)
 
-        point_analysis_group = QGroupBox("3. Peak & Point Selection")
+        point_analysis_group = QGroupBox("4. Peak & Point Selection")
         point_analysis_layout = QVBoxLayout(point_analysis_group)
 
         target_layout = QHBoxLayout()
@@ -244,7 +249,7 @@ class WidgetResultsAnalyzer(QWidget):
         point_analysis_layout.addLayout(export_button_row)
         right_layout.addWidget(point_analysis_group)
 
-        analysis_scenario_group = QGroupBox("4. Export Analysis Input")
+        analysis_scenario_group = QGroupBox("5. Export Analysis Input")
         analysis_scenario_layout = QVBoxLayout(analysis_scenario_group)
 
         manual_check_row = QHBoxLayout()
@@ -465,6 +470,8 @@ class WidgetResultsAnalyzer(QWidget):
             return "N/A"
         if isinstance(value, bool):
             return "Yes" if value else "No"
+        if isinstance(value, str) and value == "SustainedContact":
+            return "Stable floor contact"
         try:
             numeric_value = float(value)
             formatted = f"{numeric_value:.3f}"
@@ -474,8 +481,8 @@ class WidgetResultsAnalyzer(QWidget):
             return f"{formatted} {descriptor.unit}"
         return formatted
 
-    def _clear_experiment_summary(self):
-        self.experiment_summary_status_label.setText("N/A")
+    def _clear_experiment_summary(self, status_text="N/A"):
+        self.experiment_summary_status_label.setText(status_text)
         self.experiment_summary_table.setRowCount(0)
 
     def _is_t1_summary_available(self):
@@ -520,13 +527,13 @@ class WidgetResultsAnalyzer(QWidget):
 
     def _update_drop_posture_summary(self):
         if self.result_data is None or self.result_data.empty:
-            self._clear_experiment_summary()
+            self._clear_experiment_summary("Drop Posture data unavailable")
             return
 
         descriptors = get_drop_posture_summary_descriptors()
         available_columns = {descriptor.column for descriptor in descriptors if descriptor.column in self.result_data.columns}
         if not available_columns:
-            self._clear_experiment_summary()
+            self._clear_experiment_summary("Drop Posture data unavailable")
             return
 
         self.experiment_summary_table.setRowCount(0)
@@ -547,9 +554,10 @@ class WidgetResultsAnalyzer(QWidget):
                 self._add_experiment_summary_value_row(descriptor, value)
                 populated_count += 1
 
-        self.experiment_summary_status_label.setText(
-            f"{populated_count} metrics" if populated_count else "N/A"
-        )
+        if t1_available:
+            self.experiment_summary_status_label.setText("Impact detected")
+        else:
+            self.experiment_summary_status_label.setText("No impact detected")
         self.experiment_summary_table.resizeRowsToContents()
 
     def open_metric_guide(self):

@@ -15,22 +15,22 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 - [O] Add `Metric Guide...` dialog backed by descriptor metadata.
 - [O] Add real `TestBox_85` contact-slice flow verification using `TestSets/Input/VDTest_S5_001.csv`.
 - [O] Link this handoff document from root `AGENTS.md` and `docs/documentation_index.md`.
-- [ ] Review and update Step 2 panel numbering:
+- [O] Review and update Step 2 panel numbering:
   - `1. Result Files`
   - `2. Data Selection`
   - `3. Drop/Impact Summary` or `3. Drop Posture Summary`
   - `4. Peak & Point Selection`
   - `5. Export Analysis Input`
-- [ ] Replace the current `15 metrics` summary status with one short interpretation message:
+- [O] Replace the current `15 metrics` summary status with one short interpretation message:
   - Impact found: `Impact detected`
   - No impact found in the selected time window: `No impact detected`
   - Missing Drop Posture summary columns: `Drop Posture data unavailable`
-- [ ] Use clearer user-facing wording for `SustainedContact`.
+- [O] Use clearer user-facing wording for `SustainedContact`.
   - Raw/internal label: `SustainedContact`
   - Recommended summary/table label: `Stable floor contact`
   - Guide explanation: `The selected time window is already in a low, stable contact state, so t1-based impact values are not assigned.`
-- [ ] Move `Metric Guide...` below the summary table unless implementation review finds a stronger reason to keep it in the title row.
-- [ ] Reconsider the summary panel title.
+- [O] Move `Metric Guide...` below the summary table unless implementation review finds a stronger reason to keep it in the title row.
+- [O] Reconsider the summary panel title.
   - `Experiment Summary` is broad and may imply full experiment-level comparison.
   - Recommended default: `3. Drop/Impact Summary`.
 - [ ] Verify tooltip behavior manually and with UI tests.
