@@ -4,17 +4,17 @@ Last Reviewed: 2026-06-09
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
-Use `[x]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[x]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
+Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
-- [x] Add Drop Posture frame and summary metrics after processing.
-- [x] Store Drop Posture summary columns in `.proc` results.
-- [x] Add `ImpactSequence`, contact state, contact confidence, and contact detection method.
-- [x] Replace the old Step 2 one-line `Drop Posture Summary` with a grouped summary table.
-- [x] Add descriptor metadata for Drop Posture summary labels, units, tooltips, metric guide text, and visual guide ids.
-- [x] Add `Metric Guide...` dialog backed by descriptor metadata.
-- [x] Add real `TestBox_85` contact-slice flow verification using `TestSets/Input/VDTest_S5_001.csv`.
-- [x] Link this handoff document from root `AGENTS.md` and `docs/documentation_index.md`.
+- [O] Add Drop Posture frame and summary metrics after processing.
+- [O] Store Drop Posture summary columns in `.proc` results.
+- [O] Add `ImpactSequence`, contact state, contact confidence, and contact detection method.
+- [O] Replace the old Step 2 one-line `Drop Posture Summary` with a grouped summary table.
+- [O] Add descriptor metadata for Drop Posture summary labels, units, tooltips, metric guide text, and visual guide ids.
+- [O] Add `Metric Guide...` dialog backed by descriptor metadata.
+- [O] Add real `TestBox_85` contact-slice flow verification using `TestSets/Input/VDTest_S5_001.csv`.
+- [O] Link this handoff document from root `AGENTS.md` and `docs/documentation_index.md`.
 - [ ] Review and update Step 2 panel numbering:
   - `1. Result Files`
   - `2. Data Selection`
