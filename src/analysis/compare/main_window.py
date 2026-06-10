@@ -13,14 +13,23 @@ class CompareMainWindow(QMainWindow):
         
         self.model = ComparisonModel()
         
-        # Central widget and layout
+        # Central widget and layout (Grey background)
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        main_layout = QHBoxLayout(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        
+        # White card frame
+        content_frame = QFrame()
+        content_frame.setObjectName("MainContentFrame")
+        content_layout = QHBoxLayout(content_frame)
+        content_layout.setContentsMargins(5, 5, 5, 5)
         
         # Splitter to divide controls from data views
         self.splitter = QSplitter(Qt.Horizontal)
-        main_layout.addWidget(self.splitter)
+        content_layout.addWidget(self.splitter)
+        
+        main_layout.addWidget(content_frame)
         
         # Panels
         self.control_panel = CompareControlPanel()
@@ -45,11 +54,15 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.remove_file_requested.connect(self._on_remove_file)
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
         self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
-        # Set white background for the main window and a subtle grey for the splitter
-        # to match the Data Processing native light theme styling.
+        # Set white card layout on grey background
         self.setStyleSheet("""
-            CompareMainWindow {
+            QMainWindow {
+                background-color: #f0f0f0;
+            }
+            #MainContentFrame {
                 background-color: #ffffff;
+                border: 1px solid #cccccc;
+                border-radius: 2px;
             }
             QSplitter::handle {
                 background-color: #e5e7eb;
