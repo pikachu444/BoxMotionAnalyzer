@@ -101,6 +101,8 @@ class CompareGraphPanel(QGroupBox):
         # Set to vertical and reduce size
         self.toolbar.setOrientation(Qt.Vertical)
         self.toolbar.setIconSize(QSize(16, 16))
+        self.toolbar.locLabel.setVisible(False) # Prevent layout jitter from hover text
+
         
         # Hide Configure subplots and Edit axis buttons
         for action in self.toolbar.actions():
