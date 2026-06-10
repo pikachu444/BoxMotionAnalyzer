@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QFrame
 from PySide6.QtCore import Qt
 
 from src.analysis.compare.data_model import ComparisonModel
