@@ -24,8 +24,8 @@ class TestWidgetRawDataProcessing(unittest.TestCase):
              self.skipTest(f"Test file not found: {real_file_path}")
 
         # We need to use the real DataLoader and Parser for this integration test
-        from src.analysis.core.data_loader import DataLoader
-        from src.analysis.parser import Parser
+        from src.analysis.pipeline.data_loader import DataLoader
+        from src.analysis.pipeline.parser import Parser
         from src.config.data_columns import FACE_PREFIX_TO_INFO
         
         real_loader = DataLoader()

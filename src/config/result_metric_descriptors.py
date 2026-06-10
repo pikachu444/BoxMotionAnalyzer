@@ -275,3 +275,13 @@ def get_result_metric_descriptor(
     column: tuple[str, str, str],
 ) -> ResultMetricDescriptor | None:
     return _DROP_POSTURE_DESCRIPTOR_BY_COLUMN.get(tuple(column))
+
+
+METRIC_DESCRIPTORS = {
+    desc.column[2]: {
+        "display_name": desc.display_name,
+        "unit": desc.unit,
+        "tooltip": desc.short_description
+    }
+    for desc in DROP_POSTURE_SUMMARY_DESCRIPTORS
+}
