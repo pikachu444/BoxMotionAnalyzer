@@ -57,7 +57,7 @@ class CompareMainWindow(QMainWindow):
             self,
             "Select Processed Results",
             "",
-            "Processed Data (*.proc.csv *.csv)"
+            "Processed Data (*.proc *.proc.csv *.csv)"
         )
         if not filepaths:
             return
