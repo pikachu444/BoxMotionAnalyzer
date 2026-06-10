@@ -25,10 +25,10 @@ Last Reviewed: 2026-06-10
 - `ReferenceFace`는 접근(Approach) 자세 기준면이다. 실제 충격 코너는 `FirstImpactContact`가 별도 기록한다.
 
 ## 3. 후속 작업 계획
-1. 비교 전용 윈도우
-   - 런처에서 Results Analysis와 별도 기능으로 연다.
+1. 비교 전용 윈도우 (Compare Results)
+   - 런처에서 Results Analysis와 별도의 독립 창으로 연다.
    - 여러 `.proc` 파일을 선택하고 기준 실험을 지정한다.
-   - 빠른 비교, 낙하 자세 비교, 충격 순서 비교, 박스 중심 운동 비교, 코너 상세 비교 탭으로 나눈다.
+   - (개선된 방향) 탭(Tab) 방식을 배제하고, 좌측 설정 사이드바와 우측 3단 뷰어(요약표, 3D 뷰어, 비교 플롯)를 한 화면에 동시 노출하는 견고한 직각 레이아웃을 사용한다.
 2. 비교 지표 테이블
    - `ContactState`, `ContactConfidence`, `BetaAtT1MinusDeg`, 방향 각도, `DeltaH`, `Cmin`, 기준면, `ImpactSequence`를 기준 실험 대비 차이와 함께 표시한다.
    - `t1-`가 없는 실험은 t1 기반 값 대신 frame metric과 max summary를 중심으로 비교한다.

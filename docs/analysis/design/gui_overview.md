@@ -184,3 +184,21 @@ Last Reviewed: 2026-06-10
 
 참고:
 - legacy 결과 `.csv`가 필요하면 파일 확장자를 `.proc`로 바꾼 뒤 연다.
+
+## 6. Compare Results (비교 윈도우)
+런처에서 독립적으로 실행되는 여러 실험 결과(`.proc`)의 비교 분석 전용 윈도우이다. 
+`gui_principles.md`의 직각 블록 구조와 탭 지양 원칙에 따라 레이아웃이 구성되어 있다.
+
+### 6.1. 좌측 사이드바 (Left Rail / Control Panel)
+독립된 컨트롤 박스로 구성되며 최소 너비가 고정되어 있다.
+- **Result Files:** 분석할 `.proc` 파일들을 로드하고 관리하며, 기준(Reference) 파일을 선택한다.
+- **Compare Settings:** 비교에 필요한 이벤트 감지 임계값, 표시할 지표(Drop angle, Corner height 등)를 설정한다.
+
+### 6.2. 우측 메인 영역 (Main View Area)
+탭(Tab) 없이 수직 스플리터(Vertical Splitter)를 통해 크게 3단으로 분할 배치된다.
+1. **Comparison Summary (비교 요약 표):** 
+   - 상단 박스에 위치하며, 파일별 주요 지표(Beta, Theta, DeltaH, Cmin 등)와 기준 대비 판단 결과를 한눈에 보여준다.
+2. **Synchronized 3D Playback (동기화 3D 뷰어):** 
+   - 중단 박스에 위치하며, 두 개의 3D 화면이 좌우로 나란히 배치되어 1차 충격 기준 시간 정렬 및 동기화된 재생을 지원한다.
+3. **Event-aligned Comparison Plot (시계열 비교 플롯):**
+   - 하단 박스에 위치하며, 사용자가 선택한 지표의 전체 시계열 데이터를 기준 시간에 맞춰 오버레이하여 보여준다.
