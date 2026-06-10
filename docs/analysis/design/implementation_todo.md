@@ -64,9 +64,9 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 - User-provided reference images are layout/composition references only. Do not copy them exactly.
 - Resolve conflicts in favor of current application structure, existing Step 2 UI patterns, descriptor-driven metric definitions, and maintainable code.
 - Current reference images:
-  - `C:/SourceCodes/BoxMotionAnalyzer/.codex-remote-attachments/019ea7d4-f1a5-76e0-bebe-1d5c4b5afed3/c242cca6-d9b2-429c-a78c-c56057d6329a/1-Photo-1.jpg`
+  - `../../images/compare_gui_conceptual_layout.jpg`
     - Conceptual reference for launcher-level `Compare Results`, MVP scope grouping, summary table, side-by-side 3D comparison, and event-aligned plot composition.
-  - `C:/SourceCodes/BoxMotionAnalyzer/.codex-remote-attachments/019ea7d4-f1a5-76e0-bebe-1d5c4b5afed3/c242cca6-d9b2-429c-a78c-c56057d6329a/2-Photo-2.jpg`
+  - `../../images/compare_gui_dense_desktop_layout.jpg`
     - Denser desktop layout reference for compare workspace structure: left file/settings rail, top comparison summary table, synchronized 3D playback, and event-aligned comparison plot.
 
 ## Image Generation Prompt Starters
@@ -146,9 +146,9 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 - User-provided reference images are layout/composition references only. Do not copy them exactly.
 - Resolve conflicts in favor of current application structure, existing Step 2 UI patterns, descriptor-driven metric definitions, and maintainable code.
 - Current reference images:
-  - `C:/SourceCodes/BoxMotionAnalyzer/.codex-remote-attachments/019ea7d4-f1a5-76e0-bebe-1d5c4b5afed3/c242cca6-d9b2-429c-a78c-c56057d6329a/1-Photo-1.jpg`
+  - `../../images/compare_gui_conceptual_layout.jpg`
     - Conceptual reference for launcher-level `Compare Results`, MVP scope grouping, summary table, side-by-side 3D comparison, and event-aligned plot composition.
-  - `C:/SourceCodes/BoxMotionAnalyzer/.codex-remote-attachments/019ea7d4-f1a5-76e0-bebe-1d5c4b5afed3/c242cca6-d9b2-429c-a78c-c56057d6329a/2-Photo-2.jpg`
+  - `../../images/compare_gui_dense_desktop_layout.jpg`
     - Denser desktop layout reference for compare workspace structure: left file/settings rail, top comparison summary table, synchronized 3D playback, and event-aligned comparison plot.
 
 ## Image Generation Prompt Starters
