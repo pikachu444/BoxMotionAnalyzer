@@ -5,7 +5,7 @@ Last Reviewed: 2026-06-10
 ## 1. 목적
 여러 낙하 실험 결과 `.proc`를 같은 기준으로 비교해, 반복 실험 간 자세 편차와 충격 경로 차이를 설명할 수 있게 한다.
 
-현재 구현 범위는 단일 실험 결과에 Drop Posture frame/summary metric과 충격 시퀀스 summary를 저장하고, Step 2 Results Analysis의 `Experiment Summary`에서 확인하는 것까지다. 비교 전용 윈도우는 후속 작업으로 남긴다.
+현재 구현 범위는 단일 실험 결과에 Drop Posture frame/summary metric과 충격 시퀀스 summary를 저장하고, Step 2 Results Analysis의 `Experiment Summary`에서 확인하는 것은 물론, 런처의 `Experiment Comparison` 전용 윈도우를 통해 여러 결과를 다중 비교하는 기능까지 포함한다.
 
 ## 2. 현재 완료 기준
 - processing 완료 및 Result Resampling merge 이후 `DropPosturePostProcessor`가 실행된다.
@@ -24,20 +24,20 @@ Last Reviewed: 2026-06-10
 - `SustainedContact` 상태는 UI에서 `Stable floor contact`로 표시한다.
 - `ReferenceFace`는 접근(Approach) 자세 기준면이다. 실제 충격 코너는 `FirstImpactContact`가 별도 기록한다.
 
-## 3. 후속 작업 계획
-1. 비교 전용 윈도우 (Compare Results)
-   - 런처에서 Results Analysis와 별도의 독립 창으로 연다.
+## 3. 구현 완료된 비교 기능 (Experiment Comparison)
+1. 비교 전용 윈도우
+   - 런처에서 독립 창으로 연다.
    - 여러 `.proc` 파일을 선택하고 기준 실험을 지정한다.
-   - (개선된 방향) 탭(Tab) 방식을 배제하고, 좌측 설정 사이드바와 우측 3단 뷰어(요약표, 3D 뷰어, 비교 플롯)를 한 화면에 동시 노출하는 견고한 직각 레이아웃을 사용한다.
+   - 탭(Tab) 방식을 배제하고, 좌측 설정 사이드바와 우측 3단 뷰어(요약표, 3D 뷰어, 비교 플롯)를 한 화면에 동시 노출하는 입체적 카드 레이아웃을 사용한다.
 2. 비교 지표 테이블
-   - `ContactState`, `ContactConfidence`, `BetaAtT1MinusDeg`, 방향 각도, `DeltaH`, `Cmin`, 기준면, `ImpactSequence`를 기준 실험 대비 차이와 함께 표시한다.
+   - 주요 지표를 기준 실험 대비 차이와 함께 표시한다.
    - `t1-`가 없는 실험은 t1 기반 값 대신 frame metric과 max summary를 중심으로 비교한다.
 3. 비교 그래프
    - 선택한 metric을 시간축에 겹쳐 표시한다.
-   - 원시 시간과 1차 충격 기준 정렬 시간을 전환할 수 있게 한다.
+   - 툴바를 세로로 우측에 배치하여 가로 공간 효율을 높였다.
 4. 3D 비교 재생
    - 선택 실험 단일 재생과 기준/비교 좌우 재생을 제공한다.
-   - 동시 재생은 `t1` 또는 `t1-` 기준으로 정렬한다.
+   - 동시 재생 시 기준 시간에 맞춰 정렬 및 재생된다.
 
 ## 4. 검증 방향
 - 단순 컬럼 존재 테스트가 아니라, 물리적으로 예상 가능한 synthetic 자세에서 각도와 코너 높이 차이가 수치적으로 맞는지 검증한다.

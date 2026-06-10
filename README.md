@@ -24,6 +24,10 @@ Last Reviewed: 2026-03-25
 *   **심층 분석:** 프레임 구간 필터와 상세 플롯 팝업을 제공하며, 팝업에서는 마우스 오버로 정확한 수치를 확인할 수 있습니다.
 *   **다중 창 비교:** 런처에서 3D Visualization 버튼을 다시 누르거나 시각화 창의 `File > New Visualization Window`를 사용해 독립적인 viewer 창을 여러 개 열 수 있습니다.
 
+### 4. 비교 분석 (Experiment Comparison) - *New!*
+*   **다중 실험 비교:** 여러 개의 `.proc` 실험 결과를 한 번에 불러와 기준(Baseline) 실험 대비 편차와 주요 낙하 지표(Drop Angle, Corner Height 등)를 한눈에 비교할 수 있습니다.
+*   **동기화된 분석 환경:** 두 개의 3D 화면을 동기화하여 서로 다른 실험의 1차 충격 시점을 일치시켜 재생할 수 있으며, 하단 그래프에서 여러 실험의 데이터를 시간축 정렬(Event-aligned)하여 중첩 비교할 수 있습니다.
+
 ---
 
 ## 📂 프로젝트 구조
@@ -61,6 +65,9 @@ Last Reviewed: 2026-03-25
     *   Step 1: Raw Data Processing (실제 실험 CSV 데이터 전처리)
     *   Step 2: Results Analysis
     *   Step 1/Step 2의 메인 플롯은 창 크기 변화에 따라 더 크게 확장되도록 조정되어 있으며, 세로 splitter로 높이를 수동 조절할 수 있습니다.
+*   **Experiment Comparison**
+    *   `src/analysis/compare/main_window.py`
+    *   여러 개의 분석 결과(`.proc`)를 하나의 윈도우에서 요약표, 동기화된 3D 뷰어, 비교 그래프를 통해 통합 분석합니다.
 *   **3D Visualization**
     *   `src/visualization/main_window.py`
     *   입력은 Data Analysis나 Simulation에서 생성된 multi-header `.proc` 결과 파일입니다.
@@ -99,6 +106,7 @@ python src/main.py
 
 *   **Simulation**: MuJoCo를 활용하여 박스 크기/질량/낙하 조건을 설정하고 가상의 낙하 실험 데이터를 `.proc`로 생성
 *   **Data Processing**: 실제 원본 모션 캡처 데이터(CSV)를 불러와 분석하고, 필요 시 최종 결과를 시간축에서 보간한 `.proc` 중심 workflow로 저장
+*   **Experiment Comparison**: 이미 처리된 여러 개의 `.proc` 파일들을 비교 분석하여 요약, 동기화된 재생 및 비교 플롯 확인
 *   **3D Visualization**: 시뮬레이션에서 생성되거나 데이터 분석에서 추출된 `.proc` 결과 파일을 열어 3D/2D로 탐색
     *   런처 버튼을 반복 클릭하면 새 시각화 창이 추가로 열립니다.
     *   시각화 창 안에서는 `File > New Visualization Window`로 새 창을 바로 만들 수 있습니다.

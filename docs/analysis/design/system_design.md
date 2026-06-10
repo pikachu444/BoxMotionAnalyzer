@@ -97,6 +97,10 @@ Last Reviewed: 2026-06-10
 - `WidgetRawDataProcessing`
 - `WidgetSliceProcessing`
 - `WidgetResultsAnalyzer`
+- `CompareMainWindow`
+  - 런처에서 독립적으로 열리는 다중 실험 비교 창. 요약표, 동기화된 3D 뷰어, 비교 그래프 레이아웃을 담당한다.
+- `ComparisonModel`
+  - 비교 윈도우에서 사용할 파일 목록, 파싱된 결과, 기준(baseline) 실험 설정 등을 관리한다.
 - `PlotPopupDialog`
 - `DataSelectionDialog`
 - `PlotManager`
