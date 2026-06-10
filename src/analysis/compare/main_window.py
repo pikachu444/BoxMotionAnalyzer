@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QTabWidget
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox
 from PySide6.QtCore import Qt
 
 from src.analysis.compare.data_model import ComparisonModel
@@ -24,27 +24,20 @@ class CompareMainWindow(QMainWindow):
         
         # Panels
         self.control_panel = CompareControlPanel()
+        self.control_panel.setMinimumWidth(250)  # GUI Principle: Rigid & Bounded Sizing
         self.table_panel = CompareTablePanel()
         self.graph_panel = CompareGraphPanel()
         self.playback_panel = ComparePlaybackPanel(self.model)
         
-        # Right side split (vertical) for Summary Tab
-        self.summary_widget = QWidget()
-        summary_layout = QVBoxLayout(self.summary_widget)
-        summary_layout.setContentsMargins(0, 0, 0, 0)
+        # Right side: 3-tier vertical split (GUI Principle: No Unnecessary Tabs)
         self.right_splitter = QSplitter(Qt.Vertical)
-        self.right_splitter.addWidget(self.table_panel)
-        self.right_splitter.addWidget(self.graph_panel)
-        self.right_splitter.setSizes([300, 500])
-        summary_layout.addWidget(self.right_splitter)
-        
-        # Tabs for right side
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.summary_widget, "Summary Metrics")
-        self.tabs.addTab(self.playback_panel, "3D Playback")
+        self.right_splitter.addWidget(self.table_panel)     # 1. Summary Table (Top)
+        self.right_splitter.addWidget(self.playback_panel)  # 2. 3D Playback (Middle)
+        self.right_splitter.addWidget(self.graph_panel)     # 3. Comparison Plot (Bottom)
+        self.right_splitter.setSizes([200, 400, 300])       # Allocate initial heights
         
         self.splitter.addWidget(self.control_panel)
-        self.splitter.addWidget(self.tabs)
+        self.splitter.addWidget(self.right_splitter)
         self.splitter.setSizes([300, 900])
         
         # Connect signals
