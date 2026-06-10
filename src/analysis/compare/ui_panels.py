@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QHeaderView, QListWidget, QComboBox, QSplitter,
     QGroupBox, QFrame
 )
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QSize
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -97,10 +97,25 @@ class CompareGraphPanel(QGroupBox):
         self.fig = Figure(figsize=(5, 3), dpi=100)
         self.canvas = FigureCanvas(self.fig)
         self.toolbar = NavigationToolbar(self.canvas, self)
-        layout.addWidget(self.toolbar)
+        
+        # Set to vertical and reduce size
+        self.toolbar.setOrientation(Qt.Vertical)
+        self.toolbar.setIconSize(QSize(16, 16))
+        
+        # Hide Configure subplots and Edit axis buttons
+        for action in self.toolbar.actions():
+            tt = action.toolTip() or ""
+            if "Configure subplots" in tt or "Edit axis" in tt:
+                action.setVisible(False)
+                
+        # Use QHBoxLayout to put canvas on left, toolbar on right
+        plot_layout = QHBoxLayout()
+        plot_layout.addWidget(self.canvas)
+        plot_layout.addWidget(self.toolbar)
+        
+        layout.addLayout(plot_layout)
         
         self.plot_manager = PlotManager(self.canvas, self.fig)
-        layout.addWidget(self.canvas)
 
     def set_plot_targets(self, targets: list[str]):
         current = self.cb_plot_target.currentText()
