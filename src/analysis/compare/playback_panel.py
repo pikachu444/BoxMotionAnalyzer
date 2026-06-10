@@ -167,7 +167,7 @@ class ComparePlaybackPanel(QGroupBox):
             elif relative_frame >= handler.n_frames:
                 relative_frame = handler.n_frames - 1
                 
-            vw.update_mesh(relative_frame)
+            vw.update_view(relative_frame)
             
             if name in self.local_controls:
                 self.local_controls[name]["slider"].blockSignals(True)
@@ -199,4 +199,4 @@ class ComparePlaybackPanel(QGroupBox):
             return
         vw = self.widgets.get(name)
         if vw:
-            vw.update_mesh(value)
+            vw.update_view(value)

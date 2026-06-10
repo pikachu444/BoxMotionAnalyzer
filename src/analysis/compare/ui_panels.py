@@ -79,15 +79,39 @@ class CompareTablePanel(QGroupBox):
 
 class CompareGraphPanel(QGroupBox):
     """Displays overlaid time-series metrics from multiple files using PlotManager."""
+    plot_target_changed = Signal(str)
+
     def __init__(self):
         super().__init__("Time-History Overlay")
         self.setObjectName("SolidPanel")
         layout = QVBoxLayout(self)
         
+        target_layout = QHBoxLayout()
+        target_layout.addWidget(QLabel("Plot Target:"))
+        self.cb_plot_target = QComboBox()
+        self.cb_plot_target.currentTextChanged.connect(self.plot_target_changed.emit)
+        target_layout.addWidget(self.cb_plot_target)
+        target_layout.addStretch()
+        layout.addLayout(target_layout)
+        
         self.fig = Figure(figsize=(5, 3), dpi=100)
         self.canvas = FigureCanvas(self.fig)
         self.plot_manager = PlotManager(self.canvas, self.fig)
         layout.addWidget(self.canvas)
+
+    def set_plot_targets(self, targets: list[str]):
+        current = self.cb_plot_target.currentText()
+        self.cb_plot_target.blockSignals(True)
+        self.cb_plot_target.clear()
+        self.cb_plot_target.addItems(targets)
+        if current in targets:
+            self.cb_plot_target.setCurrentText(current)
+        elif targets:
+            self.cb_plot_target.setCurrentIndex(0)
+            self.cb_plot_target.blockSignals(False)
+            self.plot_target_changed.emit(self.cb_plot_target.currentText())
+            return
+        self.cb_plot_target.blockSignals(False)
 
     def update_plot(self, series_dict: dict, metric_name: str):
         self.plot_manager.clear_plot()
@@ -106,11 +130,10 @@ class CompareGraphPanel(QGroupBox):
         self.canvas.draw()
 
 class CompareControlPanel(QFrame):
-    """Controls for file selection, baseline designation, and plotting target."""
+    """Controls for file selection, baseline designation."""
     add_files_requested = Signal()
     remove_file_requested = Signal(str)
     baseline_changed = Signal(str)
-    plot_target_changed = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -138,12 +161,6 @@ class CompareControlPanel(QFrame):
         self.cb_baseline.currentTextChanged.connect(self.baseline_changed.emit)
         layout.addWidget(self.cb_baseline)
         
-        # Plot target selector
-        layout.addWidget(QLabel("Plot Target:"))
-        self.cb_plot_target = QComboBox()
-        self.cb_plot_target.currentTextChanged.connect(self.plot_target_changed.emit)
-        layout.addWidget(self.cb_plot_target)
-        
         layout.addStretch()
 
     def _on_remove_clicked(self):
@@ -163,17 +180,3 @@ class CompareControlPanel(QFrame):
         if baseline in file_names:
             self.cb_baseline.setCurrentText(baseline)
         self.cb_baseline.blockSignals(False)
-
-    def set_plot_targets(self, targets: list[str]):
-        current = self.cb_plot_target.currentText()
-        self.cb_plot_target.blockSignals(True)
-        self.cb_plot_target.clear()
-        self.cb_plot_target.addItems(targets)
-        if current in targets:
-            self.cb_plot_target.setCurrentText(current)
-        elif targets:
-            self.cb_plot_target.setCurrentIndex(0)
-            self.cb_plot_target.blockSignals(False)
-            self.plot_target_changed.emit(self.cb_plot_target.currentText())
-            return
-        self.cb_plot_target.blockSignals(False)

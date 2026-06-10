@@ -44,13 +44,12 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.add_files_requested.connect(self._on_add_files)
         self.control_panel.remove_file_requested.connect(self._on_remove_file)
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
-        self.control_panel.plot_target_changed.connect(self._on_plot_target_changed)
+        self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
         
         # Apply global dark theme QSS
         self.setStyleSheet("""
             #SolidPanel {
                 border: 2px solid #000000;
-                background-color: #1e1e1e;
                 margin: 2px;
                 border-radius: 4px;
             }
@@ -58,20 +57,6 @@ class CompareMainWindow(QMainWindow):
                 font-family: 'Inter', 'Segoe UI', sans-serif;
                 font-size: 13px;
                 color: #d0d0d0;
-            }
-            QGroupBox {
-                font-family: 'Inter', 'Segoe UI', sans-serif;
-                font-weight: bold;
-                font-size: 14px;
-                color: #ffffff;
-                border: 2px solid #000000;
-                background-color: #1e1e1e;
-                margin-top: 2ex;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 3px 0 3px;
             }
             QSplitter::handle {
                 background-color: #333333;
@@ -135,7 +120,7 @@ class CompareMainWindow(QMainWindow):
                 metrics = first_df["Analysis"]["DropPosture"].columns
                 targets = [f"Analysis | DropPosture | {m}" for m in metrics]
                 
-        self.control_panel.set_plot_targets(targets)
+        self.graph_panel.set_plot_targets(targets)
         
         # Update Playback Panel Viewers
         self.playback_panel.refresh_viewers()
