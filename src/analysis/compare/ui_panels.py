@@ -16,7 +16,6 @@ class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
     def __init__(self):
         super().__init__("Comparison Summary")
-        self.setObjectName("SolidPanel")
         layout = QVBoxLayout(self)
         
         self.table = QTableWidget()
@@ -83,7 +82,6 @@ class CompareGraphPanel(QGroupBox):
 
     def __init__(self):
         super().__init__("Time-History Overlay")
-        self.setObjectName("SolidPanel")
         layout = QVBoxLayout(self)
         
         target_layout = QHBoxLayout()
@@ -137,8 +135,6 @@ class CompareControlPanel(QFrame):
 
     def __init__(self):
         super().__init__()
-        self.setFrameShape(QFrame.Box)
-        self.setObjectName("SolidPanel")
         layout = QVBoxLayout(self)
         
         # Files List

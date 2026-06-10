@@ -48,20 +48,10 @@ class CompareMainWindow(QMainWindow):
         
         # Apply global dark theme QSS
         self.setStyleSheet("""
-            #SolidPanel {
-                border: 2px solid #000000;
-                margin: 2px;
-                border-radius: 4px;
-            }
             QLabel {
                 font-family: 'Inter', 'Segoe UI', sans-serif;
                 font-size: 13px;
                 color: #d0d0d0;
-            }
-            QSplitter::handle {
-                background-color: #333333;
-                width: 4px;
-                height: 4px;
             }
         """)
         
