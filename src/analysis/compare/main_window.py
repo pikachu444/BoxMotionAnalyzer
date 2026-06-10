@@ -45,13 +45,14 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.remove_file_requested.connect(self._on_remove_file)
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
         self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
-        
-        # Apply global dark theme QSS
+        # Set white background for the main window and a subtle grey for the splitter
+        # to match the Data Processing native light theme styling.
         self.setStyleSheet("""
-            QLabel {
-                font-family: 'Inter', 'Segoe UI', sans-serif;
-                font-size: 13px;
-                color: #d0d0d0;
+            CompareMainWindow {
+                background-color: #ffffff;
+            }
+            QSplitter::handle {
+                background-color: #e5e7eb;
             }
         """)
         

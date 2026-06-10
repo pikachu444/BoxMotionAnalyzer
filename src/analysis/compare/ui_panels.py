@@ -15,7 +15,7 @@ from src.analysis.ui.plot_manager import PlotManager
 class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
     def __init__(self):
-        super().__init__("Comparison Summary")
+        super().__init__("Experiment Summary")
         layout = QVBoxLayout(self)
         
         self.table = QTableWidget()
@@ -76,12 +76,14 @@ class CompareTablePanel(QGroupBox):
                 
         self.table.resizeColumnsToContents()
 
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+
 class CompareGraphPanel(QGroupBox):
     """Displays overlaid time-series metrics from multiple files using PlotManager."""
     plot_target_changed = Signal(str)
 
     def __init__(self):
-        super().__init__("Time-History Overlay")
+        super().__init__("Time-History")
         layout = QVBoxLayout(self)
         
         target_layout = QHBoxLayout()
@@ -94,6 +96,9 @@ class CompareGraphPanel(QGroupBox):
         
         self.fig = Figure(figsize=(5, 3), dpi=100)
         self.canvas = FigureCanvas(self.fig)
+        self.toolbar = NavigationToolbar(self.canvas, self)
+        layout.addWidget(self.toolbar)
+        
         self.plot_manager = PlotManager(self.canvas, self.fig)
         layout.addWidget(self.canvas)
 
@@ -127,14 +132,14 @@ class CompareGraphPanel(QGroupBox):
         self.plot_manager.enable_interactions(df)
         self.canvas.draw()
 
-class CompareControlPanel(QFrame):
+class CompareControlPanel(QGroupBox):
     """Controls for file selection, baseline designation."""
     add_files_requested = Signal()
     remove_file_requested = Signal(str)
     baseline_changed = Signal(str)
 
     def __init__(self):
-        super().__init__()
+        super().__init__("Result Files")
         layout = QVBoxLayout(self)
         
         # Files List

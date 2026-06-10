@@ -7,7 +7,7 @@ from src.analysis.compare.data_model import ComparisonModel
 
 class ComparePlaybackPanel(QGroupBox):
     def __init__(self, model: ComparisonModel):
-        super().__init__("3D Playback & Sync")
+        super().__init__("3D animation")
         self.model = model
         self.widgets: dict[str, VistaWidget] = {}
         self.local_controls: dict[str, dict] = {}
