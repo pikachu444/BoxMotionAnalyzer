@@ -1,135 +1,202 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QComboBox, QLabel
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QGroupBox, QCheckBox, QFrame
+)
 from PySide6.QtCore import Qt, QTimer
 from src.visualization.vista_widget import VistaWidget
 from src.analysis.compare.data_model import ComparisonModel
 
-class ComparePlaybackPanel(QWidget):
+class ComparePlaybackPanel(QGroupBox):
     def __init__(self, model: ComparisonModel):
-        super().__init__()
+        super().__init__("3D Playback & Sync")
+        self.setObjectName("SolidPanel")
         self.model = model
         self.widgets: dict[str, VistaWidget] = {}
+        self.local_controls: dict[str, dict] = {}
         
-        self.is_playing = False
-        self.current_frame = 0
-        self.max_frames = 0
-        self.alignment_mode = "Raw Time" # "Raw Time" or "Event-Aligned (t1-)"
-        
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self._on_timer_tick)
-        self.timer.setInterval(33) # ~30 fps
-        
-        self._setup_ui()
-
-    def _setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Controls
-        control_layout = QHBoxLayout()
-        self.btn_play = QPushButton("Play")
-        self.btn_play.clicked.connect(self.toggle_playback)
-        control_layout.addWidget(self.btn_play)
+        # Master Playback Controls
+        master_control_layout = QHBoxLayout()
+        self.chk_sync = QCheckBox("Sync All Viewers")
+        self.chk_sync.setChecked(True)
+        self.chk_sync.stateChanged.connect(self._on_sync_toggled)
+        master_control_layout.addWidget(self.chk_sync)
         
-        self.slider = QSlider(Qt.Horizontal)
-        self.slider.setMinimum(0)
-        self.slider.setMaximum(100)
-        self.slider.valueChanged.connect(self._on_slider_changed)
-        control_layout.addWidget(self.slider)
+        self.btn_master_play = QPushButton("Master Play")
+        self.btn_master_play.clicked.connect(self.toggle_master_playback)
+        master_control_layout.addWidget(self.btn_master_play)
         
-        control_layout.addWidget(QLabel("Alignment:"))
-        self.cb_alignment = QComboBox()
-        self.cb_alignment.addItems(["Raw Time", "Event-Aligned (t1-)"])
-        self.cb_alignment.currentTextChanged.connect(self._on_alignment_changed)
-        control_layout.addWidget(self.cb_alignment)
+        self.master_slider = QSlider(Qt.Horizontal)
+        self.master_slider.valueChanged.connect(self._on_master_slider_changed)
+        master_control_layout.addWidget(self.master_slider)
         
-        main_layout.addLayout(control_layout)
+        main_layout.addLayout(master_control_layout)
         
         # 3D Viewers layout
         self.viewers_widget = QWidget()
         self.viewers_layout = QHBoxLayout(self.viewers_widget)
         main_layout.addWidget(self.viewers_widget, stretch=1)
         
+        # Master Playback state
+        self.is_master_playing = False
+        self.master_current_frame = 0
+        self.max_frames = 0
+        self.master_timer = QTimer(self)
+        self.master_timer.setInterval(50)
+        self.master_timer.timeout.connect(self._on_master_timer)
+
     def refresh_viewers(self):
-        """Re-create the 3D viewers based on the current datasets in the model."""
         # Clean up old viewers
         for w in self.widgets.values():
-            self.viewers_layout.removeWidget(w)
-            w.deleteLater()
+            self.viewers_layout.removeWidget(w.parentWidget())
+            w.parentWidget().deleteLater()
         self.widgets.clear()
+        
+        # Clean up local timers
+        for controls in self.local_controls.values():
+            controls["timer"].stop()
+            controls["timer"].deleteLater()
+        self.local_controls.clear()
         
         self.max_frames = 0
         for name, handler in self.model.visualization_handlers.items():
             if handler.n_frames > self.max_frames:
                 self.max_frames = handler.n_frames
                 
-            container = QWidget()
+            container = QFrame()
             v_layout = QVBoxLayout(container)
-            
-            lbl = QLabel(name)
-            lbl.setAlignment(Qt.AlignCenter)
-            if name == self.model.baseline_name:
-                lbl.setStyleSheet("font-weight: bold; color: blue;")
-                
-            v_layout.addWidget(lbl)
+            v_layout.setContentsMargins(2, 2, 2, 2)
             
             vw = VistaWidget(data_handler=handler)
             v_layout.addWidget(vw, stretch=1)
             
+            # Local controls
+            local_ctrl_layout = QHBoxLayout()
+            btn_play = QPushButton("Play")
+            slider = QSlider(Qt.Horizontal)
+            slider.setMaximum(max(0, handler.n_frames - 1))
+            
+            local_ctrl_layout.addWidget(btn_play)
+            local_ctrl_layout.addWidget(slider)
+            
+            timer = QTimer(self)
+            timer.setInterval(50)
+            
+            self.local_controls[name] = {
+                "btn": btn_play,
+                "slider": slider,
+                "timer": timer,
+                "is_playing": False,
+                "frame": 0,
+                "n_frames": handler.n_frames
+            }
+            
+            # Use default args lambda to capture name correctly
+            btn_play.clicked.connect(lambda checked=False, n=name: self._toggle_local_playback(n))
+            slider.valueChanged.connect(lambda val, n=name: self._on_local_slider_changed(n, val))
+            timer.timeout.connect(lambda n=name: self._on_local_timer(n))
+            
+            lbl_name = QLabel(name)
+            lbl_name.setStyleSheet("font-size: 11px; color: #a0a0a0;")
+            
+            v_layout.addLayout(local_ctrl_layout)
+            v_layout.addWidget(lbl_name, alignment=Qt.AlignCenter)
+            
             self.viewers_layout.addWidget(container)
             self.widgets[name] = vw
             
-        # Update slider limits
         if self.max_frames > 0:
-            self.slider.setMaximum(self.max_frames - 1)
+            self.master_slider.setMaximum(self.max_frames - 1)
         else:
-            self.slider.setMaximum(0)
+            self.master_slider.setMaximum(0)
             
-        self.slider.setValue(0)
-        self._update_all_views(0)
+        self.master_slider.setValue(0)
+        self._on_master_slider_changed(0)
+        self._on_sync_toggled()
+
+    def _on_sync_toggled(self):
+        is_sync = self.chk_sync.isChecked()
+        self.btn_master_play.setEnabled(is_sync)
+        self.master_slider.setEnabled(is_sync)
         
-    def toggle_playback(self):
-        self.is_playing = not self.is_playing
-        if self.is_playing:
-            self.btn_play.setText("Pause")
-            if self.current_frame >= self.slider.maximum():
-                self.current_frame = 0
-            self.timer.start()
+        if is_sync:
+            for n, ctrl in self.local_controls.items():
+                if ctrl["is_playing"]:
+                    self._toggle_local_playback(n)
+                ctrl["btn"].setEnabled(False)
+                ctrl["slider"].setEnabled(False)
+            self._on_master_slider_changed(self.master_slider.value())
         else:
-            self.btn_play.setText("Play")
-            self.timer.stop()
-            
-    def _on_timer_tick(self):
-        self.current_frame += 1
-        if self.current_frame > self.slider.maximum():
-            self.current_frame = 0
-            self.toggle_playback() # stop at end
+            if self.is_master_playing:
+                self.toggle_master_playback()
+            for ctrl in self.local_controls.values():
+                ctrl["btn"].setEnabled(True)
+                ctrl["slider"].setEnabled(True)
+
+    def toggle_master_playback(self):
+        self.is_master_playing = not self.is_master_playing
+        if self.is_master_playing:
+            self.btn_master_play.setText("Master Pause")
+            if self.master_slider.value() >= self.master_slider.maximum():
+                self.master_slider.setValue(0)
+            self.master_timer.start()
         else:
-            # Block signals to prevent recursive update from slider
-            self.slider.blockSignals(True)
-            self.slider.setValue(self.current_frame)
-            self.slider.blockSignals(False)
-            self._update_all_views(self.current_frame)
-            
-    def _on_slider_changed(self, val):
-        self.current_frame = val
-        self._update_all_views(val)
-        
-    def _on_alignment_changed(self, mode):
-        self.alignment_mode = mode
-        self._update_all_views(self.current_frame)
-        
-    def _update_all_views(self, base_frame: int):
-        baseline = self.model.baseline_name
-        baseline_t1 = self.model.alignment_frames.get(baseline, 0) if baseline else 0
-        
+            self.btn_master_play.setText("Master Play")
+            self.master_timer.stop()
+
+    def _on_master_timer(self):
+        val = self.master_slider.value() + 1
+        if val > self.master_slider.maximum():
+            self.toggle_master_playback()
+        else:
+            self.master_slider.setValue(val)
+
+    def _on_master_slider_changed(self, value):
+        if not self.chk_sync.isChecked():
+            return
+        self.master_current_frame = value
         for name, vw in self.widgets.items():
-            if self.alignment_mode == "Raw Time":
-                target_frame = base_frame
-            else:
-                target_t1 = self.model.alignment_frames.get(name, 0)
-                offset = target_t1 - baseline_t1
-                target_frame = base_frame + offset
+            handler = self.model.visualization_handlers[name]
+            alignment_offset = self.model.alignment_frames.get(name, 0)
+            baseline_offset = self.model.alignment_frames.get(self.model.baseline_name, 0) if self.model.baseline_name else 0
+            
+            relative_frame = value - baseline_offset + alignment_offset
+            
+            if relative_frame < 0:
+                relative_frame = 0
+            elif relative_frame >= handler.n_frames:
+                relative_frame = handler.n_frames - 1
                 
-            # Clamp to valid range
-            target_frame = max(0, min(target_frame, vw.data_handler.n_frames - 1))
-            vw.update_view(target_frame)
+            vw.update_mesh(relative_frame)
+            
+            if name in self.local_controls:
+                self.local_controls[name]["slider"].blockSignals(True)
+                self.local_controls[name]["slider"].setValue(relative_frame)
+                self.local_controls[name]["slider"].blockSignals(False)
+
+    def _toggle_local_playback(self, name):
+        ctrl = self.local_controls[name]
+        ctrl["is_playing"] = not ctrl["is_playing"]
+        if ctrl["is_playing"]:
+            ctrl["btn"].setText("Pause")
+            if ctrl["slider"].value() >= ctrl["slider"].maximum():
+                ctrl["slider"].setValue(0)
+            ctrl["timer"].start()
+        else:
+            ctrl["btn"].setText("Play")
+            ctrl["timer"].stop()
+
+    def _on_local_timer(self, name):
+        ctrl = self.local_controls[name]
+        val = ctrl["slider"].value() + 1
+        if val > ctrl["slider"].maximum():
+            self._toggle_local_playback(name)
+        else:
+            ctrl["slider"].setValue(val)
+
+    def _on_local_slider_changed(self, name, value):
+        if self.chk_sync.isChecked():
+            return
+        vw = self.widgets.get(name)
+        if vw:
+            vw.update_mesh(value)

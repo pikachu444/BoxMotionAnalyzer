@@ -1,26 +1,27 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QTableWidget, QTableWidgetItem, QHeaderView, QListWidget, QComboBox, QSplitter
+    QTableWidget, QTableWidgetItem, QHeaderView, QListWidget, QComboBox, QSplitter,
+    QGroupBox, QFrame
 )
 from PySide6.QtCore import Qt, Signal
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from src.config.result_metric_descriptors import METRIC_DESCRIPTORS
+import pandas as pd
 
-class CompareTablePanel(QWidget):
+from src.config.result_metric_descriptors import METRIC_DESCRIPTORS
+from src.analysis.ui.plot_manager import PlotManager
+
+class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
     def __init__(self):
-        super().__init__()
+        super().__init__("Comparison Summary")
+        self.setObjectName("SolidPanel")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        
-        lbl = QLabel("Drop/Impact Summary Differences (vs Baseline)")
-        lbl.setStyleSheet("font-weight: bold; font-size: 14px;")
-        layout.addWidget(lbl)
         
         self.table = QTableWidget()
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.verticalHeader().setVisible(False)
         layout.addWidget(self.table)
 
     def update_table(self, diff_data: dict[str, dict], baseline_name: str):
@@ -30,7 +31,6 @@ class CompareTablePanel(QWidget):
             self.table.setColumnCount(0)
             return
 
-        # Prepare rows (metrics) and columns (datasets)
         datasets = list(diff_data.keys())
         if not datasets:
             return
@@ -38,10 +38,9 @@ class CompareTablePanel(QWidget):
         metrics = list(diff_data[datasets[0]]["summary"].keys())
         
         self.table.setRowCount(len(metrics))
-        self.table.setColumnCount(len(datasets))
-        self.table.setHorizontalHeaderLabels(datasets)
+        self.table.setColumnCount(len(datasets) + 1)
+        self.table.setHorizontalHeaderLabels(["Property"] + datasets)
         
-        # Set vertical header items with tooltips
         for r, metric in enumerate(metrics):
             desc = METRIC_DESCRIPTORS.get(metric, {})
             label = desc.get("display_name", metric)
@@ -49,13 +48,12 @@ class CompareTablePanel(QWidget):
             if unit:
                 label += f" ({unit})"
                 
-            header_item = QTableWidgetItem(label)
-            
+            prop_item = QTableWidgetItem(label)
             tooltip = desc.get("tooltip", "")
             if tooltip:
-                header_item.setToolTip(tooltip)
+                prop_item.setToolTip(tooltip)
                 
-            self.table.setVerticalHeaderItem(r, header_item)
+            self.table.setItem(r, 0, prop_item)
 
         for c, ds_name in enumerate(datasets):
             ds_info = diff_data[ds_name]
@@ -75,55 +73,49 @@ class CompareTablePanel(QWidget):
                         
                 item = QTableWidgetItem(display_text)
                 item.setTextAlignment(Qt.AlignCenter)
-                self.table.setItem(r, c, item)
+                self.table.setItem(r, c + 1, item)
                 
         self.table.resizeColumnsToContents()
 
-class CompareGraphPanel(QWidget):
-    """Displays overlaid time-series metrics from multiple files."""
+class CompareGraphPanel(QGroupBox):
+    """Displays overlaid time-series metrics from multiple files using PlotManager."""
     def __init__(self):
-        super().__init__()
+        super().__init__("Time-History Overlay")
+        self.setObjectName("SolidPanel")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        
-        lbl = QLabel("Time-History Overlay")
-        lbl.setStyleSheet("font-weight: bold; font-size: 14px;")
-        layout.addWidget(lbl)
         
         self.fig = Figure(figsize=(5, 3), dpi=100)
         self.canvas = FigureCanvas(self.fig)
-        self.ax = self.fig.add_subplot(111)
+        self.plot_manager = PlotManager(self.canvas, self.fig)
         layout.addWidget(self.canvas)
 
     def update_plot(self, series_dict: dict, metric_name: str):
-        self.ax.clear()
+        self.plot_manager.clear_plot()
         
         if not series_dict:
-            self.ax.set_title("No Data to Plot", color="red")
+            self.plot_manager.ax.set_title("No Data to Plot", color="red")
             self.canvas.draw()
             return
             
-        colors = plt.get_cmap('tab10').colors
+        df = pd.DataFrame(series_dict)
+        columns_to_plot = list(series_dict.keys())
         
-        for i, (name, series) in enumerate(series_dict.items()):
-            color = colors[i % len(colors)]
-            self.ax.plot(series.index.values, series.values, label=name, color=color)
-            
-        self.ax.set_xlabel("Time (s)")
-        self.ax.set_ylabel(metric_name)
-        self.ax.grid(True)
-        self.ax.legend()
-        self.fig.tight_layout()
+        self.plot_manager.draw_plot(df, columns_to_plot)
+        self.plot_manager.ax.set_ylabel(metric_name)
+        self.plot_manager.enable_interactions(df)
         self.canvas.draw()
 
-class CompareControlPanel(QWidget):
+class CompareControlPanel(QFrame):
     """Controls for file selection, baseline designation, and plotting target."""
     add_files_requested = Signal()
+    remove_file_requested = Signal(str)
     baseline_changed = Signal(str)
     plot_target_changed = Signal(str)
 
     def __init__(self):
         super().__init__()
+        self.setFrameShape(QFrame.Box)
+        self.setObjectName("SolidPanel")
         layout = QVBoxLayout(self)
         
         # Files List
@@ -131,9 +123,14 @@ class CompareControlPanel(QWidget):
         layout.addWidget(QLabel("Loaded Files:"))
         layout.addWidget(self.file_list)
         
+        btn_layout = QHBoxLayout()
         self.btn_add_files = QPushButton("Load .proc files...")
         self.btn_add_files.clicked.connect(self.add_files_requested.emit)
-        layout.addWidget(self.btn_add_files)
+        self.btn_remove_file = QPushButton("Remove Selected")
+        self.btn_remove_file.clicked.connect(self._on_remove_clicked)
+        btn_layout.addWidget(self.btn_add_files)
+        btn_layout.addWidget(self.btn_remove_file)
+        layout.addLayout(btn_layout)
         
         # Baseline selector
         layout.addWidget(QLabel("Baseline Experiment:"))
@@ -148,6 +145,11 @@ class CompareControlPanel(QWidget):
         layout.addWidget(self.cb_plot_target)
         
         layout.addStretch()
+
+    def _on_remove_clicked(self):
+        selected = self.file_list.currentItem()
+        if selected:
+            self.remove_file_requested.emit(selected.text())
 
     def update_files(self, file_names: list[str], baseline: str):
         # Update List
@@ -171,7 +173,6 @@ class CompareControlPanel(QWidget):
             self.cb_plot_target.setCurrentText(current)
         elif targets:
             self.cb_plot_target.setCurrentIndex(0)
-            # Re-emit manually to render first target
             self.cb_plot_target.blockSignals(False)
             self.plot_target_changed.emit(self.cb_plot_target.currentText())
             return

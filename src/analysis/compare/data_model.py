@@ -51,6 +51,20 @@ class ComparisonModel:
         if name in self.datasets:
             self.baseline_name = name
 
+    def remove_file(self, name: str):
+        if name in self.datasets:
+            del self.datasets[name]
+        if name in self.visualization_handlers:
+            del self.visualization_handlers[name]
+        if name in self.alignment_frames:
+            del self.alignment_frames[name]
+            
+        if self.baseline_name == name:
+            if self.datasets:
+                self.baseline_name = list(self.datasets.keys())[0]
+            else:
+                self.baseline_name = None
+
     def get_summary_differences(self) -> dict[str, dict[str, any]]:
         """
         Computes differences between each dataset and the baseline for DropPostureSummary metrics.
