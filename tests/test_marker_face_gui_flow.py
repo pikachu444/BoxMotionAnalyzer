@@ -3,6 +3,8 @@ import time
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import pytest
+from scipy.spatial.transform import Rotation
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QFileDialog, QDialogButtonBox, QLineEdit
@@ -14,7 +16,8 @@ from src.analysis.pipeline.artifact_io import read_corrected_source_metadata, re
 from src.config import config_app
 
 
-def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch):
+@pytest.mark.parametrize('source_kind', ['handcrafted', 'mujoco'])
+def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, source_kind):
     # Production UI changes runtime geometry; isolate it from following tests.
     monkeypatch.setattr(config_app, 'BOX_DIMS', np.array(config_app.BOX_DIMS, copy=True))
     monkeypatch.setattr(config_app, 'LOCAL_BOX_CORNERS', np.array(config_app.LOCAL_BOX_CORNERS, copy=True))
@@ -30,6 +33,15 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch):
     sliced = tmp_path / 'scene.slice'
     processed = tmp_path / 'scene.proc'
     write_raw(source, h, raw)
+    boundary_time = .3
+    mujoco_truth = None
+    if source_kind == 'mujoco':
+        from src.simulation.marker_fixtures import write_case
+        generated = write_case(tmp_path / 'independent', 'x')
+        source = generated / 'observed.csv'
+        h, raw = DataLoader().load_csv(str(source))
+        mujoco_truth = pd.read_csv(generated / 'truth_pose.csv')
+        boundary_time = float(mujoco_truth.time_s.iloc[30])
     original_bytes = source.read_bytes()
     errors = []
 
@@ -74,14 +86,14 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch):
         try:
             assert all(not c.isChecked() for c in dialog._approval_checkboxes)
             assert all(c.recommendation_axis is None for c in dialog.candidates)
-            rows = [i for i, c in enumerate(dialog.candidates) if abs(c.boundary_time_sec - .3) < 1e-9]
+            rows = [i for i, c in enumerate(dialog.candidates) if abs(c.boundary_time_sec - boundary_time) < 1e-9]
             assert len(rows) == 1, [c.boundary_time_sec for c in dialog.candidates]
             row = rows[0]
             dialog._axis_combos[row].setCurrentIndex(dialog._axis_combos[row].findData('X'))
             QTest.mouseClick(dialog._approval_checkboxes[row], Qt.MouseButton.LeftButton)
             app.processEvents()
             # Local screenshots are opt-in and ignored by Git.
-            evidence = Path('tmp/issue74_gui')
+            evidence = Path('tmp/issue74_gui') / source_kind
             evidence.mkdir(parents=True, exist_ok=True)
             dialog.grab().save(str(evidence / 'review.png'))
             reviewed.append(True)
@@ -111,7 +123,7 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch):
     QTest.mouseClick(raw_widget.load_csv_button, Qt.MouseButton.LeftButton)
     assert raw_widget._read_box_dimensions() == tuple(DIMS)
     assert raw_widget.review_context_json == meta.context_json
-    assert raw_widget.parsed_data.loc[.4, 'F1_FaceInfo'] == 'BACK'
+    assert raw_widget.parsed_data['F1_FaceInfo'].iloc[50] == 'BACK'
     choose(sliced)
     QTest.mouseClick(raw_widget.save_slice_button, Qt.MouseButton.LeftButton)
     assert sliced.exists(), raw_widget.log_output.toPlainText()
@@ -120,7 +132,7 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch):
     processing = window.processing_widget
     choose(sliced)
     QTest.mouseClick(processing.load_slice_button, Qt.MouseButton.LeftButton)
-    assert processing.parsed_data.loc[.4, 'F1_FaceInfo'] == 'BACK'
+    assert processing.parsed_data['F1_FaceInfo'].iloc[50] == 'BACK'
     QTest.mouseClick(processing.run_button, Qt.MouseButton.LeftButton)
     wait_until(lambda: processing.save_proc_button.isEnabled())
     choose(processed)
@@ -128,6 +140,17 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch):
     assert processed.exists()
     output = pd.read_csv(processed, header=[0, 1, 2], index_col=0)
     assert ('Info', 'MarkerCorrection', 'ContextJson') in output.columns
+    if mujoco_truth is not None:
+        np.testing.assert_allclose(output.index.to_numpy(dtype=float), mujoco_truth.time_s, atol=1e-10)
+        positions = output[[('Position', 'CoM', 'P_T' + a) for a in 'XYZ']].to_numpy()
+        rotvecs = output[[('Position', 'CoM', 'P_R' + a) for a in 'XYZ']].to_numpy()
+        expected_positions = mujoco_truth[[f'body_{a}_mm' for a in 'xyz']].to_numpy()
+        expected_rotations = mujoco_truth[[f'r{i}{j}' for i in range(3) for j in range(3)]].to_numpy().reshape(-1, 3, 3)
+        position_error = np.linalg.norm(positions - expected_positions, axis=1).max()
+        rotation_error = np.degrees((Rotation.from_matrix(expected_rotations).inv() * Rotation.from_rotvec(rotvecs)).magnitude()).max()
+        assert position_error < .1
+        assert rotation_error < .1
+        print(f'MuJoCo GUI proc max error: {position_error} mm, {rotation_error} deg')
     window.grab().save('tmp/issue74_gui/processed.png')
     if raw_widget.review_worker:
         raw_widget.review_worker.wait()

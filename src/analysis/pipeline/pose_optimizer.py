@@ -200,7 +200,11 @@ class PoseOptimizer:
                     'face_key': face_key
                 })
 
-            if not markers:
+            # Even exact point correspondences cannot identify a rigid pose
+            # from fewer than three points. Surface fitting is no stronger;
+            # numerical convergence must not turn this into usable evidence.
+            # Three or more points are necessary, not sufficient for uniqueness.
+            if len(markers) < 3:
                 results.append({TimeCols.TIME: frame_index, SourceCols.POSE: "InsufficientData",
                     **{col: np.nan for col in (PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z,
                                               PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z)}})

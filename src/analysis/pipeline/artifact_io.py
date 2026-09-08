@@ -144,7 +144,9 @@ def _safe_int(value, default=0) -> int:
 
 def _format_value(value) -> str:
     if isinstance(value, float):
-        return f"{value:.6f}"
+        # Bounds are used for inclusive slicing after reload. Decimal rounding
+        # can move an endpoint inside the data and silently discard its row.
+        return repr(float(value))
     if value is None:
         return ""
     return str(value)

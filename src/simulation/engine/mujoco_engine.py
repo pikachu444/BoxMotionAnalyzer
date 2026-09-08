@@ -132,13 +132,16 @@ class MuJoCoEngine:
         if self.model is None or self.data is None:
             self.build()
 
+        if not np.isfinite(target_fps) or target_fps <= 0:
+            raise ValueError('target_fps must be positive and finite.')
         dt = 1.0 / target_fps
         sim_dt = self.model.opt.timestep
         steps_per_frame = max(1, int(dt / sim_dt))
+        dt = steps_per_frame * sim_dt
 
         history = []
 
-        current_time = 0.0
+        current_time = float(self.data.time)
         consecutive_rest_frames = 0
         simulation_active = True
 
@@ -160,7 +163,7 @@ class MuJoCoEngine:
                         for _ in range(steps_per_frame):
                             mujoco.mj_step(self.model, self.data)
 
-                        current_time += dt
+                        current_time = float(self.data.time)
 
                         if self._check_stop_condition(velocity_threshold, current_time):
                             consecutive_rest_frames += 1
@@ -185,7 +188,7 @@ class MuJoCoEngine:
                 for _ in range(steps_per_frame):
                     mujoco.mj_step(self.model, self.data)
 
-                current_time += dt
+                current_time = float(self.data.time)
 
                 if self._check_stop_condition(velocity_threshold, current_time):
                     consecutive_rest_frames += 1
@@ -197,13 +200,37 @@ class MuJoCoEngine:
 
         return history
 
-    def _record_frame(self, history, current_time):
-        frame_data = {'time': current_time}
+    def record_samples(self, samples=100, substeps=4):
+        """Record an exact sample count including the current state, without a viewer."""
+        if not isinstance(samples, int) or samples < 1 or not isinstance(substeps, int) or substeps < 1:
+            raise ValueError('samples and substeps must be positive integers.')
+        if self.model is None or self.data is None:
+            self.build()
+        history = []
+        for index in range(samples):
+            if index:
+                mujoco.mj_step(self.model, self.data, nstep=substeps)
+            self._record_frame(history)
+        return history
 
-        # Record Center of Mass (Body Position)
+    def _record_frame(self, history, current_time=None):
+        # mj_step integrates state after calculating derived transforms. Refresh
+        # kinematics so every recorded quantity refers to the same actual time.
+        mujoco.mj_forward(self.model, self.data)
+        frame_data = {'time': float(self.data.time)}
+
+        # Center remains the legacy body-origin alias. COM is explicitly separate.
         body_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "box")
         body_pos = self.data.xpos[body_id] * 1000.0
         frame_data['Center'] = body_pos.copy()
+        frame_data['BodyOrigin'] = body_pos.copy()
+        frame_data['COM'] = (self.data.xipos[body_id] * 1000.0).copy()
+        frame_data['RotationMatrix'] = self.data.xmat[body_id].reshape(3, 3).copy()
+        quaternion = self.data.xquat[body_id].copy()
+        quaternion /= np.linalg.norm(quaternion)
+        if history and np.dot(quaternion, history[-1]['QuaternionWXYZ']) < 0:
+            quaternion *= -1
+        frame_data['QuaternionWXYZ'] = quaternion
 
         for i in range(1, 9):
             site_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, f"C{i}")

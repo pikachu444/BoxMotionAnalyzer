@@ -2,7 +2,7 @@
 
 Last Reviewed: 2026-09-08
 
-현재 simulation은 WIP이며 #74 검증용 정답 생성기로 검증되지 않았다. 엔진 저장 간격(4×0.002 s)과 nominal timestamp(1/120 s), body origin/COM 구분, 회전 미기록 및 exporter의 입력 history 변경 문제가 남아 있다. 다음 최소 작업은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md)을 따른다. 아래 물리 결과/호환성 설명은 검증된 정확도 보장이 아니다.
+현재 simulation은 WIP이다. #74용 별도 생성기 `src/simulation/marker_fixtures.py`는 실제 `data.time`, 갱신된 body origin/COM/회전을 기록하고 정상 정답과 고장 관측을 분리한다. 기존 GUI의 `data_exporter.py`에는 고정 미분 간격, 0 회전 저장, 입력 history 변경 문제가 남아 있어 정답 생성 경로에서 제외했다. 명세와 실행 방법은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md), 검증 결과와 한계는 [조사 결과](analysis/reference/marker_flip_review_findings.md)를 따른다. 아래 물리 결과 설명은 실제 실험 정확도 보장이 아니다.
 
 본 문서는 MuJoCo 엔진을 활용하여 박스 낙하 실험을 시뮬레이션하고 데이터를 생성하는 기능에 대한 공식 문서입니다.
 
@@ -11,14 +11,15 @@ Last Reviewed: 2026-09-08
 하지만 실제 실험 환경 구축이나 반복적인 물리적 낙하 테스트는 높은 비용과 시간이 소모됩니다.
 이를 해결하기 위해, 오픈소스 물리 엔진인 **MuJoCo**를 활용하여 박스 모델링, 중력, 충돌, 반발력 등의 물리적 요소를 가상으로 구현하여, 실제 실험과 유사한 데이터를 소프트웨어적으로 생성할 수 있는 시뮬레이션 기능을 추가하였습니다.
 
-생성된 시뮬레이션 데이터는 분석 파이프라인(DataHandler)과 100% 호환되는 형식(`.proc`)으로 직접 추출되어, 기존 3D 시각화 도구(PyVista) 및 데이터 검증 시스템에서 그대로 사용할 수 있습니다.
+기존 GUI는 `.proc`를 직접 내보낸다. #74 검증은 별도의 `observed.csv`를 실제 분석 파이프라인에 넣고, 독립적인 `truth_pose.csv`와 비교한다. 두 저장 경로의 완성도와 검증 범위를 구분해야 한다.
 
 ## 2. 주요 기능 및 컴포넌트
 
 ### 2.1 MuJoCo 엔진 통합 (`src/simulation/engine/mujoco_engine.py`)
 - **역할:** 강체 동역학(Rigid Body Dynamics) 시뮬레이션을 수행합니다.
+- **기록:** `record_samples`는 초기 상태를 포함해 지정한 샘플 수를 저장한다. timestep 0.002 s, substeps 4의 실제 간격은 0.008 s이며, 120 FPS 요청이 정확히 실현된다고 간주하지 않는다. 기록 전 `mj_forward`를 호출하고 배열을 복사한다. `Center`는 기존 body-origin 별칭을 유지하며, `COM`, `RotationMatrix`, `QuaternionWXYZ`를 별도로 기록한다.
 - **주요 설정 변수:**
-  - `size` (Box Half-extents): 박스의 가로, 세로, 높이의 절반 길이 (mm 단위).
+  - `size`: 박스 로컬 X/Y/Z의 전체 길이 (mm 단위). 엔진이 MuJoCo geom의 half-extents로 변환한다.
   - `mass` (Mass): 박스의 무게 (kg).
   - `friction` (Friction): 바닥면과 박스 사이의 마찰 계수 (기본값: 0.5).
   - `elasticity` (Restitution): 반발 계수. 0.0이면 튕기지 않고, 1.0이면 완전히 튕김 (기본값: 0.15).
@@ -65,7 +66,7 @@ Last Reviewed: 2026-09-08
 - **포맷 구조:**
   - 3-level Multi-index Header 구조 (`Variable`, `Point`, `Component`).
   - 포함 데이터: 질량 중심(Center_V, Center_A), 8개 모서리 꼭짓점 위치/속도/가속도 (C1~C8), Analysis Data(프레임별 분석 정보).
-- **장점:** 복잡한 Raw CSV Parser 로직을 거치지 않으므로 기존 데이터 검증 파이프라인(VelocityCalculator, Validator 등)의 호환성을 손상시키지 않고 안전하게 통합 가능합니다.
+- **제한:** Parser를 통과하지 않는 별도 경로다. 현재 구현의 고정 dt, 회전 누락과 body origin/COM 의미를 해결하기 전에는 이 출력으로 #74의 정답을 만들지 않는다.
 
 ### 2.4 시뮬레이션 GUI (`src/simulation/ui/main_window.py`)
 메인 런처의 **[Simulation] 탭**에서 마우스 클릭만으로 손쉽게 시뮬레이션을 수행하고 `.proc` 파일로 저장할 수 있습니다.

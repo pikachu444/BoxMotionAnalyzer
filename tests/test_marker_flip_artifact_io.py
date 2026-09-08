@@ -32,6 +32,27 @@ from src.config.data_columns import (
 )
 
 
+def test_slice_reload_preserves_full_precision_endpoints(tmp_path):
+    from src.analysis.pipeline.slicer import Slicer
+    from src.analysis.pipeline.parser import Parser
+    header, raw = _raw_bundle()
+    times = [0.008000000000000002, .016, .024, .032, .040, .04800000000000003]
+    raw.iloc[:, 1] = times
+    path = tmp_path / 'precision.slice'
+    save_slice_file(filepath=str(path), header_info=header, raw_data=raw,
+                    source_path='observed.csv', box_dims=(200., 120., 80.),
+                    full_start=times[0], full_end=times[-1], user_start=times[0],
+                    user_end=times[-1], pad_rows=0)
+    metadata = read_slice_metadata(str(path))
+    assert metadata.user_start == times[0] and metadata.user_end == times[-1]
+    loaded_header, loaded = DataLoader().load_csv(str(path))
+    frame = Parser({}).process(loaded_header, loaded)
+    result = Slicer('time', metadata.user_start, metadata.user_end).process(frame)
+    assert len(result) == len(times)
+    # A real interval difference must still exclude the endpoint.
+    assert len(Slicer('time', times[0] + 1e-10, times[-1] - 1e-10).process(frame)) == 4
+
+
 def _raw_bundle() -> tuple[dict[str, list[str]], pd.DataFrame]:
     marker_ids = ["A", "B", "C", "D"]
     type_header = ["", ""]

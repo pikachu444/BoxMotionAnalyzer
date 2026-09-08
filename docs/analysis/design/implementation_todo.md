@@ -14,7 +14,12 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   - Save a separate corrected CSV atomically and activate it only after success.
   - Propagate original/corrected source identity and the full decision history into `.slice` and `.proc`.
   - Deterministic asymmetric fixtures check X/Y/Z pose consistency, cumulative faces, and corrected/suffix slice round-trip. Legacy detector tests do not validate the new model's accuracy.
-- [ ] Execute the minimal independent MuJoCo fixture task in `../reference/marker_flip_fixture_contract.md`; keep new automatic recommendations disabled until evaluated.
+- [O] Execute the minimal public independent MuJoCo fixture task in `../reference/marker_flip_fixture_contract.md`.
+  - Actual time, body origin/COM/rotation and independent truth/observed files are recorded. Nine noiseless pose-mechanics cases meet the unchanged numerical gates; four controls provide abstention diagnostics only.
+  - Two-constraint false success is rejected; real GUI X-flow preserves all 100 samples after correcting slice endpoint precision. Detailed input/expected/actual results are in `../reference/marker_flip_review_findings.md`.
+  - Keep new automatic recommendations disabled. This does not complete #74 or all of #80–#84.
+- [ ] Establish private VDTest_S5_001 Motive-to-box origin/axis registration from independent calibration evidence before using its layout. Do not publish capture-derived coordinates.
+- [ ] Evaluate pose identifiability for three or more constraints, including coplanar/degenerate face layouts. Optimizer convergence alone is not sufficient evidence.
 - [ ] Validate solver-derived constraint error models and ambiguous/genuine motion cases. Research and implementation status: `../reference/marker_flip_review_findings.md`.
 - [ ] Validate Issue #74 recommendation gates against labeled real OptiTrack capture categories.
   - Collect or identify captures with known no-flip, X/Y/Z relabel, gap-only, freeze/reconnect, genuine physical rotation, low coverage, and ambiguous evidence outcomes.

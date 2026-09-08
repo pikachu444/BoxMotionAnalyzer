@@ -53,4 +53,30 @@ Final focused pipeline run: `test_marker_face_gui_flow.py`, `test_marker_face_as
 
 Final GUI/compatibility run after adding explicit ON/OFF approval text: production GUI flow, review dialog, raw widget, raw processing, legacy detector, input validation, coordinate configuration and marker smoothing passed together (33 tests plus 5 subtests; the GUI flow overlaps the preceding run). A pre-existing long-filename mock plot test still emits a Matplotlib tight-layout warning. The actual review screenshot shows boundary 0.300000, no recommendation, explicit ON, selected X and the computed residual trace; processed output screenshot shows successful slice processing and save. No remaining failed check is being reported as a pass.
 
-MuJoCo and labeled real OptiTrack validation remain open. The current work does not complete issue #74 or establish automatic detection accuracy. Follow the next-task prompt in [marker_flip_fixture_contract.md](marker_flip_fixture_contract.md). PR text must retain these limitations and must not use automatic issue-closing keywords for #74.
+The minimal public MuJoCo integration lane below has now run. Labeled real OptiTrack validation, production calibration and automatic detection accuracy remain open. This does not complete issue #74. Follow the next-task prompt in [marker_flip_fixture_contract.md](marker_flip_fixture_contract.md). PR text must retain these limitations and must not use automatic issue-closing keywords for #74.
+
+## Independent MuJoCo execution, 2026-09-08
+
+MuJoCo 3.6.0, 100 samples at actual 0.008 s intervals, public asymmetric 18-marker layout, 200×120×80 mm, seed 74082. Ground truth records body origin, separate offset COM, and rotation before injection. Faults use explicit local half-turn matrices at frame 30 (0.240 s), then frame 65 (0.520 s) for two-event cases. The generator does not import analysis code. The harness gives production only the observed constraints and explicit geometry; oracle axes emulate manual operator decisions after detection.
+
+| Input / expectation | Actual candidates (s) | Valid pose rows after declared manual actions | Maximum position error (mm) / rotation error (degrees) |
+| --- | --- | --- | --- |
+| Healthy / no correction | none | 100 | 0.0001975 / 0.0002935 |
+| X / frame-30 local X | 0.240 | 100 | 0.0002712 / 0.0002647 |
+| Y / frame-30 local Y | 0.240 | 100 | 0.0002313 / 0.0005515 |
+| Z / frame-30 local Z | 0.240 | 100 | 0.0001851 / 0.0002854 |
+| XX / restore baseline after second event | 0.240, 0.520 | 100 | 0.0002712 / 0.0005620 |
+| XY / cumulative explicitly declared axes | 0.240, 0.520 | 100 | 0.0002712 / 0.0002647 |
+| Gap only / five unavailable rows, no correction | 0.160 gap review | 95 | 0.0002209 / 0.0004395 |
+| Gap then X / separate recovery and flip | 0.160 gap review, 0.240 flip | 95 | 0.0002334 / 0.0002336 |
+| Genuine rotation / no correction | none | 100 | 0.0002053 / 0.0004628 |
+
+All nine pose-mechanics cases met the unchanged 0.1 mm / 0.1 degree numerical gates. Gap review is not a positive flip classification. New automatic recommendations remained disabled in every case; this is not evidence of calibrated recommendation accuracy.
+
+Diagnostic controls: freeze/reconnect produced a review at 0.160 s and up to 52.203 mm raw position error; no repair is claimed. Independent 0.02 mm noise produced no candidates and maximum raw errors 0.032853 mm / 0.045538 degrees for this seed only. Unsupported local 90-degree and arbitrary-axis 180-degree faults produced reviews at 0.240 s, with raw rotation errors about 90 and 180 degrees respectively; no supported correction is claimed. These four reports test abstention policy only, not classification or recovery. Reports identify `validation_scope` accordingly.
+
+The two-constraint control exposed false success: 100 rows were labeled Optimized despite errors up to 151.169 mm / 152.164 degrees, producing an unplanted candidate at 0.624 s. `PoseOptimizer.process` now rejects fewer than three finite XYZ triplets as InsufficientData, clears pose values and resets warm start. Rerun: zero usable poses, zero candidates. This necessary condition does not establish identifiability for three or more points or degenerate face layouts; that remains open. A separate negative oracle test reports a deliberately wrong translation and half-turn as 1 mm / 180 degrees, rather than accepting them.
+
+Actual MainApp integration also ran with the generated X CSV: real file dialogs, background review/refits, manual X approval, corrected source reload, slice processing and proc saving. The initial execution exposed a slice metadata defect: six-decimal rounding of 0.7920000000000006 to 0.792 dropped the final row, yielding 99 instead of 100. Metadata now preserves float precision; inclusive Slicer comparisons allow only machine-rounding differences (8×epsilon×time scale), with a regression proving genuinely excluded endpoints remain excluded. Final run retained all 100 rows, unchanged original XYZ/bytes and correction context, with maximum proc error 0.0002712 mm / 0.0002647 degrees. GUI screenshots were inspected locally; no video or capture-derived files are committed.
+
+Commands and complete per-case local JSON are described in the [fixture contract](marker_flip_fixture_contract.md). The 14-case run preceded the low-coverage guard; the failing low-coverage behavior was then explicitly re-executed after the fix. Final generator output was regenerated with every CSV hash checked equal to its evaluated input. The broader affected checks covered GUI persistence, artifact precision, range resampling, face assignment and recorder/oracle contracts. Legacy simulation `.proc` exporter assumptions, private VDTest registration, rank-deficient configurations with more markers and physical Motive error-model validation remain separate work.
