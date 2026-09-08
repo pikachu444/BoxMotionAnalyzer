@@ -1,5 +1,9 @@
 # 박스 낙하 시뮬레이션 문서
 
+Last Reviewed: 2026-09-08
+
+현재 simulation은 WIP이며 #74 검증용 정답 생성기로 검증되지 않았다. 엔진 저장 간격(4×0.002 s)과 nominal timestamp(1/120 s), body origin/COM 구분, 회전 미기록 및 exporter의 입력 history 변경 문제가 남아 있다. 다음 최소 작업은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md)을 따른다. 아래 물리 결과/호환성 설명은 검증된 정확도 보장이 아니다.
+
 본 문서는 MuJoCo 엔진을 활용하여 박스 낙하 실험을 시뮬레이션하고 데이터를 생성하는 기능에 대한 공식 문서입니다.
 
 ## 1. 개요 (Overview)
@@ -28,7 +32,7 @@
 - **모서리 낙하 (Corner Drop):**
   - 특정 꼭짓점이 바닥에 가장 먼저 닿도록 회전시킨 자세.
   - 예: `Corner_2-3-5 (Front-Bottom-Right)` 등 총 8개의 꼭짓점 시나리오 지원.
-  - **특징:** 충돌 후 **텀블링(Tumbling)** 현상을 완벽히 모사하여 반대편 모서리의 속도 급증 및 가속도 변화 패턴을 분석할 수 있습니다.
+  - **검증 목표:** 충돌 후 텀블링과 반대편 모서리의 속도·가속도 변화를 재현한다. 실제 실험과의 일치는 별도 검증이 필요하다.
 - **선 낙하 (Edge Drop):**
   - 모서리 선이 바닥과 평행하게 닿도록 회전.
   - 예: 전면-하단 선 (Front-Bottom Edge) 등.
@@ -57,7 +61,7 @@
 > - `/root/BoxMotionAnalyzer/src/simulation/scenarios.py`
 
 ### 2.3 데이터 익스포터 (Digital Twin Data Pipeline) (`src/simulation/data_exporter.py`)
-시뮬레이션에서 생성된 1000Hz (1ms 간격)의 위치 데이터를 기반으로 속도 및 가속도를 수치 미분(Finite Difference) 방식으로 계산한 뒤, **`DataHandler`와 완벽히 호환되는 `.proc` 파일 포맷**으로 내보냅니다.
+현재 exporter는 위치 이력으로 속도·가속도를 계산하고 `.proc`를 저장한다. 실제 샘플 시간과 회전 정답의 완전성이 확인되지 않았으므로 1000 Hz 정답 데이터 또는 완전한 분석 호환성을 주장하지 않는다.
 - **포맷 구조:**
   - 3-level Multi-index Header 구조 (`Variable`, `Point`, `Component`).
   - 포함 데이터: 질량 중심(Center_V, Center_A), 8개 모서리 꼭짓점 위치/속도/가속도 (C1~C8), Analysis Data(프레임별 분석 정보).

@@ -13,7 +13,6 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 from matplotlib.figure import Figure
 
 from src.analysis.pipeline.artifact_io import (
-    PROC_FILE_EXTENSION,
     add_timeline_context_columns,
     build_batch_proc_path,
     build_proc_default_name,
@@ -108,6 +107,10 @@ class WidgetSliceProcessing(QWidget):
         slice_summary_layout.addWidget(QLabel("Padded Range:"), 2, 0)
         self.slice_padded_range_label = QLabel("N/A")
         slice_summary_layout.addWidget(self.slice_padded_range_label, 2, 1)
+        slice_summary_layout.addWidget(QLabel("Marker Corrections:"), 3, 0)
+        self.slice_marker_correction_label = QLabel("None")
+        self.slice_marker_correction_label.setWordWrap(True)
+        slice_summary_layout.addWidget(self.slice_marker_correction_label, 3, 1)
         right_panel_layout.addWidget(self.slice_summary_group)
 
         self.box_dims_group = QGroupBox("Box Dimensions (mm)")
@@ -350,6 +353,7 @@ class WidgetSliceProcessing(QWidget):
             self.slice_source_label.setText("N/A")
             self.slice_user_range_label.setText("N/A")
             self.slice_padded_range_label.setText("N/A")
+            self.slice_marker_correction_label.setText("None")
             return
 
         self.slice_source_label.setText(self.slice_metadata.source or "N/A")
@@ -358,6 +362,13 @@ class WidgetSliceProcessing(QWidget):
         )
         self.slice_padded_range_label.setText(
             f"{self.slice_metadata.padded_start:.3f}s ~ {self.slice_metadata.padded_end:.3f}s"
+        )
+        reviewed_count = int(self.slice_metadata.correction_event_count or 0)
+        approved_count = int(self.slice_metadata.correction_approved_event_count or 0)
+        self.slice_marker_correction_label.setText(
+            f"{reviewed_count} reviewed event(s), {approved_count} approved"
+            if self.slice_metadata.correction_schema_version
+            else "None"
         )
         self._set_default_resampling_range()
 
@@ -661,12 +672,35 @@ class WidgetSliceProcessing(QWidget):
         full_end = None if metadata is None else metadata.full_end
         slice_start = None if metadata is None else metadata.user_start
         slice_end = None if metadata is None else metadata.user_end
-        return {
+        context = {
             "full_start_sec": full_start,
             "full_end_sec": full_end,
             "slice_start_sec": slice_start,
             "slice_end_sec": slice_end,
         }
+        if metadata is not None and metadata.correction_schema_version:
+            context.update(
+                {
+                    "marker_correction_schema_version": metadata.correction_schema_version,
+                    "marker_correction_context_json": metadata.correction_context_json,
+                    "marker_correction_algorithm_version": (
+                        metadata.correction_algorithm_version
+                    ),
+                    "marker_correction_original_source": metadata.correction_original_source,
+                    "marker_correction_original_source_sha256": (
+                        metadata.correction_original_source_sha256
+                    ),
+                    "marker_correction_reviewed_source": (
+                        metadata.correction_reviewed_source or metadata.source
+                    ),
+                    "marker_correction_event_count": metadata.correction_event_count,
+                    "marker_correction_approved_event_count": (
+                        metadata.correction_approved_event_count
+                    ),
+                    "marker_correction_events_json": metadata.correction_events_json,
+                }
+            )
+        return context
 
     def _build_processing_config(self, parsed_data, metadata=None, box_dims=None) -> dict:
         metadata = self.slice_metadata if metadata is None else metadata

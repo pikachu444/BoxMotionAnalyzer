@@ -111,6 +111,11 @@ class MarkerSmoother:
         if not self.enabled:
             return df.copy()
 
+        from .face_assignment import face_segments
+        segments = face_segments(df)
+        if len(segments) > 1:
+            return pd.concat([self.process(segment) for segment in segments])
+
         smoothed_df = df.copy()
 
         # 'Time' 인덱스로부터 샘플링 주파수 계산

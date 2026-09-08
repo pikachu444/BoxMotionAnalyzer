@@ -1,12 +1,25 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-06-09
+Last Reviewed: 2026-09-08
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] Implement Issue #74 v3 analysis face-assignment mechanics (issue remains open).
+  - Keep every event OFF until explicit operator approval.
+  - Separate recommendation axis from operator-selected axis.
+  - Preserve Rigid Body Marker XYZ/IDs; apply chronological per-row analysis face assignments. Read v2 permutations separately.
+  - Save a separate corrected CSV atomically and activate it only after success.
+  - Propagate original/corrected source identity and the full decision history into `.slice` and `.proc`.
+  - Deterministic asymmetric fixtures check X/Y/Z pose consistency, cumulative faces, and corrected/suffix slice round-trip. Legacy detector tests do not validate the new model's accuracy.
+- [ ] Execute the minimal independent MuJoCo fixture task in `../reference/marker_flip_fixture_contract.md`; keep new automatic recommendations disabled until evaluated.
+- [ ] Validate solver-derived constraint error models and ambiguous/genuine motion cases. Research and implementation status: `../reference/marker_flip_review_findings.md`.
+- [ ] Validate Issue #74 recommendation gates against labeled real OptiTrack capture categories.
+  - Collect or identify captures with known no-flip, X/Y/Z relabel, gap-only, freeze/reconnect, genuine physical rotation, low coverage, and ambiguous evidence outcomes.
+  - Record expected boundary and operator-reviewed axis independently of the detector.
+  - Tune thresholds only from this real-capture set; synthetic fixtures remain mechanics/integration evidence, not production-accuracy evidence.
 - [O] Add Drop Posture frame and summary metrics after processing.
 - [O] Store Drop Posture summary columns in `.proc` results.
 - [O] Add `ImpactSequence`, contact state, contact confidence, and contact detection method.

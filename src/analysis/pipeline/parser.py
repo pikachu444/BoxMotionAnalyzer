@@ -19,6 +19,10 @@ class Parser:
         parent_header = header_info.get('parent', [])
         category_header = header_info.get('category', [])
         component_header = header_info.get('component', [])
+        from .marker_flip import marker_triplet_indices
+        from .face_assignment import face_columns, FACES
+        marker_triplet_indices(header_info)
+        annotations = face_columns(header_info)
 
         processed_frames_data = []
         all_marker_identifiers = set()
@@ -67,6 +71,10 @@ class Parser:
                     elif marker_identifier: prefix = marker_identifier[0]
 
                     face_info = self.face_prefix_map.get(prefix.upper(), "")
+                    if marker_identifier in annotations:
+                        face_info = str(row.iloc[annotations[marker_identifier]]).strip().upper()
+                        if face_info not in FACES:
+                            raise ValueError(f"Invalid explicit analysis face for {marker_identifier}.")
 
                     current_frame_output_dict[f"{marker_identifier}_FaceInfo"] = face_info
                     current_frame_output_dict[f"{marker_identifier}_X"] = x_val
@@ -93,6 +101,24 @@ class Parser:
 
         # 3. 최종 DataFrame 생성
         final_df = pd.DataFrame(processed_frames_data)
+        # Face identity exists even when a coordinate sample is missing.
+        for mid in all_marker_identifiers:
+            if mid == RigidBodyCols.BASE_NAME:
+                continue
+            col = f"{mid}_FaceInfo"
+            if mid in annotations:
+                values = raw_df.iloc[:, annotations[mid]].astype(str).str.strip().str.upper()
+                if not values.isin(FACES).all():
+                    raise ValueError(f"Invalid explicit analysis face for {mid}.")
+                final_df[col] = values.to_numpy()
+            else:
+                prefix = mid[:2] if mid.startswith(('FA', 'BA')) else mid[:1]
+                base_face = self.face_prefix_map.get(prefix.upper(), '')
+                final_df[col] = final_df[col].fillna(base_face) if col in final_df else base_face
+            for component in 'XYZ':
+                coordinate = f'{mid}_{component}'
+                if coordinate not in final_df:
+                    final_df[coordinate] = float('nan')
 
         # 데이터 타입 변환
         final_df[TimeCols.TIME] = pd.to_numeric(final_df[TimeCols.TIME], errors='coerce')

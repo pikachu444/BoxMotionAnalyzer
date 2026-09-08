@@ -2,7 +2,7 @@
 |      핵심 데이터 구조 설계              |
 =========================================
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-09-08
 
 이 문서는 현재 구현 기준의 핵심 데이터 구조와 데이터 흐름을 정리한다.
 
@@ -11,7 +11,7 @@ Last Reviewed: 2026-03-08
 ---
 
 *   **형태:** 별도 클래스를 두지 않고 `dict`를 사용한다.
-*   **생성 위치:** `WidgetRawDataProcessing.emit_run_analysis()`
+*   **생성 위치:** `WidgetSliceProcessing._build_processing_config()`
 *   **주요 키**
     *   `slice_filter_by`: 현재는 `'time'` 고정
     *   `slice_start_val`: 분석 시작 시각(초)
@@ -31,13 +31,35 @@ Last Reviewed: 2026-03-08
 *   **`header_info`**
     *   `DataLoader.load_csv()`가 반환하는 헤더 메타데이터
 *   **`raw_data`**
-    *   원본 CSV 본문 DataFrame
+    *   현재 활성 입력 CSV 본문 DataFrame
+    *   v3 corrected CSV는 원본 XYZ/ID와 프레임별 Marker Annotation/Assignment/Face 열을 포함한다. v2에만 기존 XYZ 순열이 반영된다
 *   **`parsed_data`**
-    *   `Parser.process()`가 생성한 미리보기/분석용 DataFrame
-    *   Step 1 플롯과 실제 분석 파이프라인의 공통 입력으로 사용된다
+    *   현재 활성 `raw_data`를 `Parser.process()`로 변환한 미리보기용 DataFrame
+*   **`review_raw_data` / `review_parsed_data`**
+    *   Marker Flip Review가 항상 같은 최초 관측 스트림에서 결정을 다시 계산하도록 유지하는 기준 데이터
+    *   v3는 원래 base_faces로 검토 기준을 복원한다. v2는 승인 순열을 역순으로 되돌리며 새 v3 검토와 섞지 않는다
+    *   화면과 후속 `.slice`에는 활성 corrected 데이터가 사용되며, 검토 기준 데이터는 내부 재계산에만 사용한다
 *   **`final_result`**
     *   `PipelineController`가 반환한 최종 결과 DataFrame
     *   Step 1 내보내기와 Step 2 결과 분석의 기준 데이터가 된다
+
+---
+### 2-1. Marker correction 결정과 corrected source
+---
+
+*   **`MarkerCorrectionDecision`**
+    *   `event_id`, `boundary_time_sec`
+    *   작업자 `approved`, 작업자 선택 `axis`
+    *   검출기 `recommendation_axis`
+    *   `correction_kind`: v3 `face_assignment` / v2 `marker_permutation`; v3 `permutation`은 비어 있다
+    *   추천 사유, evidence JSON, 알고리즘/gate 버전
+    *   OFF 이벤트는 `axis=None`, `permutation=()`로 저장하되 추천과 증거는 유지한다
+*   **corrected CSV**
+    *   원본 파일을 덮어쓰지 않는 별도 raw-format 산출물이다
+    *   v3는 승인 이벤트를 시간순으로 누적해 프레임별 분석 면을 기록한다. 이름/ID/XYZ는 보존한다
+    *   측정 좌표 숫자에 회전/보간을 적용하지 않는다
+    *   원본 파일명과 SHA-256, 실제 corrected 파일명, 전체/승인 이벤트 수, 전체 결정 JSON을 메타데이터로 가진다
+    *   임시 파일 작성과 `os.replace()`가 성공한 뒤에만 Step 1 활성 입력으로 전환된다
 
 ---
 ### 3. 단일 DataFrame 누적 방식
@@ -51,6 +73,7 @@ Last Reviewed: 2026-03-08
     4. `PoseOptimizer`가 Position 컬럼을 계산
     5. `VelocityCalculator`가 Velocity / Acceleration 컬럼을 계산
     6. `FrameAnalyzer`가 Analysis 컬럼을 계산
+*   Marker correction은 위 계산 단계 사이에 포즈를 회전시키는 처리가 아니다. Step 1에서 corrected source를 만든 뒤 `Parser`가 그 파일의 실제 열 배치를 읽는다.
 *   각 단계는 입력 DataFrame에 컬럼을 추가하거나 수정한 뒤 반환한다.
 *   Result Resampling을 사용하는 경우 `PipelineController`는 전체 slice baseline 결과를 만든 뒤, 최종 결과 컬럼을 보간해 중간 timestamp row만 삽입한다. 기존 timestamp row 값은 baseline 결과를 유지한다.
 
@@ -72,12 +95,14 @@ Last Reviewed: 2026-03-08
     *   `C1~C8` 기준 분석 컬럼
 *   **Timeline metadata**
     *   Full/Slice 시작과 끝 시각 컬럼이 결과 export 시 추가된다
+*   **Marker correction provenance**
+    *   corrected source를 사용한 경우 schema/algorithm version, 원본 파일명/SHA-256, corrected 파일명, 전체/승인 이벤트 수, 결정 JSON이 `.slice`에서 `.proc`까지 전달된다
 
 ---
 ### 5. Step 2용 결과 데이터
 ---
 
-*   Step 1에서 CSV export 시 `MainApp._add_timeline_context_columns()`가 timeline metadata를 추가한다.
+*   Step 1.5 processing 완료 후 `add_timeline_context_columns()`가 timeline과 marker-correction provenance를 추가한다.
 *   이후 `convert_to_multi_header()`가 flat column을 3-level multi-header로 변환한다.
 *   Step 2는 `DataLoader.load_result_csv()`로 이 결과 파일을 읽고, `DISPLAY_RESULT_COLUMNS` 기준으로 트리와 플롯 항목을 구성한다.
 
