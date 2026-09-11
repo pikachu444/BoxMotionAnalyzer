@@ -46,11 +46,10 @@ New writers set schema 1; reading old files does not declare them schema 1. A ne
 derived artifact may have the new container schema while retaining unknown source
 identity. No metadata completeness check is evidence of physical calibration.
 This applies to the Analysis writer and safe identity transport from the new public
-observed-data generator. The legacy Simulation UI exporter in
-`src/simulation/data_exporter.py` is unchanged and does not emit `Info/Artifact`.
-Its results therefore remain `unknown_legacy`, individually viewable but excluded
-from aggregation/baseline differences. Updating that exporter remains a separate
-#81 follow-up; this change does not assert that all project exporters use this schema.
+observed-data generator. The Simulation UI exporter now declares its actual synthetic source and known
+geometry/coordinate/unit/generator fields, with separate simulation settings below.
+Earlier Simulation outputs without declarations remain unknown legacy; they are
+not upgraded by filename or inferred geometry.
 
 Safe source identity is a JSON object under `Artifact Metadata` in a generated
 raw CSV's first metadata row. Corrected CSV and `.slice` retain it as
@@ -313,3 +312,45 @@ corrected CSV에서 만든 `.slice`를 처리한 경우 `.proc`에는 아래 pro
 `tests/test_visualization_data_handler.py`를 함께 갱신해야 회귀를 방지할 수 있다.
 
 85인치 실제 데이터 검증은 `TestSets/Input/VDTest_S5_001.csv`의 `TestBox_85` 데이터를 사용한다. 접촉 flow 검증은 `2.45s-3.05s` slice를 85인치 치수로 처리하고, export/reload 후 pose/corner 좌표에서 `BetaAtT1MinusDeg`, `DeltaHAtT1Minus_mm`, `CminAtT1MinusIndex`를 독립 재계산해 summary 값과 비교한다.
+
+## Simulation direct `.proc` additions (#81)
+
+These fields supplement the 16 `Info/Artifact` keys; they never replace them or
+claim execution of the Analysis solver. Every new direct Simulation output has
+`SourceKind=mujoco_synthetic`, `GeneratorVersion=simulation-pose-actual-time-v1`,
+`CoordinatePolicy=world-y-up-box-local-fixed-center-v1` and
+`UnitsPolicy=mm-s-rotvec-rad-global-angular-v1`. The UI passes configured local X/Y/Z
+size as BoxLengthMm/BoxWidthMm/BoxHeightMm. A direct exporter caller lacking these
+settings leaves dimensions blank. ModelId, IstaType, scenario/layout identity,
+ProcessingSemanticsVersion and ProcessingSettingsJson remain blank. No t1 or
+DropPosture metrics are fabricated; individual time/3D inspection works while
+baseline differences and synchronization are excluded by the existing gates.
+
+| Three-level tuple | Value and units |
+|---|---|
+| `Info / Simulation / ExportVersion` | Constant string `simulation-pose-actual-time-v1` |
+| `Info / Simulation / SettingsJson` | Constant compact sorted JSON string: configured engine size/mass/friction/contact control/COM offset/initial state/timestep/duration/MuJoCo version when supplied by UI; derivative, pose, angular frame and noise policies |
+| `Info / Simulation / Representation` | Constant `simulation-truth` or `body-pose-truth;noisy-corner-observations` |
+| `Simulation / BodyPose / QW,QX,QY,QZ` | Four per-row float values, dimensionless normalized sign-continuous quaternion wxyz, unchanged local box basis to Y-up world |
+| `Simulation / InertialCOM / X_mm,Y_mm,Z_mm` | Three per-row floats, actual inertial COM in Y-up world mm; legacy Position/CoM remains body origin |
+
+Unknown additive Simulation/Info fields are ignored by existing DataHandler entity
+selection and comparison identity readers. They do not become markers and are not
+consumed as correction truth by #74. Safe core source metadata still drives the
+existing source banners. JSON uses true/false and null; CSV missing values are empty
+cells. Required time, quaternion and position values are finite or export fails.
+One-sample histories retain pose and have unavailable derivatives. First velocity
+and first two acceleration rows are NaN/empty, including angular derivatives.
+Position/CoM/P_RX,P_RY,P_RZ retain the existing rotvec-rad contract, not Euler.
+Global angular velocity and acceleration keys are rad/s and rad/s². Full formulas,
+interval timing, aliasing and noise limitations are defined once in
+[simulation.md](../../simulation.md#23-데이터-익스포터-digital-twin-data-pipeline-srcsimulationdata_exporterpy).
+Simulation SettingsJson is not Analysis ProcessingSettingsJson and is not accepted
+as its required stage record; no schema bypass or unverifiable identity backfill
+is performed. Old consumers that require complete finite derivatives must mask the
+initial unavailable samples rather than replace them with a claimed zero.
+DataHandler preserves an explicitly stored norm column even when every value is
+NaN. Only a missing norm column in a legacy file permits fallback: all three
+components must be finite in that row. A partial/missing/non-finite component
+leaves the norm unavailable. This policy applies to global and supported box-local
+linear velocity/acceleration norms; it never substitutes zero for unknown motion.

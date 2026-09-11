@@ -1,174 +1,157 @@
-import pandas as pd
-import numpy as np
+"""Non-destructive simulation export; conventions are in docs/simulation.md."""
+import copy
+import json
 from pathlib import Path
-from src.config.data_columns import HeaderL1, HeaderL2, HeaderL3
+import numpy as np
+import pandas as pd
+from scipy.spatial.transform import Rotation
+from src.config.data_columns import HeaderL1 as L1, HeaderL2 as L2, HeaderL3 as L3
+from src.utils.artifact_metadata import normalize_metadata
+
+WORLD_TRANSFORM = np.array([[1., 0., 0.], [0., 0., 1.], [0., -1., 0.]])
+EXPORT_VERSION = 'simulation-pose-actual-time-v1'
+
+
+def interval_derivatives(values, times):
+    """Backward interval velocity; acceleration between interval midpoints."""
+    velocity = np.full_like(values, np.nan, dtype=float)
+    acceleration = np.full_like(values, np.nan, dtype=float)
+    dt = np.diff(times)
+    velocity[1:] = np.diff(values, axis=0) / dt[:, None]
+    acceleration[2:] = np.diff(velocity[1:], axis=0) / ((dt[:-1] + dt[1:]) / 2)[:, None]
+    return velocity, acceleration
+
 
 class DataExporter:
-    """
-    Exports simulation history directly to the final .proc CSV format
-    (multi-level header) compatible with 3D Visualization and downstream analysis.
-    """
-    def __init__(self, history: list, add_noise=False, noise_std=1.0):
+    def __init__(self, history: list, add_noise=False, noise_std=1.0, *, seed=0,
+                 simulation_settings=None):
         self.history = history
-        self.add_noise = add_noise
-        self.noise_std = noise_std
-        self.dt = 1/120.0 # Standard simulation frame rate is 120 FPS
+        self.add_noise = bool(add_noise)
+        self.noise_std = float(noise_std)
+        if not np.isfinite(self.noise_std) or self.noise_std < 0:
+            raise ValueError('Noise standard deviation must be finite and nonnegative.')
+        if not isinstance(seed, int) or isinstance(seed, bool) or seed < 0:
+            raise ValueError('Noise seed must be a nonnegative integer.')
+        self.seed = seed
+        self.simulation_settings = copy.deepcopy(simulation_settings or {})
 
-    def _convert_axes(self, vec):
-        """
-        Converts MuJoCo coordinates (Z-up) to OptiTrack/System global coordinates (Y-up)
-        while preserving the legacy local box orientation.
-
-        In the legacy system (config_app.py):
-        - Local X: Width (e.g., 1578)
-        - Local Y: Height / Top-Bottom direction (e.g., 930)
-        - Local Z: Depth / Thickness (e.g., 142)
-
-        In MuJoCo:
-        - We build the box matching the legacy Local axes directly:
-          geom_size = [Width/2, Height/2, Depth/2] mapping to X, Y, Z.
-
-        Therefore, to match the world frame of the legacy PyVista viewer (where World Y is Up,
-        and World Z is depth):
-        System World X = MuJoCo X
-        System World Y = MuJoCo Z (Since MuJoCo drops along -Z, System must drop along -Y)
-        System World Z = -MuJoCo Y
-        """
-        return np.array([vec[0], vec[2], -vec[1]])
+    @classmethod
+    def from_engine(cls, history, engine, params):
+        """Record actual configured simulation values, without experiment identity."""
+        import mujoco
+        settings = {
+            'size_mm': (np.asarray(engine.size_m) * 2000).tolist(),
+            'mass_kg': engine.mass, 'friction': engine.friction,
+            'contact_damping_control': engine.elasticity,
+            'com_offset_mm': (np.asarray(engine.com_offset) * 1000).tolist(),
+            'initial_position_m': list(engine.init_pos),
+            'initial_quaternion_wxyz': list(engine.init_quat),
+            'timestep_s': float(engine.model.opt.timestep),
+            'requested_duration_s': params['duration'], 'mujoco_version': mujoco.__version__,
+        }
+        return cls(history, params['add_noise'], params['noise_std'],
+                   seed=params.get('noise_seed', 0), simulation_settings=settings)
 
     def calculate_derivatives(self):
-        """
-        Calculates velocities and accelerations using numerical differentiation
-        (finite differences) for the CoM and all corners.
-        Also applies coordinate system transformations (Z-up to Y-up).
-        """
-        for i in range(len(self.history)):
-            frame = self.history[i]
+        """Return new arrays; neither history nor nested arrays are modified."""
+        if not self.history:
+            raise ValueError('Simulation history is empty.')
+        times = np.asarray([frame['time'] for frame in self.history], dtype=float)
+        with np.errstate(over='ignore', invalid='ignore'):
+            intervals = np.diff(times)
+        if not np.isfinite(times).all() or not np.isfinite(intervals).all() or np.any(intervals <= 0):
+            raise ValueError('Simulation times must be finite and strictly increasing.')
 
-            # Apply coordinate transformation to Position first
-            frame['Center'] = self._convert_axes(frame['Center'])
-            for j in range(1, 9):
-                frame[f'C{j}'] = self._convert_axes(frame[f'C{j}'])
+        def vectors(key):
+            value = np.asarray([frame[key] for frame in self.history], dtype=float)
+            if value.shape != (len(times), 3) or not np.isfinite(value).all():
+                raise ValueError(f'Simulation {key} must contain finite XYZ vectors.')
+            return value @ WORLD_TRANSFORM.T
 
-            if i == 0:
-                frame['Center_V'] = np.zeros(3)
-                frame['Center_A'] = np.zeros(3)
-                for j in range(1, 9):
-                    frame[f'C{j}_V'] = np.zeros(3)
-                    frame[f'C{j}_A'] = np.zeros(3)
-            else:
-                prev = self.history[i-1]
-                frame['Center_V'] = (frame['Center'] - prev['Center']) / self.dt
-                for j in range(1, 9):
-                    frame[f'C{j}_V'] = (frame[f'C{j}'] - prev[f'C{j}']) / self.dt
-
-                if i == 1:
-                    frame['Center_A'] = np.zeros(3)
-                    for j in range(1, 9):
-                        frame[f'C{j}_A'] = np.zeros(3)
-                else:
-                    prev_v = self.history[i-1]
-                    frame['Center_A'] = (frame['Center_V'] - prev_v['Center_V']) / self.dt
-                    for j in range(1, 9):
-                        frame[f'C{j}_A'] = (frame[f'C{j}_V'] - prev_v[f'C{j}_V']) / self.dt
+        quaternion = np.asarray([frame['QuaternionWXYZ'] for frame in self.history], dtype=float)
+        if quaternion.shape != (len(times), 4) or not np.isfinite(quaternion).all():
+            raise ValueError('Simulation quaternion must contain finite WXYZ values.')
+        norms = np.linalg.norm(quaternion, axis=1)
+        if np.any(norms == 0) or not np.isfinite(norms).all():
+            raise ValueError('Simulation quaternion must have a finite nonzero norm.')
+        quaternion = quaternion / norms[:, None]
+        # Change only the world basis: local box/corner axes remain unchanged.
+        rotation = Rotation.from_matrix(WORLD_TRANSFORM) * Rotation.from_quat(quaternion[:, [1, 2, 3, 0]])
+        quaternion = rotation.as_quat()[:, [3, 0, 1, 2]]
+        for i in range(1, len(quaternion)):
+            if np.dot(quaternion[i - 1], quaternion[i]) < 0:
+                quaternion[i] *= -1
+        omega = np.full((len(times), 3), np.nan)
+        alpha = omega.copy()
+        if len(times) > 1:
+            dt = np.diff(times)
+            omega[1:] = (rotation[1:] * rotation[:-1].inv()).as_rotvec() / dt[:, None]
+            alpha[2:] = np.diff(omega[1:], axis=0) / ((dt[:-1] + dt[1:]) / 2)[:, None]
+        result = {'time': times, 'quaternion': quaternion, 'rotation': rotation.as_rotvec(),
+                  'omega': omega, 'alpha': alpha, 'COM': vectors('COM')}
+        rng = np.random.default_rng(self.seed)
+        for entity in ['Center'] + [f'C{i}' for i in range(1, 9)]:
+            position = vectors('BodyOrigin' if entity == 'Center' else entity)
+            if self.add_noise and entity != 'Center':
+                position = position + rng.normal(0., self.noise_std, position.shape)
+            velocity, acceleration = interval_derivatives(position, times)
+            result[entity] = (position, velocity, acceleration)
+        return result
 
     def export_proc_csv(self, filepath: str):
-        """
-        Exports the data to a 3-level header CSV format matching DataProcessing results (.proc).
-        """
-        self.calculate_derivatives()
+        values = self.calculate_derivatives()
+        columns = {(L1.INFO, L2.FRAME, L2.FRAME): np.arange(len(self.history)),
+                   (L1.INFO, L2.TIME, L3.TIME): values['time']}
 
-        columns = []
-        # Info
-        columns.append((HeaderL1.INFO, HeaderL2.FRAME, HeaderL2.FRAME))
-        columns.append((HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME))
+        def add_vector(group, entity, keys, vector):
+            for axis, key in enumerate(keys):
+                columns[(group, entity, key)] = vector[:, axis]
 
-        # Position CoM
-        columns.extend([
-            (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_TX),
-            (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_TY),
-            (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_TZ),
-            (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_RX),
-            (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_RY),
-            (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_RZ),
-        ])
-
-        # Velocities CoM
-        columns.extend([
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX),
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TY),
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TZ),
-            (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TNORM),
-        ])
-
-        # Accelerations CoM
-        columns.extend([
-            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TX),
-            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TY),
-            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TZ),
-            (HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TNORM),
-        ])
-
-        # Corners
-        for j in range(1, 9):
-            prefix = f'C{j}'
-            columns.extend([
-                # Position
-                (HeaderL1.POS, prefix, HeaderL3.P_TX),
-                (HeaderL1.POS, prefix, HeaderL3.P_TY),
-                (HeaderL1.POS, prefix, HeaderL3.P_TZ),
-                # Velocity
-                (HeaderL1.VEL, prefix, HeaderL3.V_TX),
-                (HeaderL1.VEL, prefix, HeaderL3.V_TY),
-                (HeaderL1.VEL, prefix, HeaderL3.V_TZ),
-                (HeaderL1.VEL, prefix, HeaderL3.V_TNORM),
-                # Acceleration
-                (HeaderL1.ACC, prefix, HeaderL3.A_TX),
-                (HeaderL1.ACC, prefix, HeaderL3.A_TY),
-                (HeaderL1.ACC, prefix, HeaderL3.A_TZ),
-                (HeaderL1.ACC, prefix, HeaderL3.A_TNORM),
-                # Analysis (Relative Height)
-                (HeaderL1.ANALYSIS, prefix, HeaderL3.REL_H)
-            ])
-
-        data_rows = []
-        for i, frame in enumerate(self.history):
-            time = frame['time']
-            center = frame['Center']
-            cv = frame['Center_V']
-            ca = frame['Center_A']
-
-            row = [
-                i, time,
-                center[0], center[1], center[2], 0, 0, 0, # Pos CoM
-                cv[0], cv[1], cv[2], np.linalg.norm(cv), # Vel CoM
-                ca[0], ca[1], ca[2], np.linalg.norm(ca), # Acc CoM
-            ]
-
-            # Ground Y is assumed to be 0 for relative height calculation in Y-up system
-            for j in range(1, 9):
-                cpos = frame[f'C{j}']
-                if self.add_noise:
-                    cpos = cpos + np.random.normal(0, self.noise_std, 3)
-
-                cv_c = frame[f'C{j}_V']
-                ca_c = frame[f'C{j}_A']
-                rel_h = cpos[1] # Y is height in the transformed coordinate system
-
-                row.extend([
-                    cpos[0], cpos[1], cpos[2],
-                    cv_c[0], cv_c[1], cv_c[2], np.linalg.norm(cv_c),
-                    ca_c[0], ca_c[1], ca_c[2], np.linalg.norm(ca_c),
-                    rel_h
-                ])
-            data_rows.append(row)
-
-        # Create MultiIndex DataFrame
-        multi_columns = pd.MultiIndex.from_tuples(columns)
-        df = pd.DataFrame(data_rows, columns=multi_columns)
-
+        for entity in ['Center'] + [f'C{i}' for i in range(1, 9)]:
+            output_entity = L2.COM if entity == 'Center' else entity
+            position, velocity, acceleration = values[entity]
+            add_vector(L1.POS, output_entity, [L3.P_TX, L3.P_TY, L3.P_TZ], position)
+            add_vector(L1.VEL, output_entity, [L3.V_TX, L3.V_TY, L3.V_TZ], velocity)
+            add_vector(L1.ACC, output_entity, [L3.A_TX, L3.A_TY, L3.A_TZ], acceleration)
+            columns[(L1.VEL, output_entity, L3.V_TNORM)] = np.linalg.norm(velocity, axis=1)
+            columns[(L1.ACC, output_entity, L3.A_TNORM)] = np.linalg.norm(acceleration, axis=1)
+            if entity != 'Center':
+                columns[(L1.ANALYSIS, entity, L3.REL_H)] = position[:, 1]
+        add_vector(L1.POS, L2.COM, [L3.P_RX, L3.P_RY, L3.P_RZ], values['rotation'])
+        add_vector(L1.VEL, L2.COM, [L3.V_RX, L3.V_RY, L3.V_RZ], values['omega'])
+        add_vector(L1.ACC, L2.COM, [L3.A_RX, L3.A_RY, L3.A_RZ], values['alpha'])
+        columns[(L1.VEL, L2.COM, L3.V_RNORM)] = np.linalg.norm(values['omega'], axis=1)
+        columns[(L1.ACC, L2.COM, L3.A_RNORM)] = np.linalg.norm(values['alpha'], axis=1)
+        add_vector('Simulation', 'InertialCOM', ['X_mm', 'Y_mm', 'Z_mm'], values['COM'])
+        for axis, key in enumerate(['QW', 'QX', 'QY', 'QZ']):
+            columns[('Simulation', 'BodyPose', key)] = values['quaternion'][:, axis]
+        settings = {**self.simulation_settings, 'export_version': EXPORT_VERSION,
+                    'derivative_policy': 'backward-interval;acceleration-midpoint-spacing;initial-nan',
+                    'pose': 'body-origin;quaternion-wxyz;rotvec-rad;world-A-times-R',
+                    'angular_velocity': 'global-relative-quaternion-shortest-arc-rad/s',
+                    'corner_noise': {'enabled': self.add_noise, 'std_mm': self.noise_std if self.add_noise else None,
+                                     'seed': self.seed if self.add_noise else None,
+                                     'generator': 'numpy-default_rng-PCG64',
+                                     'derivatives': 'from-exported-corner-observations'}}
+        columns[(L1.INFO, 'Simulation', 'ExportVersion')] = EXPORT_VERSION
+        columns[(L1.INFO, 'Simulation', 'SettingsJson')] = json.dumps(settings, sort_keys=True, separators=(',', ':'), allow_nan=False)
+        columns[(L1.INFO, 'Simulation', 'Representation')] = 'body-pose-truth;noisy-corner-observations' if self.add_noise else 'simulation-truth'
+        metadata = normalize_metadata({'SourceKind': 'mujoco_synthetic',
+                                       'GeneratorVersion': EXPORT_VERSION,
+                                       'CoordinatePolicy': 'world-y-up-box-local-fixed-center-v1',
+                                       'UnitsPolicy': 'mm-s-rotvec-rad-global-angular-v1'}, new=True)
+        # Missing model/layout/scene/t1/Analysis execution identity stays missing.
+        size = self.simulation_settings.get('size_mm')
+        if size is not None:
+            if len(size) != 3 or not np.isfinite(size).all() or np.any(np.asarray(size) <= 0):
+                raise ValueError('Simulation dimensions must be three positive finite values.')
+            for field, value in zip(['BoxLengthMm', 'BoxWidthMm', 'BoxHeightMm'], size):
+                metadata[field] = float(value)
+        for field, value in metadata.items():
+            columns[(L1.INFO, 'Artifact', field)] = value
+        frame = pd.DataFrame(columns)
+        frame.columns = pd.MultiIndex.from_tuples(frame.columns)
         output_path = Path(filepath)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        df.to_csv(output_path, index=False)
-
+        frame.to_csv(output_path, index=False)
         return str(output_path.absolute())

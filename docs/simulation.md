@@ -2,7 +2,7 @@
 
 Last Reviewed: 2026-09-11
 
-현재 simulation은 WIP이다. #74용 별도 생성기 `src/simulation/marker_fixtures.py`는 실제 `data.time`, 갱신된 body origin/COM/회전을 기록하고 정상 정답과 고장 관측을 분리한다. 기존 GUI의 `data_exporter.py`에는 고정 미분 간격, 0 회전 저장, 입력 history 변경 문제가 남아 있어 정답 생성 경로에서 제외했다. 명세와 실행 방법은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md), 검증 결과와 한계는 [조사 결과](analysis/reference/marker_flip_review_findings.md)를 따른다. 아래 물리 결과 설명은 실제 실험 정확도 보장이 아니다.
+현재 simulation은 WIP이다. #74용 별도 생성기 `src/simulation/marker_fixtures.py`는 실제 `data.time`, 갱신된 body origin/COM/회전을 기록하고 정상 정답과 고장 관측을 분리한다. 기존 GUI의 `data_exporter.py`도 실제 시각·회전을 비파괴적으로 저장하도록 보완했다. 이 직접 `.proc` 출력은 분석 solver를 실행한 결과가 아니며 #74의 독립 관측/정답 경로를 대체하지 않는다. 명세와 실행 방법은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md), 검증 결과와 한계는 [조사 결과](analysis/reference/marker_flip_review_findings.md)를 따른다. 아래 물리 결과 설명은 실제 실험 정확도 보장이 아니다.
 
 본 문서는 MuJoCo 엔진을 활용하여 박스 낙하 실험을 시뮬레이션하고 데이터를 생성하는 기능에 대한 공식 문서입니다.
 
@@ -62,18 +62,27 @@ Last Reviewed: 2026-09-11
 > - `/root/BoxMotionAnalyzer/src/simulation/scenarios.py`
 
 ### 2.3 데이터 익스포터 (Digital Twin Data Pipeline) (`src/simulation/data_exporter.py`)
-현재 exporter는 위치 이력으로 속도·가속도를 계산하고 `.proc`를 저장한다. 실제 샘플 시간과 회전 정답의 완전성이 확인되지 않았으므로 1000 Hz 정답 데이터 또는 완전한 분석 호환성을 주장하지 않는다.
-- **포맷 구조:**
-  - 3-level Multi-index Header 구조 (`Variable`, `Point`, `Component`).
-  - 포함 데이터: 질량 중심(Center_V, Center_A), 8개 모서리 꼭짓점 위치/속도/가속도 (C1~C8), Analysis Data(프레임별 분석 정보).
-- **제한:** Parser를 통과하지 않는 별도 경로다. 현재 구현의 고정 dt, 회전 누락과 body origin/COM 의미를 해결하기 전에는 이 출력으로 #74의 정답을 만들지 않는다.
+Exporter `simulation-pose-actual-time-v1`은 엔진의 기록을 변경하지 않고 `.proc`를 만든다. 같은 history를 같은 exporter 또는 새 exporter로 반복 저장한 무노이즈 결과는 동일하다.
+
+- 실제 `time`은 초 단위이며 유한하고 엄격히 증가해야 한다. 빈 기록, 중복·역행·NaN·무한대 시각은 저장 전에 오류가 된다. 고정 1/120초로 대체하지 않는다.
+- 월드 벡터는 `A=[[1,0,0],[0,0,1],[0,-1,0]]`로 변환한다. 박스 로컬 축과 코너 정의는 유지하므로 `R_app=A R_mujoco`이다. 양쪽 기저를 바꾸는 `A R A^T`를 적용하면 이 로컬 코너와 맞지 않는다.
+- `Position/CoM/P_TX,P_TY,P_TZ`는 기존 기하 중심/body origin을 유지한다. 실제 질량 중심은 `Simulation/InertialCOM/X_mm,Y_mm,Z_mm`에 별도로 기록한다. 두 위치의 차이는 회전된 로컬 COM offset이다.
+- `Position/CoM/P_RX,P_RY,P_RZ`는 분석 solver와 같은 **회전벡터(rad)**이다. Euler 각이 아니다. `Simulation/BodyPose/QW,QX,QY,QZ`에는 정규화하고 인접 내적이 음수일 때 부호를 바꾼 `wxyz` 쿼터니언을 기록한다. 회전벡터의 ±π 표현 경계를 미분하지 않는다.
+- GUI 초기 방향의 Fixed X/Y/Z는 MuJoCo 월드에서 적용하는 extrinsic `xyz`, degree 표시다. Euler 시계열 export/unwrap은 추가하지 않는다. Euler는 ±180° 분기와 gimbal lock에서 표현이 유일하지 않으므로 물리 각속도의 근거로 쓰지 않는다.
+- 선속도는 `(p[i]-p[i-1])/dt[i]`의 뒤쪽 구간 평균이다. 가속도는 연속 구간 평균 속도의 차이를 두 구간 중점 간격 `(dt[i-1]+dt[i])/2`로 나눈 값이다. 결과는 구간 끝 행에 붙이지만 순간 미분 정답이라고 주장하지 않는다. 첫 속도 행과 첫 두 가속도 행은 NaN이다. 단일 샘플은 자세만 유효하다.
+- 각속도는 `rotvec(R[i] R[i-1]^-1)/dt[i]`로 구한 **Y-up 월드 좌표계 rad/s** 구간 회전율이다. `Global_V_RX/RY/RZ`와 norm에 저장한다. 각가속도는 이 월드 벡터 차이를 같은 중점 간격으로 나눈 rad/s²이고 `Global_A_RX/RY/RZ`에 저장한다. 박스 로컬 각속도로 오해하지 않는다. 회전축이 구간 내 변하는 경우 유한 구간 추정량이다.
+- 쿼터니언 부호만 반전되면 운동은 0이다. 충분히 샘플링된 실제 180° 회전과 여러 바퀴 회전은 계속 운동으로 기록된다. 연속 샘플 사이 실제 회전이 π 이상이면 shortest-arc에서 방향/회전 수가 모호해진다. 저장 pose만으로 그 aliasing을 복원하거나 검출한다고 주장하지 않는다.
+- optional Gaussian noise는 Y-up **corner 관측**에만 적용하고 corner 속도·가속도도 그 관측에서 계산한다. body pose와 실제 COM은 무노이즈 simulation truth를 유지하므로 noisy corners와 강체 일치하지 않는다. 입력 history는 그대로다. local PCG64 RNG와 명시적 seed로 반복 가능하며 GUI 기본 seed는 0이다. 이 노이즈는 센서 교정 모델이 아니다.
+- `Info/Artifact`는 synthetic 출처와 알고 있는 치수·좌표·단위·생성 버전만 선언한다. model/layout/ISTA Type/t1/Analysis 처리 기록은 만들지 않는다. 실제 실행 설정은 `Info/Simulation`에 별도로 기록하며 통계 비교를 허용하는 Analysis 설정 지문을 대체하지 않는다. 기존 출력의 출처를 소급 추정하지 않는다.
+
+정확한 tuple/type/결측 및 소비자 정책은 [결과 스키마](analysis/reference/result_schema_notes.md)의 Simulation 항목을 따른다. 수학/필드 근거: [SciPy rotation vector](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.as_rotvec.html), [Euler convention and singularity](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.as_euler.html), [MuJoCo mjData의 xpos/xipos/xquat](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata).
 
 ### 2.4 시뮬레이션 GUI (`src/simulation/ui/main_window.py`)
 메인 런처의 **[Simulation] 탭**에서 마우스 클릭만으로 손쉽게 시뮬레이션을 수행하고 `.proc` 파일로 저장할 수 있습니다.
 1. 박스 크기(Width, Depth, Height)와 질량(Mass), 마찰 및 Contact damping control 입력.
 2. 낙하 높이(Drop Height, mm) 및 낙하 자세 시나리오 선택.
 3. **Simulation Duration(s):** 시뮬레이션을 몇 초 동안 실행할지 설정할 수 있습니다. (기본 2초. 낙하 높이가 높을 경우 시간을 늘려야 합니다.)
-4. [Run Simulation] 클릭 시 백그라운드에서 물리 연산 후 `.proc` 저장.
+4. [Run Current Sequence]를 누르고 저장 파일을 선택한다. Show 3D Viewer를 끄면 SimulationThread가 실행·저장하고, 켜면 기존 MuJoCo viewer 경로를 사용한다.
 5. 이후 메인 [Analysis & Visualization] 탭에서 생성된 파일을 로드하여 3D 시각화 가능.
 
 현재 GUI의 `Roll / Pitch / Yaw` 값은 표준 시나리오를 선택했을 때 **자동 계산된 결과를 보여주는 필드**로 이해해야 합니다.  
@@ -117,3 +126,17 @@ Last Reviewed: 2026-09-11
 `condim=4`는 법선·접선 마찰과 비틀림 마찰을 포함하지만 구름 마찰은 포함하지 않는다. box margin 5 mm는 접촉 활성 거리이며 둥근 모서리 반경이 아니다. 연성 접촉에서는 기하학적 관통이 발생할 수 있다. 설정과 의미는 [MuJoCo contact 모델](https://mujoco.readthedocs.io/en/stable/computation/index.html#contact)과 [solref](https://mujoco.readthedocs.io/en/stable/modeling.html#solver-parameters)를 따른다.
 
 공개 fixture는 관측 오류와 분석 흐름의 합성 검증용이다. 실제 포장재 변형·충격 내구성·ISTA 합격 여부를 예측하는 검증된 디지털 트윈으로 취급하지 않는다. 구체적인 입력과 결과는 위 fixture 계약과 조사 결과에 기록한다.
+
+## 6. #81 exporter 실행 확인 (2026-09-11)
+
+| 입력 | 기대 결과 | 확인 결과 |
+|---|---|---|
+| 해석적 stationary, X/Y/Z, composite, 불규칙 dt, 720° 회전, quaternion 부호 반전 | 실제 dt 미분, 코너/회전 일치, 부호만의 가짜 운동 없음 | `tests/test_simulation_export.py`로 확인. 단위 계약 근거이며 실측 정확도 근거가 아님 |
+| 같은 history 반복 export, seed 12/13 noise, invalid time | 원본 불변, 같은 seed 재현, 다른 seed 관측 변화, invalid time 거부 | 저장 bytes/배열 및 corner 관측 미분 확인 |
+| 1/2/63행 export→DataLoader→DataHandler, 구형 norm 열 누락 | 초기 미확정 norm 결측 유지, 유효 성분으로만 구형 fallback | 독립 리뷰에서 발견한 전부 NaN→0 변조 수정. 명시된 norm은 그대로 보존하고, 열이 없을 때만 세 성분이 모두 유한한 행에서 계산 |
+| 실제 MuJoCo 200×120×80mm, COM offset (3,-4,2)mm, 15 samples | body pose·8 corners·inertial COM round-trip | 최대 좌표 오차 1e-10mm 이내의 수치 검사 통과 |
+| 실제 SimulationUI 공개 박스, 1kg, 100mm 낙하, 초기 xyz (20,35,-15)°, 0.5s, noise OFF | Run→파일 선택→저장→production 3D 재열기, 실제 비영 회전, synthetic 표시 | 63행, 실제 dt 0.008s, 자세 변화 0.721727rad, 코너 재구성 최대 오차 2.274e-13mm. t1/Analysis identity 없음을 표시하고 개별 조회만 허용 |
+
+GUI 검사는 실제 Qt widget/worker/file dialog 및 VTK renderer를 실행한다. widget 화면의 native VTK 부분은 Windows grab에서 검게 잡혀 별도 `plotter.screenshot` 원본으로 8개 꼭짓점 표시를 확인했다. 영상은 만들지 않았다. 첫 단위 검사 시 새 작업 트리의 tmp 부모 폴더가 없어 setup 오류가 났고, 부모 폴더 생성 후 동일 검사로 통과했다. 회귀 범위는 두 `test_simulation_export*.py` 파일이며 전체 #74 matrix를 반복하지 않는다.
+
+남은 항목: 독립 코드·물리 리뷰, 최종 커밋 CI, 기존 interactive MuJoCo viewer/batch의 별도 실행 확인, 알려진 실제 회전 사례와의 축/부호 교정. 이 결과는 실제 OptiTrack/ISTA 포장 물리 검증 또는 #81 전체 완료가 아니다. 다음 한 작업은 이 exporter 범위의 독립 리뷰와 해당 회귀 검사이며, #75/#77/#82 전체 작업으로 확대하지 않는다.

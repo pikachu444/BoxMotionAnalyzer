@@ -7,6 +7,8 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] Implement bounded #81 SimulationUI exporter actual-time/pose/non-destructive path. Details and input/expected/actual evidence are in `../../simulation.md`; direct Simulation output remains synthetic and does not claim Analysis processing or real validation.
+- [ ] Complete independent code/physics review and final-head CI for the #81 exporter; real orientation convention checks and interactive viewer/batch execution remain pending. Do not close #81 from public synthetic tests alone.
 - [O] Implement Issue #74 v3 analysis face-assignment mechanics (issue remains open).
   - Keep every event OFF until explicit operator approval.
   - Separate recommendation axis from operator-selected axis.

@@ -250,7 +250,7 @@ class SimulationThread(QThread):
             history = self.engine.run_simulation(show_viewer=False, stop_condition_time=self.params['duration'])
 
             # 3. Export
-            exporter = DataExporter(history, self.params['add_noise'], self.params['noise_std'])
+            exporter = DataExporter.from_engine(history, self.engine, self.params)
             output_path = exporter.export_proc_csv(self.filepath)
 
             self.finished_signal.emit(output_path)
@@ -515,7 +515,8 @@ class SimulationUI(QWidget):
         group = QGroupBox("Noise Simulation")
         layout = QVBoxLayout(group)
 
-        self.noise_cb = QCheckBox("Add Gaussian Noise to simulate real MoCap sensor")
+        self.noise_cb = QCheckBox("Add synthetic Gaussian noise to corner positions")
+        self.noise_cb.setToolTip("Seed 0 for repeatable stress data, not calibrated sensor noise. Body pose remains simulation truth.")
         self.noise_std_input = QDoubleSpinBox()
         self.noise_std_input.setRange(0.01, 100)
         self.noise_std_input.setValue(1.0)
@@ -597,7 +598,7 @@ class SimulationUI(QWidget):
                 engine.set_initial_state(params['height'], params['quat'])
                 history = engine.run_simulation(show_viewer=True, stop_condition_time=params['duration'])
 
-                exporter = DataExporter(history, params['add_noise'], params['noise_std'])
+                exporter = DataExporter.from_engine(history, engine, params)
                 output_path = exporter.export_proc_csv(filepath)
 
                 self.on_sim_finished(output_path)
