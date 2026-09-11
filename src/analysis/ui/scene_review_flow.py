@@ -6,8 +6,10 @@ from pathlib import Path
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
-from src.analysis.pipeline.scene_detection import detect_scenes, Registration
+from src.analysis.pipeline.scene_detection import detect_scenes, Registration, DetectionSettings
 from src.analysis.pipeline.scene_review import SceneReviewSession
+from src.analysis.pipeline.scene_workspace import (save_workspace, read_workspace,
+    workspace_source_path, restore_session)
 from src.analysis.pipeline.support_motion import EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL
 from src.analysis.pipeline.artifact_io import (_sha256_file, save_slice_file,
     build_slice_default_name, DEFAULT_SLICE_PADDING_ROWS)
@@ -19,14 +21,16 @@ class SceneDetectionWorker(QThread):
     failed = Signal(str)
     cancelled = Signal()
 
-    def __init__(self, header, raw, parsed, registration, parent):
+    def __init__(self, header, raw, parsed, registration, parent, *, settings=None):
         super().__init__(parent)
         self.header, self.raw, self.parsed = deepcopy(header), raw.copy(deep=True), parsed.copy(deep=True)
         self.registration = deepcopy(registration)
+        self.settings = settings
 
     def run(self):
         try:
             result = detect_scenes(self.header, self.raw, self.parsed, registration=self.registration,
+                                   settings=self.settings,
                                    cancelled=self.isInterruptionRequested)
             if self.isInterruptionRequested():
                 self.cancelled.emit()
@@ -45,10 +49,13 @@ class SceneReviewFlow:
         self.scene_registration = None
         self.scene_session = None
         self._selecting_scene = False
+        self._workspace_open_context = None
 
     def _connect_scene_signals(self):
         panel = self.scene_panel
         panel.detect_button.clicked.connect(self.detect_scene_candidates)
+        panel.open_review_button.clicked.connect(self.open_scene_review)
+        panel.save_review_button.clicked.connect(self.save_scene_review)
         panel.geometry_button.clicked.connect(self.load_scene_geometry)
         panel.add_button.clicked.connect(self.add_scene_range)
         panel.save_all_button.clicked.connect(self.save_included_scenes)
@@ -81,6 +88,8 @@ class SceneReviewFlow:
         self.scene_panel.detect_button.setEnabled(ready or self.scene_busy)
         self.scene_panel.detect_button.setText('Cancel detection' if self.scene_busy else 'Detect scenes')
         self.scene_panel.geometry_button.setEnabled(ready)
+        self.scene_panel.open_review_button.setEnabled(not busy and not self.marker_review_dirty)
+        self.scene_panel.save_review_button.setEnabled(ready and self.scene_session is not None)
         self.scene_panel.table.setEnabled(not busy)
         for widget in (self.scene_panel.type_combo, self.scene_panel.edition_combo,
                        self.scene_panel.add_button, self.scene_panel.remove_button,
@@ -111,6 +120,8 @@ class SceneReviewFlow:
 
     def detect_scene_candidates(self):
         if self.scene_busy:
+            if self._workspace_open_context is not None:
+                self._workspace_open_context['cancelled'] = True
             self.scene_worker.requestInterruption()
             return
         if self.scene_worker is not None and self.scene_worker.isRunning():
@@ -120,7 +131,8 @@ class SceneReviewFlow:
             self.scene_busy = True
             self._update_scene_gates()
             self.scene_worker = SceneDetectionWorker(self.header_info, self.raw_data, self.parsed_data,
-                                                     self.scene_registration, self)
+                self.scene_registration, self,
+                settings=self.scene_session.result.settings if self.scene_session else None)
             self.scene_worker.completed.connect(self._finish_scene_detection)
             self.scene_worker.failed.connect(self._scene_detection_failed)
             self.scene_worker.cancelled.connect(self._scene_detection_cancelled)
@@ -140,14 +152,7 @@ class SceneReviewFlow:
             panel = self.scene_panel
             panel.session = self.scene_session
             self.scene_session.set_context(panel.type_combo.currentText(), panel.edition_combo.currentData())
-            while self.combo_plot_axis.count() > 3:
-                self.combo_plot_axis.removeItem(3)
-            for name in result.signals:
-                self.combo_plot_axis.addItem(name, name)
-            if result.registration and result.registration.floor_y_mm is not None:
-                for name in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
-                    self.combo_plot_axis.addItem(name, name)
-            self.combo_plot_axis.setCurrentIndex(3)
+            self._populate_scene_signals(result)
             active = next((r['id'] for r in self.scene_session.rows if r['motion'] != 'stationary'), None)
             panel.refresh(panel.selected_id() or active)
             self.append_log(f'[INFO] Detected {len(result.candidates)} observed intervals. Type and item remain unconfirmed.')
@@ -155,12 +160,138 @@ class SceneReviewFlow:
             self._scene_detection_failed(str(exc))
         self._update_scene_gates()
 
+    def _populate_scene_signals(self, result, selected=None):
+        self.combo_plot_axis.blockSignals(True)
+        try:
+            while self.combo_plot_axis.count() > 3:
+                self.combo_plot_axis.removeItem(3)
+            for name in result.signals:
+                self.combo_plot_axis.addItem(name, name)
+            if result.registration and result.registration.floor_y_mm is not None:
+                for name in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
+                    self.combo_plot_axis.addItem(name, name)
+            index = self.combo_plot_axis.findData(selected) if selected is not None else -1
+            self.combo_plot_axis.setCurrentIndex(index if index >= 0 else 3)
+        finally:
+            self.combo_plot_axis.blockSignals(False)
+        self.update_plot()
+
+    def save_scene_review(self):
+        if self.scene_busy or self.scene_session is None:
+            return
+        try:
+            self._validate_scene_source()
+            default = str(Path(self.source_path).with_suffix('.scene-review.json'))
+            path, _ = QFileDialog.getSaveFileName(self, 'Save scene review', default,
+                                                  'Scene review (*.scene-review.json)')
+            if not path:
+                return
+            save_workspace(path, self.scene_session, self.source_path, self._read_box_dimensions(),
+                           registration=self.scene_registration,
+                           selected_id=self.scene_panel.selected_id(),
+                           targets=self.current_selected_targets,
+                           signal=self.combo_plot_axis.currentData())
+            self.scene_panel.save_review_button.setToolTip(str(Path(path).resolve()))
+            self.append_log(f'[INFO] Scene review saved: {path}')
+        except Exception as exc:
+            self.append_log(f'[ERROR] Save review: {exc}')
+
+    def open_scene_review(self):
+        if self.scene_busy or self.marker_review_dirty:
+            return
+        path, _ = QFileDialog.getOpenFileName(self, 'Open scene review', '',
+                                              'Scene review (*.scene-review.json)')
+        if not path:
+            return
+        try:
+            data = read_workspace(path)
+            source = workspace_source_path(path, data)
+            if not source.is_file():
+                located, _ = QFileDialog.getOpenFileName(self, 'Locate capture', str(Path(path).parent),
+                                                         'Capture (*.csv)')
+                if not located:
+                    return
+                source = Path(located)
+            if _sha256_file(source) != data['source']['sha256']:
+                raise ValueError('Capture contents differ from the saved review.')
+            preview = self._prepare_csv_preview(str(source))
+            if preview['source_sha256'] != data['source']['sha256']:
+                raise ValueError('Capture changed while loading the review.')
+            registration = Registration(**data['registration']) if data['registration'] else None
+            settings = DetectionSettings(**data['settings'])
+            self._workspace_open_context = dict(path=path, source=str(source), data=data,
+                                                preview=preview, cancelled=False)
+            self.scene_busy = True
+            self._update_scene_gates()
+            self.scene_worker = SceneDetectionWorker(preview['header_info'], preview['raw_data'],
+                preview['parsed_data'], registration, self, settings=settings)
+            self.scene_worker.completed.connect(self._finish_workspace_open)
+            self.scene_worker.failed.connect(self._scene_detection_failed)
+            self.scene_worker.cancelled.connect(self._scene_detection_cancelled)
+            self.scene_worker.finished.connect(self._update_scene_gates)
+            self.scene_worker.start()
+        except Exception as exc:
+            self._workspace_open_context = None
+            self.scene_busy = False
+            self.append_log(f'[ERROR] Open review: {exc}')
+            self._update_scene_gates()
+
+    def _finish_workspace_open(self, result):
+        context = self._workspace_open_context
+        if context is None:
+            return
+        if context['cancelled']:
+            self._scene_detection_cancelled()
+            return
+        try:
+            data, source, preview = context['data'], context['source'], context['preview']
+            source_hash = _sha256_file(source)
+            session, changed = restore_session(data, result, source_hash)
+            # All reads and evidence checks finish before replacing active work.
+            self._apply_csv_preview(source, preview, emit=False)
+            self.scene_session, self.scene_registration = session, result.registration
+            panel = self.scene_panel
+            panel.session = session
+            for edit, value in zip((self.le_box_l, self.le_box_w, self.le_box_h), data['box_dims_mm']):
+                edit.setText(str(value))
+            for combo in (panel.type_combo, panel.edition_combo):
+                combo.blockSignals(True)
+            try:
+                panel.type_combo.setCurrentText(session.ista_type)
+                if panel.edition_combo.findData(session.applied_edition) < 0:
+                    panel.edition_combo.addItem(session.applied_edition, session.applied_edition)
+                panel.edition_combo.setCurrentIndex(panel.edition_combo.findData(session.applied_edition))
+            finally:
+                for combo in (panel.type_combo, panel.edition_combo):
+                    combo.blockSignals(False)
+            if self.scene_registration:
+                panel.geometry_button.setText('Geometry loaded')
+                panel.geometry_button.setToolTip('Registered geometry from ' + context['path'])
+            available = self.data_loader.get_plottable_targets(self.parsed_data)
+            self.current_selected_targets = [name for name in data['view'].get('targets', []) if name in available]
+            self.selected_data_label.setText('Selected: ' + ', '.join(self.current_selected_targets))
+            self._populate_scene_signals(result, data['view']['signal'])
+            panel.refresh(data['view']['selected_id'])
+            self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
+            self.append_log(f"[INFO] Scene review opened: {context['path']}")
+            if changed:
+                self.append_log(f'[INFO] Recheck changed evidence: {", ".join(sorted(changed))}')
+        except Exception as exc:
+            self.append_log(f'[ERROR] Open review: {exc}')
+        finally:
+            self._workspace_open_context = None
+            self.scene_busy = False
+            self._update_scene_gates()
+
     def _scene_detection_failed(self, message):
+        operation = 'Open review' if self._workspace_open_context else 'Scene detection'
+        self._workspace_open_context = None
         self.scene_busy = False
-        self.append_log(f'[ERROR] Scene detection: {message}')
+        self.append_log(f'[ERROR] {operation}: {message}')
         self._update_scene_gates()
 
     def _scene_detection_cancelled(self):
+        self._workspace_open_context = None
         self.scene_busy = False
         self.append_log('[INFO] Detection cancelled; existing ranges were kept.')
         self._update_scene_gates()
@@ -185,6 +316,11 @@ class SceneReviewFlow:
     def _invalidate_scene_evidence(self, reason):
         if self.scene_session:
             for row in self.scene_session.rows:
+                if row['decision'] != 'unreviewed':
+                    row['previous_review'] = {'decision': row['decision'],
+                        'identity': deepcopy(row['identity']), 'reasons': [reason]}
+                elif 'previous_review' in row and reason not in row['previous_review']['reasons']:
+                    row['previous_review']['reasons'].append(reason)
                 row['evidence_status'], row['decision'] = reason, 'unreviewed'
                 row['motion_geometry'] = {'version': 1, 'status': reason}
                 self.scene_session._reset_identity(row)

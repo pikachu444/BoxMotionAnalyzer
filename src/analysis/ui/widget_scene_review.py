@@ -21,13 +21,15 @@ class SceneReviewWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         tools = QHBoxLayout()
         self.detect_button = QPushButton('Detect scenes')
+        self.open_review_button = QPushButton('Open review...')
+        self.save_review_button = QPushButton('Save review...')
         self.geometry_button = QPushButton('Geometry...')
         self.geometry_button.setToolTip('Optional marker coordinates in box axes, floor height and COM.')
         self.add_button = QPushButton('Add range')
         self.remove_button = QPushButton('Remove')
         self.include_button = QPushButton('Include')
         self.exclude_button = QPushButton('Exclude')
-        for button in (self.detect_button, self.geometry_button, self.add_button,
+        for button in (self.detect_button, self.open_review_button, self.save_review_button, self.geometry_button, self.add_button,
                        self.remove_button, self.include_button, self.exclude_button):
             tools.addWidget(button)
         self.motion_summary = QLabel()
@@ -105,11 +107,17 @@ class SceneReviewWidget(QWidget):
                 details += ' Capture boundary or tracking gap cuts this interval.'
             if row['evidence_status'] != 'current':
                 labels[3] = 'Re-detect after edit'
+            previous = row.get('previous_review')
+            if previous and row['decision'] == 'unreviewed':
+                labels[5] = 'Review again'
             for j, label in enumerate(labels):
                 item = QTableWidgetItem(label)
                 item.setToolTip(f"{row['start']!r}–{row['end']!r} s\n{details}" if j < 5 else
                                 str(row.get('geometry', {})) + '\n' + row.get('sequence_evidence', '')
                                 + '\n' + row.get('eligibility_condition', ''))
+                if j == 5 and previous:
+                    item.setToolTip('Saved decision: ' + previous['decision'] + '\n'
+                                    + '\n'.join(previous['reasons']))
                 self.table.setItem(i, j, item)
         self.table.blockSignals(False)
         self.count_label.setText(f"{sum(r['decision'] != 'unreviewed' for r in rows)} / {len(rows)} reviewed" if rows else 'No scenes')
