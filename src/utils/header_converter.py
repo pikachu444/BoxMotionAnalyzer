@@ -12,6 +12,7 @@ from src.config.data_columns import (
     DropPostureSummaryCols,
     TimeCols,
     TimelineMetaCols,
+    MarkerCorrectionMetaCols,
 )
 
 
@@ -48,6 +49,58 @@ def get_conversion_rules() -> list:
          lambda m: (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_SLICE_START_SEC)),
         (re.compile(f"^{TimelineMetaCols.SLICE_END_SEC}$"),
          lambda m: (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_SLICE_END_SEC)),
+
+        (re.compile(f"^{MarkerCorrectionMetaCols.CONTEXT_JSON}$"),
+         lambda m: (HeaderL1.INFO, HeaderL2.MARKER_CORRECTION, "ContextJson")),
+        # Marker correction decision history and provenance
+        (re.compile(f"^{MarkerCorrectionMetaCols.SCHEMA_VERSION}$"),
+         lambda m: (
+             HeaderL1.INFO,
+             HeaderL2.MARKER_CORRECTION,
+             HeaderL3.MARKER_CORRECTION_SCHEMA_VERSION,
+         )),
+        (re.compile(f"^{MarkerCorrectionMetaCols.ALGORITHM_VERSION}$"),
+         lambda m: (
+             HeaderL1.INFO,
+             HeaderL2.MARKER_CORRECTION,
+             HeaderL3.MARKER_CORRECTION_ALGORITHM_VERSION,
+         )),
+        (re.compile(f"^{MarkerCorrectionMetaCols.ORIGINAL_SOURCE}$"),
+         lambda m: (
+             HeaderL1.INFO,
+             HeaderL2.MARKER_CORRECTION,
+             HeaderL3.MARKER_CORRECTION_ORIGINAL_SOURCE,
+         )),
+        (re.compile(f"^{MarkerCorrectionMetaCols.ORIGINAL_SOURCE_SHA256}$"),
+         lambda m: (
+             HeaderL1.INFO,
+             HeaderL2.MARKER_CORRECTION,
+             HeaderL3.MARKER_CORRECTION_ORIGINAL_SOURCE_SHA256,
+         )),
+        (re.compile(f"^{MarkerCorrectionMetaCols.REVIEWED_SOURCE}$"),
+         lambda m: (
+             HeaderL1.INFO,
+             HeaderL2.MARKER_CORRECTION,
+             HeaderL3.MARKER_CORRECTION_REVIEWED_SOURCE,
+         )),
+        (re.compile(f"^{MarkerCorrectionMetaCols.EVENT_COUNT}$"),
+         lambda m: (
+             HeaderL1.INFO,
+             HeaderL2.MARKER_CORRECTION,
+             HeaderL3.MARKER_CORRECTION_EVENT_COUNT,
+         )),
+        (re.compile(f"^{MarkerCorrectionMetaCols.APPROVED_EVENT_COUNT}$"),
+         lambda m: (
+             HeaderL1.INFO,
+             HeaderL2.MARKER_CORRECTION,
+             HeaderL3.MARKER_CORRECTION_APPROVED_EVENT_COUNT,
+         )),
+        (re.compile(f"^{MarkerCorrectionMetaCols.EVENTS_JSON}$"),
+         lambda m: (
+             HeaderL1.INFO,
+             HeaderL2.MARKER_CORRECTION,
+             HeaderL3.MARKER_CORRECTION_EVENTS_JSON,
+         )),
 
         # CoM position (optimized pose)
         (re.compile(f"^{PoseCols.POS_X}$"), lambda m: (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_TX)),

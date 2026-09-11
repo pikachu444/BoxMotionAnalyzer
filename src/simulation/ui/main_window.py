@@ -309,20 +309,19 @@ class SimulationUI(QWidget):
         self.mass_input.setRange(0.1, 10000)
         self.mass_input.setValue(25.0)
 
-        # According to ASTM D4521 / TAPPI standards for corrugated board
-        # Kinetic/Static friction is typically 0.4 to 0.6. We default to 0.5.
+        # Uncalibrated contact-model input, not a measured material property.
         self.friction_input = QDoubleSpinBox()
         self.friction_input.setRange(0.0, 5.0)
         self.friction_input.setSingleStep(0.1)
         self.friction_input.setValue(0.5)
-        self.friction_input.setToolTip("Corrugated cardboard typical friction: 0.4 ~ 0.6")
+        self.friction_input.setToolTip("MuJoCo sliding friction input; validate it against the intended surfaces.")
 
-        # Corrugated boxes absorb energy. Restitution (bounciness) is usually low.
+        # Preserve the legacy numeric control while describing its actual mapping.
         self.elasticity_input = QDoubleSpinBox()
         self.elasticity_input.setRange(0.0, 1.0)
         self.elasticity_input.setSingleStep(0.05)
         self.elasticity_input.setValue(0.15)
-        self.elasticity_input.setToolTip("Corrugated cardboard typical restitution: 0.1 ~ 0.2")
+        self.elasticity_input.setToolTip("Sets solref damping ratio = max(0.01, 1 - value), with time constant 0.02 s. This is not a coefficient of restitution.")
 
         self.com_x = QDoubleSpinBox()
         self.com_x.setRange(-2500, 2500)
@@ -335,14 +334,14 @@ class SimulationUI(QWidget):
         self.com_z.setValue(0.0)
 
         self.com_y.setValue(-200.0) # Y is the height axis in legacy, offset here for tumbling
-        self.com_y.setToolTip("A slight offset along the height axis (Y) is required for tumbling to occur during corner drops.")
+        self.com_y.setToolTip("Assumed local COM offset; it can change contact dynamics. It is not required for all tumbling motion.")
 
         form.addRow("Width (Local X, mm):", self.w_input)
         form.addRow("Height (Local Y, mm):", self.d_input)
         form.addRow("Depth/Thickness (Local Z, mm):", self.h_input)
         form.addRow("Mass (kg):", self.mass_input)
         form.addRow("Friction:", self.friction_input)
-        form.addRow("Restitution (Elasticity):", self.elasticity_input)
+        form.addRow("Contact damping control:", self.elasticity_input)
         form.addRow("CoM X Offset (Local mm):", self.com_x)
         form.addRow("CoM Y Offset (Local mm):", self.com_y)
         form.addRow("CoM Z Offset (Local mm):", self.com_z)

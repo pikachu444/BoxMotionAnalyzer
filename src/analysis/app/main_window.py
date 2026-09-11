@@ -38,6 +38,14 @@ class PipelineWorker(QThread):
 
 
 class MainApp(QMainWindow):
+    def closeEvent(self, event):
+        worker = self.original_widget.review_worker
+        if worker is not None and worker.isRunning():
+            event.ignore()
+            self.statusBar().showMessage('Wait for marker review calculation before closing.')
+            return
+        super().closeEvent(event)
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Box Motion Analyzer v2.2")

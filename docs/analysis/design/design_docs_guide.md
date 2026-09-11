@@ -1,6 +1,6 @@
 ﻿# Design Docs Guide
 
-Last Reviewed: 2026-03-18
+Last Reviewed: 2026-09-08
 
 이 문서는 `docs/analysis/design/` 아래 분석 기능 설계 문서를 정리하거나 갱신할 때 참고하는 가이드다.
 

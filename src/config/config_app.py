@@ -72,10 +72,7 @@ FACE_DEFINITIONS = {
 }
 
 # --- Marker Input Configuration (used in AlignBoxInputGenbyExperiment.py) ---
-FACE_PREFIX_TO_INFO = {
-    'F': "FRONT", 'B': "BACK", 'L': "LEFT", 'R': "RIGHT", 'T': "TOP",
-    'FA': "FRONT", 'BA': "BACK", 'M': "BOTTOM"
-}
+from src.config.data_columns import FACE_PREFIX_TO_INFO
 
 # --- Floor Definition and Visualization Parameters ---
 # These parameters define the floor plane in the world coordinate system and

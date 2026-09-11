@@ -2,7 +2,7 @@
 |    컴포넌트 및 기능 명세서 (현재 기준)  |
 =========================================
 
-Last Reviewed: 2026-06-05
+Last Reviewed: 2026-09-08
 
 이 문서는 현재 코드 기준으로 주요 컴포넌트와 책임을 정리한다.
 
@@ -33,12 +33,19 @@ Last Reviewed: 2026-06-05
 *   책임:
     *   원본 CSV 로드
     *   미리보기 플롯 표시
+    *   marker-label discontinuity 후보 탐색과 작업자 검토 흐름 제공
+    *   추천 축과 작업자 승인/선택 축을 별도 상태로 관리
+    *   원본 관측 스트림에서 승인된 이벤트의 마커 XYZ 열 순열을 시간순 누적 계산
+    *   별도 corrected CSV 저장 성공 후에만 활성 입력을 전환
+    *   미저장 검토 상태에서는 `.slice` 저장 차단
     *   박스 크기, 축, 슬라이스 범위 설정
     *   `.slice` 저장 요청
 *   주요 UI 요소:
     *   `Load CSV File...`
     *   `Box Dimensions (mm)`
     *   `Select Data...`
+    *   `Review Candidates...`
+    *   `Save Corrected Source...`
     *   `Slice Range`
     *   `Scene Name`
     *   `Save Scene Slice`
@@ -132,13 +139,33 @@ Last Reviewed: 2026-06-05
 ---
 *   위치: `src/analysis/pipeline/artifact_io.py`
 *   책임:
+    *   corrected source 원자적 저장/읽기
+    *   원본 파일명과 SHA-256, 실제 corrected 파일명, 전체/승인 이벤트 수, 결정 JSON 보존
     *   `.slice` 메타/헤더/row 저장
     *   `.slice` 메타 읽기
     *   `.proc` 저장
     *   processing 결과에 timeline metadata 추가
 
 ---
-### 11. `UniformResampler`
+### 11. `MarkerFlipAnalyzer` / `MarkerFlipReviewDialog`
+---
+*   위치:
+    *   `src/analysis/pipeline/marker_flip.py`
+    *   `src/analysis/ui/dialog_marker_flip_review.py`
+*   `MarkerFlipAnalyzer` 책임:
+    *   tracking gap, freeze/reconnect, marker-label discontinuity, pose jump 후보 통합
+    *   후보별 `None / Local X / Local Y / Local Z` 가설 독립 평가
+    *   orientation residual, marker correspondence, coverage, best-vs-second margin 계산
+    *   v2 호환 순열은 거리 허용치 안의 완전한 비항등 involution만 허용
+    *   새 GUI의 FaceAssignmentAnalyzer는 비대칭/불균등 면 배치에서 XYZ/ID를 유지하고 면 할당을 바꿔 제한된 구간을 실제 재최적화한다. 자동 추천은 검증 대기
+*   `MarkerFlipReviewDialog` 책임:
+    *   모든 이벤트 Apply OFF 기본값 유지
+    *   추천 축과 작업자 선택 축을 분리해 표시
+    *   작업자 override 지원
+    *   경계 전후 안정 구간과 raw/best-hypothesis residual 그래프 표시
+
+---
+### 12. `UniformResampler`
 ---
 *   위치: `src/analysis/pipeline/resampler.py`
 *   책임:
@@ -150,7 +177,7 @@ Last Reviewed: 2026-06-05
 Result Resampling orchestration은 `PipelineController`가 담당한다. `UniformResampler`는 전달받은 최종 result DataFrame의 기존 timestamp를 포함한 채 중간 timestamp row를 보간하는 단일 책임을 유지한다.
 
 ---
-### 12. 분석 모듈 집합
+### 13. 분석 모듈 집합
 ---
 *   위치: `src/analysis/`
 *   주요 구성:
@@ -164,7 +191,7 @@ Result Resampling orchestration은 `PipelineController`가 담당한다. `Unifor
     *   `UniformResampler`
 
 ---
-### 13. 컬럼/헤더 단일 진실원
+### 14. 컬럼/헤더 단일 진실원
 ---
 *   위치: `src/config/data_columns.py`
 *   책임:

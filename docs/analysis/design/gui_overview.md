@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-06-10
+Last Reviewed: 2026-09-11
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -26,6 +26,11 @@ Last Reviewed: 2026-06-10
   - `Load CSV File...`
   - 선택된 파일 경로 표시
   - `Box Dimensions (mm)` 입력
+  - `Marker Flip Review`
+    - `Review Candidates...`
+    - 현재 검토 이벤트 수와 승인 이벤트 수
+    - 현재 활성 원본 또는 corrected CSV 경로
+    - `Save Corrected Source...`
   - 로그 출력 텍스트 영역
 
 ### 2.2. 하단 컨트롤
@@ -45,8 +50,24 @@ Last Reviewed: 2026-06-10
 
 ### 2.3. 주요 동작
 - 파일 로드 시 `DataLoader`와 `Parser`가 즉시 미리보기용 데이터를 준비한다.
+- `Review Candidates...`는 `Rigid Body Marker`의 자세 불연속 후보를 찾고, 각 경계에서 `보정 없음 / 로컬 X 180도 / 로컬 Y 180도 / 로컬 Z 180도` 면 할당 가설을 실제 PoseOptimizer로 다시 계산한다. 계산 중 로드·크기 변경·저장을 잠근다.
+  - 로컬 축은 박스 로컬 주축이며, 실제 물리 회전 원인을 뜻하지 않는다.
+  - 공개 MuJoCo 예제의 계산·저장 검증은 수행했지만 추천 기준 검증은 남아 있어 자동 추천은 계속 보류한다. 모든 이벤트의 `Apply`는 기본 OFF다.
+  - 작업자가 축을 선택하고 승인한다. 대응 마커 쌍은 필요 없지만 모든 마커의 원래 분석 면이 알려져 있어야 한다.
+  - 그래프와 상세 정보는 선택한 축의 실제 재계산 잔차와 면 적합 RMSE를 표시한다. 신뢰 확률이나 실제 마커 대응률이 아니다.
+- 승인된 v3 보정은 XYZ와 ID를 그대로 두고 경계 이후 프레임별 분석 FaceInfo를 변경한다. 실제 물리 마커 좌표의 복원이나 Motive Rigid Body 포즈 수정은 아니다.
+  - 이벤트는 시간순으로 누적 적용한다.
+  - 같은 축을 두 번 적용하면 두 번째 경계 이후 면 할당이 원래대로 돌아온다.
+  - 중간 이벤트를 OFF로 바꾸면 원래 면 할당에서 누적 상태를 다시 계산한다.
+  - v2 열 교환 파일은 기존 의미로 읽는다. 새 면 보정과 혼합하지 않으며 새 검토에는 원본이 필요하다.
+- 원본 CSV는 수정하지 않는다. `Save Corrected Source...`가 별도 corrected CSV를 원자적으로 저장한 뒤 성공한 경우에만 그 파일을 활성 입력으로 전환한다.
+  - 저장을 취소하거나 저장에 실패하면 활성 데이터와 기존 검토 상태는 바뀌지 않는다.
+  - 검토 결정이 저장되지 않은 동안에는 `.slice` 저장을 막아, 화면의 판단과 실제 파일 입력이 어긋나지 않게 한다.
+  - corrected CSV에는 원본 식별·해시·헤더 메타데이터, 박스 크기·원래 면 할당·좌표 정책, 전체 결정과 증거를 기록한다. 크기나 원본이 바뀌면 기존 승인을 재사용하지 않는다.
 - `Save Scene Slice`는 현재 박스 크기, 슬라이스 범위, scene 이름을 사용해 `.slice` 파일을 저장한다.
 - `.slice`는 기존 raw CSV 구조를 유지하지만, 상단 2줄에는 scene / box / timeline metadata를 추가한다.
+- corrected CSV에서 만든 `.slice`는 실제 corrected 파일명을 source로 기록하고, 원본 식별 정보와 전체 marker-correction 결정 이력도 전달한다.
+- v3 corrected CSV를 다시 열면 승인 당시 박스 크기를 복원한다. 면 변경 경계를 넘는 스무딩·미분·결과 보간은 분리하며 경계 미분값을 임의로 채우지 않는다.
 - 저장 시 선택 구간 양옆에 `50 rows` padding을 포함한다.
 
 ## 3. Step 1.5: Slice Processing
@@ -62,6 +83,7 @@ Last Reviewed: 2026-06-10
     - source
     - user range
     - padded range
+    - marker correction 검토 이벤트 수 / 승인 이벤트 수
   - `Box Dimensions (mm)`
     - `.slice` 메타에 저장된 box 치수를 읽어 자동으로 채운다
     - 기본적으로 입력은 비활성화한다
@@ -166,16 +188,18 @@ Last Reviewed: 2026-06-10
 - 현재 구현은 "현재 선택 항목으로 팝업 열기"만 지원하며, 별도 subset 편집 버튼은 노출하지 않는다.
 
 ## 5. 현재 사용자 흐름
-1. Step 1에서 원본 CSV를 로드한다.
-2. 필요한 데이터와 축, 슬라이스 범위를 조정한다.
-3. `.slice`를 저장한다.
-4. Step 1.5에서 저장한 `.slice`를 연다.
-5. 필요하면 Result Resampling factor와 processing mode를 조정한다.
-6. processing을 실행한다.
-7. `.proc`를 저장한다.
-8. Step 2에서 결과 폴더를 선택하고 저장된 `.proc`를 목록에서 연다.
-9. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
-10. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
+1. Step 1에서 원본 CSV 또는 기존 corrected CSV를 로드한다.
+2. 필요한 경우 `Review Candidates...`에서 이벤트별 증거를 확인하고 Apply/축을 결정한다.
+3. 검토 상태가 바뀌었다면 별도 corrected CSV를 저장해 활성 입력으로 전환한다.
+4. 필요한 데이터와 축, 슬라이스 범위를 조정한다.
+5. 활성 입력에서 `.slice`를 저장한다.
+6. Step 1.5에서 저장한 `.slice`를 연다.
+7. 필요하면 Result Resampling factor와 processing mode를 조정한다.
+8. processing을 실행한다.
+9. `.proc`를 저장한다.
+10. Step 2에서 결과 폴더를 선택하고 저장된 `.proc`를 목록에서 연다.
+11. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
+12. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
 
 낙하 자세 비교 지표 확인:
 - Step 1.5 processing 후 저장한 `.proc`에는 `Analysis / DropPosture` frame metric과 `Analysis / DropPostureSummary` summary metric이 포함된다.
@@ -202,3 +226,5 @@ Last Reviewed: 2026-06-10
 3. **Time-History (시계열 비교 플롯):**
    - 하단 박스에 위치하며, 사용자가 선택한 지표의 전체 시계열 데이터를 기준 시간에 맞춰 오버레이하여 보여준다.
    - 툴바는 세로 방향으로 우측에 배치하여 가로 공간 활용도를 높였다.
+
+The v3 loader and corrected/slice writers reject persisted analysis faces that disagree with the complete approved history and original face map. Valid suffix slices retain the cumulative effect of earlier events. Pose processing reports `UnknownFace` or `UnidentifiableGeometry` when face constraints cannot support the local six-DOF fit; unavailable pose/corners do not become detector evidence. This is a conservative local guard, not global uniqueness certification.

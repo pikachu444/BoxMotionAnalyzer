@@ -71,6 +71,10 @@ class Slicer:
         """주어진 시작/종료 값으로 데이터프레임을 슬라이싱하는 내부 헬퍼 메서드."""
         if self.filter_by == 'time':
             time_col = TimeCols.TIME
+            # Metadata and CSV numeric parsers can differ by a few binary ULPs.
+            # Keep inclusive bounds; this is machine precision, not sample padding.
+            tolerance = 8 * np.finfo(float).eps * max(1., abs(start), abs(end))
+            start, end = start - tolerance, end + tolerance
             if df.index.name == time_col:
                 return df.loc[start:end].copy()
             elif time_col in df.columns:

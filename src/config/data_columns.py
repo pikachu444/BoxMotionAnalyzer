@@ -37,6 +37,19 @@ class SourceCols:
 
 
 @dataclass(frozen=True)
+class MarkerCorrectionMetaCols:
+    SCHEMA_VERSION: str = "MarkerCorrection_SchemaVersion"
+    ALGORITHM_VERSION: str = "MarkerCorrection_AlgorithmVersion"
+    ORIGINAL_SOURCE: str = "MarkerCorrection_OriginalSource"
+    ORIGINAL_SOURCE_SHA256: str = "MarkerCorrection_OriginalSourceSha256"
+    REVIEWED_SOURCE: str = "MarkerCorrection_ReviewedSource"
+    EVENT_COUNT: str = "MarkerCorrection_EventCount"
+    APPROVED_EVENT_COUNT: str = "MarkerCorrection_ApprovedEventCount"
+    EVENTS_JSON: str = "MarkerCorrection_EventsJson"
+    CONTEXT_JSON: str = "MarkerCorrection_ContextJson"
+
+
+@dataclass(frozen=True)
 class PoseCols:
     T_PREFIX: str = "P_T"
     R_PREFIX: str = "P_R"
@@ -102,7 +115,8 @@ FACE_PREFIX_TO_INFO = {
     'R': 'Right',
     'T': 'Top',
     'FA': 'Front',
-    'BA': 'Back'
+    'BA': 'Back',
+    'M': 'Bottom'
 }
 
 
@@ -215,6 +229,7 @@ class HeaderL2:
     TIMELINE: str = "Timeline"
     DROP_POSTURE: str = "DropPosture"
     DROP_POSTURE_SUMMARY: str = "DropPostureSummary"
+    MARKER_CORRECTION: str = "MarkerCorrection"
     POSE_SRC: str = "Pose"
     UNKNOWN: str = "Unknown"
 
@@ -266,6 +281,16 @@ class HeaderL3:
     TL_FULL_END_SEC: str = "FullEndSec"
     TL_SLICE_START_SEC: str = "SliceStartSec"
     TL_SLICE_END_SEC: str = "SliceEndSec"
+
+    # Marker correction decision history and provenance
+    MARKER_CORRECTION_SCHEMA_VERSION: str = "SchemaVersion"
+    MARKER_CORRECTION_ALGORITHM_VERSION: str = "AlgorithmVersion"
+    MARKER_CORRECTION_ORIGINAL_SOURCE: str = "OriginalSource"
+    MARKER_CORRECTION_ORIGINAL_SOURCE_SHA256: str = "OriginalSourceSha256"
+    MARKER_CORRECTION_REVIEWED_SOURCE: str = "ReviewedSource"
+    MARKER_CORRECTION_EVENT_COUNT: str = "EventCount"
+    MARKER_CORRECTION_APPROVED_EVENT_COUNT: str = "ApprovedEventCount"
+    MARKER_CORRECTION_EVENTS_JSON: str = "EventsJson"
 
     # Backward-compatible aliases used by existing code paths.
     PX: str = P_TX

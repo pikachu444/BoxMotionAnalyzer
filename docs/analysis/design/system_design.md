@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-06-10
+Last Reviewed: 2026-09-11
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -23,6 +23,13 @@ Last Reviewed: 2026-06-10
 ### 3.1. Step 1: Raw Data Slice
 - 원본 CSV 로드
 - 파싱 기반 미리보기 플롯
+- 선택적 Marker Flip Review
+  - 추적 gap/freeze, 마커 열 재연결, 포즈 불연속 후보 탐색
+  - 각 후보에서 `None / Local X 180 / Local Y 180 / Local Z 180` 가설 비교
+  - 추천 축과 작업자 승인/선택 축 분리
+  - 경계 전후 안정 구간과 orientation residual 시각화
+- 승인된 이벤트의 분석 면 할당을 누적 적용한 별도 v3 corrected CSV 저장 (XYZ/ID 보존)
+- corrected CSV 저장 성공 후에만 활성 입력 전환
 - Plot target / axis 선택
 - Slice Range 지정
 - `.slice` 저장
@@ -57,11 +64,12 @@ Last Reviewed: 2026-06-10
 - `Peak & Point Selection`과 `Export Analysis Input`은 Main Plot 옆 하단 패널에 배치한다.
 
 ### 3.4. Step 간 연결
-- Step 1은 `.slice`를 생성한다.
+- Step 1은 원본 CSV를 보존하고, 필요하면 별도 corrected CSV를 만든 뒤 현재 활성 입력에서 `.slice`를 생성한다.
 - Step 1.5는 `.slice`를 열어 `.proc`를 생성한다.
 - Step 2는 결과 폴더에서 `.proc`를 선택해 연다.
 - `.proc`는 기존 result CSV와 동일한 multi-header 구조를 사용한다.
 - processing 결과에는 Full/Slice timeline metadata가 함께 포함된다.
+- corrected 입력을 사용한 경우 `.slice`와 `.proc`에는 실제 corrected source, 원본 이름/SHA-256, 전체 검토 결정과 승인 수가 함께 전달된다.
 - processing 결과에는 낙하각, 방향 각도, 최저 코너, 기준면 코너 높이 차이, 접촉 상태와 같은 Drop Posture metric도 포함된다.
 
 ## 4. 핵심 설계 원칙
@@ -71,6 +79,8 @@ Last Reviewed: 2026-06-10
 - 실제 분석 순서 제어는 `PipelineController`가 담당한다.
 - Result Resampling처럼 UI/Qt와 무관한 계산 로직은 순수 모듈로 분리한다.
 - processing mode 라벨과 기본 preset 같은 UI 정책은 `src/config/config_analysis_ui.py`에서 관리한다.
+- Marker Flip Review는 분석 결과 포즈를 사후 회전하는 단계가 아니다. Step 1에서 원시 마커 열의 의미를 검토하고 corrected source를 만드는 입력 정리 단계다.
+- `PipelineController`는 corrected CSV에 저장된 v3 행별 면 할당을 사용하며 승인 이력을 다시 적용하지 않는다. v2 열 순열은 별도 호환 경로로 읽는다.
 
 ### 4.2. 컬럼 정의의 중앙 관리
 - 컬럼명, Multi-header 규칙, Results Analyzer 표시 순서는 `src/config/data_columns.py`에서 관리한다.
@@ -81,6 +91,9 @@ Last Reviewed: 2026-06-10
 ### 4.3. 단계 파일 기반 처리
 - 처리 단계 내부는 여전히 DataFrame 기반으로 동작한다.
 - 단, 사용자 workflow 개선을 위해 scene 재사용용 `.slice`와 processed result 재사용용 `.proc`를 도입한다.
+- 입력 파일 흐름은 `original CSV -> optional corrected CSV -> .slice -> .proc`다.
+- v3 corrected CSV는 Rigid Body Marker XYZ와 ID를 보존하고, 승인된 경계 이후의 분석용 면 할당을 바꾼다. 저장과 로딩 시 최초 면 및 전체 승인 이력으로 재구성한 면과 실제 annotation을 대조하여 불일치를 거부한다. 경계 이후만 담은 slice에도 이전 사건의 누적 상태를 검증한다.
+- 여러 이벤트는 시간순 suffix에 누적 적용하며, 매 저장 시 최초 관측 스트림에서 다시 계산해 중간 결정 변경이 뒤쪽 배치에 정확히 반영되도록 한다.
 - `.slice`는 raw CSV 구조를 유지한 scene 파일이다.
 - `.proc`는 기존 result CSV와 같은 multi-header 결과 구조를 사용한다.
 - Result Resampling을 사용하는 경우에는 전체 slice baseline processing 결과를 먼저 만들고, 최종 결과 컬럼을 보간해 새 중간 timestamp row만 merge한다.
@@ -95,6 +108,8 @@ Last Reviewed: 2026-06-10
 ## 5. 주요 컴포넌트
 - `MainApp`
 - `WidgetRawDataProcessing`
+  - 원본/활성/review 기준 데이터 상태를 분리한다.
+  - 검토 결정이 바뀐 상태에서는 `.slice` 생성을 막고 corrected source 저장을 요구한다.
 - `WidgetSliceProcessing`
 - `WidgetResultsAnalyzer`
 - `CompareMainWindow`
@@ -106,6 +121,11 @@ Last Reviewed: 2026-06-10
 - `PlotManager`
 - `PipelineController`
 - `artifact_io`
+  - corrected source의 원자적 저장과 원본 식별 정보/결정 이력 보존을 담당한다.
+- `MarkerFlipAnalyzer` / `FaceAssignmentAnalyzer`
+  - 공통 후보 탐색과 v2 호환 모델을 유지한다. 새 GUI는 면 할당 후 실제 자세를 다시 계산하는 FaceAssignmentAnalyzer를 사용하며 자동 추천은 검증 대기다.
+- `MarkerFlipReviewDialog`
+  - 추천과 승인을 분리해 표시하고, 작업자 override와 안정 구간 그래프를 제공한다.
 - `UniformResampler`
 - `Parser`, `Slicer`, `Smoother`, `PoseOptimizer`, `VelocityCalculator`, `FrameAnalyzer`
 - `DropPosturePostProcessor`
@@ -121,6 +141,7 @@ Last Reviewed: 2026-06-10
 세부 책임은 `component_specs.txt`를 따른다.
 
 ## 6. 현재 설계상 유의점
+- Marker Flip의 v3 mechanics는 독립적으로 선언한 비대칭 합성 배치와 실제 Parser/PoseOptimizer/GUI 저장 흐름으로 확인한다. 자동 추천은 보류 중이며 MuJoCo와 실제 OptiTrack 정답 검증은 남아 있다. 상세 실행 근거와 다음 작업은 `../reference/marker_flip_review_findings.md`, `../reference/marker_flip_fixture_contract.md`를 따른다.
 - `.slice`는 line 0~1에 scene / box / timeline metadata를 가진다.
 - `.slice`는 processing 재개용 파일이며, 원본 `.csv`를 다시 열지 않고 Step 1.5부터 시작할 수 있다.
 - Step 2는 저장된 `.proc`만 직접 열 수 있다.

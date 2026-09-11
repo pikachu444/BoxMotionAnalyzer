@@ -1,6 +1,6 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-06-10
+Last Reviewed: 2026-09-08
 
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
@@ -104,6 +104,32 @@ Last Reviewed: 2026-06-10
 - 실제 충격 접촉 코너는 `FirstImpactContact`와 `ImpactSequence`가 별도로 기록하므로 중복 저장할 필요가 없다.
 - `ApproachReferenceFace` / `ImpactContactFace` 분리는 현재 범위에 포함하지 않는다. 필요하다면 향후 `ImpactContactFace` 컬럼을 `FirstImpactContact`로부터 역산해 추가할 수 있다.
 - 이 결정은 `result_metric_descriptors.py`의 `ReferenceFace` descriptor long_description에도 반영한다.
+
+## 5-2. Marker correction provenance
+
+corrected CSV에서 만든 `.slice`를 처리한 경우 `.proc`에는 아래 provenance가 `(Info, MarkerCorrection, *)` 그룹으로 들어간다. CSV 호환성을 위해 각 값은 모든 결과 row에 반복된다.
+
+- `SchemaVersion`
+  - corrected source와 결정 JSON의 metadata schema version
+- `AlgorithmVersion`
+  - 후보 생성과 추천 evidence를 만든 marker-flip 알고리즘 버전
+- `OriginalSource`
+  - 최초 관측 원본 파일명
+- `OriginalSourceSha256`
+  - 최초 관측 원본 파일의 SHA-256 식별값
+- `ReviewedSource`
+  - 면 할당(v3) 또는 기존 열 순열(v2)이 반영된 corrected CSV 파일명
+- `EventCount`
+  - OFF/거절을 포함한 전체 검토 이벤트 수
+- `ApprovedEventCount`
+  - 작업자가 Apply ON으로 저장한 이벤트 수
+- `EventsJson`
+  - 이벤트별 경계, 추천 축, 추천 사유/evidence, 작업자 승인, 작업자 선택 축, 실제 열 순열, 알고리즘/gate 버전을 보존한 JSON
+
+- `ContextJson`
+  - v3 승인 당시 원본 면, 크기, 좌표 정책, 원본 메타데이터 및 해시
+
+`EventCount`와 `ApprovedEventCount`는 다를 수 있다. OFF 판단도 감사 이력에 남긴다. `PipelineController`는 이 metadata를 보고 포즈를 사후 회전하거나 보정을 재적용하지 않는다. 실제 v3 FaceInfo는 corrected CSV/slice 본문의 annotation에서 읽어 PoseOptimizer에 전달한다. 보정 경계에서는 필터와 미분을 분리하며 경계 미분값은 미확정으로 남긴다.
 
 
 ## 6. 구버전 대비 변경 포인트

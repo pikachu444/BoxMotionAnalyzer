@@ -17,12 +17,30 @@ class DataLoader:
             raise ValueError("CSV 파일에 헤더 정보(최소 7줄)와 데이터(최소 1줄)가 부족합니다.")
 
         header_info = {}
-        header_lines = [line.strip().split(',') for line in lines[2:8]]
+        header_lines = list(csv.reader(lines[2:8]))
         max_len = max(len(line) for line in header_lines)
         padded_headers = [[item.strip() for item in line] + [''] * (max_len - len(line)) for line in header_lines]
         header_keys = ['type', 'name', 'id', 'parent', 'category', 'component']
         for i, key in enumerate(header_keys):
             header_info[key] = padded_headers[i]
+        metadata_row = next(csv.reader([lines[0]]), [])
+        header_info['export_metadata'] = dict(zip(metadata_row[::2], metadata_row[1::2]))
+        header_info['source_rows'] = list(csv.reader(lines[:2]))
+        has_annotations = any(kind == 'Marker Annotation' for kind in header_info['type'])
+        if has_annotations or 'Corrected Source File' in lines[0] or 'Slice File' in lines[0]:
+            from .artifact_io import read_corrected_source_metadata, read_slice_metadata
+            if 'Corrected Source File' in lines[0]:
+                metadata = read_corrected_source_metadata(filepath)
+                schema = metadata.schema_version
+            elif 'Slice File' in lines[0]:
+                metadata = read_slice_metadata(filepath)
+                schema = metadata.correction_schema_version
+            else:
+                raise ValueError('Face annotations require a versioned corrected source or slice.')
+            if has_annotations and schema != '3':
+                raise ValueError('Unsupported face assignment schema.')
+            if schema == '3' and not has_annotations:
+                raise ValueError('Face assignment schema requires annotation columns.')
 
         component_header = header_info['component']
         data_lines_raw = lines[8:]
@@ -52,6 +70,17 @@ class DataLoader:
         self.validate_raw_data(raw_df)
 
         header_info['component'] = component_header
+        if has_annotations:
+            from .artifact_io import validate_face_context
+            from .marker_flip import deserialize_marker_corrections
+            from .face_assignment import validate_materialized_faces
+            if 'Corrected Source File' in lines[0]:
+                context = validate_face_context(metadata.context_json)
+                decisions = metadata.decisions
+            else:
+                context = validate_face_context(metadata.correction_context_json)
+                decisions = deserialize_marker_corrections(metadata.correction_events_json)
+            validate_materialized_faces(header_info, raw_df, decisions, context['base_faces'])
         return header_info, raw_df
 
     def validate_raw_data(self, raw_df: pd.DataFrame) -> None:

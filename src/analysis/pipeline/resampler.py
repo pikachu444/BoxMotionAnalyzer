@@ -18,6 +18,14 @@ class UniformResampler:
         if not np.all(np.diff(original_index) > 0):
             raise ValueError("Resampling requires a strictly increasing time index.")
 
+        from .face_assignment import face_segments
+        segments = face_segments(df)
+        if len(segments) > 1:
+            # No interpolation through an analysis assignment discontinuity.
+            result = pd.concat([self.process(segment) for segment in segments])
+            result[TimeCols.FRAME] = np.arange(len(result), dtype=int)
+            return result
+
         new_size = (len(original_index) - 1) * self.factor + 1
         new_index_parts = []
         for start, end in zip(original_index[:-1], original_index[1:]):
@@ -41,6 +49,12 @@ class UniformResampler:
                         valid.index.to_numpy(dtype=float),
                         valid.to_numpy(dtype=float),
                     )
+                # Do not fabricate certainty next to unavailable derivatives or
+                # other missing numeric samples in the processed input.
+                left = np.clip(np.searchsorted(original_index, new_index, side='right') - 1, 0, len(df) - 1)
+                right = np.clip(np.searchsorted(original_index, new_index, side='left'), 0, len(df) - 1)
+                available = numeric_series.notna().to_numpy()
+                resampled_columns[column][~(available[left] & available[right])] = np.nan
                 continue
 
             expanded = series.reindex(series.index.union(new_index)).sort_index()

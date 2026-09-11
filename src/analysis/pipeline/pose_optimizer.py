@@ -4,7 +4,50 @@ from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation as R
 from typing import Any
 from src.config import config_app, config_analysis
-from src.config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCols, CornerCoordCols
+from src.config.data_columns import (
+    CornerCoordCols,
+    PoseCols,
+    RawMarkerCols,
+    RigidBodyCols,
+    SourceCols,
+    TimeCols,
+)
+
+# A numerical degeneracy guard, not a calibrated accuracy/confidence threshold.
+FACE_RANK_RELATIVE_TOLERANCE = 1e-6
+
+
+def _face_constraint_rank(markers, params, box_dims, face_definitions):
+    """Local rank of signed assigned-face plane constraints in six pose DOFs.
+
+    Translation is in box coordinates; rotation is an infinitesimal local
+    rotation, avoiding rotation-vector singularities at full turns. Distances
+    are scaled by the box diagonal. Edge/bound penalties are deliberately not
+    counted as reliable constraints on an otherwise degenerate face layout.
+    Full rank is necessary for this guard, not proof of global uniqueness.
+    """
+    known = [m for m in markers if m['face_key'] in face_definitions]
+    if not known:
+        return 0
+    normals = np.zeros((len(known), 3))
+    for i, m in enumerate(known):
+        face = face_definitions[m['face_key']]
+        normals[i, face['axis_idx']] = face['direction']
+    if params is None:
+        # Translation must be constrained in three independent directions.
+        return int(np.linalg.matrix_rank(normals))
+    local = R.from_rotvec(params[3:]).inv().apply(np.asarray([m['cam_coords'] for m in known]) - params[:3])
+    centered = (local - local.mean(axis=0)) / np.linalg.norm(box_dims)
+    jacobian = np.column_stack((normals, np.cross(centered, normals)))
+    singular = np.linalg.svd(jacobian, compute_uv=False)
+    return int(np.count_nonzero(singular > singular[0] * FACE_RANK_RELATIVE_TOLERANCE))
+
+
+def _unavailable_pose(frame_index, reason):
+    columns = [PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z, PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]
+    columns += [f'C{i}{suffix}' for i in range(1,9)
+                for suffix in (CornerCoordCols.X_SUFFIX, CornerCoordCols.Y_SUFFIX, CornerCoordCols.Z_SUFFIX)]
+    return {TimeCols.TIME: frame_index, SourceCols.POSE: reason, **dict.fromkeys(columns, np.nan)}
 
 # [병렬 처리 참고]
 # 이 함수들은 PoseOptimizer 클래스 외부에 정의되어야 합니다.
@@ -14,8 +57,8 @@ from src.config.data_columns import PoseCols, RawMarkerCols, SourceCols, TimeCol
 
 def _distance_point_to_box_surface_overall(point_local, box_half_dims):
     """AABB(Axis-Aligned Bounding Box)의 전체 표면에 대한 점의 최단 거리를 계산합니다."""
-    closest_p_on_box = np.clip(point_local, -box_half_dims, box_half_dims)
-    return np.linalg.norm(point_local - closest_p_on_box)
+    delta = np.abs(point_local) - box_half_dims
+    return abs(np.linalg.norm(np.maximum(delta, 0.)) + min(float(np.max(delta)), 0.))
 
 def _distance_point_to_assigned_face_surface_and_bounds(point_local, face_key, box_dims_param, face_definitions):
     """마커에 할당된 특정 면에 대한 거리를, 해당 면의 경계를 고려하여 계산합니다."""
@@ -40,7 +83,8 @@ def _distance_point_to_assigned_face_surface_and_bounds(point_local, face_key, b
 
 def _kabsch_align(P, Q):
     """Kabsch 알고리즘을 사용하여 점 집합 P를 Q에 정렬하는 최적의 회전 벡터를 계산합니다."""
-    if P.shape[0] < 3: return None
+    if P.shape[0] < 3:
+        return None
     centroid_P, centroid_Q = np.mean(P, axis=0), np.mean(Q, axis=0)
     P_centered, Q_centered = P - centroid_P, Q - centroid_Q
     H = P_centered.T @ Q_centered
@@ -125,12 +169,42 @@ class PoseOptimizer:
             'fatol': config_analysis.OPTIMIZER_FATOL
         }
 
-    def process(self, df: pd.DataFrame) -> pd.DataFrame:
+    @staticmethod
+    def _marker_ids(frame_row: pd.Series) -> list[str]:
+        marker_ids = []
+        for column in frame_row.index:
+            if not isinstance(column, str) or not column.endswith(RawMarkerCols.X_SUFFIX):
+                continue
+            marker_id = column[: -len(RawMarkerCols.X_SUFFIX)]
+            if marker_id == RigidBodyCols.BASE_NAME:
+                continue
+            if f"{marker_id}{RawMarkerCols.FACEINFO_SUFFIX}" not in frame_row.index:
+                continue
+            if all(
+                f"{marker_id}{suffix}" in frame_row.index
+                for suffix in (
+                    RawMarkerCols.X_SUFFIX,
+                    RawMarkerCols.Y_SUFFIX,
+                    RawMarkerCols.Z_SUFFIX,
+                )
+            ):
+                marker_ids.append(marker_id)
+        return sorted(set(marker_ids))
+
+    def process(
+        self,
+        df: pd.DataFrame,
+        box_dims: np.ndarray | list[float] | tuple[float, float, float] | None = None,
+        initial_pose: np.ndarray | None = None,
+    ) -> pd.DataFrame:
         if df.empty:
             return df
 
-        # 분석 시점의 전역 box_dims 값을 가져옵니다.
-        box_dims = np.array(config_app.BOX_DIMS)
+        # The normal pipeline uses the active global dimensions. Marker review can
+        # provide an explicit snapshot without mutating application-wide state.
+        box_dims = np.array(config_app.BOX_DIMS if box_dims is None else box_dims, dtype=float)
+        if box_dims.shape != (3,) or not np.isfinite(box_dims).all() or np.any(box_dims <= 0):
+            raise ValueError("Box dimensions must contain three positive finite values.")
 
         # Recalculate local corners based on the current box_dims (User Input)
         # This fixes the bug where stale corners (from app launch) were used.
@@ -138,14 +212,20 @@ class PoseOptimizer:
 
         print(f"[PoseOptimizer INFO] Starting sequential optimization for {len(df)} frames...")
         results = []
-        previous_optimized_params = None
+        previous_optimized_params = None if initial_pose is None else np.asarray(initial_pose, dtype=float)
+        if previous_optimized_params is not None and (
+            previous_optimized_params.shape != (6,) or not np.isfinite(previous_optimized_params).all()
+        ):
+            raise ValueError("Initial pose must contain six finite values.")
 
         for frame_index, frame_row in df.iterrows():
             # 1. 현재 프레임의 유효한 마커 데이터 추출
             markers = []
-            marker_ids = sorted(list(set([c.split('_')[0] for c in frame_row.index if c.endswith((RawMarkerCols.X_SUFFIX, RawMarkerCols.FACEINFO_SUFFIX))])))
+            marker_ids = self._marker_ids(frame_row)
 
-            valid_marker_ids = [mid for mid in marker_ids if f"{mid}{RawMarkerCols.X_SUFFIX}" in frame_row and pd.notna(frame_row[f"{mid}{RawMarkerCols.X_SUFFIX}"])]
+            valid_marker_ids = [mid for mid in marker_ids if np.isfinite(
+                pd.to_numeric(frame_row[[f"{mid}{s}" for s in ("_X", "_Y", "_Z")]], errors="coerce").to_numpy(dtype=float)
+            ).all()]
 
             for mid in valid_marker_ids:
                 face_key_val = frame_row.get(f"{mid}{RawMarkerCols.FACEINFO_SUFFIX}")
@@ -156,8 +236,23 @@ class PoseOptimizer:
                     'face_key': face_key
                 })
 
-            if not markers:
-                results.append({TimeCols.TIME: frame_index})
+            # Even exact point correspondences cannot identify a rigid pose
+            # from fewer than three points. Surface fitting is no stronger;
+            # numerical convergence must not turn this into usable evidence.
+            # Three or more points are necessary, not sufficient for uniqueness.
+            if len(markers) < 3:
+                results.append(_unavailable_pose(frame_index, 'InsufficientData'))
+                previous_optimized_params = None
+                continue
+
+            if any(m['face_key'] not in self.face_definitions for m in markers):
+                results.append(_unavailable_pose(frame_index, 'UnknownFace'))
+                previous_optimized_params = None
+                continue
+
+            if sum(m['face_key'] in self.face_definitions for m in markers) < 6 or _face_constraint_rank(markers, None, box_dims, self.face_definitions) < 3:
+                results.append(_unavailable_pose(frame_index, 'UnidentifiableGeometry'))
+                previous_optimized_params = None
                 continue
 
             # 2. 최적화를 위한 초기값 설정
@@ -176,22 +271,33 @@ class PoseOptimizer:
                         cam_pts.append(m['cam_coords'])
 
                 initial_rot_vec = _kabsch_align(np.array(local_pts), np.array(cam_pts))
-                if initial_rot_vec is None: initial_rot_vec = np.array([0.0, 0.0, 0.0]) # Kabsch 실패 시 기본값
+                if initial_rot_vec is None:
+                    initial_rot_vec = np.array([0.0, 0.0, 0.0])
             else: # 이전 프레임의 결과를 초기값으로 사용
                 initial_T, initial_rot_vec = previous_optimized_params[:3], previous_optimized_params[3:]
 
             initial_params = np.concatenate([initial_T, initial_rot_vec])
+
+            # SciPy's relative default simplex collapses near a zero-valued
+            # translation component. Use physical scales independent of origin.
+            steps = np.r_[np.full(3, float(np.min(box_dims)) * 0.01),
+                          np.full(3, 0.01)]
+            simplex = np.vstack([initial_params, initial_params + np.diag(steps)])
 
             # 3. SciPy를 사용한 최적화 실행
             result = minimize(
                 _objective_function, initial_params,
                 args=(markers, box_dims, self.face_definitions),
                 method='Nelder-Mead',
-                options=self.optimizer_options
+                options={**self.optimizer_options, 'initial_simplex': simplex}
             )
 
             # 4. 결과 저장 및 다음 프레임을 위한 값 업데이트
             optimized_params = result.x
+            if result.success and _face_constraint_rank(markers, optimized_params, box_dims, self.face_definitions) < 6:
+                results.append(_unavailable_pose(frame_index, 'UnidentifiableGeometry'))
+                previous_optimized_params = None
+                continue
             world_corners = _get_box_world_corners(optimized_params, current_local_box_corners)
 
             res_row = {TimeCols.TIME: frame_index}
@@ -214,11 +320,9 @@ class PoseOptimizer:
         # 5. 최종 결과를 원본 DataFrame에 통합
         pose_df = pd.DataFrame(results).set_index(TimeCols.TIME)
         final_df = df.copy()
-        final_df.update(pose_df)
-        # `update`는 기존에 없는 컬럼을 추가하지 않으므로, 수동으로 추가
+        # Replace stale estimates as well, including explicit failed/missing NaN.
         for col in pose_df.columns:
-            if col not in final_df.columns:
-                final_df[col] = pose_df[col]
+            final_df[col] = pose_df[col]
 
         print(f"[PoseOptimizer INFO] Finished sequential processing for {len(df)} frames.")
         return final_df

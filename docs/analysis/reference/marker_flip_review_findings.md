@@ -1,0 +1,173 @@
+# Issue #74: evidence, correction scope, and verification status
+
+Last Reviewed: 2026-09-11
+
+## Decision and evidence
+
+Scope was checked against [#74](https://github.com/pikachu444/BoxMotionAnalyzer/issues/74) and its comments, parent/validation [#73](https://github.com/pikachu444/BoxMotionAnalyzer/issues/73) / [#78](https://github.com/pikachu444/BoxMotionAnalyzer/issues/78), and follow-ups [#79](https://github.com/pikachu444/BoxMotionAnalyzer/issues/79)–[#84](https://github.com/pikachu444/BoxMotionAnalyzer/issues/84). Their proposed thresholds and transforms are requirements to assess, not physical ground truth. This revision implements the subsequently approved face-assignment scope; it does not claim the original XYZ-permutation proposal handles all solved-pose errors.
+
+**Confirmed:** Motive CSV distinguishes measured/reconstructed `Marker` trajectories from solved rigid-body marker constraints (the local Format 1.25 files label these `Rigid Body Marker`). Constraints describe the rigid body's solved pose and calibrated arrangement; they are not independent physical-marker observations and may remain available during occlusion. Source: [OptiTrack CSV export](https://docs.optitrack.com/motive/data-export/data-export-csv), [rigid body tracking](https://docs.optitrack.com/motive/rigid-body-tracking).
+
+**Local evidence:** VDTest_S5_001 has both groups. The previous investigation found 32 channels in each group and 1,062 finite rigid-body poses out of 1,072 frames. Inverse-pose local-coordinate temporal RMSE was approximately 0.000834 mm for constraints and 2.88 mm for measured markers. This supports the solved-constraint interpretation; it does not prove a flip or verify the analysis box origin. Prefix classification gives FRONT 11, BACK 12, LEFT/RIGHT/TOP 3 each, BOTTOM 0. Physical labels and coordinate registration still need independent verification. The existing CSV was already Git-tracked and was preserved; newly derived capture layouts remain local and ignored. The previously reported TestBox_85 78.1% is not a validated detection result.
+
+**Inference:** A pure label permutation can recover coordinates only when the exported columns still contain the desired physical trajectories and a complete, correct correspondence is known. A solved-pose half-turn need not have any partner marker in an asymmetric arrangement. A Hungarian minimum-distance assignment always returns an assignment for a square finite cost matrix; that alone does not establish geometric validity. An admissible legacy mapping must be bijective, within tolerance, nonidentity, and satisfy p(p(i))=i. Partial correspondence is not an excuse to invent missing XYZ values.
+
+**Approved model:** v3 `face_assignment` keeps constraint XYZ and identities, and changes their analysis face labels by a local half-turn. The point-to-assigned-face PoseOptimizer then recomputes the analysis pose. Face counts may differ and markers need not have symmetric partners. This is an interpretation of solver constraints, not restoration of measured physical markers or modification of the exported Motive rigid-body pose. It is suitable only when the chosen box-local half-turn and original face labels describe the error. Unknown faces, different pivot origins, non-half-turn errors, or nonrigid errors are not automatically repaired.
+
+The face objective is a surface-distance fit rather than a fixed landmark fit. Low residual does not guarantee an identifiable pose: poorly distributed faces and flat/degenerate arrangements can leave degrees of freedom weakly constrained. For fixed point correspondences, see [Kabsch, 1976](https://doi.org/10.1107/S0567739476001873); it does not justify treating face centers as known marker positions.
+
+## Thresholds and recommendations
+
+Legacy layout correspondence = fraction of rotated layout markers whose assigned partners fall within tolerance. Event correspondence = fraction of pre/post median pairs within tolerance. Sample coverage = valid samples in the evidence windows. These have different denominators; none measures independent camera visibility for solved constraints. Issue #74's 80% is not sufficiently specified to equate them. A box-diagonal 5% distance tolerance and the weighted orientation/correspondence score have no empirical calibration here. Best-versus-second score margin is not a probability.
+
+The new GUI therefore reports actual bounded re-fit angular residual and face-fit RMSE, keeps operator decisions OFF by default, and withholds automatic recommendations. Candidate generation remains heuristic and may miss events or flag genuine motion. Failed optimizations are excluded, and evidence windows do not bridge invalid samples or abnormally large time steps. Thresholds were not relaxed to make tests pass. Independent known-normal/known-fault data must measure event recall, false positives, boundary offset, axis confusion, pose error and ambiguity before recommending a gate.
+
+## Implementation and reproduced defects
+
+| Trigger / defect | Change | Evidence / remaining limit |
+| --- | --- | --- |
+| Asymmetric layout has no valid XYZ permutation | v3 face assignment, preserving XYZ/IDs | Explicit unequal-face synthetic X/Y/Z tests; not a real-capture validation |
+| Minimum-distance result is outside tolerance or identity | Reject legacy mapping | Legacy mapping tests; no partial pair fabrication |
+| Finite output from failed optimization | Exclude failed Source values from evidence | Failure-source test |
+| Finite X with missing Y/Z | Require all XYZ finite | No invalid marker handed to optimization |
+| Duplicate/reversed time | Reject review instead of treating duplicate samples as evidence | Explicit invalid-time test |
+| Translation near coordinate zero | Physical-scale Nelder–Mead simplex | Original test error 2.81095 mm despite success; fixed without lowering 0.1 mm / 0.1 degree checks |
+| Re-save, OFF changes, or suffix-only slice | Materialized per-row faces and original face context | Repeated materialization and suffix slice round-trip tests |
+| Changed source/dimensions after approval | Bind context/hash and reject stale save | Source-change test; corrected slice dimensions cannot be independently changed |
+| Filtering across a face change | Segment smoothing, differentiation and resampling | Segment-specific regression checks |
+| Legacy integration fixture has no assigned markers but prefilled pose | Replace fixture with explicit healthy constraints and real Parser; missing pose remains unavailable | Do not preserve stale rotations to make a test succeed |
+
+The pre-existing branch was `codex/issue-74-marker-flip-review`, HEAD `2030e9f`, with 15 modified tracked and 6 untracked files, nothing staged, and no PR for that head. Existing work was preserved; an ignored local snapshot is in `tmp/issue74_implementation_baseline/`. The working diff includes that prior implementation as well as this revision. No commit, push, or merge is authorized by implementation approval alone.
+
+## External data availability
+
+The OptiTrack sample archive was checked at file-list level and contains `.tak` simple movement/rotation captures, not a verified labeled flip CSV. Motive export and applicable use terms must be established before using it as a distributable fixture. The 6D-ViCuT Dryad record/README describes PhaseSpace/C3D data with two markers per box; that is not a Motive constraint flip oracle. No useful labeled real flip file was established. Dataset introduction pages and archive listings are not executed validation. Additional broad data collection is not part of this task.
+
+## Acceptance boundaries and next action
+
+The tests in `test_marker_face_assignment.py` exercise the production Parser/PoseOptimizer and versioned file paths with independently declared geometry/half-turn matrices. `test_marker_face_gui_flow.py` drives the real MainApp, real background review, real dialog and file I/O with Qt events. It does not substitute a detector, optimizer, or dialog factory. Native Windows driver attempts were unreliable at the file-dialog focus stage; record Qt-driven GUI verification separately from native manual testing. Local screenshots are ignored and no video is produced.
+
+Executed 2026-09-08: a 100-row, 200×120×80 mm public asymmetric fixture with X solver half-turn at t=0.30 s was loaded in the real MainApp. The actual candidate was at 0.30 s; default approval OFF and no recommendation were verified, then X was approved and saved. Original bytes and all original numeric columns remained unchanged. Corrected source → slice → real processing → proc completed; the result carried ContextJson and the approved event. Independent comparison of that proc gave maximum position error 0.0001095 mm and rotation error 0.0002329 degrees against 0.1 mm / 0.1 degree checks. Boundary velocities at 0.29/0.30 s were unavailable. This validates that particular noiseless mechanics case, not physical-capture accuracy. The initial native click did open the synthetic CSV; repeatable full-flow verification used Qt events. The test-driver filename reset and GIL-starving wait were corrected during verification.
+
+Final focused pipeline run: `test_marker_face_gui_flow.py`, `test_marker_face_assignment.py`, `test_pipeline_integration.py`, `test_velocity_calculator_acceleration.py`, `test_resampler.py`, `test_range_limited_resampling.py`, `test_pipeline_resampling_options.py`, and `test_marker_flip_artifact_io.py` passed together (29 tests). Checks include reloading approved geometry, non-fabricated boundary derivatives, one-row/spline segments, missing XYZ/stale pose, materialized suffix faces and cumulative reversibility. These outcomes, rather than the number of tests, define the verified scope.
+
+Final GUI/compatibility run after adding explicit ON/OFF approval text: production GUI flow, review dialog, raw widget, raw processing, legacy detector, input validation, coordinate configuration and marker smoothing passed together (33 tests plus 5 subtests; the GUI flow overlaps the preceding run). A pre-existing long-filename mock plot test still emits a Matplotlib tight-layout warning. The actual review screenshot shows boundary 0.300000, no recommendation, explicit ON, selected X and the computed residual trace; processed output screenshot shows successful slice processing and save. No remaining failed check is being reported as a pass.
+
+The minimal public MuJoCo integration lane below has now run. Labeled real OptiTrack validation, production calibration and automatic detection accuracy remain open. This does not complete issue #74. Follow the next-task prompt in [marker_flip_fixture_contract.md](marker_flip_fixture_contract.md). PR text must retain these limitations and must not use automatic issue-closing keywords for #74.
+
+## Independent MuJoCo execution, 2026-09-08
+
+MuJoCo 3.6.0, 100 samples at actual 0.008 s intervals, public asymmetric 18-marker layout, 200×120×80 mm, seed 74082. Ground truth records body origin, separate offset COM, and rotation before injection. Faults use explicit local half-turn matrices at frame 30 (0.240 s), then frame 65 (0.520 s) for two-event cases. The generator does not import analysis code. The harness gives production only the observed constraints and explicit geometry; oracle axes emulate manual operator decisions after detection.
+
+| Input / expectation | Actual candidates (s) | Valid pose rows after declared manual actions | Maximum position error (mm) / rotation error (degrees) |
+| --- | --- | --- | --- |
+| Healthy / no correction | none | 100 | 0.0001975 / 0.0002935 |
+| X / frame-30 local X | 0.240 | 100 | 0.0002712 / 0.0002647 |
+| Y / frame-30 local Y | 0.240 | 100 | 0.0002313 / 0.0005515 |
+| Z / frame-30 local Z | 0.240 | 100 | 0.0001851 / 0.0002854 |
+| XX / restore baseline after second event | 0.240, 0.520 | 100 | 0.0002712 / 0.0005620 |
+| XY / cumulative explicitly declared axes | 0.240, 0.520 | 100 | 0.0002712 / 0.0002647 |
+| Gap only / five unavailable rows, no correction | 0.160 gap review | 95 | 0.0002209 / 0.0004395 |
+| Gap then X / separate recovery and flip | 0.160 gap review, 0.240 flip | 95 | 0.0002334 / 0.0002336 |
+| Genuine rotation / no correction | none | 100 | 0.0002053 / 0.0004628 |
+
+All nine pose-mechanics cases met the unchanged 0.1 mm / 0.1 degree numerical gates. Gap review is not a positive flip classification. New automatic recommendations remained disabled in every case; this is not evidence of calibrated recommendation accuracy.
+
+Diagnostic controls: freeze/reconnect produced a review at 0.160 s and up to 52.203 mm raw position error; no repair is claimed. Independent 0.02 mm noise produced no candidates and maximum raw errors 0.032853 mm / 0.045538 degrees for this seed only. Unsupported local 90-degree and arbitrary-axis 180-degree faults produced reviews at 0.240 s, with raw rotation errors about 90 and 180 degrees respectively; no supported correction is claimed. These four reports test abstention policy only, not classification or recovery. Reports identify `validation_scope` accordingly.
+
+The two-constraint control exposed false success: 100 rows were labeled Optimized despite errors up to 151.169 mm / 152.164 degrees, producing an unplanted candidate at 0.624 s. `PoseOptimizer.process` now rejects fewer than three finite XYZ triplets as InsufficientData, clears pose values and resets warm start. Rerun: zero usable poses, zero candidates. This necessary condition does not establish identifiability for three or more points or degenerate face layouts; that remains open. A separate negative oracle test reports a deliberately wrong translation and half-turn as 1 mm / 180 degrees, rather than accepting them.
+
+Actual MainApp integration also ran with the generated X CSV: real file dialogs, background review/refits, manual X approval, corrected source reload, slice processing and proc saving. The initial execution exposed a slice metadata defect: six-decimal rounding of 0.7920000000000006 to 0.792 dropped the final row, yielding 99 instead of 100. Metadata now preserves float precision; inclusive Slicer comparisons allow only machine-rounding differences (8×epsilon×time scale), with a regression proving genuinely excluded endpoints remain excluded. Final run retained all 100 rows, unchanged original XYZ/bytes and correction context, with maximum proc error 0.0002712 mm / 0.0002647 degrees. GUI screenshots were inspected locally; no video or capture-derived files are committed.
+
+Commands and complete per-case local JSON are described in the [fixture contract](marker_flip_fixture_contract.md). The 14-case run preceded the low-coverage guard; the failing low-coverage behavior was then explicitly re-executed after the fix. Final generator output was regenerated with every CSV hash checked equal to its evaluated input. The broader affected checks covered GUI persistence, artifact precision, range resampling, face assignment and recorder/oracle contracts. Legacy simulation `.proc` exporter assumptions, private VDTest registration, global pose uniqueness and physical Motive error-model validation remain separate work; the later local-rank guard is documented below.
+
+## VDTest registration follow-up, 2026-09-08 — not completed
+
+Started from clean `ffa9fb6` on `codex/issue-74-marker-flip-review`, after `89fdf17`; both were local commits. Re-read #74 including both comments and #79–#84. The current issue still specifies XYZ-column permutations, while the approved local v3 implementation changes analysis faces. No issue body was edited and no closure is claimed.
+
+Located the actual CSV at `TestSets/Input/VDTest_S5_001.csv`. It was already tracked in Git before this task; its bytes and tracking status were preserved. New derived coordinates, SHA, inspection JSON and image remain under ignored `tmp/vdtest_registration/`. The search covered repository references, `TestSets/Input`, `TestSets/Output`, `data`, `tmp`, `src/config`, archived code and IDE path references. No independently tied Motive asset/pivot calibration or physical box specification was found there. `src/config/config_app.py` gives a generic 1578×930×142 mm default; `archive/legacy/config.py` gives 1820×1110×164 mm. Neither identifies this capture. Existing real-flow tests explicitly use an estimated 2082.9×1046.6×254.4 mm box; this is not a measurement or registration oracle.
+
+The CSV explicitly reports Global/Millimeters and quaternion XYZW. There are 32 named Rigid Body Marker constraint triplets and 32 separate Marker triplets (AnchorMarker names). The former share the exported asset ID; their unique channel names and original column order must therefore be retained rather than treating the asset ID as a unique marker ID. All 32 constraints plus the exported pose are finite in frames 0–1061 (0–4.420833 s); the final ten frames lack a complete pose/constraint set. Prefix-assigned face counts are FRONT 11, BACK 12, LEFT 3, RIGHT 3, TOP 3, BOTTOM 0, UNKNOWN 0. These are naming conventions, not independently verified attachment labels.
+
+For inspection only, calculated `p_motive_local = R_export^T (p_world - t_export)` and the per-marker median over the valid interval. Vector temporal RMSE about those medians is 0.0007373 mm (the earlier approximate value used a different summary). This establishes a stable solved arrangement, not a registered box. Best-fit planes within the named FRONT/BACK groups have RMS distances 8.328/8.288 mm; three-point side/top plane residuals are numerically zero by construction and prove no surface accuracy. A local image was inspected: named RIGHT/LEFT groups lie on opposite Motive-X sides from the analysis convention. Independent axis and face confirmation remains necessary. No physical box was drawn for this unregistered inspection because no verified dimensions/pivot transform were available. Physical box-face distances remain unavailable; these plane fits are not substituted for them.
+
+Motive permits both translation and rotation of the rigid-body pivot, and its reset position is based on marker positions. Consequently the exported local origin and axes are not guaranteed to coincide with the physical box's geometric center and faces. Source: [OptiTrack rigid body tracking / pivot editing](https://docs.optitrack.com/motive/rigid-body-tracking). This is why inverse-pose constancy alone cannot supply the missing transform.
+
+Required input to finish VDTest connection: (1) measured box dimensions associated with this capture, identifying physical surfaces versus marker-center offsets; (2) the corresponding Motive rigid-body pivot/orientation settings and their relation to box center/axes, or independently known calibration points sufficient to establish that rigid transform; (3) confirmation of marker-name face assignments, including FA/BA, and mounting offsets where applicable. Desired transform is `p_box = R_box_from_motive p_motive + t_box_from_motive_mm`. Record the evidence and proper rotation (orthogonal, determinant +1) before creating any VDTest profile. Do not choose a transform by minimizing the detector's correction error.
+
+Completed the independent portion in code: generator and harness accept an explicit JSON profile; dimensions feed the engine and analysis, coordinates/IDs/faces are preserved, incompatible face-name conventions are rejected and the public example remains unchanged. A public custom 240×132×100 mm example was used, not VDTest. Normal case: no candidate, 100 usable rows, maximum errors 0.0002754 mm / 0.0004231 degrees. Declared X event at frame 30 / 0.240 s: candidate at that time; explicit manual correction restores 100 rows with maximum errors 0.0005079 mm / 0.0003717 degrees. Both satisfy the unchanged 0.1 mm / 0.1 degree numerical gates.
+
+The same custom JSON was loaded for a real MainApp Qt-driven flow: file selection, actual worker/refits, manual X approval, corrected save/reload with restored custom dimensions, slice processing and proc saving. The resulting proc retained all 100 rows and gave 0.0005079 mm / 0.0003717 degree maxima. Original numeric XYZ and bytes were unchanged. The box/marker profile preview and review screenshot were inspected locally. This is public-custom integration evidence only; **no registered VDTest-derived synthetic file or VDTest GUI correction validation was completed**. No capture-derived coordinates were copied into tracked code, tests or docs.
+
+## 2026-09-11 public collision and independent review follow-up
+
+The first merge unit preserves the existing custom-layout changes and adds a clearly public virtual 32-marker box. Exact VDTest reproduction remains deferred: independent dimensions, mounting offsets and Motive-to-box pivot/axis calibration are unavailable. This does not block the public face/edge/corner lane. Profile, recording, contact parameters, event specification and the next bounded task are owned by [the fixture contract](marker_flip_fixture_contract.md), rather than duplicated here.
+
+### Confirmed defects and corrections
+
+- **History/materialized-face mismatch:** a v3 file could declare an approved X event while storing the original FRONT annotation. It loaded as approved and could retain an incorrect 180-degree pose. Corrected-source and slice loading/saving now compare every stored face against the original face map plus full chronological approved history. A syntactically valid but wrong face is rejected. Tests corrupt a corrected source and a suffix slice; normal suffix round-trips still work. This is an accidental-integrity check, not cryptographic authenticity against a party changing both history and annotations.
+- **Underconstrained successful fit:** six FRONT points previously converged with approximately 20.88 mm / 6.50 degrees arbitrary pose error. Three FRONT points independently admit both zero pose and translation X=10 mm with local Z=0.1 rad at zero objective. Fewer than six assigned-plane constraints, insufficient normal directions, or a rank-deficient local six-DOF Jacobian now produce `UnidentifiableGeometry` and NaN pose/corners. Unknown faces produce `UnknownFace`; fewer than three points remain `InsufficientData`. The relative singular-value cutoff 1e-6 is numerical conditioning policy, not a calibrated accuracy score. Face boundaries are deliberately not counted as stable extra constraints. Full local rank does not prove global uniqueness.
+- **Legacy regression fixture:** the old optimizer-to-detector test used only six face centers, whose first-order rotational plane constraints vanish. Its expected recommendation conflicted with the new rank policy. Explicit off-center sign-paired points now provide rotational information while preserving the independently declared X permutation. The original detector integration purpose and recommendation assertion remain; no rank or pose tolerance was relaxed.
+- **Unknown-face distance helper:** points inside a box previously had zero distance to its surface. The unsigned cuboid surface distance now gives 40 mm at the center of the 200×120×80 mm box and 10 mm at (110,0,0). Unknown face inputs are separately rejected for pose estimation.
+- **Physics wording:** README and simulation documentation no longer claim exact impact/tumbling reproduction or complete legacy exporter compatibility. Production SimulationUI labels the legacy elasticity value as contact damping control and explains the actual mapping; numeric defaults remain unchanged. The displayed control was checked in the production widget and its screenshot inspected.
+
+### Executed collision pairs
+
+All entries use public virtual 300×180×90 mm geometry, 100 samples over 0–0.792 s, no noise, one shared physical truth per healthy/faulty pair, and independent X at frame 65 (0.520 s). Expected result: all 100 poses valid and maximum error below the unchanged 0.1 mm / 0.1 degree gates after oracle-emulated manual approval. These are numerical integration gates, not camera or material calibration.
+
+| Motion/case | Actual max position mm | Actual max geodesic degrees | Actual valid samples |
+| --- | ---: | ---: | ---: |
+| face/healthy | 0.0001216495 | 0.0000749613 | 100 |
+| face/x | 0.0001216495 | 0.0000749613 | 100 |
+| edge/healthy | 0.0002860261 | 0.0001026608 | 100 |
+| edge/x | 0.0002860261 | 0.0001044958 | 100 |
+| corner/healthy | 0.0001965090 | 0.0001289676 | 100 |
+| corner/x | 0.0001965090 | 0.0001289676 | 100 |
+
+Each pair records real engine contact force and keeps truth unchanged by fault injection. Initial minimum height/count checks give 100 mm and 4/2/1 lowest corners. First positive sampled force is at 0.144 s in all three cases; onset is bounded by recording times (0.136,0.144] s. Minimum geometric corner heights are approximately -3.9643/-3.9869/-4.0310 mm. This soft-contact penetration is recorded, not hidden or treated as a pose error. It does not validate physical packaging impacts.
+
+The actual MainApp Qt-driven collision X flow opened the generated CSV, ran the real review worker, started OFF with no recommendation, explicitly selected/approved X, saved and reloaded corrected CSV, saved a slice, processed it, and saved proc. Input XYZ and original bytes stayed unchanged, dimensions restored to 300×180×90 mm, and all 100 timestamps remained. Maximum proc error was 0.0001216495 mm / 0.0000749613 degrees. Evidence: ignored `tmp/issue74_gui/collision_face/` contains observed.csv, truth files, manifest, asymmetric.corrected.csv, scene.slice, scene.proc, result.json, before.png, review.png, reloaded.png and processed.png. Review and processed screenshots were inspected. This is actual production GUI integration driven by Qt, not a claim of complete native manual usability review at every DPI or state. No video was made.
+
+### Remaining model limitations and issue status
+
+An independent offset-pivot counterexample uses pivot (0,20,0) mm and a local X half-turn about that pivot. Corrected faces can fit with zero surface cost while the analysis origin is displaced 40 mm from physical truth. Face-only correction cannot infer missing pivot calibration. This is recorded as an unsupported physical error model, not repaired by translating observations or adjusting synthetic truth.
+
+The current #74 body still describes marker-column permutations; v3 implementation instead preserves solved-constraint XYZ/IDs and changes analysis face interpretation. The approved implementation distinction must be recorded publicly before claiming issue acceptance. Likewise #80's permutation tables are not a prerequisite for arbitrary asymmetric face assignments, and #81's A R A^T expression changes both bases whereas this recorder changes only the world basis (A R). These are explicit contract differences; issue text has not been edited in this implementation task.
+
+Automatic recommendations remain disabled. No-recommendation controls verify abstention, not calibrated detection or axis selection. Actual Motive capture categories, registration and reviewed recommendation thresholds remain pending. Full #79–#84, legacy simulation exporter repair, #75 scene review, #76/#83 comparison semantics, #77 physical metric calibration and #78 release validation are not completed by these checks. No automatic issue-closing claim is appropriate.
+
+### Additional collision controls and execution commands
+
+The face-collision controls use the same public profile and recorded engine truth. `gap` and `gap_x` retain 95 valid poses and meet the numerical gates; five missing samples stay unavailable. `freeze_reconnect` has no automatic recommendation and is classified only as an abstention-policy check. `genuine_rotation` changes physical truth and observations together, retains 100 valid poses, and requires no correction. None of these outcomes calibrates real tracking-failure detection.
+
+| Face control | Scope | Valid pose samples | Max position mm | Max rotation degrees |
+| --- | --- | ---: | ---: | ---: |
+| gap | pose_mechanics | 95 | 0.0002672114 | 0.0000815474 |
+| gap_x | pose_mechanics | 95 | 0.0002672114 | 0.0000815474 |
+| freeze_reconnect | abstention_policy_only | Not a pose-recovery gate | — | — |
+| genuine_rotation | pose_mechanics | 100 | 0.0002458111 | 0.0001084273 |
+
+The initial control command used an invalid `--case freeze` argument and exited 2; it was corrected to the declared `freeze_reconnect` case and executed successfully. This command error is separate from model validation.
+
+Executed commands use the repository `.venv/Scripts/python.exe`:
+
+- `-m src.simulation.validate_marker_fixtures --example 32 --motion <face|edge|corner> --case <healthy|x> --output tmp/collision_validation/<motion>`
+- `-m src.simulation.validate_marker_fixtures --example 32 --motion face --case <gap|gap_x|freeze_reconnect|genuine_rotation> --output tmp/collision_validation/face`
+- `-m pytest tests/test_marker_face_gui_flow.py -k collision_face -q -s`
+- `-m pytest tests/test_marker_flip_artifact_io.py tests/test_pipeline_integration.py tests/test_marker_flip_review_dialog.py tests/test_marker_flip_raw_widget.py tests/test_velocity_calculator_acceleration.py tests/test_resampler.py tests/test_range_limited_resampling.py tests/test_pipeline_resampling_options.py -q`
+
+The latter regression run passed its persistence, pipeline, review state and boundary-derivative checks. The pre-existing long-filename plot test still emits a Matplotlib tight-layout warning. CI configuration is a separate supervisor-owned file; local execution does not claim a GitHub Actions run or independent review approval.
+
+Final combined CI-selection command: `-m pytest -q tests/test_marker_face_assignment.py tests/test_marker_flip.py tests/test_mujoco_marker_fixtures.py tests/test_marker_flip_artifact_io.py tests/test_marker_face_gui_flow.py tests/test_simulation_contact_gui.py --junitxml=tmp/public-marker-results.xml`. It passed 60 tests plus 5 subtests in 324.64 s. The JUnit ledger contains 65 entries, zero failures/errors/skips. It includes all four real MainApp source flows (handcrafted, public MuJoCo, custom MuJoCo, public collision), corrected/suffix persistence, rank rejection, known wrong-pivot counterexample and the SimulationUI controls. The standalone collision GUI run took 75.44 s; the separate downstream regression run took 15.00 s. These counts describe execution completeness; the actual input/expected/actual outcomes above define the verified behavior.
+
+The final baseline command `-m src.simulation.validate_marker_fixtures --case all --output tmp/mujoco_marker_validation_current` exited 0 with all 14 scoped checks satisfied: nine pose-mechanics cases, four abstention-only controls and one insufficient-data rejection case. All numerical pose gates remain 0.1 mm / 0.1 degree. Reports and exact inputs are under that ignored directory. Process start to summary write was 671.72 s (approximately 11.20 min); this is measured local runtime, not a CI guarantee. `tmp/issue74_execution_20260911.json` records final test/case timing definitions, source hashes and evidence paths. Per-case timings use manifest-write to report-write and therefore exclude interpreter startup and fixture generation; they must not be presented as full CLI duration. Independent final review is pending, with no commit/push/PR/merge performed by this implementation task.
+
+## Header/data pairing follow-up after 714d0ec
+
+Independent code review found that `_build_marker_review_state` discarded the header returned by `materialize_face_assignments`. A valid v3 CSV with reordered annotation columns loaded correctly as an active source but used the wrong ID/face associations during re-review. The widget now retains the review header/raw pair through baseline parsing, validation, repeated saving and subsequent loading. Physical equations, generator truth and thresholds are unchanged.
+
+The new `test_reordered_annotations_rereview_off_on_and_suffix_pose` exchanges complete F1/R1 annotation columns and interleaves one before XYZ triplets, verifies unchanged active ID-based data, then uses real MainApp dialogs/workers for OFF save/reload and ON re-review/save/reload. A post-event suffix is saved with the actual final timestamp and reloaded in Step 1.5. All faces/XYZ match the expected subset. Direct production PoseOptimizer verification of its 30 rows gives maximum 0.0000178485 mm / 0.0000249817 degrees against independent truth, within unchanged 0.1/0.1 gates. Original input bytes remain unchanged. Command: `.venv/Scripts/python.exe -m pytest tests/test_marker_face_gui_flow.py -k reordered -q --tb=short -s`; final exit 0, 84.50 s (case body 81.47 s). Evidence and inspected OFF/ON/suffix screenshots: ignored `tmp/issue74_gui/reordered_annotations/`.
+
+Earlier test attempts had path-separator/case comparison and cleanup mistakes, used a rounded end time, and incorrectly requested full processing of this 30-row suffix. The production 50-row minimum correctly rejected that request; the attempt failed and its blocked test process was terminated. The corrected test preserves the minimum and verifies suffix GUI loading plus direct pose fitting, **not a successful 30-row full proc flow**. Unexpected error dialogs now make the test fail without waiting indefinitely. The 100-row full collision proc path is separate evidence. Targeted raw-widget, review-dialog and artifact regression tests passed (18 tests, 3.87 s; one pre-existing long-filename tight-layout warning). These are bounded follow-up checks, not a re-execution of the complete 14-case physical matrix on a new head.
+
+The separate follow-up command `-m pytest tests/test_marker_face_gui_flow.py -k collision_face -q --tb=short -s` exited 0 in 61.50 s, preserving all 100 timestamps and the previous 0.0001216495 mm / 0.0000749613 degree full-proc maxima. After the reordered GUI run, explicit `len(output)==30` and all `Pose_Source==Optimized` assertions plus a valid-pose count were added at independent-review request. A fast read of the saved `suffix_pose.csv` confirmed 30/30 Optimized rows. This post-run check is recorded in result.json; the full GUI run with those final assertion lines is left to required CI and is not represented as already rerun locally.

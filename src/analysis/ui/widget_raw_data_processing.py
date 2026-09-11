@@ -1,9 +1,12 @@
 import os
-from PySide6.QtCore import Signal, Qt
+import json
+import math
+from pathlib import Path
+from PySide6.QtCore import Signal, Qt, QThread
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QCheckBox,
-    QSizePolicy, QSplitter
+    QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog,
+    QDialog, QMessageBox, QSizePolicy, QSplitter
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -11,17 +14,54 @@ from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
+from src.analysis.ui.dialog_marker_flip_review import MarkerFlipReviewDialog
 from src.config import config_app, config_analysis_ui
 from src.config.data_columns import (
     PoseCols, RawMarkerCols, DisplayNames, RigidBodyCols
 )
 from src.analysis.pipeline.artifact_io import (
     DEFAULT_SLICE_PADDING_ROWS,
+    build_corrected_source_default_name,
     build_slice_default_name,
+    corrected_source_file_filter,
     raw_csv_file_filter,
+    save_corrected_source_file,
     save_slice_file,
     slice_file_filter,
+    try_read_corrected_source_metadata,
+    _sha256_file,
 )
+from src.analysis.pipeline.marker_flip import (
+    MarkerCorrectionDecision,
+    MarkerFlipAnalyzer,
+    apply_approved_marker_permutations,
+    normalize_marker_corrections,
+    undo_approved_marker_permutations,
+)
+from src.analysis.pipeline.pose_optimizer import PoseOptimizer
+from src.analysis.pipeline.face_assignment import (
+    FaceAssignmentAnalyzer, materialize_face_assignments, marker_face,
+)
+
+
+class MarkerReviewWorker(QThread):
+    completed = Signal(object)
+    failed = Signal(str)
+
+    def __init__(self, data, dims, optimizer_factory, analyzer_factory, parent=None):
+        super().__init__(parent)
+        self.data, self.dims = data.copy(deep=True), dims
+        self.optimizer_factory, self.analyzer_factory = optimizer_factory, analyzer_factory
+
+    def run(self):
+        try:
+            optimizer = self.optimizer_factory(face_definitions=config_app.FACE_DEFINITIONS,
+                local_box_corners=config_app.calculate_local_box_corners(self.dims))
+            pose = optimizer.process(self.data, box_dims=self.dims)
+            self.completed.emit(self.analyzer_factory().detect(self.data, pose, self.dims))
+        except Exception as exc:
+            self.failed.emit(str(exc))
+
 
 class WidgetRawDataProcessing(QWidget):
     # Signals to communicate with MainApp
@@ -38,7 +78,22 @@ class WidgetRawDataProcessing(QWidget):
         self.header_info = None
         self.parsed_data = None
         self.source_path = None
+        self.original_source_reference = None
+        self.original_source_sha256 = ""
+        self.review_raw_data = None
+        self.review_header_info = None
+        self.review_parsed_data = None
         self.current_selected_targets = []
+        self.marker_flip_candidates = []
+        self.marker_correction_decisions: list[MarkerCorrectionDecision] = []
+        self.correction_source_metadata = None
+        self.marker_review_dirty = False
+        self.marker_flip_analyzer_factory = FaceAssignmentAnalyzer
+        self.review_context_json = ""
+        self.active_source_sha256 = ""
+        self.review_worker = None
+        self.marker_flip_dialog_factory = MarkerFlipReviewDialog
+        self.pose_optimizer_factory = PoseOptimizer
 
         self._setup_ui()
         self._connect_signals()
@@ -80,6 +135,10 @@ class WidgetRawDataProcessing(QWidget):
         right_panel.setLayout(right_panel_layout)
         self.load_csv_button = QPushButton("Load CSV File...")
         self.file_path_label = QLabel("No file selected.")
+        self.file_path_label.setWordWrap(True)
+        self.file_path_label.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+        )
         
         right_panel_layout.addWidget(self.load_csv_button)
         right_panel_layout.addWidget(self.file_path_label)
@@ -97,6 +156,27 @@ class WidgetRawDataProcessing(QWidget):
         self.le_box_h = QLineEdit(str(config_app.BOX_DIMS[2]))
         box_dims_layout.addWidget(self.le_box_h, 2, 1)
         right_panel_layout.addWidget(self.box_dims_group)
+
+        self.marker_review_group = QGroupBox("Marker Flip Review")
+        marker_review_layout = QVBoxLayout(self.marker_review_group)
+        self.marker_review_summary_label = QLabel("Load a CSV file to review marker flips.")
+        self.marker_review_summary_label.setWordWrap(True)
+        marker_review_layout.addWidget(self.marker_review_summary_label)
+        self.marker_review_source_label = QLabel("Active source: original")
+        self.marker_review_source_label.setWordWrap(True)
+        self.marker_review_source_label.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+        )
+        marker_review_layout.addWidget(self.marker_review_source_label)
+        marker_review_button_row = QHBoxLayout()
+        self.review_marker_flips_button = QPushButton("Review Candidates...")
+        self.review_marker_flips_button.setEnabled(False)
+        self.save_corrected_source_button = QPushButton("Save Corrected Source...")
+        self.save_corrected_source_button.setEnabled(False)
+        marker_review_button_row.addWidget(self.review_marker_flips_button)
+        marker_review_button_row.addWidget(self.save_corrected_source_button)
+        marker_review_layout.addLayout(marker_review_button_row)
+        right_panel_layout.addWidget(self.marker_review_group)
 
         # Log Output (Local to this widget for immediate feedback, or shared?)
         # The plan says "Encapsulates...". MainApp has a log output. 
@@ -214,6 +294,8 @@ class WidgetRawDataProcessing(QWidget):
         self.load_csv_button.clicked.connect(self.open_csv_file)
         self.select_data_button.clicked.connect(self.open_data_selection_dialog)
         self.save_slice_button.clicked.connect(self.save_scene_slice)
+        self.review_marker_flips_button.clicked.connect(self.open_marker_flip_review)
+        self.save_corrected_source_button.clicked.connect(self.save_corrected_source)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
         self.slice_group.toggled.connect(self.toggle_slicing_widgets)
@@ -223,17 +305,139 @@ class WidgetRawDataProcessing(QWidget):
     def append_log(self, message):
         self.log_output.append(message)
 
+    def _approved_marker_corrections(self) -> list[MarkerCorrectionDecision]:
+        return normalize_marker_corrections(
+            self.marker_correction_decisions,
+            approved_only=True,
+        )
+
+    def _build_marker_review_state(
+        self,
+        filepath: str,
+        header_info: dict[str, list[str]],
+        raw_data,
+        parsed_data,
+    ):
+        metadata = try_read_corrected_source_metadata(filepath)
+        review_header_info = header_info
+        if metadata is None:
+            review_raw_data = raw_data.copy(deep=True)
+            review_parsed_data = parsed_data.copy(deep=True)
+            original_source_reference = filepath
+            original_source_sha256 = _sha256_file(filepath)
+            decisions = []
+        else:
+            if metadata.schema_version == "3":
+                context = json.loads(metadata.context_json)
+                header_info["export_metadata"] = context.get("export_metadata", {})
+                review_header_info, review_raw_data = materialize_face_assignments(
+                    header_info, raw_data, [], context["base_faces"])
+            else:
+                review_raw_data = undo_approved_marker_permutations(
+                    raw_data, header_info, metadata.decisions)
+            review_parsed_data = self.parser.process(review_header_info, review_raw_data)
+            original_source_reference = metadata.source
+            original_source_sha256 = metadata.source_sha256
+            decisions = list(metadata.decisions)
+        return (
+            metadata,
+            review_raw_data,
+            review_parsed_data,
+            original_source_reference,
+            original_source_sha256,
+            decisions,
+            review_header_info,
+        )
+
+    def _update_marker_review_summary(self) -> None:
+        reviewed_count = len(normalize_marker_corrections(self.marker_correction_decisions))
+        approved_count = len(self._approved_marker_corrections())
+        if self.marker_review_dirty:
+            self.marker_review_summary_label.setText(
+                f"{reviewed_count} reviewed event(s), {approved_count} approved. "
+                "Save the corrected source before creating a slice."
+            )
+        elif self.correction_source_metadata is not None:
+            self.marker_review_summary_label.setText(
+                f"Loaded corrected source with {self.correction_source_metadata.event_count} "
+                f"reviewed event(s), {self.correction_source_metadata.approved_event_count} approved."
+            )
+        elif self.marker_flip_candidates:
+            recommended_count = sum(
+                candidate.recommendation_axis is not None
+                for candidate in self.marker_flip_candidates
+            )
+            self.marker_review_summary_label.setText(
+                f"Reviewed {len(self.marker_flip_candidates)} candidate(s); "
+                f"{recommended_count} had a supported-axis recommendation."
+            )
+        else:
+            self.marker_review_summary_label.setText(
+                "No marker correction is active. Review is optional."
+            )
+
+        if self.correction_source_metadata is not None and self.source_path:
+            source_text = f"Active source: {self.source_path}"
+        elif self.source_path:
+            source_text = f"Active source: original ({self.source_path})"
+        else:
+            source_text = "Active source: original"
+        self.marker_review_source_label.setText(source_text)
+        self.marker_review_source_label.setToolTip(source_text)
+        self.save_corrected_source_button.setEnabled(
+            self.raw_data is not None
+            and self.header_info is not None
+            and self.marker_review_dirty
+        )
+        self.save_slice_button.setEnabled(
+            self.raw_data is not None and self.parsed_data is not None and not self.marker_review_dirty
+        )
+
     def open_csv_file(self):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", raw_csv_file_filter())
         if filepath:
             try:
-                self.header_info, self.raw_data = self.data_loader.load_csv(filepath)
-                self.source_path = filepath
-                self.file_path_label.setText(filepath)
                 self.log_message.emit(f"[INFO] Loaded {filepath}. Parsing for preview...")
                 self.append_log(f"[INFO] Loaded {filepath}. Parsing for preview...")
-                
-                self.parsed_data = self.parser.process(self.header_info, self.raw_data)
+
+                header_info, raw_data = self.data_loader.load_csv(filepath)
+                parsed_data = self.parser.process(header_info, raw_data)
+                (
+                    correction_source_metadata,
+                    review_raw_data,
+                    review_parsed_data,
+                    original_source_reference,
+                    original_source_sha256,
+                    marker_correction_decisions,
+                    review_header_info,
+                ) = self._build_marker_review_state(
+                    filepath,
+                    header_info,
+                    raw_data,
+                    parsed_data,
+                )
+
+                self.header_info = header_info
+                self.raw_data = raw_data
+                self.parsed_data = parsed_data
+                self.source_path = filepath
+                self.active_source_sha256 = _sha256_file(filepath)
+                self.review_context_json = ""
+                self.correction_source_metadata = correction_source_metadata
+                if correction_source_metadata is not None and correction_source_metadata.schema_version == '3':
+                    self.review_context_json = correction_source_metadata.context_json
+                    dims = json.loads(self.review_context_json)['box_dims_mm']
+                    for edit, value in zip((self.le_box_l, self.le_box_w, self.le_box_h), dims):
+                        edit.setText(str(value))
+                self.review_raw_data = review_raw_data
+                self.review_header_info = review_header_info
+                self.review_parsed_data = review_parsed_data
+                self.original_source_reference = original_source_reference
+                self.original_source_sha256 = original_source_sha256
+                self.marker_flip_candidates = []
+                self.marker_correction_decisions = marker_correction_decisions
+                self.marker_review_dirty = False
+                self._set_file_path_display(filepath)
                 self.append_log("[INFO] Preview parsing complete.")
                 
                 # Default selection logic
@@ -247,7 +451,9 @@ class WidgetRawDataProcessing(QWidget):
                 self.plot_manager.enable_interactions(self.parsed_data)
                 self.slice_group.setChecked(False)
                 self.save_slice_button.setEnabled(True)
+                self.review_marker_flips_button.setEnabled(True)
                 self.slice_path_label.setText("Not saved yet.")
+                self._update_marker_review_summary()
                 
                 # Emit signal to MainApp
                 self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
@@ -255,6 +461,180 @@ class WidgetRawDataProcessing(QWidget):
             except Exception as e:
                 self.append_log(f"[ERROR] Failed to load or parse file: {e}")
                 self.log_message.emit(f"[ERROR] Failed to load or parse file: {e}")
+
+    def _read_box_dimensions(self) -> tuple[float, float, float]:
+        box_dims = (
+            float(self.le_box_l.text()),
+            float(self.le_box_w.text()),
+            float(self.le_box_h.text()),
+        )
+        if any(not math.isfinite(value) or value <= 0 for value in box_dims):
+            raise ValueError("Box dimensions must be positive values.")
+        return box_dims
+
+    def _face_context(self):
+        old = self.correction_source_metadata
+        original = json.loads(old.context_json) if old is not None and old.schema_version == "3" else {}
+        base = original.get("base_faces") or {
+            mid: marker_face(mid) for mid in MarkerFlipAnalyzer._marker_ids(self.review_parsed_data)
+        }
+        return json.dumps({
+            "box_dims_mm": self._read_box_dimensions(), "base_faces": base,
+            "coordinate_policy": "global-y-up-box-xyz-mm",
+            "export_metadata": self.header_info.get("export_metadata", {}),
+            "original_source_rows": original.get("original_source_rows", self.header_info.get("source_rows", [])),
+            "source_sha256": self.original_source_sha256, "algorithm_version": "3.0",
+        }, sort_keys=True, separators=(",", ":"))
+
+    def _set_review_busy(self, busy):
+        self.load_csv_button.setEnabled(not busy)
+        self.review_marker_flips_button.setEnabled(not busy)
+        self.review_marker_flips_button.setText('Calculating poses...' if busy else 'Review Candidates...')
+        self.box_dims_group.setEnabled(not busy)
+        if busy:
+            self.marker_review_summary_label.setText('Calculating analysis poses and four face hypotheses. Please wait.')
+            self.save_slice_button.setEnabled(False)
+            self.save_corrected_source_button.setEnabled(False)
+        else:
+            self._update_marker_review_summary()
+
+    def open_marker_flip_review(self):
+        if self.review_parsed_data is None or self.review_parsed_data.empty:
+            return
+        if self.review_worker is not None and self.review_worker.isRunning():
+            return
+        try:
+            if self.correction_source_metadata is not None and self.correction_source_metadata.schema_version == "2":
+                raise ValueError("Legacy XYZ-corrected files remain readable. Load the original CSV for a new face review.")
+            metadata = self.header_info.get("export_metadata", {})
+            if metadata.get("Length Units") != "Millimeters" or metadata.get("Coordinate Space") != "Global":
+                raise ValueError("Face review requires documented Global / Millimeters input.")
+            context = self._face_context()
+            # Validate all base faces without changing the active stream.
+            materialize_face_assignments(self.review_header_info or self.header_info, self.review_raw_data, [], json.loads(context)["base_faces"])
+            self._pending_review_context = context
+            self.append_log("[INFO] Estimating pose and refitting local-axis face hypotheses...")
+            self._set_review_busy(True)
+            self.review_worker = MarkerReviewWorker(self.review_parsed_data, self._read_box_dimensions(),
+                self.pose_optimizer_factory, self.marker_flip_analyzer_factory, self)
+            self.review_worker.completed.connect(self._finish_marker_review)
+            self.review_worker.failed.connect(self._marker_review_failed)
+            self.review_worker.start()
+        except Exception as exc:
+            self._marker_review_failed(str(exc))
+
+    def _marker_review_failed(self, message):
+        self._set_review_busy(False)
+        self.append_log(f"[ERROR] Marker flip review failed: {message}")
+        QMessageBox.warning(self, "Marker Flip Review Failed", message)
+
+    def _finish_marker_review(self, candidates):
+        self._set_review_busy(False)
+        if not candidates:
+            QMessageBox.information(self, "Marker Flip Review", "No reviewable candidate discontinuities were found.")
+            return
+        context = self._pending_review_context
+        existing = self.marker_correction_decisions if context == self.review_context_json else []
+        # Only retain approvals for unchanged evidence, kind, and operator action.
+        existing = [d for d in existing if any(c.event_id == d.event_id
+            and c.evidence_json() == d.evidence_json and c.correction_kind == d.correction_kind
+            and c.boundary_time_sec == d.boundary_time_sec for c in candidates)]
+        dialog = self.marker_flip_dialog_factory(candidates, existing_decisions=existing, parent=self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            self.append_log("[INFO] Marker flip review cancelled; no decisions changed.")
+            return
+        self.marker_flip_candidates = candidates
+        self.marker_correction_decisions = normalize_marker_corrections(dialog.get_decisions())
+        self.review_context_json = context
+        active = list(self.correction_source_metadata.decisions) if self.correction_source_metadata else []
+        self.marker_review_dirty = self.marker_correction_decisions != active or (
+            self.correction_source_metadata is None or self.correction_source_metadata.context_json != context)
+        self._update_marker_review_summary()
+
+    def closeEvent(self, event):
+        if self.review_worker is not None and self.review_worker.isRunning():
+            event.ignore()
+            self.append_log("[INFO] Wait for the active review calculation before closing.")
+            return
+        super().closeEvent(event)
+
+    def save_corrected_source(self):
+        if (
+            self.raw_data is None
+            or self.review_raw_data is None
+            or self.header_info is None
+            or not self.source_path
+        ):
+            return
+
+        default_name = build_corrected_source_default_name(self.source_path)
+        filepath, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Corrected Source",
+            os.path.join(os.path.dirname(self.source_path), default_name),
+            corrected_source_file_filter(),
+        )
+        if not filepath:
+            return
+
+        original_source = self.original_source_reference or self.source_path
+        try:
+            if self.active_source_sha256 and _sha256_file(self.source_path) != self.active_source_sha256:
+                raise ValueError("Active source changed since loading; reload before saving.")
+            is_face = any(d.correction_kind == "face_assignment" for d in self.marker_correction_decisions)
+            corrected_header = self.header_info
+            if is_face:
+                if not self.review_context_json or self._face_context() != self.review_context_json:
+                    raise ValueError("Review context changed; review and approve again before saving.")
+                corrected_header, corrected_raw_data = materialize_face_assignments(
+                    self.review_header_info or self.header_info, self.review_raw_data, self.marker_correction_decisions,
+                    json.loads(self.review_context_json)["base_faces"])
+            else:
+                corrected_raw_data = apply_approved_marker_permutations(
+                    self.review_raw_data, self.header_info, self.marker_correction_decisions)
+            corrected_parsed_data = self.parser.process(
+                corrected_header,
+                corrected_raw_data,
+            )
+            metadata = save_corrected_source_file(
+                filepath=filepath,
+                header_info=corrected_header,
+                raw_data=corrected_raw_data,
+                original_source_path=original_source,
+                original_source_sha256=self.original_source_sha256,
+                decisions=self.marker_correction_decisions,
+                context_json=self.review_context_json if is_face else "",
+            )
+        except Exception as e:
+            self.append_log(f"[ERROR] Failed to save corrected source: {e}")
+            QMessageBox.warning(self, "Corrected Source Save Failed", str(e))
+            return
+
+        self.source_path = filepath
+        self.active_source_sha256 = _sha256_file(filepath)
+        self.header_info = corrected_header
+        # Keep a full-width baseline so another save cannot apply the assignment twice.
+        if is_face:
+            self.review_header_info, self.review_raw_data = materialize_face_assignments(corrected_header, corrected_raw_data, [],
+                json.loads(self.review_context_json)["base_faces"])
+        self.raw_data = corrected_raw_data
+        self.parsed_data = corrected_parsed_data
+        self._set_file_path_display(filepath)
+        self.correction_source_metadata = metadata
+        self.original_source_reference = metadata.source
+        self.original_source_sha256 = metadata.source_sha256
+        self.marker_correction_decisions = list(metadata.decisions)
+        self.marker_review_dirty = False
+        self.slice_path_label.setText("Not saved yet.")
+        self.update_plot()
+        self.plot_manager.enable_interactions(self.parsed_data)
+        self._update_marker_review_summary()
+        self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
+        self.append_log(f"[INFO] Corrected source saved and activated: {filepath}")
+
+    def _set_file_path_display(self, filepath: str) -> None:
+        self.file_path_label.setText(filepath)
+        self.file_path_label.setToolTip(filepath)
 
     def update_plot(self):
         df = self.parsed_data
@@ -295,7 +675,8 @@ class WidgetRawDataProcessing(QWidget):
         self.plot_manager.draw_plot(df, columns_to_plot)
 
     def open_data_selection_dialog(self):
-        if self.parsed_data is None: return
+        if self.parsed_data is None:
+            return
         all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
         dialog = DataSelectionDialog(all_targets, self.current_selected_targets, self)
         if dialog.exec():
@@ -343,10 +724,8 @@ class WidgetRawDataProcessing(QWidget):
         return start_val, end_val
 
     def _update_box_dimensions(self):
-        l = float(self.le_box_l.text())
-        w = float(self.le_box_w.text())
-        h = float(self.le_box_h.text())
-        config_app.BOX_DIMS = [l, w, h]
+        length, width, height = self._read_box_dimensions()
+        config_app.BOX_DIMS = [length, width, height]
 
     def _save_slice(self) -> bool:
         if self.raw_data is None or self.parsed_data is None:
@@ -354,6 +733,12 @@ class WidgetRawDataProcessing(QWidget):
 
         try:
             self._update_box_dimensions()
+            if self.marker_review_dirty:
+                raise ValueError('Save the reviewed corrected source before slicing.')
+            if self.correction_source_metadata and self.correction_source_metadata.schema_version == '3':
+                context = json.loads(self.correction_source_metadata.context_json)
+                if tuple(context['box_dims_mm']) != tuple(config_app.BOX_DIMS):
+                    raise ValueError('Box dimensions changed; review the original source again.')
             start_val, end_val = self._get_slice_bounds()
             scene_name = self.le_scene_name.text().strip() or "scene"
             default_name = build_slice_default_name(self.source_path or "", scene_name=scene_name)
@@ -378,6 +763,7 @@ class WidgetRawDataProcessing(QWidget):
                 user_end=end_val,
                 pad_rows=DEFAULT_SLICE_PADDING_ROWS,
                 scene_name=scene_name,
+                marker_correction_metadata=self.correction_source_metadata,
             )
             self.slice_path_label.setText(filepath)
             self.append_log(

@@ -5,13 +5,13 @@ from scipy.spatial.transform import Rotation as R
 from scipy.signal import butter, filtfilt
 from src.config import config_analysis
 from src.config import config_app
-from src.config.data_columns import PoseCols, VelocityCols, CornerVelocityCols, CornerAccelerationCols
+from src.config.data_columns import PoseCols, SourceCols, VelocityCols, CornerVelocityCols, CornerAccelerationCols
 
 # --- Module-level Helper Functions ---
 
 def _apply_butter_lowpass(series, cutoff, fs, order):
     """주어진 Series에 Butterworth 저대역 통과 필터를 적용합니다."""
-    if fs <= 0 or not (0 < cutoff < 0.5 * fs): return series
+    if fs <= 0 or not (0 < cutoff < 0.5 * fs) or len(series) <= 3 * (order + 1): return series
     b, a = butter(order, cutoff / (0.5 * fs), btype='low', analog=False)
     series_nonan = series.interpolate(method='linear').fillna(method='ffill').fillna(method='bfill')
     if series_nonan.isna().any(): return series
@@ -35,6 +35,15 @@ def _ensure_quaternion_continuity(quats):
     return quats
 
 class VelocityCalculator:
+    @staticmethod
+    def _derivative_columns():
+        cols = [v for k, v in vars(VelocityCols).items()
+                if k.isupper() and not k.endswith('PREFIX') and isinstance(v, str)]
+        for schema in (CornerVelocityCols, CornerAccelerationCols):
+            cols.extend(f'C{i}{v}' for k, v in vars(schema).items()
+                        if k.endswith('SUFFIX') and isinstance(v, str) for i in range(1, 9))
+        return cols
+
     def __init__(self):
         self.configure()
         self.local_box_corners = config_app.LOCAL_BOX_CORNERS
@@ -175,6 +184,39 @@ class VelocityCalculator:
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         if df.empty or PoseCols.POS_X not in df.columns:
             return df
+
+        from .face_assignment import face_segments
+        segments = face_segments(df)
+        if len(segments) > 1:
+            results = []
+            for segment in segments:
+                result = self.process(segment)
+                derivative_cols = self._derivative_columns()
+                if derivative_cols:
+                    result.iloc[[0, -1], result.columns.get_indexer(derivative_cols)] = np.nan
+                results.append(result)
+            return pd.concat(results)
+        pose_columns = (PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z,
+                        PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z)
+        valid = np.isfinite(df[list(pose_columns)].to_numpy(dtype=float)).all(axis=1)
+        if SourceCols.POSE in df:
+            valid &= df[SourceCols.POSE].eq('Optimized').to_numpy()
+        if not valid.all():
+            starts = np.r_[0, np.flatnonzero(valid[1:] != valid[:-1]) + 1]
+            results = []
+            for a, b in zip(starts, [*starts[1:], len(df)]):
+                result = self.process(df.iloc[a:b]) if valid[a] else df.iloc[a:b].copy()
+                if not valid[a]:
+                    result[self._derivative_columns()] = np.nan
+                else:
+                    result.iloc[[0, -1], result.columns.get_indexer(self._derivative_columns())] = np.nan
+                results.append(result)
+            return pd.concat(results)
+        required = self.spline_k + 1 if 'spline' in (self.velocity_method, self.acceleration_method) else 2
+        if len(df) < required:
+            result = df.copy()
+            result[self._derivative_columns()] = np.nan
+            return result
 
         print(
             f"[VelocityCalculator INFO] Starting velocity calculation using "

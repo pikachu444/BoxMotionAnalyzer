@@ -19,6 +19,11 @@ from src.config import config_visualization as config_vis
 
 class TestPipelineIntegration(unittest.TestCase):
     def setUp(self):
+        from src.config import config_app
+        original_dims = config_app.BOX_DIMS
+        original_corners = config_app.LOCAL_BOX_CORNERS
+        self.addCleanup(setattr, config_app, 'BOX_DIMS', original_dims)
+        self.addCleanup(setattr, config_app, 'LOCAL_BOX_CORNERS', original_corners)
         # Create a temporary output directory
         self.test_result_path = "data/test_integration_result.csv"
 
@@ -31,43 +36,14 @@ class TestPipelineIntegration(unittest.TestCase):
             os.remove(self.test_result_path)
 
     def create_mock_parsed_data(self, n_frames=50):
-        """
-        Creates a DataFrame that mimics the output of Parser.process().
-        It must contain Time and RigidBody_Position columns.
-        """
-        times = np.linspace(0, 1.0, n_frames)
-        frames = np.arange(n_frames)
-
-        data = {
-            TimeCols.FRAME: frames,
-            TimeCols.TIME: times,
-            # Rigid Body Position (Required by Validator)
-            RigidBodyCols.POS_X: np.zeros(n_frames),
-            RigidBodyCols.POS_Y: np.zeros(n_frames),
-            RigidBodyCols.POS_Z: np.zeros(n_frames),
-            # VelocityCalculator needs Rotation columns too
-            PoseCols.ROT_X: np.zeros(n_frames),
-            PoseCols.ROT_Y: np.zeros(n_frames),
-            PoseCols.ROT_Z: np.zeros(n_frames),
-        }
-
-        # Add Mock Corner Data (C1~C8) so FrameAnalyzer outputs 'Position' columns
-        # DataHandler requires at least one object with 'Position' header to load.
-        from src.config.data_columns import CORNER_NAME_MAP
-        for corner in CORNER_NAME_MAP.keys(): # C1..C8
-            data[f"{corner}_X"] = np.zeros(n_frames)
-            data[f"{corner}_Y"] = np.zeros(n_frames)
-            data[f"{corner}_Z"] = np.zeros(n_frames)
-
-        df = pd.DataFrame(data)
-        # Parser sets Time as index, BUT PipelineController's Validator checks if 'Time' is in columns.
-        # This seems to be a logical inconsistency in the legacy code, but we must satisfy it for the test.
-        # So we keep 'Time' as a column as well.
-        # df.set_index(TimeCols.TIME, inplace=True)
-        # If we don't set index, Slicer/Smoother might fail if they rely on index.
-        # Let's set index AND keep the column.
-        df.set_index(TimeCols.TIME, drop=False, inplace=True)
-
+        """Parse an explicit healthy layout; do not rely on prefilled stale poses."""
+        from marker_face_fixtures import raw_bundle
+        header, raw, truth = raw_bundle(samples=n_frames, boundary=n_frames)
+        df = Parser(FACE_PREFIX_TO_INFO).process(header, raw)
+        # Retain the rigid-body center required by this legacy validator path.
+        for i, col in enumerate((RigidBodyCols.POS_X, RigidBodyCols.POS_Y, RigidBodyCols.POS_Z)):
+            df[col] = truth[:, i]
+        df[TimeCols.TIME] = df.index
         return df
 
     def test_full_pipeline_flow(self):
@@ -81,8 +57,7 @@ class TestPipelineIntegration(unittest.TestCase):
         print("\n[Test] Starting Full Pipeline Integration Test...")
 
         # Step 1: Mock Parsed Data
-        # We skip Parser because Parser expects Raw Optitrack Format, which is hard to synthesize quickly.
-        # We inject data as if Parser already ran.
+        # Use the real Parser on an explicit healthy constraint layout.
         parsed_data = self.create_mock_parsed_data(n_frames=60)
 
         self.assertFalse(parsed_data.empty, "Mock parsed data is empty.")
@@ -95,7 +70,8 @@ class TestPipelineIntegration(unittest.TestCase):
         analysis_config = {
             'slice_filter_by': 'time',
             'slice_start_val': 0.0,
-            'slice_end_val': 1.0
+            'slice_end_val': 1.0,
+            'box_dimensions': (200., 120., 80.)
         }
 
         results = []
@@ -116,8 +92,8 @@ class TestPipelineIntegration(unittest.TestCase):
         controller.log_message.connect(on_log)
 
         # We need an event loop for signals to work
-        from PySide6.QtCore import QCoreApplication
-        app = QCoreApplication.instance() or QCoreApplication([])
+        from PySide6.QtWidgets import QApplication
+        app = QApplication.instance() or QApplication([])
 
         print("\n[Analysis Logs Start]")
         # We pass None for header_info and raw_data because we provide parsed_data

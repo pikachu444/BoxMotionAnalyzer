@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 from PySide6.QtWidgets import QApplication
 from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
-from src.config.data_columns import PoseCols
 
 # QApplication is required for QWidget
 app = QApplication.instance() or QApplication([])
@@ -14,8 +13,13 @@ class TestWidgetRawDataProcessing(unittest.TestCase):
         self.mock_parser = MagicMock()
         self.widget = WidgetRawDataProcessing(self.mock_data_loader, self.mock_parser)
 
-    def test_file_load_emit_signal_real_data(self):
-        # Use real data from TestSets
+    def tearDown(self):
+        self.widget.close()
+        self.widget.deleteLater()
+        app.processEvents()
+
+    def test_file_load_emit_signal_handcrafted_fixture(self):
+        # Handcrafted schema fixture; not real-capture evidence.
         import os
         real_file_path = os.path.abspath("data/testdata_box_marker.csv")
         if not os.path.exists(real_file_path):
@@ -32,6 +36,9 @@ class TestWidgetRawDataProcessing(unittest.TestCase):
         real_parser = Parser(face_prefix_map=FACE_PREFIX_TO_INFO)
         
         # Re-initialize widget with real components
+        self.widget.close()
+        self.widget.deleteLater()
+        app.processEvents()
         self.widget = WidgetRawDataProcessing(real_loader, real_parser)
 
         # Mock file dialog to return the real path
