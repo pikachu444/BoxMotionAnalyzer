@@ -3,6 +3,7 @@ import numpy as np
 
 from src.config import config_visualization as config
 from src.config.data_columns import HeaderL1, HeaderL2, HeaderL3
+from src.utils.result_time import read_result_frame, time_values
 
 
 class DataHandler:
@@ -23,7 +24,7 @@ class DataHandler:
         into the long-format DataFrame consumed by the visualization GUI.
         """
         try:
-            df = pd.read_csv(filepath, header=[0, 1, 2])
+            df = read_result_frame(filepath)
 
             frames = self._extract_frames(df)
             times = self._extract_times(df)
@@ -71,20 +72,12 @@ class DataHandler:
             return False
 
     def _extract_frames(self, df: pd.DataFrame) -> pd.Series:
-        col_frame = self._find_column(df.columns, HeaderL1.INFO, HeaderL2.FRAME, HeaderL3.NUM)
-        if col_frame is None:
-            frames = pd.Series(range(len(df)))
-        else:
-            frames = df[col_frame]
-            if not frames.empty:
-                frames = frames - frames.min()
-        return frames.reset_index(drop=True)
+        # Rendering IDs are row positions, never original capture frame labels.
+        return pd.Series(range(len(df)))
 
     def _extract_times(self, df: pd.DataFrame) -> pd.Series:
-        col_time = self._find_column(df.columns, HeaderL1.INFO, HeaderL2.TIME, HeaderL3.TIME)
-        if col_time is None:
-            return pd.Series(np.zeros(len(df)))
-        return df[col_time].reset_index(drop=True)
+        values, self.time_error = time_values(df)
+        return pd.Series(values if values is not None else np.full(len(df), np.nan))
 
     def _find_column(
         self,
@@ -157,9 +150,9 @@ class DataHandler:
         entity_df[config.DF_ENTITY_TYPE] = entity_type
         entity_df[config.DF_SOURCE_OBJECT_ID] = source_object_id
 
-        entity_df[config.DF_POS_GLOBAL_X] = df[pos_x_col]
-        entity_df[config.DF_POS_GLOBAL_Y] = df[pos_y_col]
-        entity_df[config.DF_POS_GLOBAL_Z] = df[pos_z_col]
+        entity_df[config.DF_POS_GLOBAL_X] = pd.to_numeric(df[pos_x_col], errors='coerce')
+        entity_df[config.DF_POS_GLOBAL_Y] = pd.to_numeric(df[pos_y_col], errors='coerce')
+        entity_df[config.DF_POS_GLOBAL_Z] = pd.to_numeric(df[pos_z_col], errors='coerce')
 
         entity_df[config.DF_VEL_GLOBAL_X] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TX)

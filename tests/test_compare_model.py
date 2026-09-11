@@ -1,120 +1,160 @@
-import pytest
-import pandas as pd
+"""Serialized .proc contract tests, not evidence of measured physical accuracy."""
 import numpy as np
+import pandas as pd
+import pytest
+
+from comparison_fixtures import write_proc, identity
 from src.analysis.compare.data_model import ComparisonModel
+from src.utils.artifact_metadata import FIELDS
+from src.utils.result_time import TIME_COLUMN, LEGACY_TIME_COLUMN, T1_COLUMN, T1_DETECTED_COLUMN
 
-@pytest.fixture
-def mock_proc_df():
-    # Create a MultiIndex DataFrame similar to what DataLoader.load_result_csv returns
-    columns = pd.MultiIndex.from_tuples([
-        ("Analysis", "DropPostureSummary", "DeltaH_mm"),
-        ("Analysis", "DropPostureSummary", "BetaAtT1MinusDeg"),
-        ("Analysis", "DropPostureSummary", "ContactState"),
-        ("Analysis", "DropPostureSummary", "T1MinusFrame"),
-        ("Analysis", "DropPosture", "ThetaLongDeg"),
-    ])
-    
-    # 5 frames of data
-    data = [
-        [150.5, 12.3, "ImpactEvent", 2, 1.2],
-        [150.5, 12.3, "ImpactEvent", 2, 1.5],
-        [150.5, 12.3, "ImpactEvent", 2, 1.8],
-        [150.5, 12.3, "ImpactEvent", 2, 2.1],
-        [150.5, 12.3, "ImpactEvent", 2, 2.4],
-    ]
-    df = pd.DataFrame(data, columns=columns)
-    df.index = [0.0, 0.01, 0.02, 0.03, 0.04]
-    df.index.name = "Time"
-    return df
 
-def test_same_file_zero_difference(monkeypatch, mock_proc_df):
+def test_compatible_baseline_differences_and_time_alignment(tmp_path):
     model = ComparisonModel()
-    
-    # Mock load_result_csv to return our fixture
-    def mock_load(filepath):
-        return mock_proc_df.copy()
-        
-    monkeypatch.setattr(model.data_loader, "load_result_csv", mock_load)
-    
-    # Load same logical data twice
-    name1 = model.load_file("test_data1.proc.csv")
-    name2 = model.load_file("test_data2.proc.csv")
-    
-    # Should automatically set baseline to the first file
-    assert model.baseline_name == name1
-    
-    diffs = model.get_summary_differences()
-    
-    # Check baseline diffs
-    b_diffs = diffs[name1]["diffs"]
-    assert b_diffs["DeltaH_mm"] == 0.0
-    assert b_diffs["BetaAtT1MinusDeg"] == 0.0
-    assert b_diffs["ContactState"] == "Match"
-    
-    # Check target diffs
-    t_diffs = diffs[name2]["diffs"]
-    assert t_diffs["DeltaH_mm"] == 0.0
-    assert t_diffs["BetaAtT1MinusDeg"] == 0.0
-    assert t_diffs["ContactState"] == "Match"
+    first = model.load_file(str(write_proc(tmp_path / 'first.proc')))
+    second = model.load_file(str(write_proc(tmp_path / 'second.proc', times=(4., 4.005, 4.01, 4.02), t1=4.01, offset=5)))
+    assert model.exclusion_reasons(second) == []
+    assert model.get_summary_differences()[second]['diffs']['BetaAtT1MinusDeg'] == pytest.approx(5)
+    curves = model.get_timeseries_data('Analysis', 'DropPosture', 'ThetaLongDeg')
+    np.testing.assert_allclose(curves[first].index, [-.01, 0, .01])
+    np.testing.assert_allclose(curves[second].index, [-.01, -.005, 0, .01])
+    # Original frames 100/104/108 are row IDs 0/1/2 only for rendering.
+    handler = model.visualization_handlers[first]
+    assert handler.n_frames == 3
+    assert not handler.get_frame_data(1).empty
+    assert model.playback_row(second, 0) == 2
+    model.set_baseline(second)
+    assert model.get_summary_differences()[first]['diffs']['BetaAtT1MinusDeg'] == pytest.approx(-5)
+    model.remove_file(second)
+    assert model.baseline_name == first
 
-def test_different_files_compute_difference(monkeypatch, mock_proc_df):
-    model = ComparisonModel()
-    
-    # Second dataset has +10mm height, +5 deg beta, and different contact state
-    df2 = mock_proc_df.copy()
-    df2.loc[:, ("Analysis", "DropPostureSummary", "DeltaH_mm")] = 160.5
-    df2.loc[:, ("Analysis", "DropPostureSummary", "BetaAtT1MinusDeg")] = 17.3
-    df2.loc[:, ("Analysis", "DropPostureSummary", "ContactState")] = "NoContact"
-    
-    def mock_load(filepath):
-        if "baseline" in filepath:
-            return mock_proc_df.copy()
-        return df2.copy()
-        
-    monkeypatch.setattr(model.data_loader, "load_result_csv", mock_load)
-    
-    name1 = model.load_file("baseline.proc.csv")
-    name2 = model.load_file("compare.proc.csv")
-    
-    diffs = model.get_summary_differences()
-    
-    t_diffs = diffs[name2]["diffs"]
-    assert np.isclose(t_diffs["DeltaH_mm"], 10.0)
-    assert np.isclose(t_diffs["BetaAtT1MinusDeg"], 5.0)
-    assert t_diffs["ContactState"] == "NoContact"
 
-def test_get_timeseries_data(monkeypatch, mock_proc_df):
+@pytest.mark.parametrize('field', [f for f in FIELDS if f != 'GeneratorVersion'])
+def test_each_required_field_mismatch_or_missing_excludes(tmp_path, field):
     model = ComparisonModel()
-    monkeypatch.setattr(model.data_loader, "load_result_csv", lambda x: mock_proc_df.copy())
-    
-    model.load_file("f1.proc.csv")
-    model.load_file("f2.proc.csv")
-    
-    series_dict = model.get_timeseries_data("Analysis", "DropPosture", "ThetaLongDeg")
-    assert "f1.proc.csv" in series_dict
-    assert "f2.proc.csv" in series_dict
-    assert len(series_dict["f1.proc.csv"]) == 5
+    model.load_file(str(write_proc(tmp_path / 'baseline.proc')))
+    path = write_proc(tmp_path / 'missing.proc')
+    df = pd.read_csv(path, header=[0,1,2]).drop(columns=[('Info', 'Artifact', field)])
+    df.to_csv(path, index=False)
+    name = model.load_file(str(path))
+    assert any(field in reason for reason in model.exclusion_reasons(name))
+    assert model.get_summary_differences()[name]['diffs']['BetaAtT1MinusDeg'] is None
 
-def test_event_alignment_extraction(monkeypatch, mock_proc_df):
+
+@pytest.mark.parametrize('field', [f for f in FIELDS if f != 'GeneratorVersion'])
+def test_single_changed_identity_key_excludes(tmp_path, field):
     model = ComparisonModel()
-    
-    df2 = mock_proc_df.copy()
-    df2.loc[:, ("Analysis", "DropPostureSummary", "T1MinusFrame")] = 15
-    
-    def mock_load(filepath):
-        if "f1" in filepath:
-            return mock_proc_df.copy() # T1MinusFrame is 2
-        return df2.copy() # T1MinusFrame is 15
-        
-    monkeypatch.setattr(model.data_loader, "load_result_csv", mock_load)
-    
-    # Mock data handler to prevent crashing from missing viz data
-    class DummyHandler:
-        def load_analysis_result(self, filepath): pass
-    monkeypatch.setattr("src.analysis.compare.data_model.DataHandler", DummyHandler)
-    
-    model.load_file("f1.proc.csv")
-    model.load_file("f2.proc.csv")
-    
-    assert model.alignment_frames["f1.proc.csv"] == 2
-    assert model.alignment_frames["f2.proc.csv"] == 15
+    model.load_file(str(write_proc(tmp_path / 'baseline.proc')))
+    path = write_proc(tmp_path / 'changed.proc')
+    df = pd.read_csv(path, header=[0,1,2])
+    col = ('Info','Artifact',field)
+    df[col] = float(df[col].iloc[0]) + 1 if field.startswith('Box') else 'different-contract'
+    df.to_csv(path, index=False)
+    name = model.load_file(str(path))
+    assert any(field in reason for reason in model.exclusion_reasons(name))
+
+
+@pytest.mark.parametrize('source', ['real', 'public_external', 'mujoco_synthetic', 'unknown_legacy'])
+def test_source_populations_separate_unit_declarations_only(tmp_path, source):
+    model = ComparisonModel()
+    model.load_file(str(write_proc(tmp_path / 'baseline.proc')))
+    name = model.load_file(str(write_proc(tmp_path / 'other.proc', metadata=identity(SourceKind=source))))
+    assert any('SourceKind' in reason for reason in model.exclusion_reasons(name))
+    overlay = model.get_timeseries_data('Analysis', 'DropPosture', 'ThetaLongDeg')
+    assert (name in overlay) == (source != 'unknown_legacy')
+
+
+@pytest.mark.parametrize('times', [(1,1,1.1), (1, .9, 1.1), (1, float('nan'),1.1), (1,float('inf'),1.1)])
+def test_invalid_time_retains_individual_rows_without_alignment(tmp_path, times):
+    model = ComparisonModel()
+    name = model.load_file(str(write_proc(tmp_path / 'invalid.proc', times=times)))
+    assert not model.timelines[name].aligned
+    assert model.playback_row(name, 0) is None
+    assert not model.get_timeseries_data('Analysis', 'DropPosture', 'ThetaLongDeg')
+    assert len(model.get_timeseries_data('Analysis', 'DropPosture', 'ThetaLongDeg', individual=name)[name]) == 3
+
+
+@pytest.mark.parametrize('change', ['missing_time', 'legacy_only', 'conflict', 'missing_t1', 'false_t1', 't1_outside', 'varying_t1'])
+def test_no_alignment_fallback(tmp_path, change):
+    path = write_proc(tmp_path / 'invalid.proc')
+    df = pd.read_csv(path, header=[0,1,2])
+    if change in ('missing_time','legacy_only'):
+        if change == 'legacy_only':
+            df[LEGACY_TIME_COLUMN] = df[TIME_COLUMN]
+        df = df.drop(columns=[TIME_COLUMN])
+    elif change == 'conflict':
+        df[LEGACY_TIME_COLUMN] = df[TIME_COLUMN] + 1
+    elif change == 'missing_t1':
+        df = df.drop(columns=[T1_COLUMN])
+    elif change == 'false_t1':
+        df[T1_DETECTED_COLUMN] = False
+    elif change == 't1_outside':
+        df[T1_COLUMN] = 200
+    else:
+        df[T1_COLUMN] = [1,1.01,1.02]
+    df.to_csv(path,index=False)
+    model = ComparisonModel()
+    name = model.load_file(str(path))
+    assert not model.timelines[name].aligned
+    assert model.playback_row(name,0) is None
+
+
+def test_identical_time_columns_are_not_duplicate_samples(tmp_path):
+    path = write_proc(tmp_path / 'duplicate_columns.proc')
+    df = pd.read_csv(path, header=[0,1,2])
+    df = pd.concat([df, df[[TIME_COLUMN]]], axis=1)
+    df.to_csv(path,index=False)
+    model = ComparisonModel()
+    name = model.load_file(str(path))
+    assert model.timelines[name].aligned
+
+
+def test_irregular_gap_has_no_clamp_or_bridge(tmp_path):
+    model = ComparisonModel()
+    name = model.load_file(str(write_proc(tmp_path / 'gap.proc', times=(1,1.008,1.031,2.,2.01), t1=1.008)))
+    assert model.playback_row(name, .005) == 1
+    assert model.playback_row(name, .5) is None
+    assert model.playback_row(name, -10) is None
+    assert model.playback_row(name, 10) is None
+    series = model.get_timeseries_data('Analysis','DropPosture','ThetaLongDeg')[name]
+    assert series.isna().sum() == 1
+    assert len(series) == 6
+
+
+@pytest.mark.parametrize('origin', [0.,1.,100.,1000.])
+def test_exact_gap_limit_roundoff_and_true_excess(tmp_path, origin):
+    from src.utils.result_time import exceeds_gap_limit, segmented_series
+    model = ComparisonModel()
+    times = origin + np.arange(11)/10
+    name = model.load_file(str(write_proc(tmp_path / 'tenths.proc', times=times, t1=origin)))
+    series = model.get_timeseries_data('Analysis','DropPosture','ThetaLongDeg')[name]
+    assert series.isna().sum() == 0
+    assert segmented_series(np.ones(11), times, .1, origin=origin).isna().sum() == 0
+    assert model.playback_row(name, .05) == 0
+    assert not exceeds_gap_limit(1.,1.1,.1)
+    assert exceeds_gap_limit(1.,1.1 + 1e-10,.1)
+    assert exceeds_gap_limit(origin, origin + .100001, .1)
+    # A large absolute epoch must not enlarge the physical allowance.
+    assert exceeds_gap_limit(1e12,1e12+.1001,.1)
+
+
+@pytest.mark.parametrize('source', ['unknown_legacy','invalid-source'])
+def test_source_only_missing_or_invalid_has_no_common_clock(tmp_path, source):
+    model = ComparisonModel()
+    name = model.load_file(str(write_proc(tmp_path / 'unknown.proc', metadata=identity(SourceKind=source))))
+    assert model.timelines[name].times is not None
+    assert not model.timelines[name].aligned
+    assert model.elapsed_bounds() is None
+    assert model.playback_row(name,0) is None
+    assert not model.get_timeseries_data('Analysis','DropPosture','ThetaLongDeg')
+    assert name in model.get_timeseries_data('Analysis','DropPosture','ThetaLongDeg',individual=name)
+
+
+def test_empty_malformed_loading_is_atomic(tmp_path):
+    model = ComparisonModel()
+    path = tmp_path / 'empty.proc'
+    path.write_text('')
+    with pytest.raises(ValueError):
+        model.load_file(str(path))
+    assert model.datasets == {}
+    assert model.baseline_name is None

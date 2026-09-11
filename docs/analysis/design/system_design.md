@@ -116,12 +116,16 @@ Last Reviewed: 2026-09-11
   - 런처에서 독립적으로 열리는 다중 실험 비교 창. 요약표, 동기화된 3D 뷰어, 비교 그래프 레이아웃을 담당한다.
 - `ComparisonModel`
   - 비교 윈도우에서 사용할 파일 목록, 파싱된 결과, 기준(baseline) 실험 설정 등을 관리한다.
+  - `utils/artifact_metadata.py`에서 출처/호환성 전체 사유를, `utils/result_time.py`에서 canonical timestamp와 t1 계약을 공유한다. 미호환 파일은 개별 열람을 유지하고 기준 차이/집계 대상에서 제외한다.
+  - 그래프는 파일별 실제 elapsed 시각을 유지한다. 3D row ID는 원본 frame 번호와 분리하며 가장 가까운 실제 샘플 시각을 명시한다. 긴 gap/범위 밖은 보간·끝점 고정 없이 unavailable로 표시한다.
 - `PlotPopupDialog`
 - `DataSelectionDialog`
 - `PlotManager`
 - `PipelineController`
 - `artifact_io`
   - corrected source의 원자적 저장과 원본 식별 정보/결정 이력 보존을 담당한다.
+  - 별도 public artifact whitelist를 raw metadata → corrected/slice metadata → `Info/Artifact` proc 상수 열로 전달한다. test-only truth/event manifest를 읽지 않는다. 저장 형식은 `result_schema_notes.md`를 기준으로 한다.
+  - 처리 설정은 raw 선언에서 복사하지 않는다. `processing_provenance.py`가 실행한 단계의 configured object/policy를 기록하고, `utils/processing_settings.py`가 canonical JSON과 식별 hash를 생성한다. 실행 이력이 없는 결과는 현재 기본값으로 호환 승격하지 않는다.
 - `MarkerFlipAnalyzer` / `FaceAssignmentAnalyzer`
   - 공통 후보 탐색과 v2 호환 모델을 유지한다. 새 GUI는 면 할당 후 실제 자세를 다시 계산하는 FaceAssignmentAnalyzer를 사용하며 자동 추천은 검증 대기다.
 - `MarkerFlipReviewDialog`

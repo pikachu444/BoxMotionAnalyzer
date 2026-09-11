@@ -1,5 +1,7 @@
 import pandas as pd
 import csv
+from src.utils.artifact_metadata import metadata_from_source_rows
+from src.utils.result_time import read_result_frame, indexed_result
 from src.config.data_columns import TimeCols, RawMarkerCols, RigidBodyCols, DisplayNames
 
 class DataLoader:
@@ -26,6 +28,7 @@ class DataLoader:
         metadata_row = next(csv.reader([lines[0]]), [])
         header_info['export_metadata'] = dict(zip(metadata_row[::2], metadata_row[1::2]))
         header_info['source_rows'] = list(csv.reader(lines[:2]))
+        header_info['artifact_metadata'] = metadata_from_source_rows(header_info['source_rows'])
         has_annotations = any(kind == 'Marker Annotation' for kind in header_info['type'])
         if has_annotations or 'Corrected Source File' in lines[0] or 'Slice File' in lines[0]:
             from .artifact_io import read_corrected_source_metadata, read_slice_metadata
@@ -107,19 +110,7 @@ class DataLoader:
         """
         try:
             # 멀티헤더(3줄)를 올바르게 읽기 위해 header=[0, 1, 2] 옵션을 사용합니다.
-            df = pd.read_csv(filepath, header=[0, 1, 2])
-
-            # 'Time' 컬럼을 찾아서 인덱스로 설정합니다.
-            # 결과 CSV의 Time 컬럼은 ('Time', 'Time', 'Time') 튜플 형태의 멀티레벨 헤더를 가집니다.
-            # 'Time' 컬럼을 찾아서 인덱스로 설정합니다.
-            # 멀티레벨 헤더의 ('Time', 'Time', 'Time') 또는 단일 'Time' 컬럼을 순차적으로 확인합니다.
-            time_col_tuple = (TimeCols.TIME, TimeCols.TIME, TimeCols.TIME)
-            if time_col_tuple in df.columns:
-                df.set_index(time_col_tuple, inplace=True)
-                df.index.name = TimeCols.TIME
-            elif TimeCols.TIME in df.columns:
-                df.set_index(TimeCols.TIME, inplace=True)
-                df.index.name = TimeCols.TIME
+            df = indexed_result(read_result_frame(filepath))
 
             print(f"[DataLoader INFO] Result file loaded successfully from {filepath}")
             return df

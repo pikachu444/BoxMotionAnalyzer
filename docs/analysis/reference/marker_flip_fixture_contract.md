@@ -89,4 +89,22 @@ Repeat the first two commands for edge/corner. Each invocation writes a summary 
 
 ## Next-task prompt
 
-Continue in C:\SourceCodes\BoxMotionAnalyzer with the bounded #83/#76 provenance and comparison-time task after this #74 collision/review change has passed independent review. Read AGENTS.md, current Git status, #83/#76, implementation_todo.md, the result schema and comparison design documents first. Preserve existing work. Inventory actual `.proc` metadata and comparison loaders, then define one versioned compatibility record containing source class, model, dimensions, Type/scenario, layout hash, units/axes and processing semantics. Use actual timestamps and reviewed t1 for alignment; reject missing/invalid time and prevent mixed synthetic/real aggregate statistics while retaining individual inspection. Implement and verify serialization/load/comparison on one compatible pair and explicit mismatches. Keep scene classification #75, metric formulas #77, legacy simulation exporter redesign, and full release validation #78 separate. Keep missing real-data categories pending. VDTest calibration is unavailable: do not infer dimensions/pivot/axes or block public synthetic work on it. Preserve automatic marker recommendation OFF and original XYZ. Update existing docs and Last Reviewed, show input/expected/actual results, and obtain separate commit/push/merge approvals. Do not auto-close #74.
+The #74 collision/review scope merged through PR #87 on 2026-09-11. The bounded
+#83/#76 follow-up is implemented separately in
+`C:\SourceCodes\BoxMotionAnalyzer-worktrees\issue83-provenance-time`; confirm actual
+Git status before continuing. Generator 1.3 adds only the safe artifact identity
+described in `result_schema_notes.md` to observed CSV metadata; truth/event files
+remain test-only. Custom and collision geometry above is unchanged.
+
+Next task: review and finish publication of the bounded #83/#76 follow-up. Read
+AGENTS.md, the latest issues, implementation_todo.md, result_schema_notes.md and
+drop_result_comparison_plan.md. Verify source declarations and all exclusion
+reasons, canonical time/t1, mixed sampling/gaps, original frame numbers and actual
+GUI saved-file paths against the recorded commands. The public compatible pair
+is two loads of one independently generated and processed result, not two trials.
+Keep real compatible/mismatched captures pending when unavailable; do not infer
+VDTest model geometry or request unavailable calibration again. Resolve independent
+review findings with focused tests; preserve original XYZ and approval/recommendation
+OFF defaults. Do not expand into #75/#77 or legacy exporter work. Show the final
+diff, obtain separate commit/push/merge approvals and require same-head CI before
+merge. Do not automatically close #74, #76 or #83 on synthetic evidence alone.

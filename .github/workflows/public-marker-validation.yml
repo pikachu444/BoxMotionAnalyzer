@@ -18,11 +18,20 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 45
     env:
-      QT_QPA_PLATFORM: offscreen
+      # QOpenGLWidget-backed PyVistaQt needs a real Windows Qt platform.
+      # The setup action below installs Mesa software OpenGL for the runner.
+      QT_QPA_PLATFORM: windows
+      QT_OPENGL: desktop
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      - name: Prepare the Windows software OpenGL driver
+        uses: pyvista/setup-headless-display-action@10e6efb97af3cd1523828f0e22c39f0e4567f3e4
+        with:
+          qt: true
+          pyvista: false
+          mesa3d-release: '24.3.0'
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.13'
@@ -38,6 +47,11 @@ jobs:
           tests/test_marker_flip_artifact_io.py
           tests/test_marker_face_gui_flow.py
           tests/test_simulation_contact_gui.py
+          tests/test_compare_model.py
+          tests/test_artifact_provenance.py
+          tests/test_comparison_gui.py
+          tests/test_processing_semantics.py
+          tests/test_slice_dimension_provenance_gui.py
           --junitxml=tmp/public-marker-results.xml
       - name: Reject missing or skipped required checks
         shell: pwsh

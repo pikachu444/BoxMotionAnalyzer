@@ -491,6 +491,8 @@ class WidgetSliceProcessing(QWidget):
     def apply_manual_box_dimensions(self):
         try:
             box_dims = self._read_box_dimensions_from_inputs()
+            from src.utils.artifact_metadata import validate_declared_dimensions
+            validate_declared_dimensions(self.slice_metadata.artifact_metadata_json if self.slice_metadata else None, box_dims)
             if self.save_box_dims_to_slice_checkbox.isChecked():
                 if not self.slice_path:
                     raise ValueError("No slice file is loaded.")
@@ -673,6 +675,7 @@ class WidgetSliceProcessing(QWidget):
         slice_start = None if metadata is None else metadata.user_start
         slice_end = None if metadata is None else metadata.user_end
         context = {
+            "artifact_metadata": None if metadata is None else metadata.artifact_metadata_json,
             "full_start_sec": full_start,
             "full_end_sec": full_end,
             "slice_start_sec": slice_start,
@@ -706,6 +709,11 @@ class WidgetSliceProcessing(QWidget):
         metadata = self.slice_metadata if metadata is None else metadata
         range_start, range_end = self._get_resampling_range_values(parsed_data, metadata)
         resolved_box_dims = self._resolve_box_dimensions(metadata) if box_dims is None else box_dims
+        from src.utils.artifact_metadata import normalize_metadata, DIMENSIONS
+        declared = normalize_metadata(metadata.artifact_metadata_json if metadata else None)
+        for field, value in zip(DIMENSIONS, resolved_box_dims):
+            if declared[field] is not None and declared[field] != float(value):
+                raise ValueError(f'Processing dimensions conflict with declared artifact {field}.')
         return {
             "slice_filter_by": "time",
             "slice_start_val": (

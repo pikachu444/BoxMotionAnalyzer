@@ -216,15 +216,18 @@ Last Reviewed: 2026-09-11
 ### 6.1. 좌측 사이드바 (Left Rail / Control Panel)
 독립된 컨트롤 박스로 구성되며 최소 너비가 고정되어 있다.
 - **1. Result Files:** 분석할 `.proc` 파일들을 로드하고 관리하며, 기준(Reference) 파일을 선택한다.
+- 각 파일의 source class와 호환성 상태를 표시한다. 파일을 선택하면 누락·불일치한 모든 필드와 시간 제외 사유를 읽을 수 있다. 출처 불명 파일의 모델/배치/ISTA 타입은 추정하지 않는다.
+- 출처 불명/유효하지 않은 source class는 시간과 t1이 있어도 공통 동기화에서 제외한다. 개별 시간 그래프와 샘플 탐색은 유지한다. 기준 차이의 호환성에는 실제 실행한 필터·미분·재표본화·접촉 설정의 식별값도 포함한다.
+- Graph view에서 aligned overlay 또는 개별 파일을 선택한다. gap 제한은 초 단위 표시 정책(초기 0.1 s)이며 물리 오차 기준이 아니다.
 
 ### 6.2. 우측 메인 영역 (Main View Area)
 탭(Tab) 없이 수직 스플리터(Vertical Splitter)를 통해 크게 3단으로 분할 배치된다.
 1. **2. Experiment Summary (비교 요약 표):** 
-   - 상단 박스에 위치하며, 파일별 주요 지표(Beta, Theta, DeltaH, Cmin 등)와 기준 대비 판단 결과를 한눈에 보여준다.
+   - 파일별 summary는 개별 표시를 유지하고, 호환성 조건을 통과한 경우에만 기준 대비 차이를 표시한다. 평균 집계 기능은 아니다.
 2. **3D Animation (동기화 3D 뷰어):** 
-   - 중단 박스에 위치하며, 두 개의 3D 화면이 좌우로 나란히 배치되어 1차 충격 기준 시간 정렬 및 동기화된 재생을 지원한다.
+   - `t - t1_minus` 공통 시계에서 가장 가까운 실제 샘플을 표시한다. 실제 선택 샘플 시각도 함께 표시하며, 파일 범위 밖이나 긴 gap 내부는 3D unavailable로 표시한다. Sync를 끄면 개별 샘플 탐색과 유효한 시간의 개별 재생을 사용할 수 있다.
 3. **Time-History (시계열 비교 플롯):**
-   - 하단 박스에 위치하며, 사용자가 선택한 지표의 전체 시계열 데이터를 기준 시간에 맞춰 오버레이하여 보여준다.
+   - 실제 시간과 유효한 t1이 있는 파일은 elapsed 축에 겹쳐 보며 3D의 공통 커서를 공유한다. 다른 source class의 겹쳐 보기는 지속 경고와 함께 시각 검토로만 제공한다. 개별 보기의 시간이 없으면 `Sample row (time unavailable)`로 명시한다.
    - 툴바는 세로 방향으로 우측에 배치하여 가로 공간 활용도를 높였다.
 
 The v3 loader and corrected/slice writers reject persisted analysis faces that disagree with the complete approved history and original face map. Valid suffix slices retain the cumulative effect of earlier events. Pose processing reports `UnknownFace` or `UnidentifiableGeometry` when face constraints cannot support the local six-DOF fit; unavailable pose/corners do not become detector evidence. This is a conservative local guard, not global uniqueness certification.

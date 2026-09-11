@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 import pandas as pd
 from PySide6.QtCore import QObject, Signal
 from src.config import config_app, config_analysis
@@ -13,6 +14,8 @@ from src.analysis.pipeline.drop_posture_post_processor import DropPosturePostPro
 from src.analysis.pipeline.resampling_options import build_effective_analysis_options
 from src.analysis.pipeline.resampler import UniformResampler
 from src.analysis.pipeline.validator import DataValidator
+from src.analysis.pipeline.processing_provenance import capture_single_pass, capture_postprocess
+from src.utils.processing_settings import SETTINGS_ATTR, normalized_range_offset
 
 class PipelineController(QObject):
     log_message = Signal(str)
@@ -74,6 +77,9 @@ class PipelineController(QObject):
             result_df,
             contact_threshold_mm=contact_threshold_mm,
         )
+        settings = copy.deepcopy(result_df.attrs.get(SETTINGS_ATTR, {}))
+        settings['postprocess'] = capture_postprocess(self.drop_posture_post_processor, contact_threshold_mm)
+        processed.attrs[SETTINGS_ATTR] = settings
         self.log_message.emit(f"    DropPosturePostProcessor done. Shape: {processed.shape}")
         return processed
 
@@ -178,6 +184,12 @@ class PipelineController(QObject):
             self.log_message.emit(f"    Trimming done. Final shape: {final_result.shape}")
 
         self.log_message.emit("\nAnalysis pipeline completed successfully.")
+        final_result.attrs[SETTINGS_ATTR] = {
+            'single_pass': capture_single_pass(self, trimming_strategy=trimming_strategy,
+                                               padding_frames=padding_size_frames,
+                                               filter_by=gui_config.get('slice_filter_by', 'time')),
+            'result_resampling': {'enabled': False},
+        }
         return final_result
 
     def _is_result_resampling_enabled(self, gui_config: dict) -> bool:
@@ -288,6 +300,18 @@ class PipelineController(QObject):
             range_start,
             range_end,
         )
+        settings = copy.deepcopy(baseline_result.attrs.get(SETTINGS_ATTR, {}))
+        resampling_policy = {'enabled': True, 'factor': resampling_factor,
+                             'method': 'linear-result-rows;face-boundaries;nan-neighbor-mask',
+                             'scope': 'limited' if self._is_result_resampling_range_limited(gui_config) else 'full-slice'}
+        if self._is_result_resampling_range_limited(gui_config):
+            # User-selected offsets relative to the slice, not absolute trial time.
+            origin = float(gui_config['slice_start_val'])
+            resampling_policy['range_offset_encoding'] = 'shortest-decimal-input-ulp-v1'
+            resampling_policy['range_offsets_sec'] = [
+                normalized_range_offset(endpoint, origin) for endpoint in (range_start, range_end)]
+        settings['result_resampling'] = resampling_policy
+        merged.attrs[SETTINGS_ATTR] = settings
         inserted_rows = len(merged) - len(baseline_result)
         self.log_message.emit(f"[INFO] Inserted {inserted_rows} interpolated result rows.")
         self.log_message.emit("\nResult resampling pipeline completed successfully.")
