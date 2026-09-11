@@ -115,7 +115,8 @@ def test_time_gap_does_not_supply_rotation_or_gravity_across_blocks(captures):
 def test_round_trip_rotation_with_zero_net_turn_is_visible(captures):
     data = deepcopy(captures['drops'])
     t = np.arange(151) * .008
-    rotations = Rotation.from_euler('x', 10 * np.sin(2 * np.pi * t / .08), degrees=True).as_matrix()
+    angles = 10 * np.sin(2 * np.pi * t / .08)
+    rotations = Rotation.from_euler('x', angles[:, None], degrees=True).as_matrix()
     local = np.asarray([m['xyz_mm'] for m in data['registration']['profile']['markers']])
     data.update(time_s=t, frame=np.arange(len(t)), observed_markers_mm=np.einsum('nij,mj->nmi', rotations, local) + [0, 500, 0])
     h, raw, parsed, reg = inputs(data)

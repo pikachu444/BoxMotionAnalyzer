@@ -88,7 +88,7 @@ class _Sequence:
     def tilt(self, duration, start_degrees, end_degrees):
         count = _steps(duration)
         angle = start_degrees + _ease(count) * (end_degrees - start_degrees)
-        rotations = Rotation.from_euler("z", angle, degrees=True).as_matrix()
+        rotations = Rotation.from_euler("z", angle[:, None], degrees=True).as_matrix()
         # The complete local bottom-left edge lies on the stationary floor line.
         local_edge_point = np.array([-150.0, -90.0, 0.0])
         world_edge_point = np.array([-150.0, 0.0, 0.0])
