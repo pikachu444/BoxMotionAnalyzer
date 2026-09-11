@@ -232,10 +232,10 @@ class TestMarkerFlipRawWidget(unittest.TestCase):
         self.assertEqual(self.widget.file_path_label.text(), long_path)
         self.assertEqual(self.widget.file_path_label.toolTip(), long_path)
         self.assertTrue(self.widget.marker_review_source_label.wordWrap())
-        self.assertIn(long_path, self.widget.marker_review_source_label.text())
+        self.assertEqual(self.widget.marker_review_source_label.text(), "Active source: corrected")
         self.assertEqual(
             self.widget.marker_review_source_label.toolTip(),
-            self.widget.marker_review_source_label.text(),
+            long_path,
         )
 
 

@@ -1,0 +1,147 @@
+"""Step 1 uses real widgets, worker, parser and files; dialogs select test paths."""
+import json
+import time
+from unittest.mock import patch
+
+import pytest
+from PySide6.QtWidgets import QApplication
+
+from src.analysis.pipeline.data_loader import DataLoader
+from src.analysis.pipeline.parser import Parser
+from src.analysis.pipeline.artifact_io import read_slice_metadata
+from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
+from src.config.data_columns import FACE_PREFIX_TO_INFO
+from src.simulation.scene_fixtures import write_sequence
+
+
+APP = QApplication.instance() or QApplication([])
+
+
+def wait_detection(widget):
+    deadline = time.monotonic() + 15
+    while widget.scene_busy or (widget.scene_worker and widget.scene_worker.isRunning()):
+        APP.processEvents()
+        # Release the Python GIL so the Python QThread can compute. QTest.qWait
+        # services Qt events but can starve this worker while holding the GIL.
+        time.sleep(.01)
+        assert time.monotonic() < deadline, widget.log_output.toPlainText()
+    APP.processEvents()
+
+
+@pytest.fixture
+def loaded(tmp_path):
+    folder = write_sequence(tmp_path / 'capture', 'drops')
+    widget = WidgetRawDataProcessing(DataLoader(), Parser(FACE_PREFIX_TO_INFO))
+    with patch('PySide6.QtWidgets.QFileDialog.getOpenFileName', return_value=(str(folder/'observed.csv'), '')):
+        widget.open_csv_file()
+    with patch('PySide6.QtWidgets.QFileDialog.getOpenFileName', return_value=(str(folder/'registration.json'), '')):
+        widget.load_scene_geometry()
+    yield widget, folder
+    if widget.scene_worker and widget.scene_worker.isRunning():
+        widget.scene_worker.requestInterruption()
+        wait_detection(widget)
+    widget.close()
+    widget.deleteLater()
+    APP.processEvents()
+
+
+def test_detect_select_edit_review_save_and_reopen(loaded, tmp_path):
+    widget, folder = loaded
+    calls = []
+    widget.file_loaded.connect(lambda *args: calls.append(args))
+    widget.scene_panel.detect_button.click()
+    assert not widget.load_csv_button.isEnabled()
+    wait_detection(widget)
+    assert widget.scene_session is not None, widget.log_output.toPlainText()
+    assert not widget.scene_panel.save_all_button.isEnabled()
+    falls = [r for r in widget.scene_session.rows if r['motion'] == 'free_fall']
+    assert len(falls) == 2
+    widget.scene_panel.refresh(falls[0]['id'])
+    assert float(widget.le_slice_start.text()) == falls[0]['start']
+    assert float(widget.le_slice_end.text()) == falls[0]['end']
+    assert not calls  # selecting intervals must not change MainApp's active source
+    original_start = falls[0]['start']
+    widget.le_slice_start.setText(repr(original_start - .008))
+    widget.update_span_selector_from_inputs()
+    assert falls[0]['evidence_status'] == 'range_changed'
+    widget.scene_panel.detect_button.click()
+    wait_detection(widget)
+    assert falls[0]['start'] == original_start - .008
+    assert falls[0]['evidence_status'] == 'current'
+    for row in widget.scene_session.rows:
+        widget.scene_panel.refresh(row['id'])
+        (widget.scene_panel.include_button if row['motion'] == 'free_fall' else widget.scene_panel.exclude_button).click()
+    assert widget.scene_panel.save_all_button.isEnabled()
+    widget.scene_panel.type_combo.setCurrentText('H')
+    widget.scene_panel.identify_button.click()
+    assert all(not r['identity']['confirmed'] for r in widget.scene_session.rows)
+    with patch('PySide6.QtWidgets.QFileDialog.getExistingDirectory', return_value=str(tmp_path)), \
+         patch('PySide6.QtWidgets.QMessageBox.warning') as warning:
+        widget.scene_panel.save_all_button.click()
+    warning.assert_not_called()
+    paths = list((tmp_path/'observed_scenes').glob('*.slice'))
+    assert len(paths) == 2, widget.log_output.toPlainText()
+    for path in paths:
+        meta = read_slice_metadata(str(path))
+        review = json.loads(meta.scene_review_json)
+        assert review['candidate']['decision'] == 'include'
+        assert review['identity']['ista_type'] == 'H'
+        assert review['identity']['scenario_id'] is None
+        assert meta.user_start == review['candidate']['start']
+        assert meta.user_end == review['candidate']['end']
+        h, raw = DataLoader().load_csv(str(path))
+        assert len(raw) > 1 and h['artifact_metadata']['ScenarioId'] is None
+
+
+def test_cancel_and_changed_source_preserve_existing_review(loaded):
+    widget, folder = loaded
+    widget.detect_scene_candidates()
+    wait_detection(widget)
+    session = widget.scene_session
+    row_id = session.rows[0]['id']
+    session.set_decision(row_id, 'exclude')
+    widget.detect_scene_candidates()
+    widget.detect_scene_candidates()  # same action becomes cancellation
+    wait_detection(widget)
+    assert widget.scene_session is session
+    assert session.row(row_id)['decision'] == 'exclude'
+    with (folder/'observed.csv').open('a') as f:
+        f.write('\n')
+    widget.detect_scene_candidates()
+    assert widget.scene_session is session
+    assert 'changed on disk' in widget.log_output.toPlainText()
+    assert not widget.scene_busy
+
+
+def test_dimension_change_invalidates_confirmed_scenes(loaded):
+    widget, _ = loaded
+    widget.detect_scene_candidates()
+    wait_detection(widget)
+    session = widget.scene_session
+    session.set_context('H', '2018-03')
+    for row in session.rows:
+        session.set_decision(row['id'], 'include' if row['motion'] == 'free_fall' else 'exclude')
+    session.identify()
+    row = next(r for r in session.rows if r['decision'] == 'include')
+    session.confirm_item(row['id'], 'H/B04/D06')
+    widget.le_box_l.setText('310')
+    widget.le_box_l.editingFinished.emit()
+    assert row['decision'] == 'unreviewed' and not row['identity']['confirmed']
+    assert not widget.scene_panel.save_all_button.isEnabled()
+    widget.detect_scene_candidates()
+    assert 'differ from the registered' in widget.log_output.toPlainText()
+
+
+def test_marker_busy_blocks_detection_before_thread_starts_and_keeps_declared_type(loaded):
+    widget, _ = loaded
+    widget.header_info['artifact_metadata']['IstaType'] = 'G'
+    widget._reset_scenes()
+    assert widget.scene_panel.type_combo.currentText() == 'G'
+    assert widget.scene_panel.edition_combo.currentData() is None
+    widget._set_review_busy(True)
+    assert not widget.scene_panel.detect_button.isEnabled()
+    assert not widget.load_csv_button.isEnabled()
+    assert not widget.box_dims_group.isEnabled()
+    assert not widget.review_marker_flips_button.isEnabled()
+    widget._set_review_busy(False)
+    assert widget.scene_panel.detect_button.isEnabled()

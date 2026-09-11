@@ -1,71 +1,38 @@
-# Simulation External Reference Notes
+# ISTA와 촬영 데이터 해석
 
-This note records the external sources used to verify the current simulation
-implementation and the exact local paths where the derived rules are applied.
+Last Reviewed: 2026-09-12
 
-## Local Paths
+## 확인한 자료와 적용 판본
 
-- Source rules:
-  - `/root/BoxMotionAnalyzer/src/simulation/scenarios.py`
-- User-facing simulation guide:
-  - `/root/BoxMotionAnalyzer/docs/simulation.md`
-- Type G / Type H face-numbering and sequence reference:
-  - `/root/BoxMotionAnalyzer/docs/ISTA_6_AMAZON_SIOC_REFERENCE.md`
-- This traceability note:
-  - `/root/BoxMotionAnalyzer/docs/simulation_external_reference_notes.md`
+직접 확인한 원문은 [ISTA 6-Amazon.com-SIOC 2018년 3월판, 52쪽](https://d39w7f4ix9f5s9.cloudfront.net/32/98/c52dd6b841f18bcb8af679b1f1ac/9.TESTING_thumbnail_ISTA%20Project%206-Amazon.com-SIOC%2018-18.pdf)이다. 2026-09-12 확인한 [ISTA 공식 판매 목록](https://mms.ista.org/members/store_product.php?orgcode=ISTA&pid=20952091)도 18-18로 표시하지만, 현재 촬영에 실제로 적용한 판본은 미확인이다. 새 검출기의 항목 조회는 이 판본만 지원하며, 파일명이나 운동 개수로 판본을 채우지 않는다. 시험 수행 지침 자체는 해당 시험소의 적용 규격과 시험 기록을 확인해야 한다.
 
-## Sources
+## 시험의 목적과 관측 한계
 
-- ANSI storefront entry for the official standard:
-  - https://webstore.ansi.org/standards/ansi/istaprojectamazonsioc2018
-- Publicly accessible excerpt used for implementation cross-checks:
-  - https://d39w7f4ix9f5s9.cloudfront.net/32/98/c52dd6b841f18bcb8af679b1f1ac/9.TESTING_thumbnail_ISTA%20Project%206-Amazon.com-SIOC%2018-18.pdf
+규격의 목적은 운송·취급 위험에 대한 포장과 제품의 보호 성능을 평가하는 것이다(원문 1–3쪽). Type G/H는 TV·모니터 여부, 배송·취급 방식, 포장 중량과 치수 조건으로 나뉜다. G는 parcel/standard handling에서 68 kg 미만 및 girth 4.19 m 이하, H는 LTL/standard handling에서 68 kg 이상 또는 girth 4.19 m 초과 조건이다. 규격은 단위계를 일관되게 선택하도록 하며 반올림된 lb/kg 경계를 혼용하면 안 된다. 촬영 자세만으로 상품 분류·배송 방식·중량을 알 수 없다.
 
-## What Was Checked Against These Sources
+| 운동 | 촬영에서 얻는 근거 | 따로 필요한 정보 |
+| --- | --- | --- |
+| 자유낙하 | 실제 시각의 COM 병진이 중력과 양립하는 구간, 등록 코너의 바닥 접근 자세 | 박스 로컬 축·마커 좌표·COM 또는 그 위치 상한, 바닥, 해제·접촉 기록, 시험 번호 |
+| 지지된 기울임·회전 | 상대 회전, 수직 이동, 등록 코너가 바닥 가까이에 남는지 | 지지점·받침·해제 방식과 목표 면/모서리, 시험 의도 |
+| 로봇 취급·대기 | 평행이동·회전 또는 작은 운동 | 동일 궤적을 로봇과 시험 장치가 만들 수 있으므로 장치 로그 |
+| 추적 불연속 | ID별 위치·강체 정합 잔차·급격한 상대 자세 변화·누락 | 실제 빠른 운동인지 solver 오류인지 구분할 독립 영상·물리 마커·장치 기록 |
 
-- Type G face numbering
-- Type G 17-drop sequence order
-- Type G standard/high drop-height rules
-- Type G face / edge / corner orientation interpretation
-- Type H public caution notes for tip angle and rotational drop handling
+G의 낙하 자세 표는 원문 26/45쪽, H 자유낙하 표는 28/46쪽이다. 같은 자세가 반복되므로 자세 후보만으로 순서를 확정할 수 없다. H B04/B16 자유낙하 표는 45 kg 미만 조건이며 H의 지지·회전 시험 전체 목록이 아니다. G16의 선택 면, G17 hazard 조건과 H 지지·회전 절차는 현재 검출기의 항목 확정 대상에서 제외한다. 기존 `src/simulation/scenarios.py`의 H01–12 목록은 이 규격의 시험 번호 조회표로 사용하지 않는다.
 
-## Type G Rules Confirmed From Public Excerpts
+면·모서리·꼭짓점 낙하의 시작 자세는 목표 접촉 형상과 질량중심의 관계를 고려해야 한다. 단순히 보이는 마커 평균이나 Euler 각 하나로 정하지 않는다. [ISTA Guidelines 2018, 7쪽](https://ista.org/docs/2018_ISTA_Guidelines.pdf)을 참조한다. `scene_review.py`는 바닥으로 접근하는 등록 코너들의 집합만으로 조건부 자세 후보를 만들고, 지면 통과를 실제 접촉력으로 부르지 않는다.
 
-- Face numbering for TV/Monitor Type G:
-  - Face 1 = Rear
-  - Face 2 = Bottom
-  - Face 3 = Screen
-  - Face 4 = Top
-  - Face 5 = Right
-  - Face 6 = Left
-- Free-fall drop heights:
-  - less than 32 kg: 460 mm standard, 910 mm high
-  - 32 kg to 68 kg: 300 mm standard, 610 mm high
-- Type G sequence includes:
-  - first sequence: Edge 3-4, Edge 3-6, Edge 4-6, Corner 3-4-6, Corner 2-3-5, Edge 2-3, Edge 1-2, Face 3 (high), Face 3
-  - second sequence: Edge 3-4, Edge 3-6, Edge 1-5, Corner 3-4-6, Corner 1-2-6, Corner 1-4-5, most critical flat orientation (default Face 6 when unknown), hazard impact orientation
+## 구현의 물리 전제
 
-## Type G Angle Interpretation
+`scene_detection.py`는 world Y-up을 유지하고 계산은 m/s, 표시는 mm/deg로 한다. 입력 헤더는 Global/Millimeters를 명시해야 한다. [OptiTrack CSV 설명](https://docs.optitrack.com/motive/data-export/data-export-csv)에 따라 solved rigid-body markers와 독립 physical-marker 관측을 구분한다. 낮은 solved-marker 잔차는 추적 정확도의 독립 증거가 아니다.
 
-- The standard defines Type G orientation by contact condition, not by explicit Euler angles.
-- Therefore the implementation should derive tilt from the package geometry:
-  - Face = face-center vector
-  - Edge = edge-center vector
-  - Corner = corner vector
-- With Box Motion Analyzer local axes:
-  - X = Width
-  - Y = Height
-  - Z = Depth
+고정 ID 템플릿에 공통 유효 마커 세 개 이상이 비공선일 때 Kabsch 강체 정합을 한다. 시간은 유한·엄격 증가해야 한다. 누락·정합 탈락·불연속을 가로질러 미분하거나 자세를 합치지 않는다. 기본 0.08초 창의 실제 시각으로 2차식을 맞추고 창 내부 회전 폭도 보아 왕복 운동을 놓치지 않도록 한다. 이 시간 창, 속도·잔차 기준은 소프트웨어 후보 설정이지 ISTA 임계값이 아니다.
 
-Example target vectors:
+템플릿 원점 p와 COM c는 일반적으로 다르다. 등록된 COM offset d가 있으면 c=p+R d를 먼저 계산한다. COM이 박스 내부라는 별도 확인이 있을 때만 동일 미분 연산자 L2로 B=D||L2[R]||2의 회전 오염 상한을 사용한다. D는 알려진 박스 대각 길이의 보수적 상한이다. COM 정보도 위치 상한도 없으면 중력 같은 병진을 보더라도 자유낙하 확정을 보류한다. 급격한 실제 운동과 일관된 solver 점프의 구별도 보장하지 않는다.
 
-- Edge 3-4 -> (0, +H, +D)
-- Edge 3-6 -> (-W, 0, +D)
-- Corner 3-4-6 -> (-W, +H, +D)
+선택적 `registration.json`은 version=1, profile(units=mm, origin=box-geometric-center, box_dims_mm, id/xyz_mm 마커 목록), floor_y_mm, position_tolerance_mm를 담는다. com_offset_mm는 실제 등록값이고, 미지 COM의 내부 위치가 확인된 경우만 com_inside_box_confirmed=true를 준다. 미지 값은 생략한다. 프로필 해시나 정답 manifest에서 좌표를 역으로 찾지 않는다.
 
-## Type H Caution
+## 확보한 실제 데이터
 
-- Public excerpts indicate:
-  - Tip/Tip Over uses a 22 degree tip angle
-  - Rotational Flat/Edge/Corner drops use 230 mm
-- The current repository still treats Type H as simplified logic and needs a separate follow-up against the full protocol.
+서로 다른 실측 촬영은 `TestSets/Input/VDTest_S5_001.csv` 하나다. `small_test.csv`는 앞부분 열 행이다. 실측 파일은 240 Hz, 1072행, 0–4.4625초이며 마지막 열 행은 추적이 없다. 고정 템플릿으로 약 1.6–3.1초의 90도 회전을 관찰했다. 초기 지지 회전 후 접촉·미끄러짐이 있었을 가능성은 추론이며 시험 종류의 정답이 아니다. 실제 physical-marker 좌표에서도 큰 회전이 보이지만 같은 카메라의 관측이므로 독립 시험 정답으로 사용하지 않는다.
+
+독립 박스 치수·마커 장착 좌표·바닥·COM·장치 동작·실제 판본과 Type/시험 번호 기록은 확보하지 못했다. 공개 자료의 소개 페이지를 실험 파일 확보로 계산하지 않았다. 현재 대안은 [공개 연속 가상 입력](simulation.md)의 독립 관측/정답 경로로 계산·UI·저장 의미를 검증하는 것이다. 실측 정확도 평가는 별도로 남긴다.

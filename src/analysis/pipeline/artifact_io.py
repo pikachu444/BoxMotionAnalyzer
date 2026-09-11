@@ -1,6 +1,7 @@
 import csv
 import hashlib
 import json
+import math
 import os
 import tempfile
 from dataclasses import dataclass
@@ -37,6 +38,7 @@ DEFAULT_SLICE_PADDING_ROWS = 50
 SLICE_META_PREFIX_KEYS = ("magic", "version", "source", "created")
 SLICE_META_DETAIL_KEYS = (
     "artifact_metadata",
+    "SceneReviewJson",
     "scene",
     "box_l",
     "box_w",
@@ -105,6 +107,7 @@ class SliceMetadata:
     correction_events_json: str = ""
     correction_context_json: str = ""
     artifact_metadata_json: str = ""
+    scene_review_json: str = ""
 
 
 @dataclass(frozen=True)
@@ -171,6 +174,47 @@ def _parse_metadata_row(row: list[str]) -> dict[str, str]:
     return parsed
 
 
+def _canonical_scene_review(value, *, start=None, end=None) -> str:
+    if value is None or value == "":
+        return ""
+    from .scene_review import validate_scene_review_json
+    return validate_scene_review_json(value, start=start, end=end)
+
+
+def _slice_scene_review(detail_meta: dict) -> str:
+    value = detail_meta.get("SceneReviewJson", "")
+    if not value:
+        return ""
+    start = _safe_float(detail_meta.get("user_start"))
+    end = _safe_float(detail_meta.get("user_end"))
+    if start is None or end is None or not math.isfinite(start) or not math.isfinite(end):
+        raise ValueError("Reviewed slice requires finite user_start and user_end.")
+    return _canonical_scene_review(value, start=start, end=end)
+
+
+def _replace_csv_rows(filepath: str, rows) -> None:
+    """Publish a complete slice without truncating a previous saved result."""
+    target = Path(filepath)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", newline="", delete=False,
+            dir=target.parent, prefix=".bma-slice-", suffix=".tmp",
+        ) as outfile:
+            temporary = Path(outfile.name)
+            csv.writer(outfile).writerows(rows)
+            outfile.flush()
+            os.fsync(outfile.fileno())
+        os.replace(temporary, target)
+    except BaseException as error:
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError as cleanup_error:
+                error.add_note(f"Could not remove temporary slice {temporary}: {cleanup_error}")
+        raise
+
+
 def _sha256_file(filepath: str) -> str:
     if not filepath:
         return ""
@@ -219,6 +263,7 @@ def _build_slice_metadata(
     row_count: int,
     marker_correction_metadata: CorrectionSourceMetadata | None = None,
     artifact_metadata_json: str = "",
+    scene_review_json: str = "",
 ) -> SliceMetadata:
     correction_events_json = (
         marker_correction_metadata.events_json if marker_correction_metadata is not None else ""
@@ -275,6 +320,7 @@ def _build_slice_metadata(
         ),
         correction_events_json=correction_events_json,
         artifact_metadata_json=artifact_metadata_json,
+        scene_review_json=scene_review_json,
         correction_context_json=marker_correction_metadata.context_json if marker_correction_metadata else "",
     )
 
@@ -568,6 +614,7 @@ def read_slice_metadata(filepath: str) -> SliceMetadata:
         correction_events_json=detail_meta.get("correction_events", ""),
         correction_context_json=detail_meta.get("correction_context", ""),
         artifact_metadata_json=detail_meta.get("artifact_metadata", ""),
+        scene_review_json=_slice_scene_review(detail_meta),
     )
 
 
@@ -599,6 +646,24 @@ def update_slice_box_dimensions(filepath: str, box_dims: tuple[float, float, flo
         context = validate_face_context(detail_meta.get('correction_context', ''))
         if tuple(context['box_dims_mm']) != normalized_dims:
             raise ValueError('Review the original source before changing corrected slice dimensions.')
+    scene_review_json = _slice_scene_review(detail_meta)
+    old_dims = tuple(_safe_float(detail_meta.get(key)) for key in ("box_l", "box_w", "box_h"))
+    if scene_review_json and old_dims != normalized_dims:
+        review = json.loads(scene_review_json)
+        review["identity"].update(confirmed=False, scenario_id=None, scenario_kind=None)
+        review["candidate"]["item_candidates"] = []
+        review["candidate"]["geometry"] = {}
+        if review["detection"].get("registration_sha256"):
+            review["detection"]["registration_sha256"] = None
+            review["detection"]["registration"] = None
+            review["candidate"]["evidence_status"] = "geometry_changed"
+            tags = review["candidate"].setdefault("tags", [])
+            if "geometry_changed" not in tags:
+                tags.append("geometry_changed")
+        detail_meta["SceneReviewJson"] = _canonical_scene_review(review)
+        artifact = normalize_metadata(detail_meta.get("artifact_metadata"))
+        artifact.update(ScenarioId=None, ScenarioKind=None)
+        detail_meta["artifact_metadata"] = metadata_json(artifact)
     detail_meta.update(
         {
             "box_l": normalized_dims[0],
@@ -608,9 +673,7 @@ def update_slice_box_dimensions(filepath: str, box_dims: tuple[float, float, flo
     )
     rows[1] = _metadata_row_from_mapping(detail_meta, SLICE_META_DETAIL_KEYS)
 
-    with open(filepath, mode="w", encoding="utf-8", newline="") as outfile:
-        writer = csv.writer(outfile)
-        writer.writerows(rows)
+    _replace_csv_rows(filepath, rows)
 
     return read_slice_metadata(filepath)
 
@@ -629,7 +692,9 @@ def save_slice_file(
     pad_rows: int = DEFAULT_SLICE_PADDING_ROWS,
     scene_name: str = "scene",
     marker_correction_metadata: CorrectionSourceMetadata | None = None,
+    scene_review_json: str = "",
 ) -> SliceMetadata:
+    scene_review_json = _canonical_scene_review(scene_review_json, start=user_start, end=user_end)
     row_start, row_end, padded_start, padded_end = _slice_time_bounds(raw_data, user_start, user_end, pad_rows)
     if marker_correction_metadata is not None and marker_correction_metadata.schema_version == '3':
         context = validate_face_context(marker_correction_metadata.context_json)
@@ -654,6 +719,7 @@ def save_slice_file(
         row_count=len(slice_raw_df),
         marker_correction_metadata=marker_correction_metadata,
         artifact_metadata_json=metadata_json(header_info.get('artifact_metadata')),
+        scene_review_json=scene_review_json,
     )
 
     header_rows = [
@@ -694,19 +760,19 @@ def save_slice_file(
                 "correction_events": metadata.correction_events_json,
                 "correction_context": metadata.correction_context_json,
                 "artifact_metadata": metadata.artifact_metadata_json,
+                "SceneReviewJson": metadata.scene_review_json,
             },
             SLICE_META_DETAIL_KEYS,
         ),
     ]
 
     header_keys = ("type", "name", "id", "parent", "category", "component")
-    with open(filepath, mode="w", encoding="utf-8", newline="") as outfile:
-        writer = csv.writer(outfile)
-        for row in header_rows:
-            writer.writerow(row)
-        for key in header_keys:
-            writer.writerow(header_info.get(key, []))
-        writer.writerows(slice_raw_df.fillna("").values.tolist())
+    from itertools import chain
+    _replace_csv_rows(filepath, chain(
+        header_rows,
+        (header_info.get(key, []) for key in header_keys),
+        slice_raw_df.fillna("").values.tolist(),
+    ))
 
     return metadata
 
@@ -721,6 +787,13 @@ def add_timeline_context_columns(df: pd.DataFrame, timeline_context: dict[str, o
     export_df[TimelineMetaCols.FULL_END_SEC] = timeline_context.get("full_end_sec")
     export_df[TimelineMetaCols.SLICE_START_SEC] = timeline_context.get("slice_start_sec")
     export_df[TimelineMetaCols.SLICE_END_SEC] = timeline_context.get("slice_end_sec")
+    scene_review_json = _canonical_scene_review(
+        timeline_context.get("scene_review_json"),
+        start=timeline_context.get("slice_start_sec"),
+        end=timeline_context.get("slice_end_sec"),
+    )
+    if scene_review_json:
+        export_df["SceneReview_Json"] = scene_review_json
     correction_schema = str(
         timeline_context.get("marker_correction_schema_version") or ""
     )

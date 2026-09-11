@@ -41,6 +41,8 @@ def get_conversion_rules() -> list:
     axis_to_vt = {"X": HeaderL3.V_TX, "Y": HeaderL3.V_TY, "Z": HeaderL3.V_TZ}
 
     rules = [
+        (re.compile(r"^SceneReview_Json$"),
+         lambda m: (HeaderL1.INFO, "SceneReview", "Json")),
         # Timeline context metadata
         (re.compile(f"^{TimelineMetaCols.FULL_START_SEC}$"),
          lambda m: (HeaderL1.INFO, HeaderL2.TIMELINE, HeaderL3.TL_FULL_START_SEC)),

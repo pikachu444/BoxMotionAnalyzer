@@ -54,6 +54,10 @@ jobs:
           tests/test_slice_dimension_provenance_gui.py
           tests/test_simulation_export.py
           tests/test_simulation_export_gui.py
+          tests/test_scene_fixtures.py
+          tests/test_scene_detection.py
+          tests/test_scene_artifact_io.py
+          tests/test_scene_review_gui.py
           --junitxml=tmp/public-marker-results.xml
       - name: Reject missing or skipped required checks
         shell: pwsh

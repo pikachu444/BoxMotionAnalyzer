@@ -220,9 +220,7 @@ class WidgetSliceProcessing(QWidget):
 
         processing_group = QGroupBox(config_analysis_ui.PROCESSING_MODE_GROUP_TITLE)
         processing_layout = QVBoxLayout(processing_group)
-        processing_group.setMinimumWidth(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["processing_group_min_width"]
-        )
+        processing_group.setMinimumWidth(280)
 
         radio_row = QHBoxLayout()
         self.rb_processing_raw = QRadioButton(
@@ -276,7 +274,7 @@ class WidgetSliceProcessing(QWidget):
         result_layout.addWidget(QLabel("Saved File:"), 1, 0)
         self.proc_path_label = QLabel("Not saved yet.")
         self.proc_path_label.setWordWrap(True)
-        result_layout.addWidget(self.proc_path_label, 1, 1)
+        result_layout.addWidget(self.proc_path_label, 2, 0, 1, 2)
         h_controls_layout.addWidget(result_group)
 
         batch_group = QGroupBox("Batch Processing")
@@ -297,12 +295,13 @@ class WidgetSliceProcessing(QWidget):
         batch_layout.addWidget(self.run_batch_button, 4, 0, 1, 2)
         h_controls_layout.addWidget(batch_group)
 
-        plot_options_group.setMinimumWidth(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["plot_options_group_min_width"]
-        )
-        self.resampling_group.setMinimumWidth(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["resampling_group_min_width"]
-        )
+        plot_options_group.setMinimumWidth(240)
+        self.resampling_group.setMinimumWidth(280)
+        # A long reviewed-output directory is content, not a window minimum.
+        for label in (self.slice_path_label, self.slice_source_label, self.proc_path_label,
+                      self.batch_folder_label):
+            label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+            label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 
         action_layout = QVBoxLayout()
         self.run_button = QPushButton("Run Processing")
@@ -538,7 +537,8 @@ class WidgetSliceProcessing(QWidget):
             self._reset_box_dimension_state()
             self.slice_metadata, self.header_info, self.raw_data, self.parsed_data = self._load_slice_bundle(filepath)
             self.slice_path = filepath
-            self.slice_path_label.setText(filepath)
+            self.slice_path_label.setText(os.path.basename(filepath))
+            self.slice_path_label.setToolTip(filepath)
             self._set_slice_summary()
             self._apply_box_dims_from_metadata()
             self.current_proc_path = None
@@ -680,6 +680,7 @@ class WidgetSliceProcessing(QWidget):
             "full_end_sec": full_end,
             "slice_start_sec": slice_start,
             "slice_end_sec": slice_end,
+            "scene_review_json": "" if metadata is None else metadata.scene_review_json,
         }
         if metadata is not None and metadata.correction_schema_version:
             context.update(
@@ -888,7 +889,8 @@ class WidgetSliceProcessing(QWidget):
         try:
             save_proc_file(filepath, self.current_processed_result)
             self.current_proc_path = filepath
-            self.proc_path_label.setText(filepath)
+            self.proc_path_label.setText(os.path.basename(filepath))
+            self.proc_path_label.setToolTip(filepath)
             self.append_log(f"[INFO] Processed result saved: {filepath}")
         except Exception as e:
             self.append_log(f"[ERROR] Failed to save processed result: {e}")

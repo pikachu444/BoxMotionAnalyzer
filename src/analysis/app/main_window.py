@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QThread, QSize
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QStatusBar, QMessageBox, QTabWidget
 )
@@ -37,8 +37,23 @@ class PipelineWorker(QThread):
             self.controller.run_analysis(self.config, self.header_info, self.raw_data, self.parsed_data)
 
 
+class AnalysisTabs(QTabWidget):
+    """Hidden processing/results pages must not enlarge the Step 1 window."""
+    def minimumSizeHint(self):
+        page = self.currentWidget()
+        if page is None:
+            return super().minimumSizeHint()
+        return page.minimumSizeHint() + QSize(4, self.tabBar().sizeHint().height() + 4)
+
+
 class MainApp(QMainWindow):
     def closeEvent(self, event):
+        scene_worker = self.original_widget.scene_worker
+        if scene_worker is not None and scene_worker.isRunning():
+            scene_worker.requestInterruption()
+            event.ignore()
+            self.statusBar().showMessage('Cancelling scene detection...')
+            return
         worker = self.original_widget.review_worker
         if worker is not None and worker.isRunning():
             event.ignore()
@@ -71,7 +86,8 @@ class MainApp(QMainWindow):
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
 
-        self.tab_widget = QTabWidget()
+        self.tab_widget = AnalysisTabs()
+        self.tab_widget.currentChanged.connect(lambda _: self.tab_widget.updateGeometry())
         main_layout.addWidget(self.tab_widget)
 
         self.original_widget = WidgetRawDataProcessing(self.data_loader, self.parser)
@@ -120,7 +136,10 @@ class MainApp(QMainWindow):
         if parsed_data is None:
             return
 
-        self.current_timeline_context = dict(timeline_context or {})
+        if getattr(self, 'worker', None) is not None and self.worker.isRunning():
+            return
+        from copy import deepcopy
+        self.processing_timeline_context = deepcopy(timeline_context or {})
         self.statusBar().showMessage("Running processing...")
         self.worker = PipelineWorker(
             self.pipeline_controller,
@@ -138,7 +157,7 @@ class MainApp(QMainWindow):
             self.statusBar().showMessage("Processing failed.")
             return
 
-        processed_with_context = add_timeline_context_columns(result_df, self.current_timeline_context)
+        processed_with_context = add_timeline_context_columns(result_df, self.processing_timeline_context)
         self.processing_widget.on_processing_finished(processed_with_context)
         self.statusBar().showMessage("Processing complete.")
 
