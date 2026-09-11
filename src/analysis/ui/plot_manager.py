@@ -76,6 +76,8 @@ class PlotManager(QObject):
 
     def enable_interactions(self, data_df: pd.DataFrame):
         if data_df is None or data_df.empty: return
+        if self.span_selector is not None:
+            self.span_selector.disconnect_events()
 
         # SpanSelector 초기화
         min_time, max_time = data_df.index.min(), data_df.index.max()

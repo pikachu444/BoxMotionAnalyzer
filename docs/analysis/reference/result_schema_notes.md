@@ -14,6 +14,24 @@ Last Reviewed: 2026-09-12
 6. `WidgetResultsAnalyzer`는 `DISPLAY_RESULT_COLUMNS` 기준으로 트리/플롯 항목을 표시하고, UI에서는 `Metric-first` / `Object-first` 계층 전환과 검색 필터를 제공한다
 7. `Visualization`은 export된 `HeaderL3` metric 키를 long-format 내부 컬럼에도 그대로 재사용한다
 
+## Scene review metadata (#75)
+
+`SceneReviewJson=<JSON>` is optional in the existing second `.slice` metadata row.
+Step 1.5 carries it as `scene_review_json`; `.proc` writes the constant string at
+`('Info', 'SceneReview', 'Json')`. Legacy files without it remain readable.
+Version 1 records the capture SHA-256, automatic and reviewed bounds, motion
+evidence, include decision, censor flags, gravity episodes, detector settings,
+optional static registration and its hash, conditional posture matches, separate
+identity confirmation, and the working list's include/exclude decisions/deletions.
+`gravity_evidence_start/end` are accepted differentiation-window centres, not
+measured release/contact times. `floor_crossings` are geometric approach brackets,
+not measured contact forces. Slice padding remains separate from reviewed bounds.
+New slice metadata must describe an included interval with matching finite bounds.
+Unknown Type/item can still be analyzed; it cannot supply a comparison identity.
+Dimension changes clear registered geometry evidence and item confirmation.
+Writes finish a temporary file before replacing the destination; a failed replace
+keeps the prior slice and a cleanup failure remains attached to the primary error.
+
 ## Artifact identity and comparison time (#83 / #76)
 
 `src/utils/artifact_metadata.py` owns the versioned public identity contract. The

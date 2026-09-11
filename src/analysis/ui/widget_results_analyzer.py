@@ -3,6 +3,7 @@ import pandas as pd
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
+    QScrollArea,
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QGroupBox, QTreeWidget, QTreeWidgetItem,
     QFileDialog, QListWidget, QFormLayout, QCheckBox, QGridLayout, QSplitter, QFrame,
@@ -71,8 +72,10 @@ class WidgetResultsAnalyzer(QWidget):
         context_row_1 = QHBoxLayout()
         context_row_1.addWidget(QLabel("Active File:"))
         self.context_active_file_label = QLabel("N/A")
-        context_row_1.addWidget(self.context_active_file_label)
-        context_row_1.addStretch()
+        self.context_active_file_label.setWordWrap(True)
+        self.context_active_file_label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        self.context_active_file_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        context_row_1.addWidget(self.context_active_file_label, 1)
         context_row_1.addWidget(QLabel("Number of Samples:"))
         self.context_rows_label = QLabel("N/A")
         context_row_1.addWidget(self.context_rows_label)
@@ -313,7 +316,11 @@ class WidgetResultsAnalyzer(QWidget):
         bottom_splitter = QSplitter(Qt.Orientation.Horizontal)
         bottom_splitter.setChildrenCollapsible(False)
         bottom_splitter.addWidget(main_plot_group)
-        bottom_splitter.addWidget(right_panel)
+        export_scroll = QScrollArea()
+        export_scroll.setWidgetResizable(True)
+        export_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        export_scroll.setWidget(right_panel)
+        bottom_splitter.addWidget(export_scroll)
         bottom_splitter.setSizes([820, 380])
         main_splitter.addWidget(bottom_splitter)
         main_splitter.setStretchFactor(0, 2)
