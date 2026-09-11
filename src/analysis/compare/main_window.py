@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QFrame
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QFrame, QLabel, QApplication
+from PySide6.QtCore import Qt, QEventLoop
 
 from src.analysis.compare.data_model import ComparisonModel
 from src.analysis.compare.ui_panels import CompareControlPanel, CompareTablePanel, CompareGraphPanel
@@ -18,6 +18,10 @@ class CompareMainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(10, 10, 10, 10)
+        self.warning_label = QLabel('No results loaded.')
+        self.warning_label.setWordWrap(True)
+        self.warning_label.setTextFormat(Qt.PlainText)
+        main_layout.addWidget(self.warning_label)
         
         # White card frame
         content_frame = QFrame()
@@ -54,6 +58,8 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.remove_file_requested.connect(self._on_remove_file)
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
         self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
+        self.control_panel.view_changed.connect(self._on_view_changed)
+        self.playback_panel.elapsed_changed.connect(self._on_elapsed_changed)
         # Set white card layout on grey background
         self.setStyleSheet("""
             QMainWindow {
@@ -84,13 +90,18 @@ class CompareMainWindow(QMainWindow):
             return
             
         new_files_added = False
+        self.playback_panel.stop()
+        self.control_panel.setEnabled(False)
         for path in filepaths:
             try:
+                self.statusBar().showMessage(f'Loading {path}…')
+                QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
                 self.model.load_file(path)
                 new_files_added = True
             except Exception as e:
                 QMessageBox.warning(self, "Load Error", f"Failed to load {path}:\n{str(e)}")
-                
+        self.control_panel.setEnabled(True)
+        self.statusBar().showMessage('Loading complete.')
         if new_files_added:
             self._refresh_ui()
             
@@ -100,17 +111,41 @@ class CompareMainWindow(QMainWindow):
         
     def _on_plot_target_changed(self, target: str):
         if not target:
+            self.graph_panel.update_plot({}, '')
             return
         # Extract group, component, metric from target string (e.g., 'Analysis | DropPosture | ThetaLongDeg')
         parts = [p.strip() for p in target.split('|')]
         if len(parts) == 3:
-            series_dict = self.model.get_timeseries_data(parts[0], parts[1], parts[2])
-            self.graph_panel.update_plot(series_dict, parts[2])
+            individual = self.control_panel.cb_view.currentData()
+            series_dict = self.model.get_timeseries_data(parts[0], parts[1], parts[2], individual=individual)
+            xlabel = 'Elapsed since t1− (s)'
+            if individual:
+                xlabel = 'Recorded time (s)' if self.model.timelines[individual].times is not None else 'Sample row (time unavailable)'
+            labels = {name: f'{i + 1}. {name[:24]} [{self.model.identities[name].source_kind}]' for i, name in enumerate(series_dict)}
+            self.graph_panel.update_plot(series_dict, parts[2], xlabel=xlabel, labels=labels)
+            if individual is None and self.playback_panel.current_elapsed is not None:
+                self.graph_panel.set_elapsed_cursor(self.playback_panel.current_elapsed)
+
+    def _on_view_changed(self):
+        self.model.max_gap_sec = self.control_panel.gap_limit.value()
+        self._on_plot_target_changed(self.graph_panel.cb_plot_target.currentText())
+        self.playback_panel._on_master_slider_changed(self.playback_panel.master_slider.value())
+
+    def _on_elapsed_changed(self, elapsed):
+        if self.control_panel.cb_view.currentData() is None:
+            self.graph_panel.set_elapsed_cursor(elapsed)
             
     def _refresh_ui(self):
         files = list(self.model.datasets.keys())
         baseline = self.model.baseline_name
-        self.control_panel.update_files(files, baseline)
+        self.control_panel.update_files(files, baseline, self.model)
+        excluded = [name for name in files if self.model.exclusion_reasons(name)]
+        sources = sorted({value.source_kind for value in self.model.identities.values()})
+        self.warning_label.setText(
+            ('No results loaded.' if not files else
+             f'Sources: {", ".join(sources)}. {len(excluded)}/{len(files)} excluded from aggregation / baseline differences. '
+             'Overlay is for visual review only; source classes remain separate. Synthetic not_applicable is not ISTA approval. '
+             'Select a file for all exclusion reasons. 3D shows nearest recorded samples with their actual times.'))
         
         # Update Table
         diff_data = self.model.get_summary_differences()
@@ -118,14 +153,18 @@ class CompareMainWindow(QMainWindow):
         
         # Update Plot Targets (collect all DropPosture metrics for now)
         targets = []
-        if files:
-            first_df = self.model.datasets[files[0]]
-            if "Analysis" in first_df.columns.levels[0] and "DropPosture" in first_df.columns.levels[1]:
-                metrics = first_df["Analysis"]["DropPosture"].columns
-                targets = [f"Analysis | DropPosture | {m}" for m in metrics]
+        for df in self.model.datasets.values():
+            targets.extend(' | '.join(col) for col in df.columns if col[:2] == ('Analysis', 'DropPosture'))
+        targets = sorted(set(targets))
                 
         self.graph_panel.set_plot_targets(targets)
         
         # Update Playback Panel Viewers
         self.playback_panel.refresh_viewers()
+
+    def closeEvent(self, event):
+        self.playback_panel.stop()
+        for viewer in self.playback_panel.widgets.values():
+            viewer.cleanup()
+        super().closeEvent(event)
 

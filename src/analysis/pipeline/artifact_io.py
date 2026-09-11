@@ -19,6 +19,8 @@ from src.analysis.pipeline.marker_flip import (
 )
 from src.config.data_columns import MarkerCorrectionMetaCols, TimeCols, TimelineMetaCols
 from src.utils.header_converter import convert_to_multi_header
+from src.utils.artifact_metadata import add_artifact_columns, metadata_json, normalize_metadata, validate_declared_dimensions
+from src.utils.processing_settings import SETTINGS_ATTR, processing_record
 
 
 CSV_FILE_EXTENSION = ".csv"
@@ -34,6 +36,7 @@ DEFAULT_SLICE_PADDING_ROWS = 50
 
 SLICE_META_PREFIX_KEYS = ("magic", "version", "source", "created")
 SLICE_META_DETAIL_KEYS = (
+    "artifact_metadata",
     "scene",
     "box_l",
     "box_w",
@@ -66,6 +69,7 @@ CORRECTED_SOURCE_META_PREFIX_KEYS = (
     "created",
 )
 CORRECTED_SOURCE_META_DETAIL_KEYS = (
+    "artifact_metadata",
     "correction_schema",
     "correction_algorithm",
     "correction_event_count",
@@ -100,6 +104,7 @@ class SliceMetadata:
     correction_approved_event_count: int = 0
     correction_events_json: str = ""
     correction_context_json: str = ""
+    artifact_metadata_json: str = ""
 
 
 @dataclass(frozen=True)
@@ -213,6 +218,7 @@ def _build_slice_metadata(
     pad_rows: int,
     row_count: int,
     marker_correction_metadata: CorrectionSourceMetadata | None = None,
+    artifact_metadata_json: str = "",
 ) -> SliceMetadata:
     correction_events_json = (
         marker_correction_metadata.events_json if marker_correction_metadata is not None else ""
@@ -268,6 +274,7 @@ def _build_slice_metadata(
             else 0
         ),
         correction_events_json=correction_events_json,
+        artifact_metadata_json=artifact_metadata_json,
         correction_context_json=marker_correction_metadata.context_json if marker_correction_metadata else "",
     )
 
@@ -475,6 +482,7 @@ def save_corrected_source_file(
                 "correction_approved_event_count": metadata.approved_event_count,
                 "correction_events": metadata.events_json,
                 "correction_context": metadata.context_json,
+                "artifact_metadata": metadata_json(header_info.get('artifact_metadata')),
             },
             CORRECTED_SOURCE_META_DETAIL_KEYS,
         ),
@@ -559,6 +567,7 @@ def read_slice_metadata(filepath: str) -> SliceMetadata:
         ),
         correction_events_json=detail_meta.get("correction_events", ""),
         correction_context_json=detail_meta.get("correction_context", ""),
+        artifact_metadata_json=detail_meta.get("artifact_metadata", ""),
     )
 
 
@@ -585,6 +594,7 @@ def update_slice_box_dimensions(filepath: str, box_dims: tuple[float, float, flo
         rows.append([])
 
     detail_meta = _parse_metadata_row(rows[1])
+    validate_declared_dimensions(detail_meta.get('artifact_metadata'), normalized_dims)
     if detail_meta.get('correction_schema') == '3':
         context = validate_face_context(detail_meta.get('correction_context', ''))
         if tuple(context['box_dims_mm']) != normalized_dims:
@@ -628,6 +638,8 @@ def save_slice_file(
         if box_dims is None or tuple(context['box_dims_mm']) != tuple(box_dims):
             raise ValueError('Slice dimensions differ from approved face correction context.')
     slice_raw_df = raw_data.iloc[row_start : row_end + 1].copy()
+    if box_dims is not None:
+        validate_declared_dimensions(header_info.get('artifact_metadata'), box_dims)
     metadata = _build_slice_metadata(
         source_name=Path(source_path).name if source_path else "",
         scene_name=scene_name,
@@ -641,6 +653,7 @@ def save_slice_file(
         pad_rows=pad_rows,
         row_count=len(slice_raw_df),
         marker_correction_metadata=marker_correction_metadata,
+        artifact_metadata_json=metadata_json(header_info.get('artifact_metadata')),
     )
 
     header_rows = [
@@ -680,6 +693,7 @@ def save_slice_file(
                 ),
                 "correction_events": metadata.correction_events_json,
                 "correction_context": metadata.correction_context_json,
+                "artifact_metadata": metadata.artifact_metadata_json,
             },
             SLICE_META_DETAIL_KEYS,
         ),
@@ -698,7 +712,11 @@ def save_slice_file(
 
 
 def add_timeline_context_columns(df: pd.DataFrame, timeline_context: dict[str, object]) -> pd.DataFrame:
-    export_df = df.copy()
+    artifact = normalize_metadata(timeline_context.get('artifact_metadata'))
+    # Only the actual pipeline's execution record may label a newly processed
+    # result. Raw-file declarations and current defaults are not execution proof.
+    artifact['ProcessingSemanticsVersion'], artifact['ProcessingSettingsJson'] = processing_record(df.attrs.get(SETTINGS_ATTR))
+    export_df = add_artifact_columns(df, artifact)
     export_df[TimelineMetaCols.FULL_START_SEC] = timeline_context.get("full_start_sec")
     export_df[TimelineMetaCols.FULL_END_SEC] = timeline_context.get("full_end_sec")
     export_df[TimelineMetaCols.SLICE_START_SEC] = timeline_context.get("slice_start_sec")
@@ -744,6 +762,13 @@ def add_timeline_context_columns(df: pd.DataFrame, timeline_context: dict[str, o
 
 
 def save_proc_file(filepath: str, processed_df: pd.DataFrame) -> None:
+    if 'Artifact_SourceKind' not in processed_df.columns:
+        processed_df = add_artifact_columns(processed_df)
+    if SETTINGS_ATTR in processed_df.attrs:
+        processed_df = processed_df.copy()
+        version, settings = processing_record(processed_df.attrs[SETTINGS_ATTR])
+        processed_df['Artifact_ProcessingSemanticsVersion'] = version
+        processed_df['Artifact_ProcessingSettingsJson'] = settings
     export_df = convert_to_multi_header(processed_df)
     export_df.to_csv(filepath, index=False)
 

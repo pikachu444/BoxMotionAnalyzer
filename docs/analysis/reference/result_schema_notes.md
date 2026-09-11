@@ -1,6 +1,6 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-09-08
+Last Reviewed: 2026-09-11
 
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
@@ -13,6 +13,140 @@ Last Reviewed: 2026-09-08
 5. Export 시 `convert_to_multi_header()`가 flat 컬럼명을 Multi-Header로 변환
 6. `WidgetResultsAnalyzer`는 `DISPLAY_RESULT_COLUMNS` 기준으로 트리/플롯 항목을 표시하고, UI에서는 `Metric-first` / `Object-first` 계층 전환과 검색 필터를 제공한다
 7. `Visualization`은 export된 `HeaderL3` metric 키를 long-format 내부 컬럼에도 그대로 재사용한다
+
+## Artifact identity and comparison time (#83 / #76)
+
+`src/utils/artifact_metadata.py` owns the versioned public identity contract. The
+Analysis pipeline's `artifact_io.save_proc_file` writer emits these constant columns,
+each at `('Info', 'Artifact', field)`:
+
+| Field | Stored type / meaning |
+| --- | --- |
+| SchemaVersion | String `1`; only exact version 1 is currently compatible |
+| SourceKind | `real`, `public_external`, `mujoco_synthetic`, `handcrafted_dummy`, or `unknown_legacy` |
+| ModelId | Explicit model identity; never inferred from a filename |
+| BoxLengthMm, BoxWidthMm, BoxHeightMm | Positive finite numbers in mm |
+| IstaType | Explicit reviewed type, or `not_applicable` for declared non-ISTA fixtures |
+| ScenarioId, ScenarioKind | Explicit scenario identity and kind; synthetic cases do not approve an ISTA scene |
+| MarkerLayoutId, MarkerLayoutHash | Explicit profile ID and stable geometry/assignment hash |
+| ProcessingSemanticsVersion | `analysis-face-v3-time-v2:sha256:<digest>` of the executed policy JSON |
+| CoordinatePolicy | Explicit world/local basis and origin policy identifier |
+| UnitsPolicy | Explicit units contract identifier |
+| GeneratorVersion | Required for synthetic/dummy input; otherwise may be blank |
+| ProcessingSettingsJson | Canonical JSON of executed single-pass, result-resampling and postprocess policies |
+
+Other than dimensions, fields are strings. Missing values serialize as blank CSV
+cells (JSON `null` in source metadata). Readers do not fill missing schema/model/
+type/layout values. Missing source class displays as `unknown_legacy`. A field
+that varies across rows is invalid even if its first row appears usable.
+Identity strings bypass CSV numeric/NA inference: `001` differs from `1`, `NA`
+is a literal identifier, and a digits-only lowercase SHA-256 retains all 64 digits.
+
+New writers set schema 1; reading old files does not declare them schema 1. A new
+derived artifact may have the new container schema while retaining unknown source
+identity. No metadata completeness check is evidence of physical calibration.
+This applies to the Analysis writer and safe identity transport from the new public
+observed-data generator. The legacy Simulation UI exporter in
+`src/simulation/data_exporter.py` is unchanged and does not emit `Info/Artifact`.
+Its results therefore remain `unknown_legacy`, individually viewable but excluded
+from aggregation/baseline differences. Updating that exporter remains a separate
+#81 follow-up; this change does not assert that all project exporters use this schema.
+
+Safe source identity is a JSON object under `Artifact Metadata` in a generated
+raw CSV's first metadata row. Corrected CSV and `.slice` retain it as
+`artifact_metadata=<JSON>` in their existing second metadata row. The loader
+accepts only the 16 fields above. This is separate from correction history and
+from test-only `*.synthetic.json`; production never opens the truth/event manifest.
+User-entered slice dimensions cannot silently contradict declared artifact dimensions.
+
+`ProcessingSettingsJson` is exactly `('Info','Artifact','ProcessingSettingsJson')`,
+constant across rows. The current schema-1 contract includes this field; older
+15-field or fixed-version results remain readable but are excluded from baseline
+differences/aggregation because they lack a verifiable executed settings record.
+Canonical encoding uses sorted object keys, separators `,`/`:`, ASCII escaping,
+finite JSON numbers and no indentation. The UTF-8 bytes produce the lowercase
+SHA-256 digest in `ProcessingSemanticsVersion`. Missing/nonconstant/malformed JSON,
+noncanonical encoding, unsupported version or a mismatching digest excludes the
+file. A JSON object must contain nonempty `single_pass`, `result_resampling` and
+`postprocess` stage records. This is provenance consistency, not authentication
+of an externally supplied file or evidence of real-world accuracy.
+
+The production controller records configured component settings after the stages
+execute. Single-pass policy includes enabled marker-filter sequence and active
+parameters, actual optimizer options/geometry/face definitions, active pose and
+derivative filtering, spline/finite-difference policy, explicit floor/vertical-axis
+settings, padding frame count and trimming policy. Inactive filter parameters are
+omitted. Resampling records the actually executed factor, linear result-row policy
+and full/limited scope; a limited interval uses selected offsets relative to the
+slice, never absolute trial timestamps. Postprocessing records the threshold passed
+to the processor and its configured geometry, face definitions, floor and axis.
+No calculated t1, inferred sampling rate, data values, input path/hash or selected
+absolute trial start/end enters the processing fingerprint. The same actual-dt
+policy can therefore compare trials with different sampling rates and time origins.
+
+The execution record travels in the processed DataFrame's private attributes until
+the Analysis writer emits the two artifact columns. The writer discards any raw
+declaration of those processing fields when attaching a newly processed result;
+absent execution records are not replaced with current defaults. Postprocess-only
+execution on a legacy result cannot claim the missing earlier stages. Generator
+source identity is separate from these executed settings.
+
+Public generator examples explicitly declare a virtual model, absolute-mm layout,
+`IstaType=not_applicable`, `ScenarioId=public-<motion>-v1` and
+`ScenarioKind=synthetic_<motion>`. These describe the generator's standalone case,
+not an approved physical test. Its coordinate policy is
+`world-y-up-box-local-fixed-center-v1`; units policy
+`bma-mm-s-rotvec-rad-summary-deg-v1` means mm and seconds, pose rotation vectors in
+radians and DropPosture degree metrics. Generator version is 1.3. No actual CSV's
+source/model/type is inferred from Motive-like headers or from its file name.
+
+Comparison eligibility requires complete, constant identity, supported schema,
+known source kind, and matching model, dimensions, type/scenario, layout ID/hash,
+processing semantics, coordinates and units. Source classes cannot mix. Different
+generator builds are permitted if those explicit contracts match; build IDs remain
+visible. All failed keys are reported, not only the first mismatch. Unknown or
+incompatible files keep individual summary/graph/3D sample review. Baseline
+differences are withheld for excluded files. No aggregate mean/statistics is
+implemented by this change; `get_summary_differences` remains baseline subtraction.
+Unknown or invalid source classes are also excluded from the common overlay,
+playback and elapsed bounds even when canonical time/t1 exist. Individual time or
+sample-row review remains available. Known but incompatible source classes may
+still be overlaid with a persistent warning; they never gain aggregate eligibility.
+
+`src/utils/result_time.py` owns result time reading. Canonical time is exactly
+`('Info', 'Time', 'Time')` in seconds. Event alignment requires constant
+`('Analysis', 'DropPostureSummary', 'T1Detected') = True` and finite in-range
+`('Analysis', 'DropPostureSummary', 'T1MinusTimeSec')`. Graphs and the playback clock
+use elapsed seconds `t - t1_minus`. No `T1MinusFrame`, frame-zero, zero-time or
+index fallback participates in synchronization.
+
+Identical copies of a time *column* are accepted and collapsed where their tuples
+match. Canonical plus legacy `('Time','Time','Time')` columns must have identical
+numeric values. Conflicting columns, nonfinite time, duplicate *sample timestamps*,
+or decreasing time disable alignment. Legacy-only time is available for individual
+time plots, never as a replacement for missing canonical time. With no usable
+time, individual graphs label the x-axis `Sample row (time unavailable)`.
+
+Irregular positive sampling intervals are supported. The comparison UI exposes a
+gap display limit in seconds (initially 0.1 s). This is a user-adjustable continuity
+policy, not an error tolerance, measured acquisition cadence, or physical threshold.
+Graphs insert a NaN break across longer intervals without deleting their endpoints.
+Both graph and playback use one gap comparison on recorded timestamps. Up to four
+combined floating-point ULPs, capped at 1e-12 seconds, account only for subtraction
+roundoff at the configured limit. Exact decimal 0.1 s sampling is not fragmented
+by `0.10000000000000009`; a true excess remains a gap. Large absolute timestamps
+cannot enlarge this allowance into a physical tolerance.
+At a common clock time, 3D chooses the nearest recorded sample within a continuous
+interval (ties choose earlier); the actual chosen sample time is shown. No pose is
+interpolated. Internal long gaps, invalid position samples, and times outside a
+file's range show 3D unavailable rather than clamping/holding a pose. Different
+sample rates do not imply simultaneous observations. Rendering uses row positions
+0..N-1, independently of original frame labels such as 100,104,108.
+Nonnumeric position cells are coerced to unavailable values. The comparison viewer
+is hidden before validating a new sample, so a bad string cannot retain a stale
+pose or prevent the other files from updating. Existing slice-dimension update
+and manual-apply paths validate declared artifact dimensions before changing disk
+or locking the GUI; a rejected value preserves the original bytes and editable input.
 
 ## 3. 단일 진실원(SoT)
 - `src/config/data_columns.py`

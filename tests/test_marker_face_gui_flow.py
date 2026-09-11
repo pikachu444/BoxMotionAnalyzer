@@ -157,6 +157,14 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     assert processed.exists()
     output = pd.read_csv(processed, header=[0, 1, 2], index_col=0)
     assert ('Info', 'MarkerCorrection', 'ContextJson') in output.columns
+    from src.utils.artifact_metadata import read_identity
+    exported_identity = read_identity(output)
+    if mujoco_truth is not None:
+        assert exported_identity.source_kind == 'mujoco_synthetic'
+        assert exported_identity.exclusion_reasons() == []
+        assert exported_identity.values['IstaType'] == 'not_applicable'
+    else:
+        assert exported_identity.source_kind == 'unknown_legacy'
     if mujoco_truth is not None:
         np.testing.assert_allclose(output.index.to_numpy(dtype=float), mujoco_truth.time_s, atol=1e-10)
         positions = output[[('Position', 'CoM', 'P_T' + a) for a in 'XYZ']].to_numpy()
@@ -171,6 +179,33 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     window.grab().save(str(evidence / 'processed.png'))
     if source_kind == 'collision_face':
         import shutil
+        from src.analysis.pipeline.artifact_io import add_timeline_context_columns, save_proc_file
+        from src.analysis.compare.data_model import ComparisonModel
+        from src.config.data_columns import DropPostureSummaryCols
+        # Independent-review reproduction: same GUI-produced pose, actually
+        # executed contact policies 1/20 mm. Only postprocessing is rerun.
+        contact_model = ComparisonModel()
+        t1_values = []
+        contact_records = []
+        pose_input = processing.current_processed_result.drop(columns=[
+            column for column in processing.current_processed_result.columns
+            if str(column).startswith('DropPosture')])
+        for threshold in (1., 20.):
+            reprocessed = window.pipeline_controller._execute_post_processing(
+                {'analysis_options': {'drop_posture_contact_threshold_mm': threshold}},
+                pose_input)
+            t1_values.append(float(reprocessed[DropPostureSummaryCols.T1_MINUS_TIME_SEC].iloc[0]))
+            with_context = add_timeline_context_columns(reprocessed, processing._build_timeline_context())
+            contact_path = evidence / f'contact_{threshold:g}mm.proc'
+            save_proc_file(str(contact_path), with_context)
+            name = contact_model.load_file(str(contact_path))
+            contact_records.append(contact_model.identities[name].values['ProcessingSemanticsVersion'])
+        np.testing.assert_allclose(t1_values, [.136, .120], atol=1e-10)
+        assert contact_records[0] != contact_records[1]
+        assert any('ProcessingSemanticsVersion' in reason for reason in contact_model.exclusion_reasons(name))
+        (evidence / 'contact_settings_regression.json').write_text(json.dumps({
+            'thresholds_mm': [1,20], 't1_sec': t1_values, 'processing_versions': contact_records,
+            'excluded_reasons': contact_model.exclusion_reasons(name)}, indent=2), encoding='utf-8')
         for path in [source, corrected, sliced, processed, generated / 'truth_pose.csv',
                      generated / 'truth_markers.csv', generated / 'observed.synthetic.json']:
             shutil.copy2(path, evidence / path.name)

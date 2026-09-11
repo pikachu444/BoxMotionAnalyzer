@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+from src.utils.artifact_metadata import FIELDS, FLAT_PREFIX
 from src.config.data_columns import (
     HeaderL1,
     HeaderL2,
@@ -260,6 +261,8 @@ CONVERSION_RULES = get_conversion_rules()
 
 
 def parse_column_name(col_name: str) -> tuple[str, str, str]:
+    if col_name.startswith(FLAT_PREFIX) and col_name[len(FLAT_PREFIX):] in FIELDS:
+        return ('Info', 'Artifact', col_name[len(FLAT_PREFIX):])
     for pattern, converter in CONVERSION_RULES:
         match = pattern.match(col_name)
         if match:
@@ -268,7 +271,13 @@ def parse_column_name(col_name: str) -> tuple[str, str, str]:
 
 
 def convert_to_multi_header(df: pd.DataFrame) -> pd.DataFrame:
-    df_reset = df.reset_index()
+    if df.index.name == TimeCols.TIME and TimeCols.TIME in df.columns:
+        import numpy as np
+        if not np.array_equal(df.index.to_numpy(), df[TimeCols.TIME].to_numpy(), equal_nan=True):
+            raise ValueError('Conflicting Time index and column during export.')
+        df_reset = df.reset_index(drop=True)
+    else:
+        df_reset = df.reset_index()
     new_columns = [parse_column_name(col) for col in df_reset.columns]
     df_multi_header = df_reset.copy()
     df_multi_header.columns = pd.MultiIndex.from_tuples(new_columns)

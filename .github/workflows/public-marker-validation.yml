@@ -38,6 +38,11 @@ jobs:
           tests/test_marker_flip_artifact_io.py
           tests/test_marker_face_gui_flow.py
           tests/test_simulation_contact_gui.py
+          tests/test_compare_model.py
+          tests/test_artifact_provenance.py
+          tests/test_comparison_gui.py
+          tests/test_processing_semantics.py
+          tests/test_slice_dimension_provenance_gui.py
           --junitxml=tmp/public-marker-results.xml
       - name: Reject missing or skipped required checks
         shell: pwsh

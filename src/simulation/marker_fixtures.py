@@ -19,8 +19,9 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 from .engine.mujoco_engine import MuJoCoEngine
+from src.utils.artifact_metadata import metadata_json, RAW_KEY
 
-VERSION = '1.2'
+VERSION = '1.3'
 WORLD_TO_ANALYSIS = np.array([[1., 0., 0.], [0., 0., 1.], [0., -1., 0.]])
 HALF_TURNS = {'X': np.diag([1., -1., -1.]), 'Y': np.diag([-1., 1., -1.]),
               'Z': np.diag([-1., -1., 1.])}
@@ -290,8 +291,23 @@ def write_case(directory, case_id, *, seed=74082, profile=None, motion='free_fal
                 writer.writerow([i, t, m['id'], *point])
     with (root / 'observed.csv').open('w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
+        profile = manifest['profile']
+        artifact = {
+            'SourceKind': 'mujoco_synthetic',
+            'ModelId': 'public-virtual-box-' + 'x'.join(f'{d:g}' for d in profile['box_dims_mm']) + '-mm',
+            **dict(zip(('BoxLengthMm', 'BoxWidthMm', 'BoxHeightMm'), profile['box_dims_mm'])),
+            'IstaType': 'not_applicable',
+            'ScenarioId': f'public-{motion}' + ('-genuine-rotation' if case_id == 'genuine_rotation' else '') + '-v1',
+            'ScenarioKind': f'synthetic_{motion}',
+            'MarkerLayoutId': profile['profile_id'],
+            'MarkerLayoutHash': validate_profile(profile),
+            'CoordinatePolicy': 'world-y-up-box-local-fixed-center-v1',
+            'UnitsPolicy': 'bma-mm-s-rotvec-rad-summary-deg-v1',
+            'GeneratorVersion': VERSION,
+        }
         writer.writerow(['Format Version', '1.25', 'Length Units', 'Millimeters', 'Coordinate Space', 'Global',
-                         'Source Kind', 'mujoco_synthetic', 'Generator Version', VERSION])
+                         'Source Kind', 'mujoco_synthetic', 'Generator Version', VERSION,
+                         RAW_KEY, metadata_json(artifact)])
         writer.writerow([])
         header = {k: ['', ''] for k in ('type', 'name', 'id', 'parent', 'category', 'component')}
         header['component'] = ['Frame', 'Time']

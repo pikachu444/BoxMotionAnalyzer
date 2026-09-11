@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QTableWidget, QTableWidgetItem, QHeaderView, QListWidget, QComboBox, QSplitter,
-    QGroupBox, QFrame
+    QGroupBox, QFrame, QListWidgetItem, QPlainTextEdit, QDoubleSpinBox
 )
 from PySide6.QtCore import Qt, Signal, QSize
 import matplotlib.pyplot as plt
@@ -34,11 +34,13 @@ class CompareTablePanel(QGroupBox):
         if not datasets:
             return
             
-        metrics = list(diff_data[datasets[0]]["summary"].keys())
+        metrics = list(dict.fromkeys(metric for info in diff_data.values() for metric in info['summary']))
         
         self.table.setRowCount(len(metrics))
         self.table.setColumnCount(len(datasets) + 1)
-        self.table.setHorizontalHeaderLabels(["Property"] + datasets)
+        self.table.setHorizontalHeaderLabels(["Property"] + [f'{name}\n{diff_data[name]["source"]}' for name in datasets])
+        for i, name in enumerate(datasets):
+            self.table.horizontalHeaderItem(i + 1).setToolTip(name + '\n' + '\n'.join(diff_data[name]['reasons']))
         
         for r, metric in enumerate(metrics):
             desc = METRIC_DESCRIPTORS.get(metric, {})
@@ -62,7 +64,7 @@ class CompareTablePanel(QGroupBox):
                 val = ds_info["summary"].get(metric, "N/A")
                 diff = ds_info["diffs"].get(metric, None)
                 
-                if is_baseline:
+                if is_baseline or diff is None:
                     display_text = f"{val}"
                 else:
                     if isinstance(diff, (int, float)):
@@ -71,10 +73,15 @@ class CompareTablePanel(QGroupBox):
                         display_text = f"{val} (vs {diff})" if diff != "Match" else f"{val}"
                         
                 item = QTableWidgetItem(display_text)
+                if ds_info['reasons']:
+                    item.setToolTip('Individual value only; baseline difference unavailable.\n' + '\n'.join(ds_info['reasons']))
                 item.setTextAlignment(Qt.AlignCenter)
                 self.table.setItem(r, c + 1, item)
                 
         self.table.resizeColumnsToContents()
+        self.table.horizontalHeader().setTextElideMode(Qt.ElideMiddle)
+        for column in range(1, self.table.columnCount()):
+            self.table.setColumnWidth(column, min(220, max(155, self.table.columnWidth(column))))
 
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 
@@ -90,8 +97,7 @@ class CompareGraphPanel(QGroupBox):
         target_layout.addWidget(QLabel("Plot Target:"))
         self.cb_plot_target = QComboBox()
         self.cb_plot_target.currentTextChanged.connect(self.plot_target_changed.emit)
-        target_layout.addWidget(self.cb_plot_target)
-        target_layout.addStretch()
+        target_layout.addWidget(self.cb_plot_target, stretch=1)
         layout.addLayout(target_layout)
         
         self.fig = Figure(figsize=(5, 3), dpi=100)
@@ -118,6 +124,7 @@ class CompareGraphPanel(QGroupBox):
         layout.addLayout(plot_layout)
         
         self.plot_manager = PlotManager(self.canvas, self.fig)
+        self.cursor = None
 
     def set_plot_targets(self, targets: list[str]):
         current = self.cb_plot_target.currentText()
@@ -132,28 +139,40 @@ class CompareGraphPanel(QGroupBox):
             self.plot_target_changed.emit(self.cb_plot_target.currentText())
             return
         self.cb_plot_target.blockSignals(False)
+        self.plot_target_changed.emit(self.cb_plot_target.currentText())
 
-    def update_plot(self, series_dict: dict, metric_name: str):
-        self.plot_manager.clear_plot()
+    def update_plot(self, series_dict: dict, metric_name: str, *, xlabel='Elapsed since t1− (s)', labels=None):
+        self.plot_manager.ax.clear()
+        self.cursor = None
         
         if not series_dict:
             self.plot_manager.ax.set_title("No Data to Plot", color="red")
             self.canvas.draw()
             return
             
-        df = pd.DataFrame(series_dict)
-        columns_to_plot = list(series_dict.keys())
-        
-        self.plot_manager.draw_plot(df, columns_to_plot)
+        # Plot each file at its own timestamps. A union DataFrame introduces
+        # artificial NaNs for mixed rates and can erase otherwise valid curves.
+        for name, series in series_dict.items():
+            self.plot_manager.ax.plot(series.index, series.values, label=(labels or {}).get(name, name))
+        self.plot_manager.ax.set_xlabel(xlabel)
         self.plot_manager.ax.set_ylabel(metric_name)
-        self.plot_manager.enable_interactions(df)
+        self.plot_manager.ax.legend(fontsize=8)
+        self.plot_manager.ax.grid(True)
         self.canvas.draw()
+
+    def set_elapsed_cursor(self, elapsed):
+        if self.cursor is None:
+            self.cursor = self.plot_manager.ax.axvline(elapsed, color='black', linestyle='--', linewidth=1)
+        else:
+            self.cursor.set_xdata([elapsed, elapsed])
+        self.canvas.draw_idle()
 
 class CompareControlPanel(QGroupBox):
     """Controls for file selection, baseline designation."""
     add_files_requested = Signal()
     remove_file_requested = Signal(str)
     baseline_changed = Signal(str)
+    view_changed = Signal()
 
     def __init__(self):
         super().__init__("Result Files")
@@ -178,18 +197,58 @@ class CompareControlPanel(QGroupBox):
         self.cb_baseline = QComboBox()
         self.cb_baseline.currentTextChanged.connect(self.baseline_changed.emit)
         layout.addWidget(self.cb_baseline)
+        layout.addWidget(QLabel('Graph view:'))
+        self.cb_view = QComboBox()
+        self.cb_view.currentIndexChanged.connect(lambda *_: self.view_changed.emit())
+        layout.addWidget(self.cb_view)
+        layout.addWidget(QLabel('Break gaps longer than (seconds):'))
+        self.gap_limit = QDoubleSpinBox()
+        self.gap_limit.setDecimals(4)
+        self.gap_limit.setRange(0.0001, 3600)
+        self.gap_limit.setValue(0.1)
+        self.gap_limit.setToolTip('Display continuity policy only. No interpolation through longer gaps.')
+        self.gap_limit.valueChanged.connect(lambda *_: self.view_changed.emit())
+        layout.addWidget(self.gap_limit)
+        self.details = QPlainTextEdit()
+        self.details.setReadOnly(True)
+        self.details.setPlaceholderText('Load results to inspect source and compatibility.')
+        layout.addWidget(self.details)
+        self.file_list.currentItemChanged.connect(self._show_details)
         
         layout.addStretch()
 
     def _on_remove_clicked(self):
         selected = self.file_list.currentItem()
         if selected:
-            self.remove_file_requested.emit(selected.text())
+            self.remove_file_requested.emit(selected.data(Qt.UserRole))
 
-    def update_files(self, file_names: list[str], baseline: str):
+    def _show_details(self, current, *_):
+        self.details.setPlainText(current.toolTip() if current else '')
+
+    def update_files(self, file_names: list[str], baseline: str, model=None):
         # Update List
         self.file_list.clear()
-        self.file_list.addItems(file_names)
+        for name in file_names:
+            status = model.status_text(name) if model else ''
+            item = QListWidgetItem(name + '\n' + status)
+            item.setData(Qt.UserRole, name)
+            details = name + '\n' + status
+            if model:
+                details += '\n\n' + '\n'.join(model.exclusion_reasons(name))
+                details += '\n\nDeclared metadata:\n' + '\n'.join(f'{key}: {value}' for key, value in model.identities[name].values.items())
+            item.setToolTip(details)
+            self.file_list.addItem(item)
+        if file_names:
+            self.file_list.setCurrentRow(0)
+        view = self.cb_view.currentData()
+        self.cb_view.blockSignals(True)
+        self.cb_view.clear()
+        self.cb_view.addItem('Aligned overlay (visual only)', None)
+        for name in file_names:
+            self.cb_view.addItem('Individual: ' + name, name)
+        index = self.cb_view.findData(view)
+        self.cb_view.setCurrentIndex(max(0, index))
+        self.cb_view.blockSignals(False)
         
         # Update Baseline Combo Box without triggering signal
         self.cb_baseline.blockSignals(True)
