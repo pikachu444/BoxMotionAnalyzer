@@ -98,6 +98,17 @@ class DataHandler:
             return pd.Series(fill_value, index=df.index)
         return df[column]
 
+    def _norm_or_finite_components(self, df, column, components, *, allow_fallback):
+        # A declared norm, even entirely NaN, is authoritative. Older files may
+        # omit the column; derive only rows with all three finite components.
+        if column is not None or not allow_fallback:
+            return self._series_or_nan(df, column)
+        numeric = components.apply(pd.to_numeric, errors='coerce').to_numpy(dtype=float)
+        result = np.full(len(df), np.nan)
+        valid = np.isfinite(numeric).all(axis=1)
+        result[valid] = np.hypot.reduce(numeric[valid], axis=1)
+        return pd.Series(result, index=df.index)
+
     def _build_entity_specs(self, columns: pd.Index) -> list[tuple[str, str, str]]:
         position_ids = {
             col[1]
@@ -163,18 +174,11 @@ class DataHandler:
         entity_df[config.DF_VEL_GLOBAL_Z] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TZ)
         )
-        vel_global_norm_series = self._series_or_nan(
-            df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TNORM)
+        entity_df[config.DF_VEL_GLOBAL_NORM] = self._norm_or_finite_components(
+            df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TNORM),
+            entity_df[[config.DF_VEL_GLOBAL_X, config.DF_VEL_GLOBAL_Y, config.DF_VEL_GLOBAL_Z]],
+            allow_fallback=entity_type != config.ENTITY_TYPE_MARKER,
         )
-        if vel_global_norm_series.isna().all():
-            vel_global_norm_series = np.sqrt(
-                entity_df[config.DF_VEL_GLOBAL_X].fillna(0.0) ** 2
-                + entity_df[config.DF_VEL_GLOBAL_Y].fillna(0.0) ** 2
-                + entity_df[config.DF_VEL_GLOBAL_Z].fillna(0.0) ** 2
-            )
-            if entity_type == config.ENTITY_TYPE_MARKER:
-                vel_global_norm_series = pd.Series(np.nan, index=df.index)
-        entity_df[config.DF_VEL_GLOBAL_NORM] = vel_global_norm_series
 
         entity_df[config.DF_VEL_BOX_LOCAL_X] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TX_ANA)
@@ -185,15 +189,11 @@ class DataHandler:
         entity_df[config.DF_VEL_BOX_LOCAL_Z] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TZ_ANA)
         )
-        entity_df[config.DF_VEL_BOX_LOCAL_NORM] = self._series_or_nan(
-            df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TNORM_ANA)
+        entity_df[config.DF_VEL_BOX_LOCAL_NORM] = self._norm_or_finite_components(
+            df, self._find_column(df.columns, HeaderL1.VEL, source_object_id, HeaderL3.V_TNORM_ANA),
+            entity_df[[config.DF_VEL_BOX_LOCAL_X, config.DF_VEL_BOX_LOCAL_Y, config.DF_VEL_BOX_LOCAL_Z]],
+            allow_fallback=entity_type == config.ENTITY_TYPE_COM,
         )
-        if entity_df[config.DF_VEL_BOX_LOCAL_NORM].isna().all() and entity_type == config.ENTITY_TYPE_COM:
-            entity_df[config.DF_VEL_BOX_LOCAL_NORM] = np.sqrt(
-                entity_df[config.DF_VEL_BOX_LOCAL_X].fillna(0.0) ** 2
-                + entity_df[config.DF_VEL_BOX_LOCAL_Y].fillna(0.0) ** 2
-                + entity_df[config.DF_VEL_BOX_LOCAL_Z].fillna(0.0) ** 2
-            )
 
         entity_df[config.DF_ACC_GLOBAL_X] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TX)
@@ -204,15 +204,11 @@ class DataHandler:
         entity_df[config.DF_ACC_GLOBAL_Z] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TZ)
         )
-        entity_df[config.DF_ACC_GLOBAL_NORM] = self._series_or_nan(
-            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TNORM)
+        entity_df[config.DF_ACC_GLOBAL_NORM] = self._norm_or_finite_components(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TNORM),
+            entity_df[[config.DF_ACC_GLOBAL_X, config.DF_ACC_GLOBAL_Y, config.DF_ACC_GLOBAL_Z]],
+            allow_fallback=entity_type != config.ENTITY_TYPE_MARKER,
         )
-        if entity_df[config.DF_ACC_GLOBAL_NORM].isna().all() and entity_type != config.ENTITY_TYPE_MARKER:
-            entity_df[config.DF_ACC_GLOBAL_NORM] = np.sqrt(
-                entity_df[config.DF_ACC_GLOBAL_X].fillna(0.0) ** 2
-                + entity_df[config.DF_ACC_GLOBAL_Y].fillna(0.0) ** 2
-                + entity_df[config.DF_ACC_GLOBAL_Z].fillna(0.0) ** 2
-            )
 
         entity_df[config.DF_ACC_BOX_LOCAL_X] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TX_ANA)
@@ -223,15 +219,11 @@ class DataHandler:
         entity_df[config.DF_ACC_BOX_LOCAL_Z] = self._series_or_nan(
             df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TZ_ANA)
         )
-        entity_df[config.DF_ACC_BOX_LOCAL_NORM] = self._series_or_nan(
-            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TNORM_ANA)
+        entity_df[config.DF_ACC_BOX_LOCAL_NORM] = self._norm_or_finite_components(
+            df, self._find_column(df.columns, HeaderL1.ACC, source_object_id, HeaderL3.A_TNORM_ANA),
+            entity_df[[config.DF_ACC_BOX_LOCAL_X, config.DF_ACC_BOX_LOCAL_Y, config.DF_ACC_BOX_LOCAL_Z]],
+            allow_fallback=entity_type == config.ENTITY_TYPE_COM,
         )
-        if entity_df[config.DF_ACC_BOX_LOCAL_NORM].isna().all() and entity_type == config.ENTITY_TYPE_COM:
-            entity_df[config.DF_ACC_BOX_LOCAL_NORM] = np.sqrt(
-                entity_df[config.DF_ACC_BOX_LOCAL_X].fillna(0.0) ** 2
-                + entity_df[config.DF_ACC_BOX_LOCAL_Y].fillna(0.0) ** 2
-                + entity_df[config.DF_ACC_BOX_LOCAL_Z].fillna(0.0) ** 2
-            )
 
         if entity_type != config.ENTITY_TYPE_COM:
             entity_df[config.DF_VEL_BOX_LOCAL_X] = np.nan

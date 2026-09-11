@@ -2,7 +2,7 @@
 
 Last Reviewed: 2026-09-11
 
-The minimal public example generator is implemented in `src/simulation/marker_fixtures.py`, with a separate production-analysis harness in `validate_marker_fixtures.py`. This does not make the legacy simulation exporter conformant. Scope remains the recording/coordinate/layout/oracle portions of #80–#84 needed for #74; broader simulation UI, comprehensive presets, batch matrices and general export redesign remain separate. Measured acceptance and remaining gaps are recorded in [the findings](marker_flip_review_findings.md).
+The minimal public example generator is implemented in `src/simulation/marker_fixtures.py`, with a separate production-analysis harness in `validate_marker_fixtures.py`. The separate Simulation UI direct exporter now records actual pose/time with its own contract in [simulation.md](../../simulation.md); it does not consume this fixture oracle or replace this observed-data analysis path. Scope remains the recording/coordinate/layout/oracle portions of #80–#84 needed for #74; broader simulation UI, comprehensive presets, batch matrices and general export redesign remain separate. Measured acceptance and remaining gaps are recorded in [the findings](marker_flip_review_findings.md).
 
 ## Recording and coordinates
 

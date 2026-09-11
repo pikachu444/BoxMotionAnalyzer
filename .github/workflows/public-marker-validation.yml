@@ -52,6 +52,8 @@ jobs:
           tests/test_comparison_gui.py
           tests/test_processing_semantics.py
           tests/test_slice_dimension_provenance_gui.py
+          tests/test_simulation_export.py
+          tests/test_simulation_export_gui.py
           --junitxml=tmp/public-marker-results.xml
       - name: Reject missing or skipped required checks
         shell: pwsh

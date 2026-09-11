@@ -1,12 +1,16 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-09-11
+Last Reviewed: 2026-09-12
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] Implement bounded #81 SimulationUI exporter actual-time/pose/non-destructive path. Details and input/expected/actual evidence are in `../../simulation.md`; direct Simulation output remains synthetic and does not claim Analysis processing or real validation.
+- [O] Preserve previous Simulation results on write/replace failure; restore controls and support retry. Independent code/physics checks, real viewer failure/retry, Batch success/failure and production reload are recorded in [simulation.md](../../simulation.md). This is a local implementation/verification result, not publication.
+- [ ] Publish the reviewed saving changes in [PR #89](https://github.com/pikachu444/BoxMotionAnalyzer/pull/89) and merge after new-commit CI. The user authorized commits, pushes and merges on 2026-09-12; no separate approval is pending. Previous CI 34600918652 covers `b0fd685`, not the saving changes. Real orientation convention checks remain pending; do not close #81 from public synthetic tests alone.
+- [ ] After the current PR is finished, review #75/#79 trial/coordinate/contact contracts before constructing public multi-scene inputs and implementing automatic detection in existing Step 1. Do not restore the rolled-back manual scene popup. Automation `boxmotionanalyzer-74` remains PAUSED; do not resume it without instruction.
 - [O] Implement Issue #74 v3 analysis face-assignment mechanics (issue remains open).
   - Keep every event OFF until explicit operator approval.
   - Separate recommendation axis from operator-selected axis.
@@ -24,8 +28,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 - [O] Reject insufficient local face-constraint rank and unknown faces; clear pose/corners with explicit status. Full rank is only a necessary local guard, not proof of global uniqueness.
 - [O] Complete independent review of the public 32-marker face/edge/corner collision lane and current v3 persistence integrity fixes. [PR #87](https://github.com/pikachu444/BoxMotionAnalyzer/pull/87) merged on 2026-09-11 after two independent reviews and head `67cba01` CI run 34589028534 passed. This does not close #74.
 - [O] Implement bounded #83/#76 provenance/compatibility and actual-time comparison mechanics. Artifact metadata survives raw/corrected/slice/proc; incompatible identities and invalid time exclude baseline differences while preserving individual review. See result_schema_notes.md for the contract and drop_result_comparison_plan.md for input/expected/actual evidence.
-  - Independent-review corrections cover executed processing-settings JSON/hash, raw-time gap roundoff, source-only unknown synchronization exclusion, nonnumeric position sample safety, and pre-write validation in existing slice-dimension repair. Re-review remains a separate gate.
-- [ ] Complete independent code/physics review and same-head CI for the #83/#76 follow-up before publication. Required real comparison categories remain pending; these issues are not automatically closed by synthetic/contract success. #75 scene review, #77 physical metrics and #78 full validation remain separate.
+  - Independent-review corrections cover executed processing-settings JSON/hash, raw-time gap roundoff, source-only unknown synchronization exclusion, nonnumeric position sample safety, and pre-write validation in existing slice-dimension repair. [PR #88](https://github.com/pikachu444/BoxMotionAnalyzer/pull/88) merged on 2026-09-11 as `9085d85` after review and CI.
+- [ ] Validate the required real comparison categories for #83/#76; these issues are not automatically closed by the merged synthetic/contract work. #75 scene review, #77 physical metrics and #78 full validation remain separate.
 - [ ] Validate solver-derived constraint error models and ambiguous/genuine motion cases. Research and implementation status: `../reference/marker_flip_review_findings.md`.
 - [ ] Validate Issue #74 recommendation gates against labeled real OptiTrack capture categories.
   - Collect or identify captures with known no-flip, X/Y/Z relabel, gap-only, freeze/reconnect, genuine physical rotation, low coverage, and ambiguous evidence outcomes.
