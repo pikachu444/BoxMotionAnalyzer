@@ -182,3 +182,191 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
         raw_widget.review_worker.wait()
     window.worker.wait()
     window.close()
+
+
+def test_reordered_annotations_rereview_off_on_and_suffix_pose(tmp_path, monkeypatch):
+    import csv
+    import json
+    import shutil
+    from src.simulation.marker_fixtures import write_case, virtual_profile_32
+    from src.analysis.pipeline.face_assignment import materialize_face_assignments, face_columns
+    from src.analysis.pipeline.marker_flip import MarkerCorrectionDecision
+    from src.analysis.pipeline.artifact_io import save_corrected_source_file, save_slice_file, _sha256_file
+    from src.analysis.pipeline.parser import Parser
+    from src.config.data_columns import FACE_PREFIX_TO_INFO, SourceCols
+    from PySide6.QtWidgets import QMessageBox
+
+    started = time.monotonic()
+    monkeypatch.setattr(config_app, 'BOX_DIMS', np.array(config_app.BOX_DIMS, copy=True))
+    monkeypatch.setattr(config_app, 'LOCAL_BOX_CORNERS', np.array(config_app.LOCAL_BOX_CORNERS, copy=True))
+    profile = virtual_profile_32()
+    dims = tuple(profile['box_dims_mm'])
+    generated = write_case(tmp_path / 'input', 'x', profile=profile, motion='face')
+    original = generated / 'observed.csv'
+    header, raw = DataLoader().load_csv(str(original))
+    baseline = Parser(FACE_PREFIX_TO_INFO).process(header, raw)
+    for column in baseline:
+        if column.endswith('_FaceInfo'):
+            baseline[column] = baseline[column].str.upper()
+    base = {m['id']: m['face'] for m in profile['markers']}
+    event = MarkerCorrectionDecision('independent-x', .520, True, 'X',
+        correction_kind='face_assignment', algorithm_version='3.0', gate_version='face-validation-pending')
+    context = json.dumps({'box_dims_mm': dims, 'base_faces': base,
+        'coordinate_policy': 'global-y-up-box-xyz-mm', 'source_sha256': _sha256_file(str(original)),
+        'export_metadata': header['export_metadata']})
+    h, fixed = materialize_face_assignments(header, raw, [event], base)
+    source = tmp_path / 'reordered.corrected.csv'
+    save_corrected_source_file(filepath=str(source), header_info=h, raw_data=fixed,
+        original_source_path=str(original), decisions=[event], context_json=context)
+    # Valid schema: swap whole F1/R1 annotation columns, then interleave one
+    # before the XYZ triplets. Header identity travels with each data column.
+    annotations = face_columns(h)
+    order = list(range(fixed.shape[1]))
+    a, b = annotations['F1'], annotations['R1']
+    order[a], order[b] = order[b], order[a]
+    moved = order.pop(a)
+    order.insert(2, moved)
+    with source.open(newline='', encoding='utf-8') as stream:
+        rows = list(csv.reader(stream))
+    rows[2:] = [[row[i] for i in order] for row in rows[2:]]
+    with source.open('w', newline='', encoding='utf-8') as stream:
+        csv.writer(stream).writerows(rows)
+    loaded_header, loaded_raw = DataLoader().load_csv(str(source))
+    expected_active = Parser(FACE_PREFIX_TO_INFO).process(h, fixed)
+    pd.testing.assert_frame_equal(Parser(FACE_PREFIX_TO_INFO).process(loaded_header, loaded_raw), expected_active)
+    source_bytes, original_bytes = source.read_bytes(), original.read_bytes()
+    evidence = Path('tmp/issue74_gui/reordered_annotations')
+    evidence.mkdir(parents=True, exist_ok=True)
+    app = QApplication.instance() or QApplication([])
+    app.setAttribute(Qt.ApplicationAttribute.AA_DontUseNativeDialogs, True)
+    window = MainApp()
+    window.show()
+    widget = window.original_widget
+    errors = []
+    error_watcher = QTimer()
+    def capture_error_dialog():
+        dialog = app.activeModalWidget()
+        if isinstance(dialog, QMessageBox):
+            errors.append(dialog.text())
+            dialog.reject()
+    error_watcher.timeout.connect(capture_error_dialog)
+    error_watcher.start(100)
+    def choose(path):
+        def select():
+            dialog = app.activeModalWidget()
+            if not isinstance(dialog, QFileDialog):
+                errors.append('Expected real file dialog')
+                return
+            dialog.selectFile(str(path))
+            def accept():
+                dialog.findChild(QLineEdit, 'fileNameEdit').setText(str(path))
+                dialog.accept()
+            QTimer.singleShot(250, accept)
+        QTimer.singleShot(250, select)
+    def wait_until(predicate):
+        deadline = time.monotonic() + 150
+        while not predicate() and not errors and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.01)
+        assert not errors, errors
+        assert predicate(), 'Actual re-review workflow did not finish'
+    def reload(path):
+        choose(path)
+        QTest.mouseClick(widget.load_csv_button, Qt.MouseButton.LeftButton)
+        assert Path(widget.source_path) == path
+        pd.testing.assert_frame_equal(widget.review_parsed_data, baseline)
+        # Review raw data and its own header remain a valid pair after load/save.
+        pd.testing.assert_frame_equal(widget.parser.process(widget.review_header_info, widget.review_raw_data), baseline)
+    def review(approved):
+        finished = []
+        timer = QTimer()
+        def handle():
+            dialog = app.activeModalWidget()
+            if not isinstance(dialog, MarkerFlipReviewDialog):
+                return
+            timer.stop()
+            try:
+                rows = [i for i,c in enumerate(dialog.candidates) if abs(c.boundary_time_sec - .520) < 1e-9]
+                assert len(rows) == 1
+                i = rows[0]
+                assert all(c.recommendation_axis is None for c in dialog.candidates)
+                assert dialog.candidates[i].hypothesis('X').residual_deg < .1
+                dialog._axis_combos[i].setCurrentIndex(dialog._axis_combos[i].findData('X'))
+                if dialog._approval_checkboxes[i].isChecked() != approved:
+                    QTest.mouseClick(dialog._approval_checkboxes[i], Qt.MouseButton.LeftButton)
+                assert dialog._approval_checkboxes[i].isChecked() == approved
+                dialog.grab().save(str(evidence / ('review_on.png' if approved else 'review_off.png')))
+                QTest.mouseClick(dialog.findChild(QDialogButtonBox).button(QDialogButtonBox.StandardButton.Ok), Qt.MouseButton.LeftButton)
+                finished.append(True)
+            except Exception as exc:
+                errors.append(str(exc))
+                dialog.reject()
+        timer.timeout.connect(handle)
+        timer.start(100)
+        QTest.mouseClick(widget.review_marker_flips_button, Qt.MouseButton.LeftButton)
+        wait_until(lambda: bool(finished))
+        timer.stop()
+    try:
+        reload(source)
+        pd.testing.assert_frame_equal(widget.parsed_data, expected_active)
+        outputs = []
+        for approved in (False, True):
+            review(approved)
+            assert widget.marker_review_dirty
+            target = tmp_path / ('on.csv' if approved else 'off.csv')
+            choose(target)
+            QTest.mouseClick(widget.save_corrected_source_button, Qt.MouseButton.LeftButton)
+            assert target.exists(), widget.log_output.toPlainText()
+            reload(target)
+            pd.testing.assert_frame_equal(widget.parsed_data, expected_active if approved else baseline)
+            assert read_corrected_source_metadata(str(target)).approved_event_count == int(approved)
+            outputs.append(target)
+        suffix = tmp_path / 'suffix.slice'
+        final_time = float(baseline.index[-1])
+        save_slice_file(filepath=str(suffix), header_info=widget.header_info, raw_data=widget.raw_data,
+            source_path=widget.source_path, full_start=0., full_end=final_time, user_start=.56, user_end=final_time,
+            pad_rows=0, box_dims=dims, marker_correction_metadata=widget.correction_source_metadata)
+        window.tab_widget.setCurrentIndex(1)
+        processing = window.processing_widget
+        choose(suffix)
+        QTest.mouseClick(processing.load_slice_button, Qt.MouseButton.LeftButton)
+        expected_suffix = expected_active.loc[expected_active.index >= .56-1e-12]
+        pd.testing.assert_frame_equal(processing.parsed_data, expected_suffix)
+        assert processing.parsed_data.index.min() > .520
+        # A 30-row suffix is readable but below the full pipeline's 50-row
+        # minimum. Keep that gate; verify its actual parsed pose separately.
+        from src.analysis.pipeline.pose_optimizer import PoseOptimizer
+        from src.analysis.pipeline.face_assignment import POSE_COLUMNS
+        output = PoseOptimizer(config_app.FACE_DEFINITIONS,
+            config_app.calculate_local_box_corners(dims)).process(processing.parsed_data, dims)
+        assert len(output) == 30
+        assert output[SourceCols.POSE].eq('Optimized').all()
+        target = tmp_path / 'suffix_pose.csv'
+        output.to_csv(target)
+        truth = pd.read_csv(generated / 'truth_pose.csv')
+        truth = truth.loc[truth.time_s >= .56-1e-12]
+        np.testing.assert_allclose(output.index.to_numpy(dtype=float),truth.time_s,atol=1e-10)
+        positions = output[list(POSE_COLUMNS[:3])].to_numpy()
+        rotvecs = output[list(POSE_COLUMNS[3:])].to_numpy()
+        expected_positions = truth[[f'body_{a}_mm' for a in 'xyz']].to_numpy()
+        rotations = truth[[f'r{i}{j}' for i in range(3) for j in range(3)]].to_numpy().reshape(-1,3,3)
+        pe = np.linalg.norm(positions-expected_positions,axis=1).max()
+        re = np.degrees((Rotation.from_matrix(rotations).inv()*Rotation.from_rotvec(rotvecs)).magnitude()).max()
+        assert pe < .1 and re < .1
+        assert source.read_bytes() == source_bytes and original.read_bytes() == original_bytes
+        window.grab().save(str(evidence / 'suffix_loaded.png'))
+        for path in [source, original, *outputs, suffix, target, generated/'truth_pose.csv']:
+            shutil.copy2(path, evidence/path.name)
+        result = {'samples':len(output),'valid_pose_samples':int(output[SourceCols.POSE].eq('Optimized').sum()),
+                  'max_position_mm':float(pe),'max_rotation_deg':float(re),
+                  'seconds':time.monotonic()-started,'original_bytes_preserved':True,
+                  'expected':'ID-based faces/XYZ preserved through reordered load, real OFF/ON re-review, resave, suffix load and direct pose fit; errors <0.1 mm/deg'}
+        (evidence/'result.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
+        print(result)
+    finally:
+        error_watcher.stop()
+        if widget.review_worker:
+            widget.review_worker.wait()
+        if getattr(window, "worker", None):
+            window.worker.wait()
+        window.close()

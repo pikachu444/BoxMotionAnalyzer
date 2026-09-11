@@ -81,6 +81,7 @@ class WidgetRawDataProcessing(QWidget):
         self.original_source_reference = None
         self.original_source_sha256 = ""
         self.review_raw_data = None
+        self.review_header_info = None
         self.review_parsed_data = None
         self.current_selected_targets = []
         self.marker_flip_candidates = []
@@ -318,6 +319,7 @@ class WidgetRawDataProcessing(QWidget):
         parsed_data,
     ):
         metadata = try_read_corrected_source_metadata(filepath)
+        review_header_info = header_info
         if metadata is None:
             review_raw_data = raw_data.copy(deep=True)
             review_parsed_data = parsed_data.copy(deep=True)
@@ -328,12 +330,12 @@ class WidgetRawDataProcessing(QWidget):
             if metadata.schema_version == "3":
                 context = json.loads(metadata.context_json)
                 header_info["export_metadata"] = context.get("export_metadata", {})
-                _, review_raw_data = materialize_face_assignments(
+                review_header_info, review_raw_data = materialize_face_assignments(
                     header_info, raw_data, [], context["base_faces"])
             else:
                 review_raw_data = undo_approved_marker_permutations(
                     raw_data, header_info, metadata.decisions)
-            review_parsed_data = self.parser.process(header_info, review_raw_data)
+            review_parsed_data = self.parser.process(review_header_info, review_raw_data)
             original_source_reference = metadata.source
             original_source_sha256 = metadata.source_sha256
             decisions = list(metadata.decisions)
@@ -344,6 +346,7 @@ class WidgetRawDataProcessing(QWidget):
             original_source_reference,
             original_source_sha256,
             decisions,
+            review_header_info,
         )
 
     def _update_marker_review_summary(self) -> None:
@@ -406,6 +409,7 @@ class WidgetRawDataProcessing(QWidget):
                     original_source_reference,
                     original_source_sha256,
                     marker_correction_decisions,
+                    review_header_info,
                 ) = self._build_marker_review_state(
                     filepath,
                     header_info,
@@ -426,6 +430,7 @@ class WidgetRawDataProcessing(QWidget):
                     for edit, value in zip((self.le_box_l, self.le_box_w, self.le_box_h), dims):
                         edit.setText(str(value))
                 self.review_raw_data = review_raw_data
+                self.review_header_info = review_header_info
                 self.review_parsed_data = review_parsed_data
                 self.original_source_reference = original_source_reference
                 self.original_source_sha256 = original_source_sha256
@@ -506,7 +511,7 @@ class WidgetRawDataProcessing(QWidget):
                 raise ValueError("Face review requires documented Global / Millimeters input.")
             context = self._face_context()
             # Validate all base faces without changing the active stream.
-            materialize_face_assignments(self.header_info, self.review_raw_data, [], json.loads(context)["base_faces"])
+            materialize_face_assignments(self.review_header_info or self.header_info, self.review_raw_data, [], json.loads(context)["base_faces"])
             self._pending_review_context = context
             self.append_log("[INFO] Estimating pose and refitting local-axis face hypotheses...")
             self._set_review_busy(True)
@@ -582,7 +587,7 @@ class WidgetRawDataProcessing(QWidget):
                 if not self.review_context_json or self._face_context() != self.review_context_json:
                     raise ValueError("Review context changed; review and approve again before saving.")
                 corrected_header, corrected_raw_data = materialize_face_assignments(
-                    self.header_info, self.review_raw_data, self.marker_correction_decisions,
+                    self.review_header_info or self.header_info, self.review_raw_data, self.marker_correction_decisions,
                     json.loads(self.review_context_json)["base_faces"])
             else:
                 corrected_raw_data = apply_approved_marker_permutations(
@@ -610,7 +615,7 @@ class WidgetRawDataProcessing(QWidget):
         self.header_info = corrected_header
         # Keep a full-width baseline so another save cannot apply the assignment twice.
         if is_face:
-            _, self.review_raw_data = materialize_face_assignments(corrected_header, corrected_raw_data, [],
+            self.review_header_info, self.review_raw_data = materialize_face_assignments(corrected_header, corrected_raw_data, [],
                 json.loads(self.review_context_json)["base_faces"])
         self.raw_data = corrected_raw_data
         self.parsed_data = corrected_parsed_data
