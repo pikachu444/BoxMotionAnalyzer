@@ -13,6 +13,42 @@ from src.config.data_columns import (
     TimeCols,
 )
 
+# A numerical degeneracy guard, not a calibrated accuracy/confidence threshold.
+FACE_RANK_RELATIVE_TOLERANCE = 1e-6
+
+
+def _face_constraint_rank(markers, params, box_dims, face_definitions):
+    """Local rank of signed assigned-face plane constraints in six pose DOFs.
+
+    Translation is in box coordinates; rotation is an infinitesimal local
+    rotation, avoiding rotation-vector singularities at full turns. Distances
+    are scaled by the box diagonal. Edge/bound penalties are deliberately not
+    counted as reliable constraints on an otherwise degenerate face layout.
+    Full rank is necessary for this guard, not proof of global uniqueness.
+    """
+    known = [m for m in markers if m['face_key'] in face_definitions]
+    if not known:
+        return 0
+    normals = np.zeros((len(known), 3))
+    for i, m in enumerate(known):
+        face = face_definitions[m['face_key']]
+        normals[i, face['axis_idx']] = face['direction']
+    if params is None:
+        # Translation must be constrained in three independent directions.
+        return int(np.linalg.matrix_rank(normals))
+    local = R.from_rotvec(params[3:]).inv().apply(np.asarray([m['cam_coords'] for m in known]) - params[:3])
+    centered = (local - local.mean(axis=0)) / np.linalg.norm(box_dims)
+    jacobian = np.column_stack((normals, np.cross(centered, normals)))
+    singular = np.linalg.svd(jacobian, compute_uv=False)
+    return int(np.count_nonzero(singular > singular[0] * FACE_RANK_RELATIVE_TOLERANCE))
+
+
+def _unavailable_pose(frame_index, reason):
+    columns = [PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z, PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]
+    columns += [f'C{i}{suffix}' for i in range(1,9)
+                for suffix in (CornerCoordCols.X_SUFFIX, CornerCoordCols.Y_SUFFIX, CornerCoordCols.Z_SUFFIX)]
+    return {TimeCols.TIME: frame_index, SourceCols.POSE: reason, **dict.fromkeys(columns, np.nan)}
+
 # [병렬 처리 참고]
 # 이 함수들은 PoseOptimizer 클래스 외부에 정의되어야 합니다.
 # multiprocessing의 Pool은 각 자식 프로세스에 작업을 전달할 때 'pickle'이라는 직렬화 과정을 사용하는데,
@@ -21,8 +57,8 @@ from src.config.data_columns import (
 
 def _distance_point_to_box_surface_overall(point_local, box_half_dims):
     """AABB(Axis-Aligned Bounding Box)의 전체 표면에 대한 점의 최단 거리를 계산합니다."""
-    closest_p_on_box = np.clip(point_local, -box_half_dims, box_half_dims)
-    return np.linalg.norm(point_local - closest_p_on_box)
+    delta = np.abs(point_local) - box_half_dims
+    return abs(np.linalg.norm(np.maximum(delta, 0.)) + min(float(np.max(delta)), 0.))
 
 def _distance_point_to_assigned_face_surface_and_bounds(point_local, face_key, box_dims_param, face_definitions):
     """마커에 할당된 특정 면에 대한 거리를, 해당 면의 경계를 고려하여 계산합니다."""
@@ -205,9 +241,17 @@ class PoseOptimizer:
             # numerical convergence must not turn this into usable evidence.
             # Three or more points are necessary, not sufficient for uniqueness.
             if len(markers) < 3:
-                results.append({TimeCols.TIME: frame_index, SourceCols.POSE: "InsufficientData",
-                    **{col: np.nan for col in (PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z,
-                                              PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z)}})
+                results.append(_unavailable_pose(frame_index, 'InsufficientData'))
+                previous_optimized_params = None
+                continue
+
+            if any(m['face_key'] not in self.face_definitions for m in markers):
+                results.append(_unavailable_pose(frame_index, 'UnknownFace'))
+                previous_optimized_params = None
+                continue
+
+            if sum(m['face_key'] in self.face_definitions for m in markers) < 6 or _face_constraint_rank(markers, None, box_dims, self.face_definitions) < 3:
+                results.append(_unavailable_pose(frame_index, 'UnidentifiableGeometry'))
                 previous_optimized_params = None
                 continue
 
@@ -250,6 +294,10 @@ class PoseOptimizer:
 
             # 4. 결과 저장 및 다음 프레임을 위한 값 업데이트
             optimized_params = result.x
+            if result.success and _face_constraint_rank(markers, optimized_params, box_dims, self.face_definitions) < 6:
+                results.append(_unavailable_pose(frame_index, 'UnidentifiableGeometry'))
+                previous_optimized_params = None
+                continue
             world_corners = _get_box_world_corners(optimized_params, current_local_box_corners)
 
             res_row = {TimeCols.TIME: frame_index}

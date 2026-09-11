@@ -1,6 +1,6 @@
 # Minimal independent MuJoCo fixture contract for #74
 
-Last Reviewed: 2026-09-08
+Last Reviewed: 2026-09-11
 
 The minimal public example generator is implemented in `src/simulation/marker_fixtures.py`, with a separate production-analysis harness in `validate_marker_fixtures.py`. This does not make the legacy simulation exporter conformant. Scope remains the recording/coordinate/layout/oracle portions of #80–#84 needed for #74; broader simulation UI, comprehensive presets, batch matrices and general export redesign remain separate. Measured acceptance and remaining gaps are recorded in [the findings](marker_flip_review_findings.md).
 
@@ -49,6 +49,44 @@ The built-in layout is `public-asymmetric-example-18`, 200×120×80 mm, with FRO
 
 The detector receives observed CSV and explicit geometry only. The harness reads the independent oracle after candidate creation, and uses its axes solely to emulate manual approval. Finding declared boundaries and recovering pose does not demonstrate automatic axis selection. Unsupported rotations, freeze/reconnect, noise and low coverage are diagnostic controls; abstention alone is not correct classification. Automatic recommendations remain disabled.
 
+## Custom layout input (generator 1.2)
+
+Both generation and validation accept `--profile <local.json>`. Omission retains the existing public example. The JSON uses the same `example_profile()` schema: nonempty `profile_id`, `profile_version`, `publication`, `source`, `license`; `units=mm`, `origin=box-geometric-center`, `dimension_policy=absolute-mm`; explicit `box_dims_mm=[X,Y,Z]`; and `markers=[{id,face,xyz_mm}, ...]`. Local +X is RIGHT, +Y TOP, +Z FRONT; the opposite directions are LEFT/BOTTOM/BACK. No coordinates or dimensions are rescaled by the loader. Geometry changes require a different ID from the built-in public example and produce a different layout hash. A profile's source statement is user-supplied evidence, not software attestation of physical calibration.
+
+The current raw analysis reader derives faces from marker-name prefixes F/B/R/L/T/M (FA/BA remain FRONT/BACK). The loader rejects incompatible ID/face combinations instead of silently analyzing a different face. Arbitrary naming conventions and a new raw face-map format are outside this minimal change. Exact ideal face geometry is still required within 1e-8 mm, with 1 mm minimum separation and non-collinear three-marker faces. This numerical geometry check is not a real-marker mounting tolerance. Do not project measured coordinates onto faces, relax the tolerance, or remove marker offsets merely to pass it; unresolved mounting/center offsets need a separately justified model.
+
+Example execution, after supplying a reviewed local profile:
+
+```powershell
+.venv/Scripts/python.exe -m src.simulation.marker_fixtures --profile tmp/private_profile.json --case healthy --output tmp/private_layout_check --preview
+.venv/Scripts/python.exe -m src.simulation.validate_marker_fixtures --profile tmp/private_profile.json --case healthy --output tmp/private_layout_check
+.venv/Scripts/python.exe -m src.simulation.validate_marker_fixtures --profile tmp/private_profile.json --case x --output tmp/private_layout_check
+```
+
+`--preview` writes a box/marker/axis image alongside the generated files. The profile and its hash remain in the existing synthetic manifest. The test harness takes geometry through the explicit profile argument, not from the truth/event manifest; it later checks the layout hash. Analysis still receives only observed coordinates and dimensions. Custom body names use the profile ID. The no-contact recorder uses the profile dimensions and retains the original nonzero pose; its initial world Z is at least half the box diagonal plus 3.4 m for larger boxes. Mass 1 kg, COM offset (3,-4,2) mm and the short free-fall motion remain synthetic test settings, not recovered VDTest properties or an ISTA drop condition.
+
+The exercised custom input is `tmp/custom_layout_validation/profile.json`: a public 240×132×100 mm, 18-marker example, explicitly unrelated to VDTest. Its healthy/X observed and truth files plus numerical reports are in the same directory. Capture-derived inspection output is separately ignored in `tmp/vdtest_registration/`; it is **not** an accepted generator profile. See the findings for the missing registration inputs. Keep private profiles and all generated derivatives in ignored/local storage; the CLI does not grant redistribution rights.
+
+## Public collision lane (generator 1.2)
+
+`--example 32 --motion face|edge|corner` selects a new public virtual 300×180×90 mm box with FRONT/BACK/LEFT/RIGHT/TOP/BOTTOM counts 11/12/3/3/3/0. Exact coordinates are the explicit `virtual_profile_32()` function; profile ID is `public-virtual-box-32`. This is neither a measured VDTest layout nor an approved attachment standard. Both built-in examples are immutable; changing their geometry requires a new custom ID. Private VDTest registration remains deferred and does not block this lane.
+
+The three motions use existing Type G orientation functions with `08_Face_3_Screen_High`, `01_Edge_3-4`, and `04_Corner_3-4-6`. Only their contact orientation is reused. The lowest corner height is **100 mm**, not the preset schedule height. Initial lowest-point counts are independently checked as 4/2/1. Initial world XY is (0.12,-0.23) m, linear velocity (0.025,-0.015,0) m/s, angular velocity zero except the genuine-rotation control. Mass is 1 kg, COM offset zero, gravity (0,0,-9.81) m/s². Uniform cuboid principal inertia is (0.003375,0.008175,0.0102) kg m². Actual initial pose, velocity, compiled inertia, solver and both geom contact settings are recorded in the manifest.
+
+The box friction input is 0.7 with torsional coefficient 0.01; condim 4 has no rolling resistance. Box margin 0.005 m activates contact and is not geometric rounding. `solref=(0.02,0.8)` results from legacy elasticity=0.2, which selects damping rather than a measured restitution coefficient. Floor and box compiled settings are both serialized; do not assume they are identical. Contact count, summed normal contact force, and minimum geometric corner height are sampled alongside each actual timestamp in the manifest parameters. With 0.002 s integration and 0.008 s recording, the first positive recorded force at 0.144 s locates onset within (0.136,0.144] s, not an independently measured exact impact instant.
+
+Healthy and faulty observations share byte-identical numeric truth arrays. For collision X/Y/Z cases, the declared fault is frame 65 (0.520 s), separate from contact. Second events are frame 85 (0.680 s). Gap remains frames 15–19. Unsupported 90-degree/arbitrary rotations retain their separately defined frame 30. These choices are fixed in the generator before the detector runs; no detector-derived correction tables are used. A healthy collision may trigger review evidence, but never automatic correction. Freeze/reconnect and unsupported cases establish abstention only, not successful classification.
+
+Example commands (use a different output directory for each motion because each case directory is named by case ID):
+
+```powershell
+.venv/Scripts/python.exe -m src.simulation.validate_marker_fixtures --example 32 --motion face --case healthy --output tmp/collision_validation/face
+.venv/Scripts/python.exe -m src.simulation.validate_marker_fixtures --example 32 --motion face --case x --output tmp/collision_validation/face
+.venv/Scripts/python.exe -m pytest tests/test_marker_face_gui_flow.py -k collision_face -q -s
+```
+
+Repeat the first two commands for edge/corner. Each invocation writes a summary of that invocation only; preserved per-case `validation.json` files are the combined evidence. The Qt-driven production GUI copies its observed/truth/corrected/slice/proc files and input/expected/actual report into ignored `tmp/issue74_gui/collision_face/`. Screenshots cover loaded input, approved X review, reloaded corrected source, and processed result. This is actual MainApp integration using Qt events, not a native manual mouse validation claim.
+
 ## Next-task prompt
 
-Continue #74 evidence work in C:\SourceCodes\BoxMotionAnalyzer. Read AGENTS.md, current #74/#79–#84, this contract, marker_flip_review_findings.md and Git state first. Use the existing independent generator instead of rebuilding it. Address explicitly recorded failures before expanding the matrix. Separate candidate triggers from correction recommendations and numerical convergence from identifiable pose. For the next real-data step, inspect the available VDTest_S5_001 CSV Rigid Body Marker channels and establish Motive-to-analysis origin/axis registration using independent calibration evidence; do not infer the transform from the detector's preferred correction. Record private source SHA, units, dimensions, face counts and numerical surface residuals. If that calibration evidence is unavailable, report the exact missing input; do not fabricate a production profile or claim a labeled flip. Keep derived capture coordinates private. Preserve the 0.1 mm / 0.1 degree synthetic gates, automatic recommendation OFF, and original XYZ. Broader GUI/export/preset changes remain separate. Update existing status documents, show actual inputs/expected/actual results, and keep commit/push/merge authorization separate. Do not auto-close #74.
+Continue in C:\SourceCodes\BoxMotionAnalyzer with the bounded #83/#76 provenance and comparison-time task after this #74 collision/review change has passed independent review. Read AGENTS.md, current Git status, #83/#76, implementation_todo.md, the result schema and comparison design documents first. Preserve existing work. Inventory actual `.proc` metadata and comparison loaders, then define one versioned compatibility record containing source class, model, dimensions, Type/scenario, layout hash, units/axes and processing semantics. Use actual timestamps and reviewed t1 for alignment; reject missing/invalid time and prevent mixed synthetic/real aggregate statistics while retaining individual inspection. Implement and verify serialization/load/comparison on one compatible pair and explicit mismatches. Keep scene classification #75, metric formulas #77, legacy simulation exporter redesign, and full release validation #78 separate. Keep missing real-data categories pending. VDTest calibration is unavailable: do not infer dimensions/pivot/axes or block public synthetic work on it. Preserve automatic marker recommendation OFF and original XYZ. Update existing docs and Last Reviewed, show input/expected/actual results, and obtain separate commit/push/merge approvals. Do not auto-close #74.

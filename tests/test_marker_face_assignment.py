@@ -69,6 +69,37 @@ def test_v3_corrected_and_suffix_slice_roundtrip(tmp_path):
     assert read_slice_metadata(str(sliced)).correction_context_json == meta.context_json
 
 
+@pytest.mark.parametrize('artifact', ['corrected', 'slice'])
+def test_v3_history_annotation_mismatch_rejected_on_read_and_write(tmp_path, artifact):
+    import csv
+    header, raw, _ = raw_bundle(boundary=4, samples=10)
+    original = tmp_path / 'raw.csv'
+    write_raw(original, header, raw)
+    event = decision(time=.04)
+    h, fixed = materialize_face_assignments(header, raw, [event], BASE_FACES)
+    target = tmp_path / 'fixed.csv'
+    meta = save_corrected_source_file(filepath=str(target), header_info=h, raw_data=fixed,
+        original_source_path=str(original), decisions=[event], context_json=context_json())
+    corrupt = fixed.copy()
+    corrupt.iloc[4, face_columns(h)['F1']] = 'FRONT'
+    with pytest.raises(ValueError, match='disagrees'):
+        save_corrected_source_file(filepath=str(tmp_path / 'bad.csv'), header_info=h, raw_data=corrupt,
+            original_source_path=str(original), decisions=[event], context_json=context_json())
+    if artifact == 'slice':
+        target = tmp_path / 'suffix.slice'
+        save_slice_file(filepath=str(target), header_info=h, raw_data=fixed, source_path=str(original),
+            full_start=0., full_end=.09, user_start=.05, user_end=.09, pad_rows=0,
+            box_dims=DIMS, marker_correction_metadata=meta)
+    # A syntactically valid face is still corrupt when it contradicts history.
+    with target.open(newline='', encoding='utf-8') as f:
+        rows = list(csv.reader(f))
+    rows[-1][face_columns(h)['F1']] = 'FRONT'
+    with target.open('w', newline='', encoding='utf-8') as f:
+        csv.writer(f).writerows(rows)
+    with pytest.raises(ValueError, match='disagrees'):
+        DataLoader().load_csv(str(target))
+
+
 def test_failed_pose_and_duplicate_time_not_valid_evidence():
     header, raw, _ = raw_bundle()
     parsed = Parser(FACE_PREFIX_TO_INFO).process(header, raw)
@@ -178,3 +209,72 @@ def test_missing_xyz_clears_stale_pose_and_keeps_face_identity():
     pose = PoseOptimizer(config_app.FACE_DEFINITIONS, config_app.calculate_local_box_corners(DIMS)).process(parsed, DIMS)
     assert pose[list(POSE_COLUMNS)].isna().all().all()
     assert pose.iloc[0][SourceCols.POSE] == 'InsufficientData'
+
+
+def test_single_face_six_points_rejects_false_pose_and_stale_corners():
+    # Before the guard this converged with ~20.88 mm / 6.50 deg arbitrary pose.
+    points = [(-40,-25,40),(-25,10,40),(0,20,40),(35,-30,40),(41,15,40),(5,-10,40)]
+    row = {'C1_X': 999., 'C1_Y': 999., 'C1_Z': 999.}
+    for i, point in enumerate(points):
+        row[f'F{i}_FaceInfo'] = 'FRONT'
+        row.update({f'F{i}_{axis}': value for axis,value in zip('XYZ',point)})
+    parsed = pd.DataFrame([row], index=pd.Index([0.], name='Time'))
+    pose = PoseOptimizer(config_app.FACE_DEFINITIONS, config_app.calculate_local_box_corners(DIMS)).process(parsed,DIMS)
+    assert pose.iloc[0][SourceCols.POSE] == 'UnidentifiableGeometry'
+    assert pose[list(POSE_COLUMNS)].isna().all().all()
+    assert pose[['C1_X','C1_Y','C1_Z']].isna().all().all()
+    assert FaceAssignmentAnalyzer().detect(parsed,pose,DIMS) == []
+
+
+def test_face_centers_reject_rank_deficient_rotation_even_with_three_normal_axes():
+    row = {}
+    for mid, face, point in [('F1','FRONT',(0,0,40)),('B1','BACK',(0,0,-40)),
+                            ('R1','RIGHT',(100,0,0)),('L1','LEFT',(-100,0,0)),
+                            ('T1','TOP',(0,60,0)),('M1','BOTTOM',(0,-60,0))]:
+        row[mid+'_FaceInfo'] = face
+        row.update({f'{mid}_{axis}': value for axis,value in zip('XYZ',point)})
+    parsed = pd.DataFrame([row], index=pd.Index([0.], name='Time'))
+    pose = PoseOptimizer(config_app.FACE_DEFINITIONS, config_app.calculate_local_box_corners(DIMS)).process(parsed,DIMS,initial_pose=np.zeros(6))
+    assert pose.iloc[0][SourceCols.POSE] == 'UnidentifiableGeometry'
+    assert pose[list(POSE_COLUMNS)].isna().all().all()
+
+
+def test_three_front_constraints_have_multiple_zero_cost_poses_and_are_rejected():
+    from src.analysis.pipeline.pose_optimizer import _objective_function
+    markers = [{'cam_coords': np.array(p), 'face_key': 'FRONT'}
+               for p in [(-20.,-10.,40.), (20.,-10.,40.), (0.,20.,40.)]]
+    for params in [np.zeros(6), np.array([10.,0.,0.,0.,0.,.1])]:
+        assert _objective_function(params, markers, np.array(DIMS), config_app.FACE_DEFINITIONS) < 1e-20
+    row = {}
+    for i, m in enumerate(markers):
+        row[f'F{i}_FaceInfo'] = 'FRONT'
+        row.update({f'F{i}_{a}': v for a,v in zip('XYZ',m['cam_coords'])})
+    pose = PoseOptimizer(config_app.FACE_DEFINITIONS, config_app.calculate_local_box_corners(DIMS)).process(pd.DataFrame([row], index=[0.]),DIMS)
+    assert pose.iloc[0][SourceCols.POSE] == 'UnidentifiableGeometry'
+
+
+def test_unknown_face_is_unavailable_and_interior_surface_distance_is_nonzero():
+    from src.analysis.pipeline.pose_optimizer import _distance_point_to_box_surface_overall
+    assert _distance_point_to_box_surface_overall(np.zeros(3), np.array(DIMS)/2) == 40.
+    assert _distance_point_to_box_surface_overall(np.array([110.,0.,0.]), np.array(DIMS)/2) == 10.
+    h, raw, _ = raw_bundle(samples=1)
+    parsed = Parser(FACE_PREFIX_TO_INFO).process(h,raw)
+    parsed['F1_FaceInfo'] = ''
+    pose = PoseOptimizer(config_app.FACE_DEFINITIONS, config_app.calculate_local_box_corners(DIMS)).process(parsed,DIMS)
+    assert pose.iloc[0][SourceCols.POSE] == 'UnknownFace'
+    assert pose[list(POSE_COLUMNS)].isna().all().all()
+
+
+def test_offset_solver_pivot_can_leave_translation_error_despite_zero_face_cost():
+    from marker_face_fixtures import LAYOUT
+    from src.analysis.pipeline.pose_optimizer import _objective_function
+    pivot = np.array([0.,20.,0.])
+    half_turn = np.diag([1.,-1.,-1.])
+    shifted_origin = pivot - half_turn @ pivot
+    # Corrected faces describe a box displaced 40 mm; no face-only evidence
+    # can recover the independent physical origin without pivot calibration.
+    markers = [{'cam_coords': pivot + half_turn @ (np.array(p)-pivot),
+                'face_key': {'FRONT':'BACK','BACK':'FRONT','TOP':'BOTTOM','BOTTOM':'TOP'}.get(BASE_FACES[mid],BASE_FACES[mid])}
+               for mid,p in LAYOUT.items()]
+    assert np.linalg.norm(shifted_origin) == 40.
+    assert _objective_function(np.r_[shifted_origin,np.zeros(3)],markers,np.array(DIMS),config_app.FACE_DEFINITIONS) < 1e-20

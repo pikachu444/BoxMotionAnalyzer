@@ -1,6 +1,6 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-03-25
+Last Reviewed: 2026-09-11
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
@@ -8,8 +8,8 @@ Last Reviewed: 2026-03-25
 
 ### 1. 시뮬레이션 (Simulation) - *New!*
 *   **MuJoCo 기반 디지털 트윈:** 실제 실험 데이터(CSV)가 없더라도, MuJoCo 물리 엔진을 통해 가상의 상자 낙하 데이터를 시뮬레이션할 수 있습니다.
-*   **표준 낙하 시나리오 지원:** 면(Face), 모서리(Corner), 모서리 선(Edge) 낙하 등 다양한 국제 규격 낙하 자세를 지원하며, 충돌 및 텀블링(Tumbling) 물리 현상을 정확히 재현합니다.
-*   **직접 내보내기 (.proc):** 생성된 데이터를 기존 분석 파이프라인과 100% 호환되는 형식(.proc)으로 직접 내보내어 즉시 3D 시각화가 가능합니다. (자세한 내용은 [`docs/simulation.md`](docs/simulation.md) 참조)
+*   **낙하 자세 시뮬레이션:** 면(Face), 꼭짓점(Corner), 모서리 선(Edge) 자세와 강체 접촉을 생성합니다. 실제 포장재의 충돌·반발·텀블링 정확도는 검증되지 않았습니다.
+*   **데이터 내보내기:** 기존 GUI의 `.proc` exporter에는 시간·회전 정답 관련 제한이 있습니다. #74 검증은 독립 생성한 관측 CSV를 실제 분석 파이프라인에 넣고 별도 정답과 비교합니다. (자세한 내용은 [`docs/simulation.md`](docs/simulation.md) 참조)
 
 ### 2. 데이터 분석 (Data Analysis)
 *   **분석 파이프라인 (Analysis Pipeline):** 원본 모션 데이터를 로드하여 전처리(스무딩), 자세 최적화(Pose Optimization), 속도 계산 등의 과정을 자동으로 수행합니다.
@@ -41,7 +41,7 @@ Last Reviewed: 2026-03-25
         *   `engine/`: MuJoCo 물리 환경(Box, Drop setup) 구축 및 시뮬레이션 실행 (`mujoco_engine.py`)
         *   `ui/`: 시뮬레이션 설정(크기, 질량, 시나리오 등)을 위한 GUI (`main_window.py`)
         *   `scenarios.py`: 면, 모서리, 모서리 선 등 국제 규격의 낙하 자세 사전 정의
-        *   `data_exporter.py`: 시뮬레이션 결과를 기존 파이프라인과 100% 호환되는 `.proc` 포맷으로 내보내는 로직
+        *   `data_exporter.py`: 시뮬레이션 결과를 `.proc`로 내보내는 기존 경로. 시간·회전 제한은 simulation 문서 참조
     *   **`analysis/`**: 데이터 분석 관련 핵심 로직 및 UI.
         *   `app/`: 분석 메인 윈도우(`MainApp`)와 상위 UI 조립 코드
         *   `pipeline/`: parser, slicer, smoother, pose optimizer, velocity calculator, frame analyzer 등 분석 파이프라인

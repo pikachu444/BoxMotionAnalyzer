@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-09-08
+Last Reviewed: 2026-09-11
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -52,7 +52,7 @@ Last Reviewed: 2026-09-08
 - 파일 로드 시 `DataLoader`와 `Parser`가 즉시 미리보기용 데이터를 준비한다.
 - `Review Candidates...`는 `Rigid Body Marker`의 자세 불연속 후보를 찾고, 각 경계에서 `보정 없음 / 로컬 X 180도 / 로컬 Y 180도 / 로컬 Z 180도` 면 할당 가설을 실제 PoseOptimizer로 다시 계산한다. 계산 중 로드·크기 변경·저장을 잠근다.
   - 로컬 축은 박스 로컬 주축이며, 실제 물리 회전 원인을 뜻하지 않는다.
-  - 독립 MuJoCo 검증 전까지 새 모드의 자동 추천은 보류한다. 모든 이벤트의 `Apply`는 기본 OFF다.
+  - 공개 MuJoCo 예제의 계산·저장 검증은 수행했지만 추천 기준 검증은 남아 있어 자동 추천은 계속 보류한다. 모든 이벤트의 `Apply`는 기본 OFF다.
   - 작업자가 축을 선택하고 승인한다. 대응 마커 쌍은 필요 없지만 모든 마커의 원래 분석 면이 알려져 있어야 한다.
   - 그래프와 상세 정보는 선택한 축의 실제 재계산 잔차와 면 적합 RMSE를 표시한다. 신뢰 확률이나 실제 마커 대응률이 아니다.
 - 승인된 v3 보정은 XYZ와 ID를 그대로 두고 경계 이후 프레임별 분석 FaceInfo를 변경한다. 실제 물리 마커 좌표의 복원이나 Motive Rigid Body 포즈 수정은 아니다.
@@ -226,3 +226,5 @@ Last Reviewed: 2026-09-08
 3. **Time-History (시계열 비교 플롯):**
    - 하단 박스에 위치하며, 사용자가 선택한 지표의 전체 시계열 데이터를 기준 시간에 맞춰 오버레이하여 보여준다.
    - 툴바는 세로 방향으로 우측에 배치하여 가로 공간 활용도를 높였다.
+
+The v3 loader and corrected/slice writers reject persisted analysis faces that disagree with the complete approved history and original face map. Valid suffix slices retain the cumulative effect of earlier events. Pose processing reports `UnknownFace` or `UnidentifiableGeometry` when face constraints cannot support the local six-DOF fit; unavailable pose/corners do not become detector evidence. This is a conservative local guard, not global uniqueness certification.

@@ -1,6 +1,6 @@
 # 박스 낙하 시뮬레이션 문서
 
-Last Reviewed: 2026-09-08
+Last Reviewed: 2026-09-11
 
 현재 simulation은 WIP이다. #74용 별도 생성기 `src/simulation/marker_fixtures.py`는 실제 `data.time`, 갱신된 body origin/COM/회전을 기록하고 정상 정답과 고장 관측을 분리한다. 기존 GUI의 `data_exporter.py`에는 고정 미분 간격, 0 회전 저장, 입력 history 변경 문제가 남아 있어 정답 생성 경로에서 제외했다. 명세와 실행 방법은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md), 검증 결과와 한계는 [조사 결과](analysis/reference/marker_flip_review_findings.md)를 따른다. 아래 물리 결과 설명은 실제 실험 정확도 보장이 아니다.
 
@@ -22,7 +22,7 @@ Last Reviewed: 2026-09-08
   - `size`: 박스 로컬 X/Y/Z의 전체 길이 (mm 단위). 엔진이 MuJoCo geom의 half-extents로 변환한다.
   - `mass` (Mass): 박스의 무게 (kg).
   - `friction` (Friction): 바닥면과 박스 사이의 마찰 계수 (기본값: 0.5).
-  - `elasticity` (Restitution): 반발 계수. 0.0이면 튕기지 않고, 1.0이면 완전히 튕김 (기본값: 0.15).
+  - `elasticity`: 기존 이름을 유지하는 접촉 감쇠 제어값. `solref`의 시간상수는 0.02 s, 감쇠비는 `max(0.01, 1-value)`다. GUI 기본값은 0.15이며, 측정된 반발 계수가 아니다.
   - `com_offset` (Center of Mass Offset): 기하학적 중심과 실제 질량 중심 간의 차이 (TV, 세탁기 등 편향된 하중 모델링 시 유용).
 
 ### 2.2 표준 낙하 시나리오 (`src/simulation/scenarios.py`)
@@ -70,7 +70,7 @@ Last Reviewed: 2026-09-08
 
 ### 2.4 시뮬레이션 GUI (`src/simulation/ui/main_window.py`)
 메인 런처의 **[Simulation] 탭**에서 마우스 클릭만으로 손쉽게 시뮬레이션을 수행하고 `.proc` 파일로 저장할 수 있습니다.
-1. 박스 크기(Width, Depth, Height)와 질량(Mass) 및 마찰, 반발 계수 입력.
+1. 박스 크기(Width, Depth, Height)와 질량(Mass), 마찰 및 Contact damping control 입력.
 2. 낙하 높이(Drop Height, mm) 및 낙하 자세 시나리오 선택.
 3. **Simulation Duration(s):** 시뮬레이션을 몇 초 동안 실행할지 설정할 수 있습니다. (기본 2초. 낙하 높이가 높을 경우 시간을 늘려야 합니다.)
 4. [Run Simulation] 클릭 시 백그라운드에서 물리 연산 후 `.proc` 저장.
@@ -97,16 +97,15 @@ Last Reviewed: 2026-09-08
 - **글로벌 좌표계 변환 (Global Coordinate Transformation):**
   - MuJoCo 엔진은 내부적으로 **Z-up (Z축이 위를 향함)** 좌표계를 사용하지만, 기존 분석 시스템 및 3D 시각화는 `WORLD_VERTICAL_AXIS_INDEX = 1` 기준의 **Y-up** 좌표계를 사용합니다.
   - 데이터 내보내기(`DataExporter`) 시 호환성을 위해 `[X_mujoco, Y_mujoco, Z_mujoco]` 좌표가 `[X, Z, -Y]` 형태의 **Y-up 글로벌 좌표계로 자동 변환**되어 `.proc` 파일에 저장됩니다.
-  - 또한, 지면으로부터의 **상대 높이(Relative Height, `REL_H`)** 역시 변환된 Y축 값을 기준으로 계산되므로, 박스가 바닥에 안착하면 정확히 0으로 출력됩니다.
+  - 지면 상대 높이는 변환된 Y축 기준이다. 연성 접촉과 margin 때문에 정지 상태에서도 기하학적 높이가 정확히 0이라는 보장은 없다.
 - **무게 중심 (Center of Mass, CoM):**
   - **좌표계 기준:** CoM 오프셋은 위에서 설명한 박스의 **로컬 좌표계(X=Width, Y=Height, Z=Depth)**를 기준으로 합니다. 즉, 박스의 기하학적 정중앙이 `(0, 0, 0)`이며, 입력한 값(mm)만큼 질량 중심이 내부적으로 이동합니다.
-  - **시뮬레이션의 완벽성(Pogo Stick Effect) 극복:** MuJoCo와 같은 이상적인 수학적 시뮬레이터에서는 CoM이 완벽히 `(0,0,0)`인 상태에서 정확히 모서리 낙하를 수행할 경우, 무게 중심과 충돌점이 수직선상에 완벽히 정렬되어 **토크(Torque)가 0**이 됩니다. 이 경우 박스가 회전(전도, Tumbling)하지 않고 그 자리에 멈춰 서 있는 비현실적인 균형 상태가 발생할 수 있습니다.
-  - **해결책:** 실제 세계의 미세한 비대칭성이나 제품 하중 편향을 반영하기 위해, GUI에서는 의도적으로 CoM **Y축**에 `-200mm`의 오프셋을 기본값으로 주어 자연스러운 텀블링이 발생하도록 유도합니다. (예: TV 낙하 시 패널 하단에 무게가 집중되는 현상 모사)
+  - GUI의 기존 Y 오프셋 기본값 `-200 mm`는 모델 가정이며 실제 제품의 측정값이 아니다. 회전 발생 여부는 접촉력의 작용선과 초기 상태에도 의존하므로, 텀블링에 비영점 COM 오프셋이 항상 필요한 것은 아니다. 공개 충돌 fixture는 COM 오프셋 0을 사용한다.
 - **관성 텐서 (Inertia Tensor):**
-  - MuJoCo는 설정된 `size`와 `mass`를 기반으로 강체의 균일한 밀도 분포를 가정하여 관성 모멘트를 자동 계산합니다. (필요 시 XML 모델에서 직접 조작 가능)
+  - 엔진은 `size`와 `mass`로 균일 직육면체의 주관성 모멘트를 계산해 지정 COM에 명시한다. COM을 이동해도 관성값을 그대로 쓰는 가정은 편심 제품의 실측 질량 분포를 재현하지 않는다.
 
-## 4. 이론적 검증 결과
-모서리 낙하(Corner Drop) 시뮬레이션을 통해 다음과 같은 물리적 타당성을 검증하였습니다:
+## 4. 시뮬레이션 관찰과 검증 한계
+아래 항목은 모델에서 관찰할 운동의 예이며, 실제 충돌의 정확도를 검증한 결과로 사용하지 않는다:
 - **초기 자유 낙하:** 모든 모서리가 중력 가속도(9.8m/s²)에 의해 동일하게 가속됩니다.
 - **1차 충돌 (Impact):** 바닥에 처음 닿는 모서리(Pivot)는 수직 속도가 급격히 0 또는 양수(Rebound)로 반전됩니다.
 - **텀블링 (Tumbling):** 충돌로 인해 강체에 회전 모멘트가 발생하며, 대각선 반대편 모서리는 오히려 수직 방향으로 강하게 가속되는 현상(채찍 효과)이 정상적으로 관찰됩니다.
@@ -114,5 +113,7 @@ Last Reviewed: 2026-09-08
 
 (해당 검증 그래프는 `docs/images/proposal_tv_velocity_corner.png`에서 확인할 수 있습니다.)
 
-## 5. 결론
-이 기능을 통해 실험 환경 구축 없이도 제품 포장의 충격 내구성이나 낙하 시 동역학적 특성을 사전 검토(Pre-evaluation)할 수 있는 **강력한 디지털 트윈(Digital Twin) 기반 분석 도구**가 완성되었습니다.
+## 5. 접촉 모델과 현재 검증 범위
+`condim=4`는 법선·접선 마찰과 비틀림 마찰을 포함하지만 구름 마찰은 포함하지 않는다. box margin 5 mm는 접촉 활성 거리이며 둥근 모서리 반경이 아니다. 연성 접촉에서는 기하학적 관통이 발생할 수 있다. 설정과 의미는 [MuJoCo contact 모델](https://mujoco.readthedocs.io/en/stable/computation/index.html#contact)과 [solref](https://mujoco.readthedocs.io/en/stable/modeling.html#solver-parameters)를 따른다.
+
+공개 fixture는 관측 오류와 분석 흐름의 합성 검증용이다. 실제 포장재 변형·충격 내구성·ISTA 합격 여부를 예측하는 검증된 디지털 트윈으로 취급하지 않는다. 구체적인 입력과 결과는 위 fixture 계약과 조사 결과에 기록한다.

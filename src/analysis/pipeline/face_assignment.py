@@ -90,6 +90,20 @@ def materialize_face_assignments(header, raw, decisions, base_faces=None):
     return header, result
 
 
+def validate_materialized_faces(header, raw, decisions, base_faces):
+    """Check persisted faces against the full history, including pre-slice events."""
+    actual_columns = face_columns(header)
+    if not actual_columns:
+        raise ValueError("Face correction requires materialized assignments.")
+    expected_header, expected = materialize_face_assignments(header, raw, decisions, base_faces)
+    expected_columns = face_columns(expected_header)
+    for mid, column in actual_columns.items():
+        actual = raw.iloc[:, column].astype(str).str.strip().str.upper().to_numpy()
+        wanted = expected.iloc[:, expected_columns[mid]].to_numpy()
+        if not np.array_equal(actual, wanted):
+            raise ValueError(f"Face assignment disagrees with approved correction history for {mid}.")
+
+
 def face_segments(df):
     """Contiguous segments; no smoothing or differentiation across a face change."""
     cols = [c for c in df if str(c).endswith("_FaceInfo")]

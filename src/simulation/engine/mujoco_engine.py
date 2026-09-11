@@ -65,24 +65,18 @@ class MuJoCoEngine:
         # MuJoCo uses half-sizes for boxes
         sx, sy, sz = self.size_m
 
-        # Box moment of inertia approximation
+        # Diagonal moments of a homogeneous cuboid about its COM. A caller that
+        # supplies an offset COM is explicitly assuming these same moments there.
         ixx = (1/12) * self.mass * ((2*sy)**2 + (2*sz)**2)
         iyy = (1/12) * self.mass * ((2*sx)**2 + (2*sz)**2)
         izz = (1/12) * self.mass * ((2*sx)**2 + (2*sy)**2)
 
-        # We increase solver impedance (solimp) slightly to make the box stiffer,
-        # and adjust solref based on elasticity to control the bounce.
+        # Legacy 'elasticity' selects solref damping; it is not restitution.
         solref_timeconst = 0.02
         solref_dampratio = max(0.01, 1.0 - self.elasticity) # Lower damp ratio = more bouncy
 
-        # We increase solver impedance (solimp) slightly to make the box stiffer,
-        # and adjust solref based on elasticity to control the bounce.
-        solref_timeconst = 0.02
-        solref_dampratio = max(0.01, 1.0 - self.elasticity) # Lower damp ratio = more bouncy
-
-        # To simulate a box tumbling and rolling (instead of instantly stopping due to perfect face-to-face contact),
-        # we activate condim="4" for torsional friction, and add small rolling/torsional friction values.
-        # We also add a small margin to the box geometry so it acts slightly rounded, aiding tumbling.
+        # condim=4 enables sliding and torsional friction, not rolling friction.
+        # margin is contact activation distance; it does not round the box.
 
         xml = f"""
         <mujoco>
@@ -231,6 +225,13 @@ class MuJoCoEngine:
         if history and np.dot(quaternion, history[-1]['QuaternionWXYZ']) < 0:
             quaternion *= -1
         frame_data['QuaternionWXYZ'] = quaternion
+        frame_data['ContactCount'] = int(self.data.ncon)
+        normal_force = 0.
+        for contact_index in range(self.data.ncon):
+            force = np.zeros(6)
+            mujoco.mj_contactForce(self.model, self.data, contact_index, force)
+            normal_force += float(force[0])
+        frame_data['ContactNormalForceN'] = normal_force
 
         for i in range(1, 9):
             site_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, f"C{i}")

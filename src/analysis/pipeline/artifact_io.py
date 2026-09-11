@@ -419,12 +419,13 @@ def save_corrected_source_file(
     normalized_decisions = normalize_marker_corrections(decisions)
     is_face = bool(context_json) or any(d.correction_kind == "face_assignment" for d in normalized_decisions)
     if is_face:
-        validate_face_context(context_json)
-        from .face_assignment import face_columns
+        context = validate_face_context(context_json)
+        from .face_assignment import face_columns, validate_materialized_faces
         if not face_columns(header_info):
             raise ValueError("Face corrected CSV requires materialized assignments.")
         if any(d.correction_kind != "face_assignment" for d in normalized_decisions):
             raise ValueError("Cannot mix face assignments and legacy correction history.")
+        validate_materialized_faces(header_info, raw_data, normalized_decisions, context['base_faces'])
     current_hash = _sha256_file(original_source_path)
     if current_hash and original_source_sha256 and current_hash != original_source_sha256:
         raise ValueError("Original source changed since loading; reload before saving.")
@@ -622,6 +623,8 @@ def save_slice_file(
     row_start, row_end, padded_start, padded_end = _slice_time_bounds(raw_data, user_start, user_end, pad_rows)
     if marker_correction_metadata is not None and marker_correction_metadata.schema_version == '3':
         context = validate_face_context(marker_correction_metadata.context_json)
+        from .face_assignment import validate_materialized_faces
+        validate_materialized_faces(header_info, raw_data, marker_correction_metadata.decisions, context['base_faces'])
         if box_dims is None or tuple(context['box_dims_mm']) != tuple(box_dims):
             raise ValueError('Slice dimensions differ from approved face correction context.')
     slice_raw_df = raw_data.iloc[row_start : row_end + 1].copy()

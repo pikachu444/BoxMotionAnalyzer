@@ -1,6 +1,6 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-09-08
+Last Reviewed: 2026-09-11
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
@@ -18,8 +18,12 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   - Actual time, body origin/COM/rotation and independent truth/observed files are recorded. Nine noiseless pose-mechanics cases meet the unchanged numerical gates; four controls provide abstention diagnostics only.
   - Two-constraint false success is rejected; real GUI X-flow preserves all 100 samples after correcting slice endpoint precision. Detailed input/expected/actual results are in `../reference/marker_flip_review_findings.md`.
   - Keep new automatic recommendations disabled. This does not complete #74 or all of #80–#84.
-- [ ] Establish private VDTest_S5_001 Motive-to-box origin/axis registration from independent calibration evidence before using its layout. Do not publish capture-derived coordinates.
-- [ ] Evaluate pose identifiability for three or more constraints, including coplanar/degenerate face layouts. Optimizer convergence alone is not sufficient evidence.
+- [ ] Establish private VDTest_S5_001 Motive-to-box origin/axis registration from independent calibration evidence before using its layout. Calibration is unavailable and deferred; it does not block the public collision lane. Do not publish capture-derived coordinates.
+  - CSV and 32 constraints inspected; independent physical dimensions, pivot/axis relation and mounting/face evidence were not found in the repository. Details and exact missing inputs: `../reference/marker_flip_review_findings.md`.
+- [O] Accept explicit local JSON layouts in the independent generator and harness, retaining the public default. Public custom dimensions/coordinates were checked numerically and through the real GUI save/reload flow. This does not complete VDTest registration.
+- [O] Reject insufficient local face-constraint rank and unknown faces; clear pose/corners with explicit status. Full rank is only a necessary local guard, not proof of global uniqueness.
+- [ ] Complete independent review of the public 32-marker face/edge/corner collision lane and current v3 persistence integrity fixes. Execution evidence is in marker_flip_review_findings.md.
+- [ ] Next bounded implementation: #83/#76 provenance/compatibility and actual-time comparison. See the fixture contract next-task prompt; #75 scene review, #77 physical metrics and #78 full validation remain separate.
 - [ ] Validate solver-derived constraint error models and ambiguous/genuine motion cases. Research and implementation status: `../reference/marker_flip_review_findings.md`.
 - [ ] Validate Issue #74 recommendation gates against labeled real OptiTrack capture categories.
   - Collect or identify captures with known no-flip, X/Y/Z relabel, gap-only, freeze/reconnect, genuine physical rotation, low coverage, and ambiguous evidence outcomes.

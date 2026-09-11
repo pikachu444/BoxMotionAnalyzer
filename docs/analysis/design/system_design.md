@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-09-08
+Last Reviewed: 2026-09-11
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -80,7 +80,7 @@ Last Reviewed: 2026-09-08
 - Result Resampling처럼 UI/Qt와 무관한 계산 로직은 순수 모듈로 분리한다.
 - processing mode 라벨과 기본 preset 같은 UI 정책은 `src/config/config_analysis_ui.py`에서 관리한다.
 - Marker Flip Review는 분석 결과 포즈를 사후 회전하는 단계가 아니다. Step 1에서 원시 마커 열의 의미를 검토하고 corrected source를 만드는 입력 정리 단계다.
-- `PipelineController`는 이미 corrected CSV에 반영된 열 순열을 다시 적용하지 않는다.
+- `PipelineController`는 corrected CSV에 저장된 v3 행별 면 할당을 사용하며 승인 이력을 다시 적용하지 않는다. v2 열 순열은 별도 호환 경로로 읽는다.
 
 ### 4.2. 컬럼 정의의 중앙 관리
 - 컬럼명, Multi-header 규칙, Results Analyzer 표시 순서는 `src/config/data_columns.py`에서 관리한다.
@@ -92,7 +92,7 @@ Last Reviewed: 2026-09-08
 - 처리 단계 내부는 여전히 DataFrame 기반으로 동작한다.
 - 단, 사용자 workflow 개선을 위해 scene 재사용용 `.slice`와 processed result 재사용용 `.proc`를 도입한다.
 - 입력 파일 흐름은 `original CSV -> optional corrected CSV -> .slice -> .proc`다.
-- corrected CSV는 측정 좌표 숫자를 회전하거나 보간하지 않고, 승인된 경계 이후의 마커 XYZ 열을 가역 순열로 재배치한다.
+- v3 corrected CSV는 Rigid Body Marker XYZ와 ID를 보존하고, 승인된 경계 이후의 분석용 면 할당을 바꾼다. 저장과 로딩 시 최초 면 및 전체 승인 이력으로 재구성한 면과 실제 annotation을 대조하여 불일치를 거부한다. 경계 이후만 담은 slice에도 이전 사건의 누적 상태를 검증한다.
 - 여러 이벤트는 시간순 suffix에 누적 적용하며, 매 저장 시 최초 관측 스트림에서 다시 계산해 중간 결정 변경이 뒤쪽 배치에 정확히 반영되도록 한다.
 - `.slice`는 raw CSV 구조를 유지한 scene 파일이다.
 - `.proc`는 기존 result CSV와 같은 multi-header 결과 구조를 사용한다.

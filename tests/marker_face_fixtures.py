@@ -19,6 +19,19 @@ ORACLE = {"X": np.diag([1., -1., -1.]), "Y": np.diag([-1., 1., -1.]), "Z": np.di
 BASE_FACES = {name: {"F": "FRONT", "B": "BACK", "L": "LEFT", "R": "RIGHT", "T": "TOP", "M": "BOTTOM"}[name[0]] for name in LAYOUT}
 
 
+def custom_public_profile():
+    """Explicit alternative geometry, unrelated to VDTest or detector output."""
+    from src.simulation.marker_fixtures import example_profile
+    profile = example_profile()
+    profile.update(profile_id='custom-public-example-18', box_dims_mm=[240., 132., 100.],
+                   publication='public-custom-example-not-VDTest',
+                   source='Explicit public example variation; no measured coordinates')
+    for marker in profile['markers']:
+        marker['xyz_mm'] = [x * s for x, s in zip(marker['xyz_mm'], (1.2, 1.1, 1.25))]
+    profile['markers'][0]['xyz_mm'][0] += 2.
+    return profile
+
+
 def raw_bundle(axis="X", boundary=30, samples=80):
     header = {k: ["", ""] for k in ("type", "name", "id", "parent", "category", "component")}
     header["component"] = [TimeCols.FRAME, TimeCols.TIME]

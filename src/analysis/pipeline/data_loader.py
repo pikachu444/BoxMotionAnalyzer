@@ -70,6 +70,17 @@ class DataLoader:
         self.validate_raw_data(raw_df)
 
         header_info['component'] = component_header
+        if has_annotations:
+            from .artifact_io import validate_face_context
+            from .marker_flip import deserialize_marker_corrections
+            from .face_assignment import validate_materialized_faces
+            if 'Corrected Source File' in lines[0]:
+                context = validate_face_context(metadata.context_json)
+                decisions = metadata.decisions
+            else:
+                context = validate_face_context(metadata.correction_context_json)
+                decisions = deserialize_marker_corrections(metadata.correction_events_json)
+            validate_materialized_faces(header_info, raw_df, decisions, context['base_faces'])
         return header_info, raw_df
 
     def validate_raw_data(self, raw_df: pd.DataFrame) -> None:

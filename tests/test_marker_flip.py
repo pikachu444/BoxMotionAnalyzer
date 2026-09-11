@@ -186,7 +186,7 @@ def _raw_header_and_data(
     return header_info, raw_df
 
 
-def _build_face_center_stream(
+def _build_symmetric_face_stream(
     *,
     frame_count: int = 16,
 ) -> tuple[pd.DataFrame, dict[str, np.ndarray]]:
@@ -206,6 +206,19 @@ def _build_face_center_stream(
         "F1": "FRONT",
         "B1": "BACK",
     }
+    # Face centers alone have no first-order rotational constraints. Add
+    # off-center sign-paired points, preserving independently defined half-turns.
+    for prefix, face, axis, fixed, u, v in [
+        ('R','RIGHT',0,100.,22.,13.), ('L','LEFT',0,-100.,22.,13.),
+        ('T','TOP',1,60.,37.,17.), ('M','BOTTOM',1,-60.,37.,17.),
+        ('F','FRONT',2,40.,31.,19.), ('B','BACK',2,-40.,31.,19.)]:
+        other = [i for i in range(3) if i != axis]
+        for number, (s,t) in enumerate([(-1,-1),(-1,1),(1,-1),(1,1)], start=2):
+            point = np.zeros(3)
+            point[axis] = fixed
+            point[other] = [s*u,t*v]
+            layout[f'{prefix}{number}'] = point
+            face_info[f'{prefix}{number}'] = face
     times = np.arange(frame_count, dtype=float) * 0.01
     translations = np.column_stack(
         [
@@ -350,7 +363,7 @@ class TestMarkerFlipDetection(unittest.TestCase):
                 self.assertGreaterEqual(candidate.confidence_margin, 0.15)
 
     def test_pose_optimizer_to_detector_path_finds_declared_x_flip(self):
-        parsed_data, layout = _build_face_center_stream(frame_count=16)
+        parsed_data, layout = _build_symmetric_face_stream(frame_count=16)
         boundary = 8
         permutation = _oracle_permutation(layout, ORACLE_HALF_TURNS["X"])
         snapshot = parsed_data.copy(deep=True)

@@ -8,7 +8,7 @@ from scipy.spatial.transform import Rotation
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QFileDialog, QDialogButtonBox, QLineEdit
-from marker_face_fixtures import DIMS, raw_bundle, write_raw
+from marker_face_fixtures import DIMS, raw_bundle, write_raw, custom_public_profile
 from src.analysis.app.main_window import MainApp
 from src.analysis.ui.dialog_marker_flip_review import MarkerFlipReviewDialog
 from src.analysis.pipeline.data_loader import DataLoader
@@ -16,7 +16,7 @@ from src.analysis.pipeline.artifact_io import read_corrected_source_metadata, re
 from src.config import config_app
 
 
-@pytest.mark.parametrize('source_kind', ['handcrafted', 'mujoco'])
+@pytest.mark.parametrize('source_kind', ['handcrafted', 'mujoco', 'custom_mujoco', 'collision_face'])
 def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, source_kind):
     # Production UI changes runtime geometry; isolate it from following tests.
     monkeypatch.setattr(config_app, 'BOX_DIMS', np.array(config_app.BOX_DIMS, copy=True))
@@ -35,13 +35,28 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     write_raw(source, h, raw)
     boundary_time = .3
     mujoco_truth = None
-    if source_kind == 'mujoco':
-        from src.simulation.marker_fixtures import write_case
-        generated = write_case(tmp_path / 'independent', 'x')
+    dims = DIMS
+    evidence = Path('tmp/issue74_gui') / source_kind
+    evidence.mkdir(parents=True, exist_ok=True)
+    if source_kind in ('mujoco', 'custom_mujoco', 'collision_face'):
+        import json
+        from src.simulation.marker_fixtures import write_case, load_profile
+        profile = None
+        if source_kind == 'custom_mujoco':
+            profile_path = tmp_path / 'custom_profile.json'
+            profile_path.write_text(json.dumps(custom_public_profile()), encoding='utf-8')
+            profile = load_profile(profile_path)
+            dims = tuple(profile['box_dims_mm'])
+        if source_kind == 'collision_face':
+            from src.simulation.marker_fixtures import virtual_profile_32
+            profile = virtual_profile_32()
+            dims = tuple(profile['box_dims_mm'])
+        generated = write_case(tmp_path / 'independent', 'x', profile=profile,
+                               motion='face' if source_kind == 'collision_face' else 'free_fall')
         source = generated / 'observed.csv'
         h, raw = DataLoader().load_csv(str(source))
         mujoco_truth = pd.read_csv(generated / 'truth_pose.csv')
-        boundary_time = float(mujoco_truth.time_s.iloc[30])
+        boundary_time = float(mujoco_truth.time_s.iloc[65 if source_kind == 'collision_face' else 30])
     original_bytes = source.read_bytes()
     errors = []
 
@@ -72,8 +87,9 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     choose(source)
     QTest.mouseClick(raw_widget.load_csv_button, Qt.MouseButton.LeftButton)
     assert raw_widget.raw_data is not None
-    for edit, value in zip((raw_widget.le_box_l, raw_widget.le_box_w, raw_widget.le_box_h), DIMS):
+    for edit, value in zip((raw_widget.le_box_l, raw_widget.le_box_w, raw_widget.le_box_h), dims):
         edit.setText(str(value))
+    window.grab().save(str(evidence / 'before.png'))
 
     # Timer operates the real modal when the real background review completes.
     reviewed = []
@@ -121,9 +137,10 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     raw_widget.le_box_l.setText('999')
     choose(corrected)
     QTest.mouseClick(raw_widget.load_csv_button, Qt.MouseButton.LeftButton)
-    assert raw_widget._read_box_dimensions() == tuple(DIMS)
+    assert raw_widget._read_box_dimensions() == tuple(dims)
     assert raw_widget.review_context_json == meta.context_json
-    assert raw_widget.parsed_data['F1_FaceInfo'].iloc[50] == 'BACK'
+    assert raw_widget.parsed_data['F1_FaceInfo'].iloc[80] == 'BACK'
+    window.grab().save(str(evidence / 'reloaded.png'))
     choose(sliced)
     QTest.mouseClick(raw_widget.save_slice_button, Qt.MouseButton.LeftButton)
     assert sliced.exists(), raw_widget.log_output.toPlainText()
@@ -132,7 +149,7 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     processing = window.processing_widget
     choose(sliced)
     QTest.mouseClick(processing.load_slice_button, Qt.MouseButton.LeftButton)
-    assert processing.parsed_data['F1_FaceInfo'].iloc[50] == 'BACK'
+    assert processing.parsed_data['F1_FaceInfo'].iloc[80] == 'BACK'
     QTest.mouseClick(processing.run_button, Qt.MouseButton.LeftButton)
     wait_until(lambda: processing.save_proc_button.isEnabled())
     choose(processed)
@@ -151,7 +168,16 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
         assert position_error < .1
         assert rotation_error < .1
         print(f'MuJoCo GUI proc max error: {position_error} mm, {rotation_error} deg')
-    window.grab().save('tmp/issue74_gui/processed.png')
+    window.grab().save(str(evidence / 'processed.png'))
+    if source_kind == 'collision_face':
+        import shutil
+        for path in [source, corrected, sliced, processed, generated / 'truth_pose.csv',
+                     generated / 'truth_markers.csv', generated / 'observed.synthetic.json']:
+            shutil.copy2(path, evidence / path.name)
+        (evidence / 'result.json').write_text(json.dumps({
+            'input': str(source), 'expected': '100 samples, unchanged XYZ, manual X at 0.520 s, pose <0.1 mm/deg',
+            'actual_samples': len(output), 'max_position_mm': float(position_error),
+            'max_rotation_deg': float(rotation_error)}, indent=2), encoding='utf-8')
     if raw_widget.review_worker:
         raw_widget.review_worker.wait()
     window.worker.wait()
