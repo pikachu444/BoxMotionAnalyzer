@@ -18,7 +18,7 @@ CORNERS = np.array([[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],
 
 def history(times, rotations=None):
     times = np.asarray(times)
-    rotations = rotations if rotations is not None else R.from_euler('z', np.zeros(len(times)))
+    rotations = rotations if rotations is not None else R.from_euler('z', np.zeros((len(times), 1)))
     result=[]
     for i,t in enumerate(times):
         p = np.array([10 + 3*t + 2*t*t, 20., 500.])
@@ -42,7 +42,7 @@ def load(path):
 def test_irregular_time_angular_and_linear_motion(axis):
     t=np.array([0.,.03,.08,.2,.35])
     omega=.8
-    data=DataExporter(history(t,R.from_euler(axis,omega*t))).calculate_derivatives()
+    data=DataExporter(history(t,R.from_euler(axis,(omega*t)[:,None]))).calculate_derivatives()
     expected=A @ (np.eye(3)['xyz'.index(axis)]*omega)
     np.testing.assert_allclose(data['omega'][1:],np.tile(expected,(4,1)),atol=1e-13)
     np.testing.assert_allclose(data['alpha'][2:],0,atol=1e-12)
@@ -78,7 +78,7 @@ def test_known_composite_pose_corners_and_com_roundtrip(tmp_path,angles):
 
 def test_quaternion_sign_flip_stationary_and_multiturn():
     t=np.arange(25)*.1
-    raw=history(t,R.from_euler('z',np.arange(25)*30,degrees=True))
+    raw=history(t,R.from_euler('z',(np.arange(25)*30)[:,None],degrees=True))
     for row in raw[::2]:
         row['QuaternionWXYZ'] *= -7
     data=DataExporter(raw).calculate_derivatives()
