@@ -231,6 +231,10 @@ class OrientationPreviewWidget(QWidget):
             f"Fixed X {self.euler[0]:.1f}  Y {self.euler[1]:.1f}  Z {self.euler[2]:.1f}"
         )
 
+def simulation_error_message(error):
+    return '\n'.join([f'Simulation Failed: {error}', *getattr(error, '__notes__', [])])
+
+
 class SimulationThread(QThread):
     finished_signal = Signal(str)
     error_signal = Signal(str)
@@ -256,7 +260,7 @@ class SimulationThread(QThread):
             self.finished_signal.emit(output_path)
 
         except Exception as e:
-            self.error_signal.emit(f"Simulation Failed: {str(e)}")
+            self.error_signal.emit(simulation_error_message(e))
 
 class SimulationUI(QWidget):
     def __init__(self, parent=None):
@@ -587,6 +591,7 @@ class SimulationUI(QWidget):
 
         # 3. Setup Engine
         self.run_btn.setEnabled(False)
+        self.batch_btn.setEnabled(False)
         self.progress_bar.show()
 
         engine = MuJoCoEngine(size=size, mass=mass, friction=friction, elasticity=elasticity, com_offset=com_offset)
@@ -603,7 +608,7 @@ class SimulationUI(QWidget):
 
                 self.on_sim_finished(output_path)
             except Exception as e:
-                self.on_sim_error(f"Simulation Failed: {str(e)}")
+                self.on_sim_error(simulation_error_message(e))
         else:
             # Run headless in background thread
             self.thread = SimulationThread(engine, params, filepath)

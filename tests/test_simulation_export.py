@@ -4,6 +4,7 @@ import json
 import numpy as np
 import pandas as pd
 import pytest
+from pandas.io.formats.csvs import CSVFormatter
 from scipy.spatial.transform import Rotation as R
 from src.simulation.data_exporter import DataExporter, WORLD_TRANSFORM as A
 from src.simulation.engine.mujoco_engine import MuJoCoEngine
@@ -11,6 +12,7 @@ from src.analysis.pipeline.data_loader import DataLoader
 from src.utils.artifact_metadata import read_identity
 from src.visualization.data_handler import DataHandler
 from src.config import config_visualization as visual_config
+from src.simulation import data_exporter
 
 CORNERS = np.array([[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],
                     [-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]]) * [100,60,40]
@@ -103,6 +105,74 @@ def test_invalid_time_rejected_without_touching_existing_file(tmp_path,times):
     with pytest.raises(ValueError,match='strictly increasing'):
         DataExporter(raw).export_proc_csv(path)
     assert path.read_text()=='existing'
+
+
+@pytest.mark.parametrize('existing', [False, True])
+@pytest.mark.parametrize('failure', ['body_write', 'flush_to_disk', 'replace'])
+def test_io_failure_preserves_destination_and_allows_retry(tmp_path, monkeypatch, existing, failure):
+    path = tmp_path / '공개 박스.proc'
+    previous = b'previous result must survive\r\n'
+    if existing:
+        path.write_bytes(previous)
+    raw = history([0., .01, .04])
+    original = copy.deepcopy(raw)
+    exporter = DataExporter(raw)
+    error = OSError(f'injected {failure} failure')
+
+    def fail(*args, **kwargs):
+        raise error
+
+    with monkeypatch.context() as patch:
+        if failure == 'body_write':
+            # The real CSV writer has already written its multi-row header.
+            patch.setattr(CSVFormatter, '_save_body', fail)
+        else:
+            patch.setattr(data_exporter.os, 'fsync' if failure == 'flush_to_disk' else 'replace', fail)
+        with pytest.raises(OSError) as raised:
+            exporter.export_proc_csv(path)
+        assert raised.value is error
+
+    assert path.read_bytes() == previous if existing else not path.exists()
+    assert set(tmp_path.iterdir()) == ({path} if existing else set())
+    assert exporter.export_proc_csv(path) == str(path.absolute())
+    assert len(load(path)) == 3
+    assert set(tmp_path.iterdir()) == {path}
+    for expected, actual in zip(original, raw):
+        for key in expected:
+            np.testing.assert_array_equal(expected[key], actual[key])
+
+
+def test_cleanup_failure_keeps_primary_error_and_reports_temporary_path(tmp_path, monkeypatch):
+    path = tmp_path / 'keep.proc'
+    path.write_bytes(b'previous')
+    error = OSError('body write failed')
+
+    def fail_write(*args):
+        raise error
+
+    def fail_cleanup(*args, **kwargs):
+        raise PermissionError('temporary file locked')
+
+    with monkeypatch.context() as patch:
+        patch.setattr(CSVFormatter, '_save_body', fail_write)
+        patch.setattr(data_exporter.Path, 'unlink', fail_cleanup)
+        with pytest.raises(OSError) as raised:
+            DataExporter(history([0., .01, .04])).export_proc_csv(path)
+    assert raised.value is error
+    assert path.read_bytes() == b'previous'
+    leftovers = set(tmp_path.iterdir()) - {path}
+    assert len(leftovers) == 1
+    temporary = leftovers.pop()
+    assert str(temporary) in error.__notes__[0]
+    temporary.unlink()
+
+
+def test_existing_long_destination_name_can_be_replaced(tmp_path):
+    path = tmp_path / ('x' * 245 + '.proc')
+    path.write_bytes(b'previous result')
+    assert DataExporter(history([0., .01, .04])).export_proc_csv(path) == str(path.absolute())
+    assert len(load(path)) == 3
+    assert set(tmp_path.iterdir()) == {path}
 
 
 def test_empty_and_single_sample_are_explicit(tmp_path):

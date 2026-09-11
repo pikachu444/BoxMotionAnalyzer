@@ -1,7 +1,9 @@
 """Non-destructive simulation export; conventions are in docs/simulation.md."""
 import copy
 import json
+import os
 from pathlib import Path
+import tempfile
 import numpy as np
 import pandas as pd
 from scipy.spatial.transform import Rotation
@@ -153,5 +155,24 @@ class DataExporter:
         frame.columns = pd.MultiIndex.from_tuples(frame.columns)
         output_path = Path(filepath)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        frame.to_csv(output_path, index=False)
+        temporary_path = None
+        try:
+            # Stay on the destination filesystem and close the handle before
+            # replacing on Windows. Never truncate the last successful export.
+            with tempfile.NamedTemporaryFile(
+                mode='w', encoding='utf-8', newline='', dir=output_path.parent,
+                prefix='.bma-export-', suffix='.tmp', delete=False,
+            ) as stream:
+                temporary_path = Path(stream.name)
+                frame.to_csv(stream, index=False)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary_path, output_path)
+        except BaseException as error:
+            if temporary_path is not None:
+                try:
+                    temporary_path.unlink(missing_ok=True)
+                except OSError as cleanup_error:
+                    error.add_note(f'Could not remove temporary export {temporary_path}: {cleanup_error}')
+            raise
         return str(output_path.absolute())

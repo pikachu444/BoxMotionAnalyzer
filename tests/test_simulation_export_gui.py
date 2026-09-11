@@ -3,15 +3,143 @@ import json
 import time
 from pathlib import Path
 import numpy as np
+import pytest
+from pandas.io.formats.csvs import CSVFormatter
 from scipy.spatial.transform import Rotation as R
 from PySide6.QtWidgets import QApplication, QFileDialog, QLineEdit, QMessageBox
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtTest import QTest
-from src.simulation.ui.main_window import SimulationUI
+from src.simulation.ui.main_window import SimulationUI, SimulationThread
 from src.analysis.compare.main_window import CompareMainWindow
 from src.analysis.pipeline.data_loader import DataLoader
 from src.config import config_visualization as k
 from test_simulation_export import CORNERS, vector
+
+
+@pytest.fixture
+def saving_window():
+    app = QApplication.instance() or QApplication([])
+    app.setAttribute(Qt.ApplicationAttribute.AA_DontUseNativeDialogs, True)
+    window = SimulationUI()
+    for widget, value in [(window.w_input, 200), (window.d_input, 120),
+                          (window.h_input, 80), (window.mass_input, 1),
+                          (window.com_x, 3), (window.com_y, -4), (window.com_z, 2),
+                          (window.duration_input, .5)]:
+        widget.setValue(value)
+    assert window.duration_input.value() == .5
+    window.viewer_cb.setChecked(False)
+    window.noise_cb.setChecked(False)
+    window.show()
+    yield app, window
+    if isinstance(window.thread, SimulationThread):
+        assert window.thread.wait(10000)
+    window.close()
+    app.processEvents()
+
+
+def wait_for_message(messages):
+    deadline = time.monotonic() + 15
+    while not messages and time.monotonic() < deadline:
+        QApplication.processEvents()
+        # Let the Python CSV writer in the QThread acquire the GIL as well.
+        time.sleep(.01)
+    assert messages, 'Simulation did not report completion or failure'
+
+
+@pytest.mark.parametrize('batch', [False, True])
+def test_cancel_actual_save_dialog_does_not_start_worker(saving_window, batch):
+    app, window = saving_window
+    dialogs = []
+
+    def cancel():
+        dialog = app.activeModalWidget()
+        dialogs.append(dialog)
+        if isinstance(dialog, QFileDialog):
+            dialog.reject()
+
+    QTimer.singleShot(100, cancel)
+    QTest.mouseClick(window.batch_btn if batch else window.run_btn, Qt.LeftButton)
+    assert dialogs and isinstance(dialogs[0], QFileDialog)
+    # QWidget already has QObject.thread(); only an assigned SimulationThread
+    # would mean that the simulation worker was created.
+    assert not isinstance(window.thread, SimulationThread)
+    assert not hasattr(window, '_batch_success_paths')
+    assert window.run_btn.isEnabled() and window.batch_btn.isEnabled()
+    assert not window.progress_bar.isVisible()
+
+
+def test_worker_write_failure_restores_controls_and_retry(saving_window, tmp_path, monkeypatch):
+    _, window = saving_window
+    path = tmp_path / 'keep.proc'
+    path.write_bytes(b'previous result')
+    messages = []
+    monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *args: (str(path), ''))
+    monkeypatch.setattr(QMessageBox, 'critical', lambda *args: messages.append(('error', args[2])))
+    monkeypatch.setattr(QMessageBox, 'information', lambda *args: messages.append(('success', args[2])))
+
+    def fail_body(*args):
+        error = OSError('injected partial CSV write')
+        error.add_note('Additional cleanup failure details')
+        raise error
+
+    with monkeypatch.context() as patch:
+        patch.setattr(CSVFormatter, '_save_body', fail_body)
+        QTest.mouseClick(window.run_btn, Qt.LeftButton)
+        assert not window.run_btn.isEnabled() and not window.batch_btn.isEnabled()
+        assert window.progress_bar.isVisible()
+        wait_for_message(messages)
+        assert window.thread.wait(5000)
+    assert messages == [('error', 'Simulation Failed: injected partial CSV write\nAdditional cleanup failure details')]
+    assert path.read_bytes() == b'previous result'
+    assert set(tmp_path.iterdir()) == {path}
+    assert window.run_btn.isEnabled() and window.batch_btn.isEnabled()
+    assert not window.progress_bar.isVisible()
+    messages.clear()
+    QTest.mouseClick(window.run_btn, Qt.LeftButton)
+    wait_for_message(messages)
+    assert window.thread.wait(5000)
+    assert len(messages) == 1 and messages[0][0] == 'success'
+    assert len(DataLoader().load_result_csv(str(path))) == 63
+    assert window.run_btn.isEnabled() and window.batch_btn.isEnabled()
+    assert not window.progress_bar.isVisible()
+
+
+def test_batch_stops_at_failed_file_and_keeps_completed_outputs(saving_window, tmp_path, monkeypatch):
+    from src.simulation.scenarios import Scenarios
+    from src.simulation import data_exporter
+    _, window = saving_window
+    sequences = Scenarios.get_drop_sequence_specs(window.cat_combo.currentText())
+    # Use the real batch list; failure at its second export must stop the list.
+    first = tmp_path / f'TypeG_{sequences[0].id}.proc'
+    second = tmp_path / f'TypeG_{sequences[1].id}.proc'
+    second.write_bytes(b'previous second result')
+    messages = []
+    monkeypatch.setattr(QFileDialog, 'getExistingDirectory', lambda *args: str(tmp_path))
+    monkeypatch.setattr(QMessageBox, 'critical', lambda *args: messages.append(('error', args[2])))
+    monkeypatch.setattr(QMessageBox, 'information', lambda *args: messages.append(('success', args[2])))
+    replace = data_exporter.os.replace
+    completed = []
+
+    def fail_second(source, destination):
+        if Path(destination) == second:
+            raise PermissionError('injected second destination lock')
+        replace(source, destination)
+        completed.append((Path(destination), Path(destination).read_bytes()))
+
+    monkeypatch.setattr(data_exporter.os, 'replace', fail_second)
+    QTest.mouseClick(window.batch_btn, Qt.LeftButton)
+    wait_for_message(messages)
+    assert window.thread.wait(5000)
+    QTest.qWait(50)
+    assert messages == [('error', 'Simulation Failed: injected second destination lock')]
+    assert len(completed) == 1 and completed[0] == (first, first.read_bytes())
+    assert len(DataLoader().load_result_csv(str(first))) == 63
+    assert second.read_bytes() == b'previous second result'
+    assert set(tmp_path.iterdir()) == {first, second}
+    assert window._batch_success_paths == [str(first)]
+    assert window._batch_current_idx == 1
+    assert window.run_btn.isEnabled() and window.batch_btn.isEnabled()
+    assert not window.progress_bar.isVisible()
 
 
 def test_simulation_run_save_reopen_actual_gui(monkeypatch):
@@ -61,7 +189,8 @@ def test_simulation_run_save_reopen_actual_gui(monkeypatch):
         QTest.mouseClick(window.run_btn,Qt.LeftButton)
         deadline=time.monotonic()+30
         while not messages and not errors and time.monotonic()<deadline:
-            QTest.qWait(50)
+            app.processEvents()
+            time.sleep(.01)
         assert not errors and messages and 'completed and saved' in messages[-1]
         assert window.thread.wait(5000)
         frame=DataLoader().load_result_csv(str(path))

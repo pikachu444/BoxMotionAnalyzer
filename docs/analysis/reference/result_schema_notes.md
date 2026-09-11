@@ -1,6 +1,6 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-09-11
+Last Reviewed: 2026-09-12
 
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
@@ -314,6 +314,11 @@ corrected CSV에서 만든 `.slice`를 처리한 경우 `.proc`에는 아래 pro
 85인치 실제 데이터 검증은 `TestSets/Input/VDTest_S5_001.csv`의 `TestBox_85` 데이터를 사용한다. 접촉 flow 검증은 `2.45s-3.05s` slice를 85인치 치수로 처리하고, export/reload 후 pose/corner 좌표에서 `BetaAtT1MinusDeg`, `DeltaHAtT1Minus_mm`, `CminAtT1MinusIndex`를 독립 재계산해 summary 값과 비교한다.
 
 ## Simulation direct `.proc` additions (#81)
+
+Simulation saves replace the destination only after a complete UTF-8 CSV has been
+flushed and closed in the same directory. I/O failure preserves the previous file;
+the three-level schema, version, numerical values and missing-value semantics do
+not change. Failure cleanup and retry behavior are documented in [simulation.md](../../simulation.md).
 
 These fields supplement the 16 `Info/Artifact` keys; they never replace them or
 claim execution of the Analysis solver. Every new direct Simulation output has
