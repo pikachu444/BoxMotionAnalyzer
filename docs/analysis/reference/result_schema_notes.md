@@ -84,6 +84,28 @@ No calculated t1, inferred sampling rate, data values, input path/hash or select
 absolute trial start/end enters the processing fingerprint. The same actual-dt
 policy can therefore compare trials with different sampling rates and time origins.
 
+Limited-range provenance uses `range_offset_encoding =
+shortest-decimal-input-ulp-v1`. Subtract the exact binary64 endpoint and origin in
+decimal arithmetic, then choose the shortest decimal offset (1 through 17
+significant digits, nearest-even ties) whose distance from that exact difference
+is at most `(ulp(endpoint) + ulp(origin)) / 2`. Serialize that candidate as a JSON
+number; if no candidate qualifies, retain the binary64 difference. Zero remains
+zero. This models the rounding uncertainty of the two input clock values rather
+than imposing a fixed decimal-place grid. Non-finite inputs fail explicitly.
+It affects only the settings fingerprint, never row selection, timestamps,
+interpolation or physical calculations. It is separate from the graph/playback
+gap comparison's raw-clock ULP/1ps policy and has no fixed time tolerance.
+
+For example, slices starting at 1s and 100s with selected offsets 0.1–0.3s
+produce the same settings; changing the endpoint by 1e-10s remains distinguishable
+at both origins. Even a 1e-14s change remains distinguishable at a zero origin.
+Precision remains limited by the original binary64 clocks: changes inside their
+rounding uncertainty may share a fingerprint, and large clock origins can lose
+fine timing distinctions before this function receives them. Universal identity
+under arbitrary origin shifts or decimal rounding-boundary cases is not promised.
+The encoding tag distinguishes this contract from older unnormalized limited-range
+records; those records are not silently promoted or rewritten.
+
 The execution record travels in the processed DataFrame's private attributes until
 the Analysis writer emits the two artifact columns. The writer discards any raw
 declaration of those processing fields when attaching a newly processed result;

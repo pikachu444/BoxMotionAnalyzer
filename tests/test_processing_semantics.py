@@ -1,6 +1,7 @@
 """Configured-object/hash unit contracts; actual execution is checked by collision GUI."""
 import copy
 import json
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -10,7 +11,7 @@ from src.analysis.pipeline.processing_provenance import capture_single_pass, cap
 from src.analysis.pipeline.artifact_io import add_timeline_context_columns, save_proc_file
 from src.analysis.pipeline.data_loader import DataLoader
 from src.utils.artifact_metadata import read_identity, compatibility_reasons
-from src.utils.processing_settings import processing_record, SETTINGS_ATTR
+from src.utils.processing_settings import processing_record, SETTINGS_ATTR, normalized_range_offset
 
 
 def configured_record(options=None, threshold=1., *, factor=1, trimming='late', padding=15):
@@ -117,3 +118,49 @@ def test_real_resampling_stage_records_actual_policy_not_unused_method(monkeypat
     assert policy['method'].startswith('linear-result-rows')
     assert policy['scope']=='full-slice'
     assert len(result)==5
+
+
+def test_limited_resampling_identity_survives_clock_translation(tmp_path, monkeypatch):
+    loaded = []
+    for name, origin, end_offset in [('near', 1., .3), ('shifted', 100., .3),
+                                      ('changed', 100., .3000000001)]:
+        controller = PipelineController()
+        times = origin + np.arange(11) / 10
+        baseline = pd.DataFrame({'Frame': np.arange(11), 'Value': np.arange(11, dtype=float)},
+                                index=pd.Index(times, name='Time'))
+        baseline.attrs[SETTINGS_ATTR] = configured_record()
+        # Isolate the real resampling stage; no optimizer/physical accuracy claim.
+        monkeypatch.setattr(controller, '_execute_analysis_single_pass',
+                            lambda config, data: baseline.copy())
+        result = controller._execute_result_resampling({
+            'slice_start_val': origin, 'slice_end_val': origin + 1.,
+            'result_resampling_factor': 2, 'limit_result_resampling_to_range': True,
+            'result_resampling_range_start': origin + .1,
+            'result_resampling_range_end': origin + end_offset}, baseline)
+        result = add_timeline_context_columns(result, {'artifact_metadata': identity()})
+        path = tmp_path / f'{name}.proc'
+        save_proc_file(str(path), result)
+        frame = DataLoader().load_result_csv(str(path))
+        assert len(frame) == 13
+        loaded.append((frame, read_identity(frame)))
+    assert compatibility_reasons(loaded[0][1], loaded[1][1]) == []
+    assert loaded[0][1].values['ProcessingSettingsJson'] == loaded[1][1].values['ProcessingSettingsJson']
+    np.testing.assert_allclose(loaded[0][0][('Info', 'Time', 'Time')] - 1.,
+                               loaded[1][0][('Info', 'Time', 'Time')] - 100., atol=1e-13, rtol=0)
+    assert any('ProcessingSemanticsVersion' in reason
+               for reason in compatibility_reasons(loaded[1][1], loaded[2][1]))
+
+
+def test_offset_normalization_respects_input_precision():
+    for origin in (0., 1., 100., 1000.):
+        assert normalized_range_offset(origin + .1, origin) == .1
+        assert normalized_range_offset(origin + .3, origin) == .3
+        assert normalized_range_offset(origin + .3000000001, origin) != .3
+    # No fixed coarse grid: changes well below a picosecond remain distinct
+    # when the original clock can represent them.
+    assert normalized_range_offset(.3 + 1e-14, 0.) != .3
+    assert normalized_range_offset(1e-20, 0.) == 1e-20
+    assert normalized_range_offset(-.1, 0.) == -.1
+    assert normalized_range_offset(100., 100.) == 0.
+    with pytest.raises(ValueError, match='finite'):
+        normalized_range_offset(float('inf'), 0.)

@@ -1,10 +1,38 @@
 """Identity of executed processing policy, independent of per-trial results."""
 import hashlib
 import json
+import math
+from decimal import Decimal, localcontext
 
 PROCESSING_VERSION = 'analysis-face-v3-time-v2'
 SETTINGS_ATTR = 'executed_processing_settings'
 REQUIRED_STAGES = {'single_pass', 'result_resampling', 'postprocess'}
+
+
+def normalized_range_offset(endpoint, origin):
+    """Shortest decimal offset within the binary input rounding uncertainty.
+
+    This only canonicalizes provenance; selection/interpolation uses raw times.
+    Resolution is limited by the input clocks, not a fixed decimal-place grid.
+    """
+    endpoint, origin = float(endpoint), float(origin)
+    if not math.isfinite(endpoint) or not math.isfinite(origin):
+        raise ValueError('Resampling range times must be finite')
+    with localcontext() as context:
+        context.prec = 1100  # Exact binary64 subtraction, including subnormals.
+        offset = Decimal.from_float(endpoint) - Decimal.from_float(origin)
+        if not offset:
+            return 0.0
+        uncertainty = (Decimal.from_float(math.ulp(endpoint))
+                       + Decimal.from_float(math.ulp(origin))) / 2
+        # Prefer the fewest significant decimal digits consistent with both
+        # inputs rounded to binary64. Never round outside that uncertainty.
+        for digits in range(1, 18):
+            quantum = Decimal(1).scaleb(offset.adjusted() - digits + 1)
+            candidate = offset.quantize(quantum)
+            if abs(candidate - offset) <= uncertainty:
+                return float(candidate)
+        return float(offset)
 
 
 def canonical_settings(value):

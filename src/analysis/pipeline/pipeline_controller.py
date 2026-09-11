@@ -15,7 +15,7 @@ from src.analysis.pipeline.resampling_options import build_effective_analysis_op
 from src.analysis.pipeline.resampler import UniformResampler
 from src.analysis.pipeline.validator import DataValidator
 from src.analysis.pipeline.processing_provenance import capture_single_pass, capture_postprocess
-from src.utils.processing_settings import SETTINGS_ATTR
+from src.utils.processing_settings import SETTINGS_ATTR, normalized_range_offset
 
 class PipelineController(QObject):
     log_message = Signal(str)
@@ -307,7 +307,9 @@ class PipelineController(QObject):
         if self._is_result_resampling_range_limited(gui_config):
             # User-selected offsets relative to the slice, not absolute trial time.
             origin = float(gui_config['slice_start_val'])
-            resampling_policy['range_offsets_sec'] = [range_start - origin, range_end - origin]
+            resampling_policy['range_offset_encoding'] = 'shortest-decimal-input-ulp-v1'
+            resampling_policy['range_offsets_sec'] = [
+                normalized_range_offset(endpoint, origin) for endpoint in (range_start, range_end)]
         settings['result_resampling'] = resampling_policy
         merged.attrs[SETTINGS_ATTR] = settings
         inserted_rows = len(merged) - len(baseline_result)
