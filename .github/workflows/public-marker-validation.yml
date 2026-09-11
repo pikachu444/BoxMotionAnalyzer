@@ -18,7 +18,10 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 45
     env:
-      QT_QPA_PLATFORM: offscreen
+      # QOpenGLWidget-backed PyVistaQt needs a real Windows Qt platform.
+      # Use Qt's bundled software OpenGL on runners without a physical GPU.
+      QT_QPA_PLATFORM: windows
+      QT_OPENGL: software
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
