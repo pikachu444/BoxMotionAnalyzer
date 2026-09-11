@@ -29,6 +29,16 @@ not measured contact forces. Slice padding remains separate from reviewed bounds
 New slice metadata must describe an included interval with matching finite bounds.
 Unknown Type/item can still be analyzed; it cannot supply a comparison identity.
 Dimension changes clear registered geometry evidence and item confirmation.
+Optional `candidate.motion_geometry` version 1 records the observation-range
+reference time, floor and position tolerance, maximum/final relative rotation,
+least-moving edge and its maximum endpoint travel, fixed-edge candidates, geometric
+support status, starting-face angle gap/ambiguity guard/status, and opposite-edge
+maximum height when defined. Lengths are mm and
+angles are degrees. Corner indices are zero-based; the UI labels them C1–C8.
+The starting downward face describes the first observed pose, not a confirmed
+trial-start contact face. Fixed-edge motion does not establish support force or
+trial intent. Range or geometry changes clear these measurements; `.proc` retains
+the complete reviewed JSON rather than recalculating it from padded result rows.
 Writes finish a temporary file before replacing the destination; a failed replace
 keeps the prior slice and a cleanup failure remains attached to the primary error.
 

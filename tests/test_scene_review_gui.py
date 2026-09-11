@@ -4,11 +4,13 @@ import time
 from unittest.mock import patch
 
 import pytest
+import numpy as np
 from PySide6.QtWidgets import QApplication
 
 from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.pipeline.parser import Parser
 from src.analysis.pipeline.artifact_io import read_slice_metadata
+from src.analysis.pipeline.support_motion import LIFT_SIGNAL
 from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
 from src.config.data_columns import FACE_PREFIX_TO_INFO
 from src.simulation.scene_fixtures import write_sequence
@@ -145,3 +147,33 @@ def test_marker_busy_blocks_detection_before_thread_starts_and_keeps_declared_ty
     assert not widget.review_marker_flips_button.isEnabled()
     widget._set_review_busy(False)
     assert widget.scene_panel.detect_button.isEnabled()
+
+
+def test_remove_all_scenes_clears_selected_support_measurement(loaded, tmp_path):
+    widget, _ = loaded
+    folder = write_sequence(tmp_path / 'support_capture', 'handling')
+    for action, name in ((widget.open_csv_file, 'observed.csv'),
+                         (widget.load_scene_geometry, 'registration.json')):
+        with patch('PySide6.QtWidgets.QFileDialog.getOpenFileName', return_value=(str(folder/name), '')):
+            action()
+    widget.detect_scene_candidates()
+    wait_detection(widget)
+    row = next(row for row in widget.scene_session.rows
+               if row['motion_geometry']['status'] == 'floor_pivot_compatible')
+    widget.scene_panel.refresh(row['id'])
+    widget.combo_plot_axis.setCurrentIndex(widget.combo_plot_axis.findData(LIFT_SIGNAL))
+    APP.processEvents()
+    height = next(line for line in widget.plot_manager.ax.lines if line.get_label() == LIFT_SIGNAL)
+    assert np.isfinite(height.get_ydata()).any()
+    assert widget.scene_panel.motion_summary.text()
+
+    widget.scene_panel.table.selectAll()
+    widget.scene_panel.remove_button.click()
+    APP.processEvents()
+
+    assert not widget.scene_session.rows
+    assert widget.scene_panel.selected_row() is None
+    assert not widget.scene_panel.motion_summary.text()
+    height = next(line for line in widget.plot_manager.ax.lines if line.get_label() == LIFT_SIGNAL)
+    assert not np.isfinite(height.get_ydata()).any()
+    assert not widget.plot_manager.span_selector.active

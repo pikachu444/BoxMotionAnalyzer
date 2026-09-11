@@ -1,7 +1,7 @@
 """Compact scene review inside Step 1; the existing plot edits the range."""
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView)
+    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QSizePolicy)
 
 
 MOTION_LABELS = {'stationary': 'Stationary', 'free_fall': 'Free-fall candidate',
@@ -30,7 +30,9 @@ class SceneReviewWidget(QWidget):
         for button in (self.detect_button, self.geometry_button, self.add_button,
                        self.remove_button, self.include_button, self.exclude_button):
             tools.addWidget(button)
-        tools.addStretch()
+        self.motion_summary = QLabel()
+        self.motion_summary.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        tools.addWidget(self.motion_summary, 1)
         self.count_label = QLabel('No scenes')
         tools.addWidget(self.count_label)
         layout.addLayout(tools)
@@ -126,6 +128,7 @@ class SceneReviewWidget(QWidget):
 
     def _selection_changed(self):
         row = self.selected_row()
+        self._show_motion_geometry(row)
         self.item_combo.clear()
         self.item_combo.addItem('Unconfirmed', None)
         if row:
@@ -136,9 +139,31 @@ class SceneReviewWidget(QWidget):
                 self.item_combo.setCurrentText(row['identity']['scenario_id'])
         self.confirm_button.setEnabled(bool(row and row['item_candidates'] and self.session.all_reviewed
                                             and self.session.applied_edition))
-        if row:
-            self.row_selected.emit(row)
+        self.row_selected.emit(row)
         self.changed.emit()
+
+    def _show_motion_geometry(self, row):
+        geometry = (row.get('motion_geometry', {}) if row and row['motion'] in
+                    ('tip_or_rotation', 'robot_handling', 'unclear') else {})
+        status = geometry.get('status')
+        edge = geometry.get('pivot_edge')
+        names = '–'.join(f'C{i + 1}' for i in edge) if edge else ''
+        label = {
+            'floor_pivot_compatible': f'Floor pivot candidate {names}',
+            'support_unknown': f'Fixed edge {names}',
+            'moving_edges': 'No fixed edge',
+            'ambiguous_pivot': 'Ambiguous pivot',
+            'insufficient_rotation': 'Small rotation',
+            'floor_geometry_inconsistent': 'Below registered floor',
+        }.get(status, '')
+        if label:
+            label += f"   Min travel {geometry['min_edge_max_travel_mm']:.2f} mm"
+            height = geometry.get('opposite_edge_max_height_mm')
+            if height is not None:
+                label += f'   Height {height:.2f} mm'
+        self.motion_summary.setText(label)
+        self.motion_summary.setToolTip(
+            str(geometry) + '\nObserved geometry; support force and trial intent are unverified.' if label else '')
 
     def _decide(self, decision):
         if self.session:
