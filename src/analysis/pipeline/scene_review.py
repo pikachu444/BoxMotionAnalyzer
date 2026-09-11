@@ -11,6 +11,7 @@ import math
 import numpy as np
 
 from src.analysis.pipeline.scene_detection import VERSION
+from src.analysis.pipeline.support_motion import support_motion_evidence
 from src.config.config_app import FACE_DEFINITIONS
 
 
@@ -123,6 +124,7 @@ class SceneReviewSession:
         # The event interval denotes accepted gravity-window centres, not release/contact.
         row['gravity_evidence_start'] = row.pop('event_start')
         row['gravity_evidence_end'] = row.pop('event_end')
+        row['motion_geometry'] = support_motion_evidence(self.result, row)
         return row
 
     @property
@@ -163,6 +165,7 @@ class SceneReviewSession:
         if (start, end) == (row['start'], row['end']):
             return
         row.update(start=start, end=end, decision='unreviewed', evidence_status='range_changed')
+        row['motion_geometry'] = {'version': 1, 'status': 'range_changed'}
         row.update(gravity_evidence_start=None, gravity_evidence_end=None, gravity_episodes=[],
                    rotation_deg=None, displacement_mm=None, left_censored=False, right_censored=False)
         self._reset_identity(row)
@@ -216,6 +219,11 @@ class SceneReviewSession:
                 row['rotation_deg'] = None
                 row['displacement_mm'] = None
                 row['tags'] = ['reviewed_range_recomputed']
+                row['motion_geometry'] = support_motion_evidence(result, row)
+                if (row['motion'] == 'unclear'
+                        and row['motion_geometry']['status'] == 'floor_pivot_compatible'):
+                    row['motion'] = row['evidence_class'] = 'tip_or_rotation'
+                    row['tags'].append('fixed_edge_rotation')
 
     def identify(self):
         if not self.all_reviewed:

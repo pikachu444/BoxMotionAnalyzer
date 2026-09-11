@@ -15,6 +15,7 @@ from matplotlib.figure import Figure
 from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.ui.widget_scene_review import SceneReviewWidget
 from src.analysis.ui.scene_review_flow import SceneReviewFlow
+from src.analysis.pipeline.support_motion import EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL, support_motion_signals
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
 from src.analysis.ui.dialog_marker_flip_review import MarkerFlipReviewDialog
 from src.config import config_app, config_analysis_ui
@@ -666,13 +667,28 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             return
             
         selected_axis_generic = self.combo_plot_axis.currentData()
-        if self.scene_session and selected_axis_generic in self.scene_session.result.signals:
-            self.plot_manager.draw_plot(self.scene_session.result.signals, [selected_axis_generic])
-            self.plot_manager.enable_interactions(df)
+        if self.scene_session and (selected_axis_generic in self.scene_session.result.signals
+                                  or selected_axis_generic in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL)):
             row = self.scene_panel.selected_row()
+            plot_data = self.scene_session.result.signals
+            if selected_axis_generic in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
+                plot_data = support_motion_signals(self.scene_session.result, row or {})
+            self.plot_manager.draw_plot(plot_data, [selected_axis_generic])
+            self.plot_manager.enable_interactions(df)
             if row:
                 self.plot_manager.set_selector_active(True)
                 self.plot_manager.set_region(row['start'], row['end'])
+                if selected_axis_generic in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
+                    self.plot_manager.ax.set_xlim(row['start'], row['end'])
+                    values = plot_data[selected_axis_generic].dropna()
+                    if selected_axis_generic == EDGE_TRAVEL_SIGNAL and len(values):
+                        tolerance = self.scene_session.result.registration.position_tolerance_mm
+                        if values.max() < tolerance:
+                            # Keep floating-point fitting noise from filling the
+                            # graph as if it were a large measured edge movement.
+                            self.plot_manager.ax.set_ylim(0., tolerance)
+            else:
+                self.plot_manager.set_selector_active(False)
             self.canvas.draw_idle()
             return
         columns_to_plot = []

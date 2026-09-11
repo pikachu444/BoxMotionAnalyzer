@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from src.analysis.pipeline.scene_detection import detect_scenes, Registration
 from src.analysis.pipeline.scene_review import SceneReviewSession
+from src.analysis.pipeline.support_motion import EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL
 from src.analysis.pipeline.artifact_io import (_sha256_file, save_slice_file,
     build_slice_default_name, DEFAULT_SLICE_PADDING_ROWS)
 from src.utils.artifact_metadata import normalize_metadata
@@ -143,6 +144,9 @@ class SceneReviewFlow:
                 self.combo_plot_axis.removeItem(3)
             for name in result.signals:
                 self.combo_plot_axis.addItem(name, name)
+            if result.registration and result.registration.floor_y_mm is not None:
+                for name in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
+                    self.combo_plot_axis.addItem(name, name)
             self.combo_plot_axis.setCurrentIndex(3)
             active = next((r['id'] for r in self.scene_session.rows if r['motion'] != 'stationary'), None)
             panel.refresh(panel.selected_id() or active)
@@ -182,6 +186,7 @@ class SceneReviewFlow:
         if self.scene_session:
             for row in self.scene_session.rows:
                 row['evidence_status'], row['decision'] = reason, 'unreviewed'
+                row['motion_geometry'] = {'version': 1, 'status': reason}
                 self.scene_session._reset_identity(row)
             self.scene_panel.refresh()
 
@@ -194,6 +199,10 @@ class SceneReviewFlow:
                 self._invalidate_scene_evidence('geometry_changed')
 
     def _select_scene(self, row):
+        if row is None:
+            if self.combo_plot_axis.currentData() in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
+                self.update_plot()
+            return
         self._selecting_scene = True
         try:
             self.slice_group.setChecked(True)
@@ -201,6 +210,8 @@ class SceneReviewFlow:
             self.le_slice_end.setText(repr(row['end']))
             self.le_scene_name.setText(row['id'])
             self.plot_manager.set_region(row['start'], row['end'])
+            if self.combo_plot_axis.currentData() in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
+                self.update_plot()
             self.canvas.draw_idle()
         finally:
             self._selecting_scene = False
