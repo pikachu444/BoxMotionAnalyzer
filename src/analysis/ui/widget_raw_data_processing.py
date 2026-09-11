@@ -408,71 +408,84 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", raw_csv_file_filter())
         if filepath:
             try:
-                self.log_message.emit(f"[INFO] Loaded {filepath}. Parsing for preview...")
-                self.append_log(f"[INFO] Loaded {filepath}. Parsing for preview...")
+                preview = self._prepare_csv_preview(filepath)
+                self._apply_csv_preview(filepath, preview)
+            except Exception as exc:
+                self.append_log(f"[ERROR] Failed to load or parse file: {exc}")
+                self.log_message.emit(f"[ERROR] Failed to load or parse file: {exc}")
 
-                header_info, raw_data = self.data_loader.load_csv(filepath)
-                parsed_data = self.parser.process(header_info, raw_data)
-                (
-                    correction_source_metadata,
-                    review_raw_data,
-                    review_parsed_data,
-                    original_source_reference,
-                    original_source_sha256,
-                    marker_correction_decisions,
-                    review_header_info,
-                ) = self._build_marker_review_state(
-                    filepath,
-                    header_info,
-                    raw_data,
-                    parsed_data,
-                )
+    def _prepare_csv_preview(self, filepath):
+        """Read without replacing the active source or its operator review."""
+        header_info, raw_data = self.data_loader.load_csv(filepath)
+        parsed_data = self.parser.process(header_info, raw_data)
+        (
+            correction_source_metadata,
+            review_raw_data,
+            review_parsed_data,
+            original_source_reference,
+            original_source_sha256,
+            marker_correction_decisions,
+            review_header_info,
+        ) = self._build_marker_review_state(
+            filepath,
+            header_info,
+            raw_data,
+            parsed_data,
+        )
+        return dict(header_info=header_info, raw_data=raw_data, parsed_data=parsed_data,
+                    source_sha256=_sha256_file(filepath), marker_state=(
+                        correction_source_metadata, review_raw_data, review_parsed_data,
+                        original_source_reference, original_source_sha256,
+                        marker_correction_decisions, review_header_info))
 
-                self.header_info = header_info
-                self.raw_data = raw_data
-                self.parsed_data = parsed_data
-                self.source_path = filepath
-                self.active_source_sha256 = _sha256_file(filepath)
-                self.review_context_json = ""
-                self.correction_source_metadata = correction_source_metadata
-                if correction_source_metadata is not None and correction_source_metadata.schema_version == '3':
-                    self.review_context_json = correction_source_metadata.context_json
-                    dims = json.loads(self.review_context_json)['box_dims_mm']
-                    for edit, value in zip((self.le_box_l, self.le_box_w, self.le_box_h), dims):
-                        edit.setText(str(value))
-                self.review_raw_data = review_raw_data
-                self.review_header_info = review_header_info
-                self.review_parsed_data = review_parsed_data
-                self.original_source_reference = original_source_reference
-                self.original_source_sha256 = original_source_sha256
-                self.marker_flip_candidates = []
-                self.marker_correction_decisions = marker_correction_decisions
-                self.marker_review_dirty = False
-                self._reset_scenes()
-                self._set_file_path_display(filepath)
-                self.append_log("[INFO] Preview parsing complete.")
-                
-                # Default selection logic
-                all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
-                if DisplayNames.RB_CENTER in all_targets:
-                    self.current_selected_targets = [DisplayNames.RB_CENTER]
-                    self.selected_data_label.setText(f"Selected: {DisplayNames.RB_CENTER}")
-                    self.append_log(f"[INFO] Default target '{DisplayNames.RB_CENTER}' selected for plotting.")
-                
-                self.update_plot()
-                self.plot_manager.enable_interactions(self.parsed_data)
-                self.slice_group.setChecked(False)
-                self.save_slice_button.setEnabled(True)
-                self.review_marker_flips_button.setEnabled(True)
-                self.slice_path_label.setText("Not saved yet.")
-                self._update_marker_review_summary()
-                
-                # Emit signal to MainApp
-                self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
-                
-            except Exception as e:
-                self.append_log(f"[ERROR] Failed to load or parse file: {e}")
-                self.log_message.emit(f"[ERROR] Failed to load or parse file: {e}")
+    def _apply_csv_preview(self, filepath, preview, *, emit=True):
+        header_info, raw_data, parsed_data = (preview[key] for key in
+                                              ('header_info', 'raw_data', 'parsed_data'))
+        (correction_source_metadata, review_raw_data, review_parsed_data,
+         original_source_reference, original_source_sha256,
+         marker_correction_decisions, review_header_info) = preview['marker_state']
+        self.header_info = header_info
+        self.raw_data = raw_data
+        self.parsed_data = parsed_data
+        self.source_path = filepath
+        self.active_source_sha256 = preview['source_sha256']
+        self.review_context_json = ""
+        self.correction_source_metadata = correction_source_metadata
+        if correction_source_metadata is not None and correction_source_metadata.schema_version == '3':
+            self.review_context_json = correction_source_metadata.context_json
+            dims = json.loads(self.review_context_json)['box_dims_mm']
+            for edit, value in zip((self.le_box_l, self.le_box_w, self.le_box_h), dims):
+                edit.setText(str(value))
+        self.review_raw_data = review_raw_data
+        self.review_header_info = review_header_info
+        self.review_parsed_data = review_parsed_data
+        self.original_source_reference = original_source_reference
+        self.original_source_sha256 = original_source_sha256
+        self.marker_flip_candidates = []
+        self.marker_correction_decisions = marker_correction_decisions
+        self.marker_review_dirty = False
+        self._reset_scenes()
+        self._set_file_path_display(filepath)
+        self.append_log("[INFO] Preview parsing complete.")
+
+        # Default selection logic
+        all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
+        if DisplayNames.RB_CENTER in all_targets:
+            self.current_selected_targets = [DisplayNames.RB_CENTER]
+            self.selected_data_label.setText(f"Selected: {DisplayNames.RB_CENTER}")
+            self.append_log(f"[INFO] Default target '{DisplayNames.RB_CENTER}' selected for plotting.")
+
+        self.update_plot()
+        self.plot_manager.enable_interactions(self.parsed_data)
+        self.slice_group.setChecked(False)
+        self.save_slice_button.setEnabled(True)
+        self.review_marker_flips_button.setEnabled(True)
+        self.slice_path_label.setText("Not saved yet.")
+        self._update_marker_review_summary()
+
+        if emit:
+            self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
+
 
     def _read_box_dimensions(self) -> tuple[float, float, float]:
         box_dims = (

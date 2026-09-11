@@ -42,6 +42,21 @@ the complete reviewed JSON rather than recalculating it from padded result rows.
 Writes finish a temporary file before replacing the destination; a failed replace
 keeps the prior slice and a cleanup failure remains attached to the primary error.
 
+`*.scene-review.json` is a separate whole-record working file with
+`kind=boxmotion-scene-review`, version 1. It records the active CSV path (relative
+when possible) and SHA-256, box dimensions in mm, static registration, detection
+settings/version, Type/edition context, all rows/deleted IDs/manual ID counter,
+and selected row/signal/plot targets. Pending registration changes are saved from
+the current input even before redetection; conflicting dimensions must be resolved
+before saving. It does not embed observations or replace `.slice`.
+Reopening parses the referenced CSV and recomputes each saved range. Cached
+derived evidence is compared exactly after JSON normalization; it never feeds
+the detector. Changed evidence or context returns the row to `unreviewed`, with
+its previous decision/identity and reasons in `previous_review`. Confirmed items
+must still belong to the recomputed candidates and supported edition. Saving is
+atomic and rejects CSV destinations; unfinished reviews can be saved, while
+included-slice export continues to require every row's review.
+
 ## Artifact identity and comparison time (#83 / #76)
 
 `src/utils/artifact_metadata.py` owns the versioned public identity contract. The

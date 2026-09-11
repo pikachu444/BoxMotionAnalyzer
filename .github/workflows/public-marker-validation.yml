@@ -59,6 +59,8 @@ jobs:
           tests/test_support_motion.py
           tests/test_scene_artifact_io.py
           tests/test_scene_review_gui.py
+          tests/test_scene_workspace.py
+          tests/test_scene_workspace_gui.py
           --junitxml=tmp/public-marker-results.xml
       - name: Reject missing or skipped required checks
         shell: pwsh

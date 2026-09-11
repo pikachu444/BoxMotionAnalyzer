@@ -10,7 +10,7 @@ import math
 
 import numpy as np
 
-from src.analysis.pipeline.scene_detection import VERSION
+from src.analysis.pipeline.scene_detection import VERSION, SceneCandidate
 from src.analysis.pipeline.support_motion import support_motion_evidence
 from src.config.config_app import FACE_DEFINITIONS
 
@@ -119,7 +119,7 @@ class SceneReviewSession:
         row = asdict(candidate)
         row['left_censored'], row['right_censored'] = bool(row['left_censored']), bool(row['right_censored'])
         row.update(auto_start=row['start'], auto_end=row['end'], origin='automatic',
-                   decision='unreviewed', evidence_status='current', identity=empty_identity(),
+                   decision='unreviewed', evidence_status='current', evidence_mode='automatic', identity=empty_identity(),
                    item_candidates=[], geometry={})
         # The event interval denotes accepted gravity-window centres, not release/contact.
         row['gravity_evidence_start'] = row.pop('event_start')
@@ -154,6 +154,7 @@ class SceneReviewSession:
         row = self.row(row_id)
         if row['decision'] != decision:
             row['decision'] = decision
+            row.pop('previous_review', None)
             self._reset_identity(row)
 
     def set_range(self, row_id, start, end):
@@ -164,7 +165,8 @@ class SceneReviewSession:
         row = self.row(row_id)
         if (start, end) == (row['start'], row['end']):
             return
-        row.update(start=start, end=end, decision='unreviewed', evidence_status='range_changed')
+        row.update(start=start, end=end, decision='unreviewed', evidence_status='range_changed', evidence_mode='range')
+        row.pop('previous_review', None)
         row['motion_geometry'] = {'version': 1, 'status': 'range_changed'}
         row.update(gravity_evidence_start=None, gravity_evidence_end=None, gravity_episodes=[],
                    rotation_deg=None, displacement_mm=None, left_censored=False, right_censored=False)
@@ -201,56 +203,80 @@ class SceneReviewSession:
                 row['decision'], row['evidence_status'] = 'unreviewed', 'geometry_changed'
                 self._reset_identity(row)
             if row['evidence_status'] != 'current':
-                # A changed interval receives new evidence only when it contains
-                # a complete detected active interval. No evidence crosses its bounds.
-                contained = [c for c in result.candidates if row['start'] <= c.start and c.end <= row['end']
-                             and c.motion != 'stationary']
-                row['evidence_class'] = contained[0].evidence_class if len(contained) == 1 else 'unclear'
-                row['motion'] = contained[0].motion if len(contained) == 1 else 'unclear'
-                row['gravity_episodes'] = [e for c in contained for e in c.gravity_episodes]
-                row['gravity_evidence_start'] = min((e['gravity_evidence_start'] for e in row['gravity_episodes']), default=None)
-                row['gravity_evidence_end'] = max((e['gravity_evidence_end'] for e in row['gravity_episodes']), default=None)
-                overlapping = [c for c in result.candidates if c.start <= row['end'] and c.end >= row['start']
-                               and c.motion != 'stationary']
-                row['left_censored'] = any(c.start < row['start'] < c.end or c.left_censored for c in overlapping)
-                row['right_censored'] = any(c.start < row['end'] < c.end or c.right_censored for c in overlapping)
-                row['boundary_uncertainty_s'] = max((c.boundary_uncertainty_s for c in overlapping), default=0.)
-                row['evidence_status'] = 'current'
-                row['rotation_deg'] = None
-                row['displacement_mm'] = None
-                row['tags'] = ['reviewed_range_recomputed']
-                row['motion_geometry'] = support_motion_evidence(result, row)
-                if (row['motion'] == 'unclear'
-                        and row['motion_geometry']['status'] == 'floor_pivot_compatible'):
-                    row['motion'] = row['evidence_class'] = 'tip_or_rotation'
-                    row['tags'].append('fixed_edge_rotation')
+                self._recompute_range(row)
+
+    def _recompute_range(self, row):
+        row['evidence_mode'] = 'range'
+        # A changed interval receives new evidence only when it contains
+        # a complete detected active interval. No evidence crosses its bounds.
+        contained = [c for c in self.result.candidates if row['start'] <= c.start and c.end <= row['end']
+                     and c.motion != 'stationary']
+        row['evidence_class'] = contained[0].evidence_class if len(contained) == 1 else 'unclear'
+        row['motion'] = contained[0].motion if len(contained) == 1 else 'unclear'
+        row['gravity_episodes'] = [e for c in contained for e in c.gravity_episodes]
+        row['gravity_evidence_start'] = min((e['gravity_evidence_start'] for e in row['gravity_episodes']), default=None)
+        row['gravity_evidence_end'] = max((e['gravity_evidence_end'] for e in row['gravity_episodes']), default=None)
+        overlapping = [c for c in self.result.candidates if c.start <= row['end'] and c.end >= row['start']
+                       and c.motion != 'stationary']
+        row['left_censored'] = any(c.start < row['start'] < c.end or c.left_censored for c in overlapping)
+        row['right_censored'] = any(c.start < row['end'] < c.end or c.right_censored for c in overlapping)
+        row['boundary_uncertainty_s'] = max((c.boundary_uncertainty_s for c in overlapping), default=0.)
+        row['evidence_status'] = 'current'
+        row['rotation_deg'] = None
+        row['displacement_mm'] = None
+        row['tags'] = ['reviewed_range_recomputed']
+        row['motion_geometry'] = support_motion_evidence(self.result, row)
+        if (row['motion'] == 'unclear'
+                and row['motion_geometry']['status'] == 'floor_pivot_compatible'):
+            row['motion'] = row['evidence_class'] = 'tip_or_rotation'
+            row['tags'].append('fixed_edge_rotation')
 
     def identify(self):
         if not self.all_reviewed:
             raise ValueError('Review every interval before identifying items.')
         for row in self.rows:
-            self._reset_identity(row)
-            if row['decision'] != 'include' or row['evidence_status'] != 'current':
-                continue
-            row['geometry'] = geometry_evidence(self.result, row)
-            row['sequence_evidence'] = 'Trial sequence and eligibility need the test record.'
-            if self.ista_type == 'H':
-                row['eligibility_condition'] = ('Conditional posture lookup: 2018-03 H B04/B16 free-fall tables '
-                    'apply below 45 kg (below 100 lb when that unit is used). Verify the test record; '
-                    'motion does not establish mass or eligibility.')
-            if (self.ista_type not in FACE_NUMBERS or row['evidence_class'] != 'free_fall'
-                    or row['left_censored'] or row['right_censored']):
-                continue
-            crossings = row['geometry'].get('floor_crossings', [])
-            if not crossings or not crossings[0]['approach_feature']:
-                continue
-            faces = tuple(sorted(FACE_NUMBERS[self.ista_type][name]
-                                 for name in crossings[0]['approach_feature']['faces']))
-            if self.ista_type == 'G':
-                row['item_candidates'] = [f'G{i:02d}' for i, posture in enumerate(G_POSTURES, 1) if faces == posture]
-            else:
-                row['item_candidates'] = [f'H/{block}/D{i:02d}' for block, postures in H_POSTURES.items()
-                                          for i, posture in enumerate(postures, 1) if faces == posture]
+            self._identify_row(row)
+
+    def _identify_row(self, row):
+        self._reset_identity(row)
+        if row['decision'] != 'include' or row['evidence_status'] != 'current':
+            return
+        row['geometry'] = geometry_evidence(self.result, row)
+        row['sequence_evidence'] = 'Trial sequence and eligibility need the test record.'
+        if self.ista_type == 'H':
+            row['eligibility_condition'] = ('Conditional posture lookup: 2018-03 H B04/B16 free-fall tables '
+                'apply below 45 kg (below 100 lb when that unit is used). Verify the test record; '
+                'motion does not establish mass or eligibility.')
+        if (self.ista_type not in FACE_NUMBERS or row['evidence_class'] != 'free_fall'
+                or row['left_censored'] or row['right_censored']):
+            return
+        crossings = row['geometry'].get('floor_crossings', [])
+        if not crossings or not crossings[0]['approach_feature']:
+            return
+        faces = tuple(sorted(FACE_NUMBERS[self.ista_type][name]
+                             for name in crossings[0]['approach_feature']['faces']))
+        if self.ista_type == 'G':
+            row['item_candidates'] = [f'G{i:02d}' for i, posture in enumerate(G_POSTURES, 1) if faces == posture]
+        else:
+            row['item_candidates'] = [f'H/{block}/D{i:02d}' for block, postures in H_POSTURES.items()
+                                      for i, posture in enumerate(postures, 1) if faces == posture]
+
+    def recompute_saved_row(self, saved):
+        """Rebuild evidence from observations on the stored range, not its ID."""
+        match = next((c for c in self.result.candidates
+                      if c.start == saved['start'] and c.end == saved['end']), None)
+        automatic = saved.get('evidence_mode', 'automatic') == 'automatic'
+        if match is not None and automatic:
+            row = self._row(match)
+        else:
+            row = self._row(SceneCandidate(saved['id'], saved['start'], saved['end'], 'unclear', 'unclear'))
+            self._recompute_range(row)
+        for key in ('id', 'origin', 'auto_start', 'auto_end', 'start', 'end', 'decision'):
+            row[key] = deepcopy(saved[key])
+        self._reset_identity(row)
+        if saved.get('geometry') or saved.get('sequence_evidence') or saved.get('item_candidates'):
+            self._identify_row(row)
+        return row
 
     def confirm_item(self, row_id, item):
         row = self.row(row_id)
