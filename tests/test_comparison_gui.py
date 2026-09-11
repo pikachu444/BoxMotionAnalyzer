@@ -125,7 +125,19 @@ def test_actual_comparison_file_loading_and_time_states(tmp_path, monkeypatch):
         assert not panel.local_controls[unknown_name]['play'].isEnabled()
         # Qt widget grabs do not reliably include native VTK surfaces on Windows.
         # Capture the actual rendered viewport separately; do not composite it.
-        panel.widgets[unknown_name].plotter.screenshot(str(evidence / 'individual_3d.png'))
+        individual_view = panel.widgets[unknown_name]
+        panel.scroll.ensureWidgetVisible(individual_view)
+        app.processEvents()
+        individual_view.plotter.render()
+        # Multiple Qt/VTK viewers share the thread's current OpenGL context.
+        # Select this window immediately before reading its pixels; another
+        # viewer's paint/timer may have made its own context current meanwhile.
+        render_window = individual_view.plotter.render_window
+        assert render_window is not None
+        render_window.MakeCurrent()
+        assert render_window.IsCurrent()
+        captured = individual_view.plotter.screenshot(str(evidence / 'individual_3d.png'))
+        assert captured is not None and captured.size and captured.max() > captured.min()
         window.grab().save(str(evidence / 'unknown_individual.png'))
         window.control_panel.cb_view.setCurrentIndex(window.control_panel.cb_view.findData(source_only))
         assert window.graph_panel.plot_manager.ax.get_xlabel() == 'Recorded time (s)'
@@ -141,3 +153,4 @@ def test_actual_comparison_file_loading_and_time_states(tmp_path, monkeypatch):
     finally:
         window.close()
         QTest.qWait(100)
+    assert not errors
