@@ -44,6 +44,7 @@ jobs:
           tests/test_marker_face_assignment.py
           tests/test_marker_flip.py
           tests/test_mujoco_marker_fixtures.py
+          tests/test_marker_validation.py
           tests/test_marker_corruption.py
           tests/test_corruption_export.py
           tests/test_marker_flip_artifact_io.py
@@ -86,7 +87,7 @@ jobs:
       - name: Compare independent truth with public observation cases
         shell: pwsh
         run: |
-          python -m src.simulation.validate_marker_fixtures --case all --output tmp/ci-free-fall
+          python -m src.simulation.validate_marker_fixtures --case all --negative-controls --output tmp/ci-free-fall
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           foreach ($markerMotion in @('face', 'edge', 'corner')) {
             foreach ($markerCase in @('healthy', 'x')) {
@@ -94,3 +95,15 @@ jobs:
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             }
           }
+      - name: Preserve public validation evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: public-validation-evidence
+          path: |
+            tmp/public-marker-results.xml
+            tmp/ci-*/**/validation*.json
+            tmp/ci-*/**/negative_controls*.json
+            tmp/ci-*/**/*.synthetic.json
+          if-no-files-found: warn
+          retention-days: 30
