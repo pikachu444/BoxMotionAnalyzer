@@ -216,7 +216,7 @@ def test_workspace_changed_evidence_clears_active_intent_and_keeps_previous_choi
     elif change == 'settings':
         fresh = _load(source, result.registration, replace(result.settings, window_s=.096))
     else:
-        monkeypatch.setattr('src.analysis.pipeline.scene_workspace.VERSION', 'observed-motion-next')
+        fresh = replace(result, version='observed-motion-next')
     restored, changed = restore_session(data, fresh, session.source_sha256)
     assert selected in changed
     row = restored.row(selected)
