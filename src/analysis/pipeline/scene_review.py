@@ -236,11 +236,21 @@ class SceneReviewSession:
         """Same source/registration: preserve reviews, edited ranges and removals."""
         old_reg = self.result.registration
         new_reg = result.registration
+        old_version = getattr(self.result, 'version', VERSION)
+        version_changed = getattr(result, 'version', VERSION) != old_version
         same_context = ((old_reg.fingerprint if old_reg else None) == (new_reg.fingerprint if new_reg else None)
                         and result.settings == self.result.settings)
         self.result = result
         for row in self.rows:
-            if not same_context:
+            if not same_context or version_changed:
+                if version_changed:
+                    previous = deepcopy(row.get('previous_review')) if row['decision'] == 'unreviewed' else None
+                    if previous is None:
+                        previous = {'decision': row['decision'], 'identity': deepcopy(row['identity']), 'reasons': []}
+                    if row.get('intended_contact') is not None:
+                        previous['intended_contact'] = deepcopy(row['intended_contact'])
+                    previous['reasons'] = list(dict.fromkeys(previous['reasons'] + ['detection_version_changed']))
+                    row['previous_review'] = previous
                 row['decision'], row['evidence_status'] = 'unreviewed', 'geometry_changed'
                 self._reset_identity(row)
                 row.pop('intended_contact', None)
@@ -275,6 +285,8 @@ class SceneReviewSession:
         row['rotation_deg'] = None
         row['displacement_mm'] = None
         row['tags'] = ['reviewed_range_recomputed']
+        if any('approved_face_boundary_relative_reference' in c.tags for c in overlapping):
+            row['tags'].append('approved_face_boundary_relative_reference')
         row['motion_geometry'] = support_motion_evidence(self.result, row)
         row['support_cycle'] = analyze_support_cycle(self.result, row)
         if (row['motion'] == 'unclear'
@@ -346,7 +358,7 @@ class SceneReviewSession:
         reg = self.result.registration
         return validate_scene_review_json({
             'version': 1, 'source_sha256': self.source_sha256, 'candidate': row, 'identity': identity,
-            'detection': {'version': VERSION, 'settings': asdict(self.result.settings),
+            'detection': {'version': getattr(self.result, 'version', VERSION), 'settings': asdict(self.result.settings),
                           'registration_sha256': reg.fingerprint if reg else None,
                           'registration': asdict(reg) if reg else None,
                           'coordinate_policy': 'world-y-up-box-xyz-mm',

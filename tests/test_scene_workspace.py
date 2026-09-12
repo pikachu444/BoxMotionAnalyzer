@@ -167,7 +167,7 @@ def test_new_computation_context_requires_review_and_keeps_previous_choices(hand
     elif change == 'settings':
         fresh = _load(source, result.registration, replace(result.settings, window_s=.096))
     else:
-        monkeypatch.setattr('src.analysis.pipeline.scene_workspace.VERSION', 'observed-motion-next')
+        fresh = replace(result, version='observed-motion-next')
     restored, changed = restore_session(read_workspace(path), fresh, _hash(source))
     assert changed == {row['id'] for row in session.rows}
     assert all(row['decision'] == 'unreviewed' for row in restored.rows)

@@ -84,6 +84,11 @@ class DataLoader:
                 context = validate_face_context(metadata.correction_context_json)
                 decisions = deserialize_marker_corrections(metadata.correction_events_json)
             validate_materialized_faces(header_info, raw_df, decisions, context['base_faces'])
+            # Keep the validated history available to every scene entry point,
+            # including headless and suffix-slice loading. Headers remain JSON
+            # primitives; corrected wrapper headers do not declare capture units.
+            from .scene_face_corrections import face_correction_header
+            header_info = face_correction_header(header_info, context, decisions)
         return header_info, raw_df
 
     def validate_raw_data(self, raw_df: pd.DataFrame) -> None:

@@ -117,6 +117,8 @@ class DetectionResult:
     valid_pose: np.ndarray
     block_ids: np.ndarray
     activity_candidates: list[SceneCandidate] | None = None
+    version: str = VERSION
+    face_correction_affected: np.ndarray | None = None
 
 
 def _runs(values):
@@ -179,10 +181,12 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
         raise ValueError('Capture times must be finite and strictly increasing.')
     if len(parsed) != len(raw) or not np.array_equal(parsed.index.to_numpy(float), times):
         raise ValueError('Raw and parsed capture times do not match.')
-    units = str(header.get('export_metadata', {}).get('Length Units', '')).strip().lower()
+    metadata = (header['face_correction']['context'].get('export_metadata', {})
+                if header.get('face_correction') else header.get('export_metadata', {}))
+    units = str(metadata.get('Length Units', '')).strip().lower()
     if units not in ('millimeters', 'millimetres', 'mm'):
         raise ValueError('Scene detection requires capture coordinates declared in millimeters.')
-    space = str(header.get('export_metadata', {}).get('Coordinate Space', '')).strip().lower()
+    space = str(metadata.get('Coordinate Space', '')).strip().lower()
     if space != 'global':
         raise ValueError('Scene detection requires global capture coordinates.')
     ids = sorted(c[:-9] for c in parsed if isinstance(c, str) and c.endswith('_FaceInfo'))
@@ -192,6 +196,14 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
     count = np.isfinite(points).all(axis=2).sum(axis=1)
     if registration:
         registration.validate()
+    from .scene_face_corrections import approved_face_states, CORRECTED_VERSION
+    face_states, face_boundaries = approved_face_states(header, times, ids, registration)
+    relative_breaks = face_boundaries if registration is None else np.zeros(len(times), dtype=bool)
+    relative_groups = np.cumsum(relative_breaks)
+    correction_affected = (np.any(face_states != np.eye(3), axis=(1, 2)) if registration is not None
+                           and face_states is not None else relative_groups > 0)
+    corrected_motion = correction_affected.any()
+    if registration:
         lookup = {m['id']: np.asarray(m['xyz_mm'], float) / 1000. for m in registration.profile['markers']}
         template = np.asarray([lookup.get(mid, [np.nan] * 3) for mid in ids])
     else:
@@ -202,17 +214,30 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
     if _fit_pose(template, template) is None:
         raise ValueError('The capture and geometry need three common noncollinear markers.')
     n = len(times)
+    relative_templates = {}
+    if registration is None and relative_breaks.any():
+        # Learned templates are world-oriented. Applying a box-local H directly
+        # to them would invent box axes. Each approved-state segment instead has
+        # its own relative reference and cannot share derivatives across cuts.
+        for a, b, group in _runs(relative_groups):
+            reference = points[a + int(np.argmax(count[a:b]))].copy()
+            reference -= np.nanmean(reference, axis=0)
+            relative_templates[group] = reference
     origins, rotations, rms = np.full((n, 3), np.nan), np.full((n, 3, 3), np.nan), np.full(n, np.nan)
     for i, observed in enumerate(points):
         if cancelled and i % 100 == 0 and cancelled():
             raise InterruptedError('Scene detection cancelled.')
-        fit = _fit_pose(template, observed)
+        local_template = relative_templates.get(relative_groups[i], template)
+        if registration is not None and face_states is not None:
+            local_template = template @ face_states[i].T
+        fit = _fit_pose(local_template, observed)
         if fit is not None:
             origins[i], rotations[i], rms[i] = fit
     valid = np.isfinite(rms) & (rms <= settings.marker_residual_m)
     dt = np.diff(times)
     typical_dt = float(np.median(dt)) if len(dt) else settings.window_s
-    breaks = np.r_[False, dt > settings.gap_factor * typical_dt]
+    time_breaks = np.r_[False, dt > settings.gap_factor * typical_dt]
+    breaks = time_breaks | relative_breaks
     jump = np.zeros(n, bool)
     angular_speed = np.full(n, np.nan)
     for i in range(1, n):
@@ -235,6 +260,7 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
         motion_origin += np.einsum('nij,j->ni', rotations, np.asarray(registration.com_offset_mm) / 1000.)
     values = np.column_stack((motion_origin, rotations.reshape(n, 9)))
     velocity, acceleration, residual = _quadratic(times, values, block_ids, settings, cancelled)
+    velocity[relative_breaks], acceleration[relative_breaks], residual[relative_breaks] = np.nan, np.nan, np.nan
     # Activity uses a finite-window relative rotation; a one-frame norm turns
     # tiny alternating pose noise into persistent apparent angular motion.
     angular_speed[:] = np.nan
@@ -252,6 +278,7 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
             first, last = indices[0], indices[-1]
             angular_speed[i] = Rotation.from_matrix(rotations[last] @ rotations[first].T).magnitude() / (times[last] - times[first])
             angular_excursion[i] = Rotation.from_matrix(rotations[indices] @ rotations[first].T).magnitude().max()
+    angular_speed[relative_breaks], angular_excursion[relative_breaks] = np.nan, np.nan
     speed = np.linalg.norm(velocity[:, :3], axis=1)
     gravity_error = np.linalg.norm(acceleration[:, :3] - [0., -9.81, 0.], axis=1)
     contamination = np.full(n, np.nan)
@@ -296,11 +323,18 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
     # Keep missing-time intervals separate from observed stationary motion.
     labels[breaks] = 'unclear'
     candidates = []
-    for a, b, kind in _runs(labels):
+    # Equal uncertainty labels still belong to different relative coordinate
+    # references. Never summarize rotation/displacement across an approval cut.
+    limits = np.unique(np.r_[0, np.flatnonzero(labels[1:] != labels[:-1]) + 1,
+                             np.flatnonzero(relative_breaks), n])
+    for a, b in zip(limits[:-1], limits[1:]):
+        kind = labels[a]
         usable = np.flatnonzero(valid[a:b]) + a
         tags = []
+        if relative_breaks[a:b].any() or (a > 0 and relative_breaks[a - 1]) or (b < n and relative_breaks[b]):
+            tags.append('approved_face_boundary_relative_reference')
         if kind == 'unclear':
-            if breaks[a:b].any():
+            if time_breaks[a:b].any():
                 tags.append('time_gap')
             if not valid[a:b].all():
                 tags.append('tracking_unavailable')
@@ -326,7 +360,7 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
             min(e[2] for e in matching) if matching else None,
             max(e[3] for e in matching) if matching else None,
             settings.window_s / 2 + typical_dt,
-            bool((times[a] - times[0] <= settings.window_s / 2 or (a > 0 and block_ids[a - 1] < 0) or breaks[a]) and kind != 'stationary'),
+            bool((times[a] - times[0] <= settings.window_s / 2 or (a > 0 and (block_ids[a - 1] < 0 or relative_breaks[a - 1])) or breaks[a]) and kind != 'stationary'),
             bool((times[-1] - times[b - 1] <= settings.window_s / 2 or (b < n and (block_ids[b] < 0 or breaks[b]))) and kind != 'stationary'),
             [{'gravity_evidence_start': e[2], 'gravity_evidence_end': e[3]} for e in matching]))
     # Unusable and discontinuous solutions are never geometry/contact evidence.
@@ -339,8 +373,11 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
     angle_signal = np.full(n, np.nan)
     pose_valid = valid & ~jump
     if pose_valid.any():
-        first = np.flatnonzero(pose_valid)[0]
-        angle_signal[pose_valid] = np.degrees(Rotation.from_matrix(rotations[pose_valid] @ rotations[first].T).magnitude())
+        for a, b, _ in _runs(relative_groups):
+            selected = np.flatnonzero(pose_valid[a:b]) + a
+            if len(selected):
+                angle_signal[selected] = np.degrees(Rotation.from_matrix(rotations[selected] @ rotations[selected[0]].T).magnitude())
+    angle_signal[relative_breaks] = np.nan
     signals = pd.DataFrame({'Relative rotation (deg)': angle_signal,
                             'Vertical speed (mm/s)': velocity[:, 1] * 1000.,
                             'Speed (mm/s)': speed * 1000., 'Solved markers': count,
@@ -350,7 +387,9 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
                             'Gravity residual (m/s2)': gravity_error,
                             'Rotation bound (m/s2)': contamination}, index=times)
     result = DetectionResult(candidates, signals, origins, rotations, corners, settings, registration,
-                             pose_valid, block_ids, activity_candidates=candidates)
+                             pose_valid, block_ids, activity_candidates=candidates,
+                             version=CORRECTED_VERSION if corrected_motion else VERSION,
+                             face_correction_affected=correction_affected)
     from .support_cycles import merge_support_cycles
     result.candidates = merge_support_cycles(result, cancelled=cancelled)
     return result

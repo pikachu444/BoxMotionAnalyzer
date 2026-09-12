@@ -133,7 +133,14 @@ class SceneReviewFlow:
             self._validate_scene_source()
             self.scene_busy = True
             self._update_scene_gates()
-            self.scene_worker = SceneDetectionWorker(self.header_info, self.raw_data, self.parsed_data,
+            header = self.header_info
+            metadata = self.correction_source_metadata
+            if metadata is not None and metadata.schema_version == '3':
+                # Saving a corrected source activates in-memory arrays without
+                # reloading the CSV. Use the same validated primitive transport.
+                from src.analysis.pipeline.scene_face_corrections import face_correction_header
+                header = face_correction_header(header, metadata.context_json, metadata.decisions)
+            self.scene_worker = SceneDetectionWorker(header, self.raw_data, self.parsed_data,
                 self.scene_registration, self,
                 settings=self.scene_session.result.settings if self.scene_session else None)
             self.scene_worker.completed.connect(self._finish_scene_detection)
