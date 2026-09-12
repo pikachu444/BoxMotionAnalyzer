@@ -24,13 +24,14 @@ class CompareTablePanel(QGroupBox):
         layout = QVBoxLayout(self)
         modes = QHBoxLayout()
         self.view_combo = QComboBox()
-        self.view_combo.addItems(['Pre-contact (experimental)', 'Repeats (experimental)', 'Diagnostics'])
+        self.view_combo.addItems(['Pre-contact (experimental)', 'Repeats (experimental)', 'Diagnostics', 'Contact (experimental)'])
         modes.addWidget(self.view_combo)
         self.cohort_label = QLabel()
         modes.addWidget(self.cohort_label)
         modes.addStretch()
         layout.addLayout(modes)
         self._table_data = ({}, None, None)
+        self._contact_data = None
         self.view_combo.currentIndexChanged.connect(self._render)
         
         self.table = QTableWidget()
@@ -38,14 +39,18 @@ class CompareTablePanel(QGroupBox):
         self.table.verticalHeader().setVisible(False)
         layout.addWidget(self.table)
 
-    def update_table(self, diff_data: dict[str, dict], baseline_name: str, impact=None):
+    def update_table(self, diff_data: dict[str, dict], baseline_name: str, impact=None, contact=None):
         self._table_data = (diff_data, baseline_name, impact)
+        self._contact_data = contact
         self.view_combo.setVisible(impact is not None)
         self._render()
 
     def _render(self):
         diff_data, baseline_name, impact = self._table_data
         self.cohort_label.clear()
+        if self.view_combo.currentIndex() == 3 and self._contact_data is not None:
+            self._render_contact(self._contact_data)
+            return
         if impact is None or self.view_combo.currentIndex() == 2:
             self._render_diagnostics(diff_data, baseline_name)
             return
@@ -63,6 +68,39 @@ class CompareTablePanel(QGroupBox):
         self.table.resizeColumnsToContents()
         for col in range(1, self.table.columnCount()):
             self.table.setColumnWidth(col, min(220, max(95, self.table.columnWidth(col))))
+        self.table.horizontalHeader().setTextElideMode(Qt.ElideMiddle)
+
+    def _render_contact(self, contact):
+        self.table.clear()
+        files = contact['files']
+        self.table.setRowCount(len(files))
+        self.table.setColumnCount(5 if files else 0)
+        if not files:
+            return
+        self.table.setHorizontalHeaderLabels(['File', 'Intended', 'Observed (estimated)', 'Result', 'Contact (s)'])
+        stats = contact['statistics']
+        if contact['intended']:
+            self.cohort_label.setText(f"Local n={stats['n']}   Match {stats['Match']}   Different {stats['Different']}   Unclear {stats['Unclear']}")
+            self.cohort_label.setToolTip('Compatible, distinct observations with baseline intent: '
+                + contact['intended'] + f". {stats['excluded']} excluded."
+                + (' Fewer than 3 comparable observations.' if stats['n'] < 3 else ''))
+        else:
+            self.cohort_label.setText('Baseline contact unspecified')
+        for row, (name, data) in enumerate(files.items()):
+            result = data['result']
+            labels = [name + '\n' + SOURCE_LABELS.get(data['source'], 'Unknown'), result.intended or '—',
+                      result.observed or '—', result.outcome, self._number(result.time_s)]
+            for col, label in enumerate(labels):
+                item = QTableWidgetItem(label)
+                detail = [name, result.reason] + data['reasons']
+                if col == 3:
+                    detail.append('Exact contact-feature comparison. Different can include a corner or edge of the intended face; it is not an ISTA failure.')
+                item.setToolTip('\n'.join(part for part in detail if part))
+                self.table.setItem(row, col, item)
+        self.table.resizeColumnsToContents()
+        for col in range(5):
+            self.table.setColumnWidth(col, min(260, max(95, self.table.columnWidth(col))))
+        self.table.resizeRowsToContents()
         self.table.horizontalHeader().setTextElideMode(Qt.ElideMiddle)
 
     @staticmethod

@@ -650,6 +650,7 @@ def update_slice_box_dimensions(filepath: str, box_dims: tuple[float, float, flo
     old_dims = tuple(_safe_float(detail_meta.get(key)) for key in ("box_l", "box_w", "box_h"))
     if scene_review_json and old_dims != normalized_dims:
         review = json.loads(scene_review_json)
+        review['candidate'].pop('intended_contact', None)
         if 'motion_geometry' in review['candidate']:
             review['candidate']['motion_geometry'] = {'version': 1, 'status': 'geometry_changed'}
         review["identity"].update(confirmed=False, scenario_id=None, scenario_kind=None)

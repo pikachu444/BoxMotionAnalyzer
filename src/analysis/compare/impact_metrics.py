@@ -117,7 +117,7 @@ def _diagnostics(df):
     return metrics
 
 
-def _processing_context(df):
+def _processing_context(df, *, raw_pose=True):
     identity = read_identity(df)
     if identity.errors:
         raise ValueError('; '.join(identity.errors))
@@ -133,9 +133,9 @@ def _processing_context(df):
         raise ValueError(error)
     settings = json.loads(artifact['ProcessingSettingsJson'])
     single, post = settings['single_pass'], settings['postprocess']
-    if single['marker_smoothing']['enabled'] is not False:
+    if raw_pose and single['marker_smoothing']['enabled'] is not False:
         raise ValueError('Marker smoothing can cross contact; raw-pose estimate unavailable')
-    if settings['result_resampling']['enabled'] is not False:
+    if raw_pose and settings['result_resampling']['enabled'] is not False:
         raise ValueError('Resampled pose is unsupported for this one-sided estimate')
     dims = np.array([_number(artifact[field]) for field in DIMENSIONS])
     if np.any(dims <= 0):

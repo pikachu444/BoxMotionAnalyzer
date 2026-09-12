@@ -51,6 +51,9 @@ jobs:
           tests/test_impact_metrics.py
           tests/test_impact_comparison.py
           tests/test_impact_comparison_gui.py
+          tests/test_intended_contact.py
+          tests/test_contact_comparison.py
+          tests/test_contact_comparison_gui.py
           tests/test_artifact_provenance.py
           tests/test_comparison_gui.py
           tests/test_processing_semantics.py

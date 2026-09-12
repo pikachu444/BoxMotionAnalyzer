@@ -150,7 +150,7 @@ class CompareMainWindow(QMainWindow):
         
         # Update Table
         diff_data = self.model.get_summary_differences()
-        self.table_panel.update_table(diff_data, baseline, impact)
+        self.table_panel.update_table(diff_data, baseline, impact, self.model.get_contact_comparison())
         
         # Update Plot Targets (collect all DropPosture metrics for now)
         targets = []

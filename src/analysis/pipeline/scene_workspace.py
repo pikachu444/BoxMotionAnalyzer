@@ -11,11 +11,12 @@ import tempfile
 
 from .scene_detection import VERSION, DetectionSettings, Registration
 from .scene_review import REFERENCE_EDITION, SceneReviewSession
+from .intended_contact import validate_intended_contact, validate_intended_contact_context
 
 
 KIND = 'boxmotion-scene-review'
 OPERATOR_KEYS = {'id', 'origin', 'start', 'end', 'auto_start', 'auto_end',
-                 'decision', 'identity', 'previous_review'}
+                 'decision', 'identity', 'previous_review', 'intended_contact'}
 DECISIONS = {'unreviewed', 'include', 'exclude'}
 _USE_RESULT_REGISTRATION = object()
 
@@ -67,6 +68,7 @@ def _validate(data):
                     raise ValueError('Detection requires at least five points per fit.')
             elif not _finite(value) or value <= 0:
                 raise ValueError('Detection settings must be finite positive values.')
+        registration = None
         if data['registration'] is not None:
             registration = Registration(**data['registration'])
             registration.validate()
@@ -96,6 +98,13 @@ def _validate(data):
                 if not _finite(row[first]) or not _finite(row[last]) or row[first] > row[last]:
                     raise ValueError('Invalid saved scene range.')
             _identity(row['identity'])
+            if row.get('intended_contact') is not None:
+                if (row['decision'] != 'include' or row['evidence_status'] != 'current'
+                        or registration is None or registration.floor_y_mm is None):
+                    raise ValueError('Intended contact needs an included current interval, registration and floor.')
+                row['intended_contact'] = validate_intended_contact_context(
+                    row['intended_contact'], registration.fingerprint,
+                    context['ista_type'], context['applied_edition'])
             previous = row.get('previous_review')
             if previous is not None:
                 if previous['decision'] not in DECISIONS or not isinstance(previous['reasons'], list):
@@ -103,6 +112,8 @@ def _validate(data):
                 if any(not isinstance(reason, str) for reason in previous['reasons']):
                     raise ValueError('Invalid previous scene review reasons.')
                 _identity(previous['identity'])
+                if previous.get('intended_contact') is not None:
+                    previous['intended_contact'] = validate_intended_contact(previous['intended_contact'])
         deleted = data['deleted_ids']
         if not isinstance(deleted, list) or any(not isinstance(item, str)
                 or not re.fullmatch(r'(scene|manual)_[0-9]{3,}', item) for item in deleted):
@@ -233,11 +244,15 @@ def restore_session(data, result, source_sha256):
             previous = deepcopy(saved.get('previous_review')) if saved['decision'] == 'unreviewed' else None
             if previous is None:
                 previous = {'decision': saved['decision'], 'identity': deepcopy(identity), 'reasons': []}
+            if saved.get('intended_contact') is not None:
+                previous['intended_contact'] = deepcopy(saved['intended_contact'])
             previous['reasons'] = list(dict.fromkeys(previous['reasons'] + reasons))
             fresh['decision'] = 'unreviewed'
             fresh['previous_review'] = previous
         else:
             fresh['identity'] = deepcopy(identity)
+            if 'intended_contact' in saved:
+                fresh['intended_contact'] = deepcopy(saved['intended_contact'])
             if 'previous_review' in saved:
                 fresh['previous_review'] = deepcopy(saved['previous_review'])
         restored.append(fresh)

@@ -10,7 +10,8 @@ import math
 
 import numpy as np
 
-from src.analysis.pipeline.scene_detection import VERSION, SceneCandidate
+from src.analysis.pipeline.scene_detection import VERSION, Registration, SceneCandidate
+from src.analysis.pipeline.intended_contact import validate_intended_contact_context
 from src.analysis.pipeline.support_motion import support_motion_evidence
 from src.config.config_app import FACE_DEFINITIONS
 
@@ -64,6 +65,20 @@ def validate_scene_review_json(value, *, start=None, end=None):
         raise ValueError('Confirmed identity needs Type, item, kind and applied edition.')
     if candidate['evidence_status'] != 'current' and identity['confirmed']:
         raise ValueError('Changed evidence cannot retain a confirmed identity.')
+    if candidate.get('intended_contact') is not None:
+        if candidate['evidence_status'] != 'current':
+            raise ValueError('Changed evidence cannot retain intended contact.')
+        try:
+            detection = data['detection']
+            registration = Registration(**detection['registration'])
+            registration.validate()
+            if registration.floor_y_mm is None or detection['registration_sha256'] != registration.fingerprint:
+                raise ValueError('Intended contact needs matching registration and an explicit floor.')
+            candidate['intended_contact'] = validate_intended_contact_context(
+                candidate['intended_contact'], registration.fingerprint,
+                identity['ista_type'], identity.get('applied_edition'))
+        except (KeyError, TypeError, AttributeError) as error:
+            raise ValueError('Intended contact needs valid registered geometry and test context.') from error
     return json.dumps(data, sort_keys=True, separators=(',', ':'), allow_nan=False)
 
 
@@ -147,6 +162,7 @@ class SceneReviewSession:
         self.ista_type, self.applied_edition = ista_type, applied_edition
         for row in self.rows:
             self._reset_identity(row)
+            row.pop('intended_contact', None)
 
     def set_decision(self, row_id, decision):
         if decision not in ('unreviewed', 'include', 'exclude'):
@@ -156,6 +172,27 @@ class SceneReviewSession:
             row['decision'] = decision
             row.pop('previous_review', None)
             self._reset_identity(row)
+            row.pop('intended_contact', None)
+
+    def set_intended_contact(self, row_id, faces):
+        """Record operator intent independently of motion or item candidates."""
+        row = self.row(row_id)
+        if faces is None:
+            row.pop('intended_contact', None)
+            return None
+        if row['decision'] != 'include' or row['evidence_status'] != 'current':
+            raise ValueError('Include an interval with current evidence before choosing intended contact.')
+        registration = self.result.registration
+        if registration is None or registration.floor_y_mm is None:
+            raise ValueError('Intended contact needs registered geometry and an explicit floor.')
+        registration.validate()
+        record = validate_intended_contact_context({
+            'version': 1, 'basis': 'operator', 'faces': faces,
+            'registration_sha256': registration.fingerprint,
+            'ista_type': self.ista_type, 'applied_edition': self.applied_edition,
+        }, registration.fingerprint, self.ista_type, self.applied_edition)
+        row['intended_contact'] = record
+        return deepcopy(record)
 
     def set_range(self, row_id, start, end):
         start, end = float(start), float(end)
@@ -167,6 +204,7 @@ class SceneReviewSession:
             return
         row.update(start=start, end=end, decision='unreviewed', evidence_status='range_changed', evidence_mode='range')
         row.pop('previous_review', None)
+        row.pop('intended_contact', None)
         row['motion_geometry'] = {'version': 1, 'status': 'range_changed'}
         row.update(gravity_evidence_start=None, gravity_evidence_end=None, gravity_episodes=[],
                    rotation_deg=None, displacement_mm=None, left_censored=False, right_censored=False)
@@ -202,6 +240,7 @@ class SceneReviewSession:
             if not same_context:
                 row['decision'], row['evidence_status'] = 'unreviewed', 'geometry_changed'
                 self._reset_identity(row)
+                row.pop('intended_contact', None)
             if row['evidence_status'] != 'current':
                 self._recompute_range(row)
 
