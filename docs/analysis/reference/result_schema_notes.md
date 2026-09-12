@@ -27,8 +27,23 @@ identity confirmation, and the working list's include/exclude decisions/deletion
 measured release/contact times. `floor_crossings` are geometric approach brackets,
 not measured contact forces. Slice padding remains separate from reviewed bounds.
 New slice metadata must describe an included interval with matching finite bounds.
-Unknown Type/item can still be analyzed; it cannot supply a comparison identity.
+Unknown Type/item can still be analyzed; it cannot supply a trial-comparison
+identity. Local intended-contact comparison does not require trial identity.
 Dimension changes clear registered geometry evidence and item confirmation.
+Optional `candidate.intended_contact` version 1 stores `basis="operator"`, sorted
+local `faces`, `registration_sha256`, `ista_type`, and nullable `applied_edition`.
+Only the 6 faces, 12 edges and 8 corners are valid face intersections; this is an
+independent operator choice, never copied from the detected contact or item.
+Included rows with current geometry and an explicit floor may carry this record.
+Range, geometry, settings, review decision or trial-context changes clear its active
+value; unchanged redetection, identification and reopening preserve it. Invalidated
+geometry/reopened evidence retains the previous choice in `previous_review`.
+The same JSON survives `.scene-review.json`, `.slice` and `.proc`; old absent values
+remain absent. Comparison computes Match/Different/Unclear on reopening without
+rewriting the file or adding nominal-angle metrics. Exact local corner-set equality
+defines Match; different valid face/edge/corner sets define Different. Missing or
+inconsistent evidence defines Unclear. This is an inferred geometric contact, not
+a force measurement or ISTA verdict; see the comparison plan for applicability.
 Optional `candidate.motion_geometry` version 1 records the observation-range
 reference time, floor and position tolerance, maximum/final relative rotation,
 least-moving edge and its maximum endpoint travel, fixed-edge candidates, geometric

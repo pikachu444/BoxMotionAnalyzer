@@ -102,6 +102,9 @@ class SceneReviewFlow:
         selected = self.scene_panel.selected_row()
         self.scene_panel.confirm_button.setEnabled(ready and reviewed and bool(selected
             and selected['item_candidates'] and self.scene_session.applied_edition))
+        contact_ready = ready and self.scene_panel.can_set_intended_contact()
+        self.scene_panel.intended_combo.setEnabled(contact_ready)
+        self.scene_panel.set_intended_button.setEnabled(contact_ready)
         self.save_slice_button.setEnabled(ready and (self.scene_session is None
             or (reviewed and selected is not None and selected['decision'] == 'include')))
         self.load_csv_button.setEnabled(not busy)
@@ -319,10 +322,13 @@ class SceneReviewFlow:
                 if row['decision'] != 'unreviewed':
                     row['previous_review'] = {'decision': row['decision'],
                         'identity': deepcopy(row['identity']), 'reasons': [reason]}
+                    if row.get('intended_contact') is not None:
+                        row['previous_review']['intended_contact'] = deepcopy(row['intended_contact'])
                 elif 'previous_review' in row and reason not in row['previous_review']['reasons']:
                     row['previous_review']['reasons'].append(reason)
                 row['evidence_status'], row['decision'] = reason, 'unreviewed'
                 row['motion_geometry'] = {'version': 1, 'status': reason}
+                row.pop('intended_contact', None)
                 self.scene_session._reset_identity(row)
             self.scene_panel.refresh()
 

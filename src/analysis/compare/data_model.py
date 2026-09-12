@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 
 from src.analysis.pipeline.data_loader import DataLoader
-from src.utils.artifact_metadata import read_identity, compatibility_reasons, SOURCE_KINDS
+from src.utils.artifact_metadata import read_identity, compatibility_reasons, SOURCE_KINDS, FIELDS
 from src.utils.result_time import timeline_from_frame, segmented_series
 from src.visualization.data_handler import DataHandler
 from src.analysis.compare.impact_metrics import calculate_impact_metrics, METRICS
+from src.analysis.compare.contact_metrics import calculate_contact_comparison
 
 
 class ComparisonModel:
@@ -19,6 +20,7 @@ class ComparisonModel:
         self.identities = {}
         self.timelines = {}
         self.impact_results = {}
+        self.contact_results = {}
         self.baseline_name = None
         # Adjustable display policy, not a physical detection threshold.
         self.max_gap_sec = 0.1
@@ -34,6 +36,7 @@ class ComparisonModel:
         identity = read_identity(df)
         timeline = timeline_from_frame(df)
         impact = calculate_impact_metrics(df)
+        contact = calculate_contact_comparison(df)
         if identity.source_kind not in SOURCE_KINDS - {'unknown_legacy'}:
             reason = 'Synchronization unavailable: unknown or invalid source class; individual review only'
             timeline = replace(timeline, reason='; '.join(filter(None, (timeline.reason, reason))))
@@ -43,6 +46,7 @@ class ComparisonModel:
         self.identities[name] = identity
         self.timelines[name] = timeline
         self.impact_results[name] = impact
+        self.contact_results[name] = contact
         if visualizable:
             self.visualization_handlers[name] = handler
         if self.baseline_name is None:
@@ -55,7 +59,7 @@ class ComparisonModel:
 
     def remove_file(self, name):
         for entries in (self.datasets, self.visualization_handlers, self.identities, self.timelines,
-                        self.impact_results):
+                        self.impact_results, self.contact_results):
             entries.pop(name, None)
         if self.baseline_name == name:
             self.baseline_name = next(iter(self.datasets), None)
@@ -176,6 +180,68 @@ class ComparisonModel:
             result[name] = segmented_series(values, timeline.times, self.max_gap_sec,
                                             origin=0. if individual is not None else timeline.t1) if timeline.times is not None else pd.Series(values, index=xs)
         return result
+
+    def get_contact_comparison(self):
+        """Per-file results; compatible repeats share an independently set target."""
+        stats = {'n': 0, 'Match': 0, 'Different': 0, 'Unclear': 0, 'excluded': 0}
+        if self.baseline_name is None:
+            return {'files': {}, 'statistics': stats, 'intended': ''}
+        baseline = self.contact_results[self.baseline_name]
+        choices = {}
+        for name, contact in self.contact_results.items():
+            observation = self.impact_results[name].observation_key
+            key = observation[:3] if observation is not None else None
+            if key is not None and contact.target_key is not None:
+                choices.setdefault(key, set()).add(contact.target_key)
+        order = [self.baseline_name] + [n for n in self.datasets if n != self.baseline_name]
+        files, seen = {}, set()
+        for name in order:
+            contact = self.contact_results[name]
+            observation = self.impact_results[name].observation_key
+            key = observation[:3] if observation is not None else None
+            reasons = self._contact_exclusion_reasons(name)
+            if baseline.target_key is None:
+                reasons.append('Baseline intended contact is unspecified')
+            elif contact.target_key != baseline.target_key:
+                reasons.append('Intended contact differs from the baseline')
+            if contact.registration_sha256 != baseline.registration_sha256:
+                reasons.append('Contact registration differs from the baseline')
+            if key is None:
+                reasons.append('Reviewed observation identity unavailable')
+            elif len(choices.get(key, set())) > 1:
+                reasons.append('Conflicting intended contacts for the same observation')
+            elif not reasons:
+                if key in seen:
+                    reasons.append('Same capture and reviewed interval already counted')
+                else:
+                    seen.add(key)
+            files[name] = {'result': contact, 'reasons': reasons, 'source': self.identities[name].source_kind}
+            if reasons:
+                stats['excluded'] += 1
+            else:
+                stats[contact.outcome] += 1
+                if contact.outcome != 'Unclear':
+                    stats['n'] += 1
+        return {'files': {n: files[n] for n in self.datasets}, 'statistics': stats, 'intended': baseline.intended}
+
+    def _contact_exclusion_reasons(self, name):
+        """Local contact observations do not require an inferred ISTA item.
+
+        Keep all source/model/layout/settings/schema/time checks. Optional trial
+        identity does not turn a local-geometry summary into an ISTA trial count.
+        """
+        optional = {'IstaType', 'ScenarioId', 'ScenarioKind'}
+        missing = {f'{field}: missing' for field in optional}
+        baseline, candidate = self.identities[self.baseline_name], self.identities[name]
+        reasons = [f'{label} {reason}' for label, identity in (('baseline', baseline), ('file', candidate))
+                   for reason in identity.exclusion_reasons() if reason not in missing]
+        for field in FIELDS:
+            if field not in optional | {'GeneratorVersion'} and baseline.values.get(field) != candidate.values.get(field):
+                reasons.append(f'{field}: mismatch in local contact comparison')
+        for label, key in (('baseline', self.baseline_name), ('file', name)):
+            if self.timelines[key].reason:
+                reasons.append(f'{label} {self.timelines[key].reason}')
+        return list(dict.fromkeys(reasons))
 
     def elapsed_bounds(self):
         timelines = [value.elapsed for value in self.timelines.values() if value.aligned]
