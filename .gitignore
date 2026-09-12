@@ -140,3 +140,9 @@ cython_debug/
 # Local test output workspace
 TestSets/Output/
 tmp/
+
+# Local captures and generated results; retain files locally without versioning.
+TestSets/Input/
+data/test_real_data_result.csv
+data/sim_data.csv
+data/test_sim_export.proc

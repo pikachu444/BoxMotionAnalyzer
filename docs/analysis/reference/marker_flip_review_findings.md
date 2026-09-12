@@ -1,6 +1,30 @@
 # Issue #74: evidence, correction scope, and verification status
 
-Last Reviewed: 2026-09-12
+Last Reviewed: 2026-09-13
+
+## 2026-09-13 public validation completion (#84)
+
+The validator now checks the existing computed poses for three previously incomplete controls. Separate actual CLI runs used seed 74082, the public 18-marker box and 100 samples at 0–0.792 s; no second optimizer run was added.
+
+| Input and expected meaning | Actual result |
+| --- | --- |
+| 0.02 mm Gaussian observation noise; all poses within the existing 0.1 mm / 0.1 degree bounds | 100 valid poses, 0.0328528 mm / 0.0455375 degrees maximum error |
+| Smooth no-contact 180-degree rotation; preserve motion without correction or review candidate | 100 valid poses, zero candidates/approvals, 0.0002053 mm / 0.0004628 degrees |
+| Freeze five observations at frame 14, then offset two by [7, -3, 4] mm | The unaffected 93 rows agree with truth within 0.0002221 mm. Frozen and offset rows agree with their observation model within 0.0000199 and 0.0000809 mm. The 52.2022 mm error against actual motion remains visible; lost motion is not recovered. |
+
+The return-frame check is a subset of the 93 unaffected rows, not an extra sample. Independent physics review read the CSVs, truth, code and actual reports, verified exact frozen/offset observations and continuous rotation, and confirmed that truth/events are read only after production detection. Existing pose tolerances and disabled recommendations are unchanged.
+
+Generic corruption export now reaches the real scene detector. Physical-only visibility/ID faults leave the solved-marker motion and candidates unchanged. A separate solved X half-turn at 0.032 s produces the 0.024–0.032 s abrupt-motion candidate; this is not proof of a tracking error or an automatically selected correction axis. These checks supply only observed CSV and explicit profile to production code.
+
+Each pytest case records its evidence level in JUnit. The summary reads that same run and reports Level 1 contracts and Level 2 synthetic integration separately. Missing/incorrect labels, skipped required checks, absent levels and external/internal data in the public gate fail. Level 3 stays optional/manual; independently calibrated Level 4 remains pending in #78. GUI-only and fabricated-frame checks remain Level 1.
+
+Independent code review reproduced a summary destination that overwrote its own source JUnit while reporting success. Identical paths and existing file aliases are now rejected before writing; direct-path and hard-link counterexamples retained the original bytes and exited 2. Main review also corrected an initial Level 3/4 label mix-up, with only the affected reporting checks rerun. Normal analysis runs were not repeated for either reporting fix.
+
+The five previously tracked capture/legacy output files were removed from the index only. All 3,488,937 local bytes are preserved; historical Git objects remain. The small public handcrafted demo stays tracked. Ordinary schema/viewer checks use a separate literal three-frame canonical box fixture. An initial attempt to reuse the legacy demo failed canonical-column/3D loading checks and exposed missing cleanup after GUI failure. The final fixture and `finally` cleanup passed the same three failing cases; their assertions were retained and the nine already passing cases were not repeated. Helper import compatibility was then checked by collection without repeating the GUI run.
+
+The optional VDTest consistency checks require `BMA_REAL_CAPTURE`. Actual child-process checks with no setting reported seven unexecuted cases; an explicitly missing path reported failures/errors with no skips and did not start pose processing. Public CI includes the replaced consumers and requires no local capture. This is current-checkout independence, not a purge of historical data or independent real validation.
+
+Local evidence: `tmp/issue84_public_release_20260913/` contains source preservation, separate matrix reports, initial/corrected GUI JUnit and independent data review; `tmp/issue84_validation_completion/` contains focused contract JUnit and its level summary. Required CI, publication and remaining real-data status are tracked in #84 and its PR.
 
 ## 2026-09-12 public failure evidence and deliberate faults (#84)
 

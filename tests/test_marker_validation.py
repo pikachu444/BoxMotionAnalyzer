@@ -1,9 +1,12 @@
 """Report and failure contracts; the CLI integration job runs real controls once."""
 import json
 import hashlib
+from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
+import xml.etree.ElementTree as ET
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -11,6 +14,176 @@ from src.simulation import validate_marker_fixtures as validation
 from src.simulation import marker_validation_controls as controls
 from src.simulation.marker_fixtures import load_profile, validate_profile, virtual_profile_32
 from src.config.data_columns import TimeCols
+
+
+def _evaluation_context(case):
+    """Literal evaluation inputs only; no extra simulator or optimizer run."""
+    frames = np.arange(100)
+    angles = frames * (np.pi / 99 if case == 'genuine_rotation' else .001)
+    matrices = np.zeros((100, 3, 3))
+    matrices[:, 0, 0] = matrices[:, 1, 1] = np.cos(angles)
+    matrices[:, 0, 1] = -np.sin(angles)
+    matrices[:, 1, 0] = np.sin(angles)
+    matrices[:, 2, 2] = 1.
+    truth = pd.DataFrame({'time_s': frames * .008,
+        'body_x_mm': frames.astype(float), 'body_y_mm': frames * 2., 'body_z_mm': -frames.astype(float)})
+    for i in range(3):
+        for j in range(3):
+            truth[f'r{i}{j}'] = matrices[:, i, j]
+    pose = pd.DataFrame(np.column_stack((frames, 2 * frames, -frames,
+                         np.zeros(100), np.zeros(100), angles)), columns=validation.POSE_COLUMNS)
+    pose[validation.SourceCols.POSE] = 'Optimized'
+    if case == 'noise':
+        pose[validation.POSE_COLUMNS[0]] += .01
+    if case == 'freeze_reconnect':
+        pose.loc[15:19, list(validation.POSE_COLUMNS)] = [14., 28., -14., 0., 0., .014]
+        pose.loc[20:21, list(validation.POSE_COLUMNS[:3])] = [[27., 37., -16.], [28., 39., -17.]]
+    report = validation._base_report(Path('.'))
+    report['expected'] = {}
+    return {'manifest': {'case_id': case, 'events': [], 'parameters': {'scenario': 'free_fall'},
+                        'pose_tolerances': {'position_mm': .1, 'rotation_deg': .1}},
+            'candidates': [], 'decisions': [], 'truth': truth, 'pose': pose,
+            'fixed': pose.copy(deep=True), 'report': report}
+
+
+@pytest.mark.parametrize('case, damage, failed_check', [
+    ('noise', 'position', 'noisy_raw_pose_within_tolerance'),
+    ('noise', 'invalid_frame', 'noisy_raw_pose_within_tolerance'),
+    ('genuine_rotation', 'candidate', 'genuine_rotation_no_candidates'),
+    ('genuine_rotation', 'approval', 'genuine_rotation_preserved_without_correction'),
+    ('freeze_reconnect', 'normal', 'unaffected_pose_matches_observation_model'),
+    ('freeze_reconnect', 'frozen', 'frozen_pose_matches_observation_model'),
+    ('freeze_reconnect', 'offset', 'reconnect_offset_pose_matches_observation_model'),
+    ('freeze_reconnect', 'return', 'return_frame_22_pose_matches_observation_model'),
+])
+def test_existing_pose_evaluation_rejects_wrong_noise_rotation_or_reconnect_semantics(case, damage, failed_check):
+    context = _evaluation_context(case)
+    baseline = validation._evaluate(context)
+    assert baseline['status'] == 'pass'
+    if case == 'freeze_reconnect':
+        assert baseline['observed_pose_model']['expected_valid_frames'] == {
+            'unaffected': 93, 'frozen': 5, 'reconnect_offset': 2, 'return_frame_22': 1}
+    changed = deepcopy(context)
+    if damage == 'candidate':
+        changed['candidates'] = [SimpleNamespace(boundary_time_sec=.240, trigger='test',
+            recommendation_axis=None, hypotheses=[])]
+    elif damage == 'approval':
+        changed['decisions'] = ['unexpected test-only approval']
+    elif damage == 'invalid_frame':
+        changed['pose'].loc[0, validation.SourceCols.POSE] = 'OptimizationFailed'
+    else:
+        row = {'position': 0, 'normal': 0, 'frozen': 17, 'offset': 20, 'return': 22}[damage]
+        changed['pose'].loc[row, validation.POSE_COLUMNS[0]] += 1.
+    result = validation._evaluate(changed)
+    assert result['status'] == 'fail' and result['checks'][failed_check] is False
+    _assert_boolean_checks(result)
+
+
+def test_genuine_collision_does_not_require_zero_candidates():
+    context = _evaluation_context('genuine_rotation')
+    context['manifest']['parameters'].update(scenario='face', recorded_contact_force_n=[0., 1.] + [0.] * 98)
+    context['candidates'] = [SimpleNamespace(boundary_time_sec=.240, trigger='contact',
+        recommendation_axis=None, hypotheses=[])]
+    result = validation._evaluate(context)
+    assert result['status'] == 'pass'
+    assert 'genuine_rotation_no_candidates' not in result['checks']
+
+
+def _junit_fixture(path, rows):
+    suite = ET.Element('testsuite')
+    for module, name, level, status in rows:
+        case = ET.SubElement(suite, 'testcase', classname=module, name=name)
+        if level is not None:
+            properties = ET.SubElement(case, 'properties')
+            ET.SubElement(properties, 'property', name='evidence_level', value=level)
+        if status != 'passed':
+            ET.SubElement(case, {'failed': 'failure', 'error': 'error', 'skipped': 'skipped'}[status])
+    ET.ElementTree(suite).write(path, encoding='utf-8', xml_declaration=True)
+
+
+PUBLIC_JUNIT_CASES = [
+    ('tests.test_marker_validation', 'test_report_contract', 'unit_contract', 'passed'),
+    ('tests.test_corruption_export', 'test_physical_visibility_and_id_routing_preserve_solved_analysis_and_truth',
+     'synthetic_integration', 'passed'),
+]
+
+
+def test_junit_levels_summarize_existing_results_and_keep_real_accuracy_pending(tmp_path, request):
+    from src.simulation.public_validation_summary import main
+    assert ('evidence_level', 'unit_contract') in request.node.user_properties
+    xml, output = tmp_path / 'results.xml', tmp_path / 'summary.json'
+    _junit_fixture(xml, PUBLIC_JUNIT_CASES)
+    before = xml.read_bytes()
+    with pytest.raises(SystemExit) as stopped:
+        main(['--junit', str(xml), '--output', str(output), '--public-required'])
+    assert stopped.value.code == 0 and xml.read_bytes() == before
+    summary = _read(output)
+    assert summary['status'] == 'pass'
+    assert summary['levels']['unit_contract']['counts']['passed'] == 1
+    assert summary['levels']['synthetic_integration']['counts']['passed'] == 1
+    assert summary['levels']['synthetic_integration']['testcases'][0]['name'].endswith(PUBLIC_JUNIT_CASES[1][1])
+    assert summary['levels']['public_external']['level'] == 3
+    assert summary['levels']['public_external']['status'] == 'optional-manual'
+    assert summary['levels']['internal_real']['level'] == 4
+    assert summary['levels']['internal_real']['status'] == 'pending'
+    assert summary['levels']['internal_real']['issue'] == '#78'
+    assert summary['levels']['internal_real']['release_gate_satisfied'] is False
+
+
+@pytest.mark.parametrize('alias', ['same_path', 'hard_link'])
+def test_junit_summary_cannot_overwrite_its_input(tmp_path, capsys, alias):
+    from src.simulation.public_validation_summary import main
+    source = tmp_path / 'results.xml'
+    _junit_fixture(source, PUBLIC_JUNIT_CASES)
+    before = source.read_bytes()
+    target = source
+    if alias == 'hard_link':
+        target = tmp_path / 'summary.json'
+        target.hardlink_to(source)
+    with pytest.raises(SystemExit) as stopped:
+        main(['--junit', str(source), '--output', str(target), '--public-required'])
+    assert stopped.value.code == 2
+    assert 'must not overwrite the source JUnit' in capsys.readouterr().err
+    assert source.read_bytes() == before and target.read_bytes() == before
+
+
+@pytest.mark.parametrize('problem', ['unlabeled', 'unknown', 'private', 'external', 'misclassified',
+                                    'skipped', 'empty', 'missing_level1', 'missing_level2', 'internal_real', 'public_external'])
+def test_public_junit_rejects_missing_or_misclassified_evidence(tmp_path, problem):
+    from src.simulation.public_validation_summary import main
+    rows = list(PUBLIC_JUNIT_CASES)
+    if problem in ('unlabeled', 'unknown', 'private', 'external', 'misclassified'):
+        row = rows[0]
+        level = None if problem == 'unlabeled' else 'synthetic_integration' if problem == 'misclassified' else problem
+        rows[0] = (row[0], row[1], level, row[3])
+    elif problem == 'skipped':
+        rows[1] = (*rows[1][:3], 'skipped')
+    elif problem == 'empty':
+        rows = []
+    elif problem == 'missing_level1':
+        rows = rows[1:]
+    elif problem == 'missing_level2':
+        rows = rows[:1]
+    elif problem == 'internal_real':
+        rows.append(('tests.test_real_data_flow.TestRealDataFlow', 'test_capture', 'internal_real', 'passed'))
+    else:
+        rows.append(('tests.test_external_capture', 'test_capture', 'public_external', 'passed'))
+    xml, output = tmp_path / 'results.xml', tmp_path / 'summary.json'
+    _junit_fixture(xml, rows)
+    with pytest.raises(SystemExit) as stopped:
+        main(['--junit', str(xml), '--output', str(output), '--public-required'])
+    assert stopped.value.code == 1
+    assert _read(output)['status'] == 'fail' and _read(output)['errors']
+
+
+def test_internal_and_gui_only_test_classification_is_explicit():
+    from src.simulation.public_validation_summary import evidence_level
+    assert evidence_level('tests/test_real_drop_posture_physics.py', 'test_values') == 'internal_real'
+    assert evidence_level('tests/test_real_data_flow.py', 'test_values') == 'internal_real'
+    assert evidence_level('tests/test_drop_posture_post_processor.py',
+        'test_real_contact_slice_theta_angles_are_physically_consistent_around_t1') == 'internal_real'
+    assert evidence_level('tests/test_drop_posture_post_processor.py', 'test_flat_drop_has_zero_angles_and_zero_reference_face_height_spread') == 'unit_contract'
+    assert evidence_level('tests/test_simulation_contact_gui.py', 'test_contact_damping_controls_in_production_window') == 'unit_contract'
 
 
 def _read(path):

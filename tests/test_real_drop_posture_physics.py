@@ -21,13 +21,15 @@ from src.config.data_columns import (
 )
 
 
-REAL_RAW_CSV = "TestSets/Input/VDTest_S5_001.csv"
+REAL_RAW_CSV = os.environ.get("BMA_REAL_CAPTURE")
 TESTBOX_85_ESTIMATED_DIMS = (2082.9, 1046.6, 254.4)
 
 
 class TestRealDropPosturePhysics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        if not REAL_RAW_CSV:
+            raise unittest.SkipTest("Optional real-capture consistency check: set BMA_REAL_CAPTURE to VDTest_S5_001.csv. Independent calibration remains pending.")
         loader = DataLoader()
         header_info, raw_data = loader.load_csv(REAL_RAW_CSV)
         cls.parsed = Parser(face_prefix_map=FACE_PREFIX_TO_INFO).process(header_info, raw_data)

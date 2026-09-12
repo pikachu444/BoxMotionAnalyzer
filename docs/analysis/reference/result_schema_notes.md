@@ -355,7 +355,7 @@ corrected CSV에서 만든 `.slice`를 처리한 경우 `.proc`에는 아래 pro
 - `_Ana` 접미사 기반 표기 -> `BoxLocal_` 접두사 표기로 전환
 - `Norm_V`, `Norm_A` 류 표기 -> `*_Norm` 표기로 통일
 - `TestSets` 운영 구조 분리:
-  - `TestSets/Input/` (tracked)
+  - `TestSets/Input/` (ignored; local captures retained)
   - `TestSets/Output/` (ignored)
 
 ## 7. 유지보수 가이드

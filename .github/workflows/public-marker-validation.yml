@@ -74,18 +74,17 @@ jobs:
           tests/test_scene_review_gui.py
           tests/test_scene_workspace.py
           tests/test_scene_workspace_gui.py
+          tests/test_result_format_layout.py
+          tests/test_scenario_345.py
+          tests/test_scenario_6.py
+          tests/test_raw_data_processing.py
           --junitxml=tmp/public-marker-results.xml
-      - name: Reject missing or skipped required checks
-        shell: pwsh
-        run: |
-          [xml]$markerResults = Get-Content -Raw -LiteralPath tmp/public-marker-results.xml
-          $markerSuites = @($markerResults.testsuites.testsuite)
-          $markerCount = ($markerSuites | Measure-Object -Property tests -Sum).Sum
-          $markerSkipped = ($markerSuites | Measure-Object -Property skipped -Sum).Sum
-          if ($markerCount -le 0 -or $markerSkipped -gt 0) {
-            throw 'Required public synthetic checks must run without skips.'
-          }
-          Write-Output 'Public synthetic integration only; not real-capture or ISTA validation.'
+      - name: Summarize required public evidence levels
+        if: always()
+        run: >-
+          python -m src.simulation.public_validation_summary
+          --junit tmp/public-marker-results.xml
+          --output tmp/public-validation-summary.json --public-required
       - name: Compare independent truth with public observation cases
         shell: pwsh
         run: |
@@ -104,6 +103,7 @@ jobs:
           name: public-validation-evidence
           path: |
             tmp/public-marker-results.xml
+            tmp/public-validation-summary.json
             tmp/ci-*/**/validation*.json
             tmp/ci-*/**/negative_controls*.json
             tmp/ci-*/**/*.synthetic.json

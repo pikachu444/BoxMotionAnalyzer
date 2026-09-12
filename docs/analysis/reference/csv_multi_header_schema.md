@@ -1,6 +1,6 @@
 # CSV Multi-Header 스키마 (v3)
 
-Last Reviewed: 2026-09-08
+Last Reviewed: 2026-09-13
 
 이 문서는 현재 코드 기준의 결과 CSV Multi-Header 규칙을 정리한다.
 
@@ -67,5 +67,5 @@ Last Reviewed: 2026-09-08
 본문 annotation이 실제 분석 입력이며 EventsJson은 감사 이력이다. Parser는 이력을 재적용하지 않는다. 사건 이후부터 시작하는 slice도 행별 면을 그대로 가진다. ContextJson에는 원본 면, 박스 크기(mm), 좌표 정책, 원본 export metadata/헤더 두 줄, 원본 SHA와 알고리즘 버전을 보존한다. 승인 당시 크기와 다른 corrected slice는 거부한다. 일반 Motive CSV 또는 v2에 annotation을 붙여 새 보정처럼 읽지 않는다.
 
 ## 7. TestSets 폴더 정책
-- `TestSets/Input/`: 버전관리 대상 입력 데이터
+- `TestSets/Input/`: 로컬 촬영 입력 전용, `.gitignore` 대상. 기존 파일은 로컬에 보존하며 과거 Git 이력은 별도로 남는다.
 - `TestSets/Output/`: 로컬 산출물 전용, `.gitignore` 대상

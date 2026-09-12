@@ -1,6 +1,6 @@
 # Minimal independent MuJoCo fixture contract for #74
 
-Last Reviewed: 2026-09-12
+Last Reviewed: 2026-09-13
 
 The minimal public example generator is implemented in `src/simulation/marker_fixtures.py`, with a separate production-analysis harness in `validate_marker_fixtures.py`. The separate Simulation UI direct exporter now records actual pose/time with its own contract in [simulation.md](../../simulation.md); it does not consume this fixture oracle or replace this observed-data analysis path. Scope remains the recording/coordinate/layout/oracle portions of #80–#84 needed for #74; broader simulation UI, comprehensive presets, batch matrices and general export redesign remain separate. Measured acceptance and remaining gaps are recorded in [the findings](marker_flip_review_findings.md).
 
@@ -47,7 +47,11 @@ Run `.venv/Scripts/python.exe -m src.simulation.validate_marker_fixtures --case 
 
 The built-in layout is `public-asymmetric-example-18`, 200×120×80 mm, with FRONT/BACK/RIGHT/LEFT/TOP/BOTTOM counts 4/3/3/3/3/2. It is an explicit example, not an OptiTrack installation standard. The engine starts with nonzero translation and rotation and COM offset (3,−4,2) mm, then free-falls without contact for 100 samples. This bounded lane does not validate collision physics or drop-standard presets. Constraint noise is independent 0.02 mm Gaussian stress, not a calibrated model of Motive solver errors. Dropout means missing solved constraints, not physical-marker visibility.
 
-The detector receives observed CSV and explicit geometry only. The harness reads the independent oracle after candidate creation, and uses its axes solely to emulate manual approval. Finding declared boundaries and recovering pose does not demonstrate automatic axis selection. Unsupported rotations, freeze/reconnect, noise and low coverage are diagnostic controls; abstention alone is not correct classification. Automatic recommendations remain disabled.
+The detector receives observed CSV and explicit geometry only. The harness reads the independent oracle after candidate creation, and uses its axes solely to emulate manual approval. Finding declared boundaries and recovering pose does not demonstrate automatic axis selection. Automatic recommendations remain disabled.
+
+Noise uses the existing 0.1 mm / 0.1 degree numerical pose bounds for all 100 samples; its 0.02 mm Gaussian perturbation is a synthetic stress input. The no-contact genuine-rotation case must retain all 100 poses without a correction candidate. Neither condition is a calibrated real-camera acceptance limit.
+
+Freeze/reconnect separates 93 unaffected samples from seven damaged observations. Frames 15–19 are compared with the pose at frame 14; frames 20–21 are compared with their true rotation and body position plus the prescribed world offset [7, -3, 4] mm. The same numerical bounds apply to each segment. Passing the damaged segments means matching the held/offset observation, not recovering lost physical motion. A reconnect candidate at 0.160 s is permitted. Unsupported rotations remain abstention diagnostics; low coverage requires unavailable pose rather than invented geometry.
 
 ## Custom layout input (generator 1.2)
 
