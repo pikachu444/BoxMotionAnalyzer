@@ -262,11 +262,13 @@ Last Reviewed: 2026-09-12
 ### 6.2. 우측 메인 영역 (Main View Area)
 탭(Tab) 없이 수직 스플리터(Vertical Splitter)를 통해 크게 3단으로 분할 배치된다.
 1. **2. Experiment Summary (비교 요약 표):** 
-   - 파일별 summary는 개별 표시를 유지하고, 호환성 조건을 통과한 경우에만 기준 대비 차이를 표시한다. 평균 집계 기능은 아니다.
+   - `Pre-contact`에서 수직 속도·수평 속력·각속력과 조건부 등가높이를 확인한다. 값이 없으면 이유를 tooltip에서 읽는다.
+   - `Repeats`는 호환되는 서로 다른 관측의 지표별 n·평균·범위와 접촉 진단 빈도를 표시한다. 복사본·같은 원본의 보정본을 중복으로 세지 않고 n<3은 부족 표시한다.
+   - `Diagnostics`는 기존 개별 summary와 호환 파일의 기준 대비 차이를 유지한다. 자세·속도 값은 실측 정확도가 확인되지 않은 추정값이다. 적용 조건과 남은 기능은 `drop_result_comparison_plan.md`의 #77 항목을 따른다.
 2. **3D Animation (동기화 3D 뷰어):** 
    - `t - t1_minus` 공통 시계에서 가장 가까운 실제 샘플을 표시한다. 실제 선택 샘플 시각도 함께 표시하며, 파일 범위 밖이나 긴 gap 내부는 3D unavailable로 표시한다. Sync를 끄면 개별 샘플 탐색과 유효한 시간의 개별 재생을 사용할 수 있다.
 3. **Time-History (시계열 비교 플롯):**
-   - 실제 시간과 유효한 t1이 있는 파일은 elapsed 축에 겹쳐 보며 3D의 공통 커서를 공유한다. 다른 source class의 겹쳐 보기는 지속 경고와 함께 시각 검토로만 제공한다. 개별 보기의 시간이 없으면 `Sample row (time unavailable)`로 명시한다.
+   - 실제 시간과 유효한 t1이 있는 파일은 elapsed 축에 겹쳐 보며 3D의 공통 커서를 공유한다. 다른 source class의 겹쳐 보기는 파일별 출처와 조건부 지속 경고를 표시하며 시각 검토로만 제공한다. 개별 보기의 시간이 없으면 `Sample row (time unavailable)`로 명시한다.
    - 툴바는 세로 방향으로 우측에 배치하여 가로 공간 활용도를 높였다.
 
 The v3 loader and corrected/slice writers reject persisted analysis faces that disagree with the complete approved history and original face map. Valid suffix slices retain the cumulative effect of earlier events. Pose processing reports `UnknownFace` or `UnidentifiableGeometry` when face constraints cannot support the local six-DOF fit; unavailable pose/corners do not become detector evidence. This is a conservative local guard, not global uniqueness certification.

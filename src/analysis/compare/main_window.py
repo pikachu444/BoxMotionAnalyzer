@@ -47,7 +47,7 @@ class CompareMainWindow(QMainWindow):
         self.right_splitter.addWidget(self.table_panel)     # 1. Summary Table (Top)
         self.right_splitter.addWidget(self.playback_panel)  # 2. 3D Playback (Middle)
         self.right_splitter.addWidget(self.graph_panel)     # 3. Comparison Plot (Bottom)
-        self.right_splitter.setSizes([200, 400, 300])       # Allocate initial heights
+        self.right_splitter.setSizes([300, 210, 250])       # Show motion rows and graph axis labels initially.
         
         self.splitter.addWidget(self.control_panel)
         self.splitter.addWidget(self.right_splitter)
@@ -138,18 +138,19 @@ class CompareMainWindow(QMainWindow):
     def _refresh_ui(self):
         files = list(self.model.datasets.keys())
         baseline = self.model.baseline_name
-        self.control_panel.update_files(files, baseline, self.model)
-        excluded = [name for name in files if self.model.exclusion_reasons(name)]
-        sources = sorted({value.source_kind for value in self.model.identities.values()})
+        impact = self.model.get_impact_comparison()
+        self.control_panel.update_files(files, baseline, self.model, impact)
+        excluded = [name for name in files if impact['files'][name]['reasons']]
+        mixed_sources = len({identity.source_kind for identity in self.model.identities.values()}) > 1
         self.warning_label.setText(
             ('No results loaded.' if not files else
-             f'Sources: {", ".join(sources)}. {len(excluded)}/{len(files)} excluded from aggregation / baseline differences. '
-             'Overlay is for visual review only; source classes remain separate. Synthetic not_applicable is not ISTA approval. '
-             'Select a file for all exclusion reasons. 3D shows nearest recorded samples with their actual times.'))
+             f'{len(files)} files. Repeat summary: {len(files) - len(excluded)} included, '
+             f'{len(excluded)} excluded. Select a file for details.'
+             + (' Mixed sources; overlay is visual only.' if mixed_sources else '')))
         
         # Update Table
         diff_data = self.model.get_summary_differences()
-        self.table_panel.update_table(diff_data, baseline)
+        self.table_panel.update_table(diff_data, baseline, impact)
         
         # Update Plot Targets (collect all DropPosture metrics for now)
         targets = []
