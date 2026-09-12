@@ -1,6 +1,7 @@
 """Step 1 uses real widgets, worker, parser and files; dialogs select test paths."""
 import json
 import time
+from dataclasses import replace
 from unittest.mock import patch
 
 import pytest
@@ -10,7 +11,6 @@ from PySide6.QtWidgets import QApplication
 from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.pipeline.parser import Parser
 from src.analysis.pipeline.artifact_io import read_slice_metadata
-from src.analysis.pipeline.support_motion import LIFT_SIGNAL
 from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
 from src.config.data_columns import FACE_PREFIX_TO_INFO
 from src.simulation.scene_fixtures import write_sequence
@@ -149,7 +149,72 @@ def test_marker_busy_blocks_detection_before_thread_starts_and_keeps_declared_ty
     assert widget.scene_panel.detect_button.isEnabled()
 
 
-def test_remove_all_scenes_clears_selected_support_measurement(loaded, tmp_path):
+def test_position_redraw_preserves_manual_csv_slice_range(loaded):
+    widget, _ = loaded
+    assert widget.scene_session is None
+    assert len(widget.plot_manager.ax.patches) == 1
+    widget.current_selected_targets = ['Marker B1']
+    widget.combo_plot_axis.setCurrentIndex(1)
+    widget.slice_group.setChecked(True)
+    bounds = (.123456789, .876543219)
+    widget.le_slice_start.setText(repr(bounds[0]))
+    widget.le_slice_end.setText(repr(bounds[1]))
+    widget.update_span_selector_from_inputs()
+    widget.update_plot()
+    selector = widget.plot_manager.span_selector
+    assert selector.active and selector.get_visible()
+    assert selector.extents == bounds
+    assert all(artist in widget.plot_manager.ax.get_children() and artist.get_visible()
+               for artist in selector.artists)
+    assert len(widget.plot_manager.ax.patches) == 1
+    line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == 'B1_Y')
+    np.testing.assert_array_equal(line.get_ydata(), widget.parsed_data['B1_Y'])
+    assert len(line.get_xdata()) == len(widget.raw_data)
+    widget.slice_group.setChecked(False)
+    widget.update_plot()
+    assert not widget.plot_manager.span_selector.active
+    assert not widget.plot_manager.span_selector.get_visible()
+    assert all(not artist.get_visible() for artist in widget.plot_manager.span_selector.artists)
+    widget.slice_group.setChecked(True)
+    widget.update_plot()
+    assert widget.plot_manager.span_selector.extents == bounds
+
+
+def test_item_tooltip_explains_observed_geometry_limit_without_raw_dict(loaded):
+    widget, _ = loaded
+    widget.detect_scene_candidates()
+    wait_detection(widget)
+    session = widget.scene_session
+    session.set_context('G', '2018-03')
+    session.result = replace(session.result, registration=replace(session.result.registration, floor_y_mm=None))
+    for row in session.rows:
+        session.set_decision(row['id'], 'include' if row['motion'] == 'free_fall' else 'exclude')
+    session.identify()
+    row = next(row for row in session.rows if row['motion'] == 'free_fall')
+    assert row['geometry'] == {'status': 'registration_required'}
+    for geometry, reason in (
+        (row['geometry'], 'Box and floor registration required.'),
+        ({'status': 'registered', 'floor_crossings': []}, 'Floor approach not established.'),
+        ({'status': 'registered', 'floor_crossings': [{'approach_feature': None}]},
+         'Approach feature unclear.'),
+        ({}, ''),
+    ):
+        row['geometry'] = geometry
+        widget.scene_panel.refresh(row['id'])
+        tooltip = widget.scene_panel.table.item(widget.scene_panel.table.currentRow(), 6).toolTip()
+        if reason:
+            assert reason in tooltip
+            assert reason in widget.scene_panel.item_combo.toolTip()
+        else:
+            assert 'registration required' not in tooltip
+            assert 'Floor approach' not in tooltip
+            assert 'Approach feature' not in tooltip
+        assert row['sequence_evidence'] in tooltip
+        assert row.get('eligibility_condition', '') in tooltip
+        assert '{' not in tooltip and 'floor_crossings' not in tooltip
+
+
+def test_remove_all_scenes_disables_range_and_keeps_full_capture_curve(loaded, tmp_path):
     widget, _ = loaded
     folder = write_sequence(tmp_path / 'support_capture', 'handling')
     for action, name in ((widget.open_csv_file, 'observed.csv'),
@@ -161,11 +226,12 @@ def test_remove_all_scenes_clears_selected_support_measurement(loaded, tmp_path)
     row = next(row for row in widget.scene_session.rows
                if row['motion_geometry']['status'] == 'floor_pivot_compatible')
     widget.scene_panel.refresh(row['id'])
-    widget.combo_plot_axis.setCurrentIndex(widget.combo_plot_axis.findData(LIFT_SIGNAL))
+    signal = 'Relative rotation (deg)'
+    widget.combo_plot_axis.setCurrentIndex(widget.combo_plot_axis.findData(signal))
     APP.processEvents()
-    height = next(line for line in widget.plot_manager.ax.lines if line.get_label() == LIFT_SIGNAL)
-    assert np.isfinite(height.get_ydata()).any()
-    assert widget.scene_panel.motion_summary.text()
+    line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == signal)
+    before = line.get_ydata().copy()
+    assert np.isfinite(before).any()
 
     widget.scene_panel.table.selectAll()
     widget.scene_panel.remove_button.click()
@@ -173,7 +239,8 @@ def test_remove_all_scenes_clears_selected_support_measurement(loaded, tmp_path)
 
     assert not widget.scene_session.rows
     assert widget.scene_panel.selected_row() is None
-    assert not widget.scene_panel.motion_summary.text()
-    height = next(line for line in widget.plot_manager.ax.lines if line.get_label() == LIFT_SIGNAL)
-    assert not np.isfinite(height.get_ydata()).any()
+    line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == signal)
+    np.testing.assert_array_equal(line.get_ydata(), before)
+    assert len(line.get_xdata()) == len(widget.raw_data)
     assert not widget.plot_manager.span_selector.active
+    assert not widget.save_slice_button.isEnabled()

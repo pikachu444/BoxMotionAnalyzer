@@ -10,7 +10,6 @@ from src.analysis.pipeline.scene_detection import detect_scenes, Registration, D
 from src.analysis.pipeline.scene_review import SceneReviewSession
 from src.analysis.pipeline.scene_workspace import (save_workspace, read_workspace,
     workspace_source_path, restore_session)
-from src.analysis.pipeline.support_motion import EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL
 from src.analysis.pipeline.artifact_io import (_sha256_file, save_slice_file,
     build_slice_default_name, DEFAULT_SLICE_PADDING_ROWS)
 from src.utils.artifact_metadata import normalize_metadata
@@ -177,11 +176,10 @@ class SceneReviewFlow:
                 self.combo_plot_axis.removeItem(3)
             for name in result.signals:
                 self.combo_plot_axis.addItem(name, name)
-            if result.registration and result.registration.floor_y_mm is not None:
-                for name in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
-                    self.combo_plot_axis.addItem(name, name)
             index = self.combo_plot_axis.findData(selected) if selected is not None else -1
-            self.combo_plot_axis.setCurrentIndex(index if index >= 0 else 3)
+            if index < 0:
+                index = self.combo_plot_axis.findData('Relative rotation (deg)')
+            self.combo_plot_axis.setCurrentIndex(index if index >= 0 else 0)
         finally:
             self.combo_plot_axis.blockSignals(False)
         self.update_plot()
@@ -350,8 +348,8 @@ class SceneReviewFlow:
 
     def _select_scene(self, row):
         if row is None:
-            if self.combo_plot_axis.currentData() in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
-                self.update_plot()
+            self.plot_manager.set_selector_active(False)
+            self.update_plot()
             return
         self._selecting_scene = True
         try:
@@ -359,9 +357,8 @@ class SceneReviewFlow:
             self.le_slice_start.setText(repr(row['start']))
             self.le_slice_end.setText(repr(row['end']))
             self.le_scene_name.setText(row['id'])
+            self.plot_manager.set_selector_active(True)
             self.plot_manager.set_region(row['start'], row['end'])
-            if self.combo_plot_axis.currentData() in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
-                self.update_plot()
             self.canvas.draw_idle()
         finally:
             self._selecting_scene = False

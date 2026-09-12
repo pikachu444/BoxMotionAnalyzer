@@ -17,7 +17,7 @@ from src.analysis.pipeline.parser import Parser
 from src.analysis.pipeline.scene_detection import Registration, detect_scenes
 from src.analysis.pipeline.scene_review import SceneReviewSession
 from src.analysis.pipeline.scene_workspace import read_workspace, restore_session, save_workspace
-from src.analysis.pipeline.support_motion import LIFT_SIGNAL
+from src.analysis.pipeline.support_motion import EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL
 from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
 from src.analysis.ui.widget_slice_processing import WidgetSliceProcessing
 from src.config.data_columns import FACE_PREFIX_TO_INFO
@@ -40,7 +40,7 @@ def recording(tmp_path_factory):
     return folder, header, raw, parsed, registration, result, digest
 
 
-def test_step1_shows_automatic_cycle_height_and_phases_then_clears_them(recording):
+def test_step1_selects_automatic_cycle_on_relative_motion_and_keeps_evidence(recording):
     folder = recording[0]
     widget = WidgetRawDataProcessing(DataLoader(), Parser(FACE_PREFIX_TO_INFO))
     try:
@@ -58,23 +58,41 @@ def test_step1_shows_automatic_cycle_height_and_phases_then_clears_them(recordin
         assert [p['motion'] for p in row['activity_members']] == [
             'tip_or_rotation', 'stationary', 'tip_or_rotation']
         widget.scene_panel.refresh(row['id'])
-        widget.combo_plot_axis.setCurrentIndex(widget.combo_plot_axis.findData(LIFT_SIGNAL))
+        signal = 'Relative rotation (deg)'
+        widget.combo_plot_axis.setCurrentIndex(widget.combo_plot_axis.findData(signal))
         APP.processEvents()
         assert float(widget.le_slice_start.text()) == row['start']
         assert float(widget.le_slice_end.text()) == row['end']
-        line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == LIFT_SIGNAL)
-        assert np.nanmax(line.get_ydata()) == pytest.approx(PEAK_MM, abs=1e-6)
+        line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == signal)
+        before = line.get_ydata().copy()
+        np.testing.assert_array_equal(before, widget.scene_session.result.signals[signal].to_numpy())
+        assert len(line.get_xdata()) == len(widget.raw_data)
+        assert row['support_cycle']['peak_height_mm'] == pytest.approx(PEAK_MM, abs=1e-6)
+        assert {'rise', 'fall'} <= {phase['phase'] for phase in row['support_cycle']['phases']}
+        assert row['support_cycle']['returned'] is True
+        assert widget.combo_plot_axis.findData(LIFT_SIGNAL) == -1
+        assert widget.combo_plot_axis.findData(EDGE_TRAVEL_SIGNAL) == -1
+        assert not hasattr(widget.scene_panel, 'motion_summary')
         labels = widget.plot_manager.ax.get_legend_handles_labels()[1]
-        assert 'Rise' in labels and 'Fall' in labels
-        assert 'Rise' in widget.scene_panel.motion_summary.text()
-        assert 'Fall' in widget.scene_panel.motion_summary.text()
-        assert 'Returned' in widget.scene_panel.motion_summary.text()
+        assert labels == [signal]
         assert not widget.scene_panel.save_all_button.isEnabled()
+        widget.scene_panel.table.clearSelection()
+        APP.processEvents()
+        assert widget.scene_panel.selected_row() is None
+        assert not widget.plot_manager.span_selector.active
+        line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == signal)
+        np.testing.assert_array_equal(line.get_ydata(), before)
+        widget.scene_panel.refresh(row['id'])
+        APP.processEvents()
+        assert widget.plot_manager.span_selector.active
+        assert widget.plot_manager.span_selector.extents == (row['start'], row['end'])
         widget.scene_panel.table.selectAll()
         widget.scene_panel.remove_button.click()
         APP.processEvents()
-        assert widget.scene_panel.motion_summary.text() == ''
-        assert not {'Rise', 'Fall'} & set(widget.plot_manager.ax.get_legend_handles_labels()[1])
+        line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == signal)
+        np.testing.assert_array_equal(line.get_ydata(), before)
+        assert not widget.plot_manager.span_selector.active
+        assert not widget.scene_panel.save_all_button.isEnabled()
     finally:
         if widget.scene_worker and widget.scene_worker.isRunning():
             widget.scene_worker.requestInterruption()
