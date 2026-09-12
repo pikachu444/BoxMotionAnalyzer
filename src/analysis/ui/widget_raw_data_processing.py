@@ -15,7 +15,6 @@ from matplotlib.figure import Figure
 from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.ui.widget_scene_review import SceneReviewWidget
 from src.analysis.ui.scene_review_flow import SceneReviewFlow
-from src.analysis.pipeline.support_motion import EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL, support_motion_signals
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
 from src.analysis.ui.dialog_marker_flip_review import MarkerFlipReviewDialog
 from src.config import config_app, config_analysis_ui
@@ -476,7 +475,6 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             self.append_log(f"[INFO] Default target '{DisplayNames.RB_CENTER}' selected for plotting.")
 
         self.update_plot()
-        self.plot_manager.enable_interactions(self.parsed_data)
         self.slice_group.setChecked(False)
         self.save_slice_button.setEnabled(True)
         self.review_marker_flips_button.setEnabled(True)
@@ -664,7 +662,6 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self._reset_scenes()
         self.slice_path_label.setText("Not saved yet.")
         self.update_plot()
-        self.plot_manager.enable_interactions(self.parsed_data)
         self._update_marker_review_summary()
         self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
         self.append_log(f"[INFO] Corrected source saved and activated: {filepath}")
@@ -680,47 +677,14 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             return
             
         selected_axis_generic = self.combo_plot_axis.currentData()
-        if self.scene_session and (selected_axis_generic in self.scene_session.result.signals
-                                  or selected_axis_generic in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL)):
+        if self.scene_session and selected_axis_generic in self.scene_session.result.signals:
             row = self.scene_panel.selected_row()
             plot_data = self.scene_session.result.signals
-            if selected_axis_generic in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
-                plot_data = support_motion_signals(self.scene_session.result, row or {})
             self.plot_manager.draw_plot(plot_data, [selected_axis_generic])
             self.plot_manager.enable_interactions(df)
             if row:
                 self.plot_manager.set_selector_active(True)
                 self.plot_manager.set_region(row['start'], row['end'])
-                if selected_axis_generic in (EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL):
-                    self.plot_manager.ax.set_xlim(row['start'], row['end'])
-                    values = plot_data[selected_axis_generic].dropna()
-                    if selected_axis_generic == EDGE_TRAVEL_SIGNAL and len(values):
-                        tolerance = self.scene_session.result.registration.position_tolerance_mm
-                        if values.max() < tolerance:
-                            # Keep floating-point fitting noise from filling the
-                            # graph as if it were a large measured edge movement.
-                            self.plot_manager.ax.set_ylim(0., tolerance)
-                    if selected_axis_generic == LIFT_SIGNAL and row['evidence_status'] == 'current':
-                        phase_styles = {'rise': ('Rise', '#2475b0'),
-                                        'fall': ('Fall', '#d77822'),
-                                        'steady_within_resolution': ('Low change', '#49936c'),
-                                        'unknown': ('Phase unclear', '#999999')}
-                        shown = set()
-                        for phase in row.get('support_cycle', {}).get('phases', []):
-                            key = phase['phase']
-                            if key not in phase_styles:
-                                continue
-                            label, color = phase_styles[key]
-                            self.plot_manager.ax.axvspan(
-                                phase['start_time_s'], phase['end_time_s'],
-                                color=color, alpha=.14,
-                                label=label if key not in shown else '_nolegend_')
-                            shown.add(key)
-                        if shown:
-                            # The range already fills this view. Preserve its
-                            # handles without tinting the measured phase bands.
-                            self.plot_manager.span_selector.set_props(facecolor='none')
-                            self.plot_manager.ax.legend(loc='best')
             else:
                 self.plot_manager.set_selector_active(False)
             self.canvas.draw_idle()
@@ -754,7 +718,26 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 if col_name in df.columns:
                     columns_to_plot.append(col_name)
                     
+        previous_region = (self.plot_manager.span_selector.extents
+                           if self.plot_manager.span_selector is not None else None)
         self.plot_manager.draw_plot(df, columns_to_plot)
+        # Clearing the axes also removes the selector's artists. Reattach them
+        # before restoring the selected scene or the manual CSV slice range.
+        self.plot_manager.enable_interactions(df)
+        if self.scene_session:
+            row = self.scene_panel.selected_row()
+            if row:
+                self.plot_manager.set_selector_active(True)
+                self.plot_manager.set_region(row['start'], row['end'])
+        else:
+            try:
+                region = (float(self.le_slice_start.text()), float(self.le_slice_end.text()))
+            except (ValueError, TypeError):
+                region = previous_region
+            if region is not None:
+                self.plot_manager.set_region(*region)
+            self.plot_manager.set_selector_active(self.slice_group.isChecked())
+        self.canvas.draw_idle()
 
     def open_data_selection_dialog(self):
         if self.parsed_data is None:

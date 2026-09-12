@@ -189,7 +189,7 @@ class PlotManager(QObject):
         """SpanSelector의 활성화 및 가시성을 설정합니다."""
         if self.span_selector:
             self.span_selector.set_active(active)
-            self.span_selector.visible = active
+            self.span_selector.set_visible(active)
             self.canvas.draw_idle()
 
     def set_region(self, start, end):

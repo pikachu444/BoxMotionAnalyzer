@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QApplication
 
 from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.pipeline.parser import Parser
-from src.analysis.pipeline.support_motion import LIFT_SIGNAL
+from src.analysis.pipeline.support_motion import EDGE_TRAVEL_SIGNAL, LIFT_SIGNAL
 from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
 from src.config.data_columns import FACE_PREFIX_TO_INFO
 from src.simulation.scene_fixtures import write_sequence
@@ -81,7 +81,7 @@ def saved(widgets, tmp_path):
     widget.scene_panel.exclude_button.click()
     widget.scene_panel.refresh(selected)
     widget.scene_panel.include_button.click()
-    widget.combo_plot_axis.setCurrentIndex(widget.combo_plot_axis.findData(LIFT_SIGNAL))
+    widget.combo_plot_axis.setCurrentIndex(widget.combo_plot_axis.findData('Relative rotation (deg)'))
     path = tmp_path / 'work.scene-review.json'
     with patch('PySide6.QtWidgets.QFileDialog.getSaveFileName', return_value=(str(path), '')):
         widget.scene_panel.save_review_button.click()
@@ -99,15 +99,17 @@ def test_reopen_unfinished_review_and_continue_without_reviving_deleted_rows(sav
     assert widget.scene_session is not None, widget.log_output.toPlainText()
     assert widget.scene_session.rows == expected
     assert widget.scene_panel.selected_id() == selected
-    assert widget.combo_plot_axis.currentData() == LIFT_SIGNAL
+    assert widget.combo_plot_axis.currentData() == 'Relative rotation (deg)'
     assert widget._get_slice_bounds() == (.4, 2.)
     assert widget._read_box_dimensions() == (300., 180., 90.)
     assert widget.scene_panel.type_combo.currentText() == 'G'
     assert widget.scene_panel.edition_combo.currentData() == '2018-03'
     assert not widget.scene_panel.save_all_button.isEnabled()
     assert widget.scene_panel.save_review_button.isEnabled()
-    height = next(line for line in widget.plot_manager.ax.lines if line.get_label() == LIFT_SIGNAL)
-    assert np.nanmax(height.get_ydata()) == pytest.approx(300. * np.sin(np.deg2rad(15.)), abs=1e-6)
+    line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == 'Relative rotation (deg)')
+    np.testing.assert_array_equal(line.get_ydata(), original.scene_session.result.signals['Relative rotation (deg)'])
+    assert widget.scene_session.row(selected)['motion_geometry']['opposite_edge_max_height_mm'] == pytest.approx(
+        300. * np.sin(np.deg2rad(15.)), abs=1e-6)
     widget.scene_panel.detect_button.click()
     wait(widget)
     assert widget.scene_session.rows == expected
@@ -118,6 +120,35 @@ def test_reopen_unfinished_review_and_continue_without_reviving_deleted_rows(sav
             widget.scene_panel.refresh(row['id'])
             widget.scene_panel.exclude_button.click()
     assert widget.scene_panel.save_all_button.isEnabled()
+
+
+def test_legacy_support_plot_selection_falls_back_without_changing_saved_review(saved, widgets, tmp_path):
+    original, path, selected, _, _ = saved
+    data = json.loads(path.read_text(encoding='utf-8'))
+    expected = deepcopy(original.scene_session.rows)
+    for index, legacy_signal in enumerate((LIFT_SIGNAL, EDGE_TRAVEL_SIGNAL)):
+        data['view']['signal'] = legacy_signal
+        path.write_text(json.dumps(data), encoding='utf-8')
+        previous_bytes = path.read_bytes()
+        widget = widgets()
+        open_path(widget.open_scene_review, path)
+        wait(widget)
+        assert widget.combo_plot_axis.currentData() == 'Relative rotation (deg)'
+        assert widget.scene_panel.selected_id() == selected
+        assert widget.scene_session.rows == expected
+        assert widget.scene_session.deleted_ids == original.scene_session.deleted_ids
+        assert widget._get_slice_bounds() == (.4, 2.)
+        assert path.read_bytes() == previous_bytes
+        line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == 'Relative rotation (deg)')
+        np.testing.assert_array_equal(line.get_ydata(), original.scene_session.result.signals['Relative rotation (deg)'])
+        assert len(line.get_xdata()) == len(widget.raw_data)
+        resaved = tmp_path / f'resaved-{index}.scene-review.json'
+        with patch('PySide6.QtWidgets.QFileDialog.getSaveFileName', return_value=(str(resaved), '')):
+            widget.save_scene_review()
+        reopened = json.loads(resaved.read_text(encoding='utf-8'))
+        assert reopened['rows'] == data['rows']
+        assert reopened['detection_version'] == data['detection_version']
+        assert reopened['view']['signal'] == 'Relative rotation (deg)'
 
 
 def test_cached_measurement_is_rebuilt_and_requires_review(saved, widgets):
@@ -213,11 +244,16 @@ def test_save_pending_geometry_uses_current_input_before_redetection(saved, widg
 
 
 def test_position_signal_restores_selected_marker_and_curve(saved, widgets):
-    widget, path, _, _, _ = saved
+    widget, path, selected, _, _ = saved
     assert 'Marker B1' in widget.data_loader.get_plottable_targets(widget.parsed_data)
     widget.current_selected_targets = ['Marker B1']
     widget.combo_plot_axis.setCurrentIndex(1)  # existing Position-Y plot
     widget.update_plot()
+    selector = widget.plot_manager.span_selector
+    assert selector.active and selector.get_visible()
+    assert selector.extents == (.4, 2.)
+    assert all(artist in widget.plot_manager.ax.get_children() and artist.get_visible()
+               for artist in selector.artists)
     before = next(line.get_ydata().copy() for line in widget.plot_manager.ax.lines if line.get_label() == 'B1_Y')
     with patch('PySide6.QtWidgets.QFileDialog.getSaveFileName', return_value=(str(path), '')):
         widget.scene_panel.save_review_button.click()
@@ -228,3 +264,21 @@ def test_position_signal_restores_selected_marker_and_curve(saved, widgets):
     assert fresh.combo_plot_axis.currentIndex() == 1
     after = next(line.get_ydata() for line in fresh.plot_manager.ax.lines if line.get_label() == 'B1_Y')
     np.testing.assert_array_equal(after, before)
+    selector = fresh.plot_manager.span_selector
+    assert selector.active and selector.get_visible()
+    assert selector.extents == (.4, 2.)
+    assert all(artist in fresh.plot_manager.ax.get_children() and artist.get_visible()
+               for artist in selector.artists)
+    assert len(fresh.plot_manager.ax.patches) == 1
+    fresh.scene_panel.table.clearSelection()
+    APP.processEvents()
+    assert fresh.scene_panel.selected_row() is None
+    assert not fresh.plot_manager.span_selector.active
+    assert not fresh.plot_manager.span_selector.get_visible()
+    assert all(not artist.get_visible() for artist in fresh.plot_manager.span_selector.artists)
+    after_clear = next(line.get_ydata() for line in fresh.plot_manager.ax.lines if line.get_label() == 'B1_Y')
+    np.testing.assert_array_equal(after_clear, before)
+    fresh.scene_panel.refresh(selected)
+    assert fresh.plot_manager.span_selector.extents == (.4, 2.)
+    assert all(artist in fresh.plot_manager.ax.get_children() and artist.get_visible()
+               for artist in fresh.plot_manager.span_selector.artists)
