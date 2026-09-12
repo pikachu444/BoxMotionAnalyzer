@@ -65,6 +65,8 @@ jobs:
           tests/test_scene_fixtures.py
           tests/test_scene_detection.py
           tests/test_support_motion.py
+          tests/test_support_cycles.py
+          tests/test_support_cycle_workflow.py
           tests/test_scene_artifact_io.py
           tests/test_scene_review_gui.py
           tests/test_scene_workspace.py

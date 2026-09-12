@@ -700,6 +700,27 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                             # Keep floating-point fitting noise from filling the
                             # graph as if it were a large measured edge movement.
                             self.plot_manager.ax.set_ylim(0., tolerance)
+                    if selected_axis_generic == LIFT_SIGNAL and row['evidence_status'] == 'current':
+                        phase_styles = {'rise': ('Rise', '#2475b0'),
+                                        'fall': ('Fall', '#d77822'),
+                                        'steady_within_resolution': ('Low change', '#49936c'),
+                                        'unknown': ('Phase unclear', '#999999')}
+                        shown = set()
+                        for phase in row.get('support_cycle', {}).get('phases', []):
+                            key = phase['phase']
+                            if key not in phase_styles:
+                                continue
+                            label, color = phase_styles[key]
+                            self.plot_manager.ax.axvspan(
+                                phase['start_time_s'], phase['end_time_s'],
+                                color=color, alpha=.14,
+                                label=label if key not in shown else '_nolegend_')
+                            shown.add(key)
+                        if shown:
+                            # The range already fills this view. Preserve its
+                            # handles without tinting the measured phase bands.
+                            self.plot_manager.span_selector.set_props(facecolor='none')
+                            self.plot_manager.ax.legend(loc='best')
             else:
                 self.plot_manager.set_selector_active(False)
             self.canvas.draw_idle()

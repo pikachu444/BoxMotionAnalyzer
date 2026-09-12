@@ -328,6 +328,7 @@ class SceneReviewFlow:
                     row['previous_review']['reasons'].append(reason)
                 row['evidence_status'], row['decision'] = reason, 'unreviewed'
                 row['motion_geometry'] = {'version': 1, 'status': reason}
+                row['support_cycle'] = {'version': 1, 'status': reason}
                 row.pop('intended_contact', None)
                 self.scene_session._reset_identity(row)
             self.scene_panel.refresh()

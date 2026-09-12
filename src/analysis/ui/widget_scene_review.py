@@ -10,6 +10,27 @@ MOTION_LABELS = {'stationary': 'Stationary', 'free_fall': 'Free-fall candidate',
                  'tracking_jump': 'Abrupt pose change', 'unclear': 'Unclear'}
 
 
+def support_cycle_label(cycle):
+    """Keep measured phases short; no support-force or test-identity wording."""
+    phases = cycle.get('phases', [])
+    parts = []
+    for key, label in (('rise', 'Rise'), ('fall', 'Fall')):
+        ranges = [p for p in phases if p['phase'] == key]
+        if len(ranges) == 1:
+            a, b = ranges[0]['start_time_s'], ranges[0]['end_time_s']
+            parts.append(f'{label} {a:.2f}–{b:.2f} s')
+        elif ranges:
+            parts.append(f'{label} ({len(ranges)})')
+    count = cycle.get('cycle_count', 0)
+    if count > 1:
+        parts.append(f'{count} returns')
+    elif cycle.get('returned') is True:
+        parts.append('Returned')
+    elif parts:
+        parts.append('Return not observed' if cycle.get('returned') is False else 'Return unclear')
+    return '   '.join(parts)
+
+
 class SceneReviewWidget(QWidget):
     row_selected = Signal(object)
     changed = Signal()
@@ -20,6 +41,7 @@ class SceneReviewWidget(QWidget):
         self.session = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
         tools = QHBoxLayout()
         self.detect_button = QPushButton('Detect scenes')
         self.open_review_button = QPushButton('Open review...')
@@ -35,7 +57,7 @@ class SceneReviewWidget(QWidget):
             tools.addWidget(button)
         self.motion_summary = QLabel()
         self.motion_summary.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
-        tools.addWidget(self.motion_summary, 1)
+        tools.addStretch()
         self.count_label = QLabel('No scenes')
         tools.addWidget(self.count_label)
         layout.addLayout(tools)
@@ -51,6 +73,10 @@ class SceneReviewWidget(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
         self.table.setMinimumHeight(110)
         layout.addWidget(self.table)
+        # Measurements need the row width; the remaining toolbar space clips
+        # them when the real Step 1 window uses desktop scaling.
+        self.motion_summary.setWordWrap(True)
+        layout.addWidget(self.motion_summary)
         identity = QHBoxLayout()
         identity.addWidget(QLabel('Type'))
         self.type_combo = QComboBox()
@@ -212,9 +238,14 @@ class SceneReviewWidget(QWidget):
             height = geometry.get('opposite_edge_max_height_mm')
             if height is not None:
                 label += f'   Height {height:.2f} mm'
+            phases = support_cycle_label(row.get('support_cycle', {}))
+            if phases:
+                label += '   ' + phases
         self.motion_summary.setText(label)
+        self.motion_summary.setVisible(bool(label))
         self.motion_summary.setToolTip(
-            str(geometry) + '\nObserved geometry; support force and trial intent are unverified.' if label else '')
+            str(geometry) + '\n' + str(row.get('support_cycle', {}))
+            + '\nObserved geometry; support force and trial intent are unverified.' if label else '')
 
     def _decide(self, decision):
         if self.session:
