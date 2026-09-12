@@ -13,6 +13,7 @@ import numpy as np
 from src.analysis.pipeline.scene_detection import VERSION, Registration, SceneCandidate
 from src.analysis.pipeline.intended_contact import validate_intended_contact_context
 from src.analysis.pipeline.support_motion import support_motion_evidence
+from src.analysis.pipeline.support_cycles import analyze_support_cycle
 from src.config.config_app import FACE_DEFINITIONS
 
 
@@ -140,6 +141,7 @@ class SceneReviewSession:
         row['gravity_evidence_start'] = row.pop('event_start')
         row['gravity_evidence_end'] = row.pop('event_end')
         row['motion_geometry'] = support_motion_evidence(self.result, row)
+        row['support_cycle'] = analyze_support_cycle(self.result, row)
         return row
 
     @property
@@ -206,6 +208,7 @@ class SceneReviewSession:
         row.pop('previous_review', None)
         row.pop('intended_contact', None)
         row['motion_geometry'] = {'version': 1, 'status': 'range_changed'}
+        row['support_cycle'] = {'version': 1, 'status': 'range_changed'}
         row.update(gravity_evidence_start=None, gravity_evidence_end=None, gravity_episodes=[],
                    rotation_deg=None, displacement_mm=None, left_censored=False, right_censored=False)
         self._reset_identity(row)
@@ -243,20 +246,28 @@ class SceneReviewSession:
                 row.pop('intended_contact', None)
             if row['evidence_status'] != 'current':
                 self._recompute_range(row)
+            else:
+                row['support_cycle'] = analyze_support_cycle(self.result, row)
 
     def _recompute_range(self, row):
         row['evidence_mode'] = 'range'
         # A changed interval receives new evidence only when it contains
         # a complete detected active interval. No evidence crosses its bounds.
-        contained = [c for c in self.result.candidates if row['start'] <= c.start and c.end <= row['end']
+        # Display grouping must not turn an existing complete activity into a
+        # censored capture when its original operator-selected range is reopened.
+        activities = (self.result.activity_candidates if self.result.activity_candidates is not None
+                      else self.result.candidates)
+        contained = [c for c in activities if row['start'] <= c.start and c.end <= row['end']
                      and c.motion != 'stationary']
         row['evidence_class'] = contained[0].evidence_class if len(contained) == 1 else 'unclear'
         row['motion'] = contained[0].motion if len(contained) == 1 else 'unclear'
         row['gravity_episodes'] = [e for c in contained for e in c.gravity_episodes]
         row['gravity_evidence_start'] = min((e['gravity_evidence_start'] for e in row['gravity_episodes']), default=None)
         row['gravity_evidence_end'] = max((e['gravity_evidence_end'] for e in row['gravity_episodes']), default=None)
-        overlapping = [c for c in self.result.candidates if c.start <= row['end'] and c.end >= row['start']
+        overlapping = [c for c in activities if c.start <= row['end'] and c.end >= row['start']
                        and c.motion != 'stationary']
+        row['activity_members'] = [dict(id=c.id, start=c.start, end=c.end, motion=c.motion)
+                                   for c in overlapping]
         row['left_censored'] = any(c.start < row['start'] < c.end or c.left_censored for c in overlapping)
         row['right_censored'] = any(c.start < row['end'] < c.end or c.right_censored for c in overlapping)
         row['boundary_uncertainty_s'] = max((c.boundary_uncertainty_s for c in overlapping), default=0.)
@@ -265,8 +276,9 @@ class SceneReviewSession:
         row['displacement_mm'] = None
         row['tags'] = ['reviewed_range_recomputed']
         row['motion_geometry'] = support_motion_evidence(self.result, row)
+        row['support_cycle'] = analyze_support_cycle(self.result, row)
         if (row['motion'] == 'unclear'
-                and row['motion_geometry']['status'] == 'floor_pivot_compatible'):
+                and row['motion_geometry']['status'] in ('floor_pivot_compatible', 'support_unknown')):
             row['motion'] = row['evidence_class'] = 'tip_or_rotation'
             row['tags'].append('fixed_edge_rotation')
 
@@ -302,7 +314,8 @@ class SceneReviewSession:
 
     def recompute_saved_row(self, saved):
         """Rebuild evidence from observations on the stored range, not its ID."""
-        match = next((c for c in self.result.candidates
+        originals = self.result.activity_candidates or []
+        match = next((c for c in [*self.result.candidates, *originals]
                       if c.start == saved['start'] and c.end == saved['end']), None)
         automatic = saved.get('evidence_mode', 'automatic') == 'automatic'
         if match is not None and automatic:

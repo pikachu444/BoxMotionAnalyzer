@@ -17,7 +17,7 @@ from src.config.data_columns import TimeCols
 from src.config.config_app import calculate_local_box_corners
 
 
-VERSION = 'observed-motion-v1'
+VERSION = 'observed-motion-v2-support-cycles'
 
 
 @dataclass(frozen=True)
@@ -102,6 +102,7 @@ class SceneCandidate:
     left_censored: bool = False
     right_censored: bool = False
     gravity_episodes: list[dict] = field(default_factory=list)
+    activity_members: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -115,6 +116,7 @@ class DetectionResult:
     registration: Registration | None
     valid_pose: np.ndarray
     block_ids: np.ndarray
+    activity_candidates: list[SceneCandidate] | None = None
 
 
 def _runs(values):
@@ -347,4 +349,8 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
                             'Marker fit RMS (mm)': rms * 1000.,
                             'Gravity residual (m/s2)': gravity_error,
                             'Rotation bound (m/s2)': contamination}, index=times)
-    return DetectionResult(candidates, signals, origins, rotations, corners, settings, registration, pose_valid, block_ids)
+    result = DetectionResult(candidates, signals, origins, rotations, corners, settings, registration,
+                             pose_valid, block_ids, activity_candidates=candidates)
+    from .support_cycles import merge_support_cycles
+    result.candidates = merge_support_cycles(result, cancelled=cancelled)
+    return result

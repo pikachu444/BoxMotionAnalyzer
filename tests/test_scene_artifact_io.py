@@ -141,6 +141,7 @@ def test_dimension_rewrite_preserves_interval_but_clears_geometry_identity(tmp_p
     original_review["candidate"].update(
         item_candidates=["G01", "G10"],
         geometry={"status": "registered", "floor_crossings": [{"time_after": 2.0}]},
+        support_cycle={"version": 1, "status": "complete_cycle", "returned": True},
     )
     _save(path, original_review, artifact={
         "IstaType": "G", "ScenarioId": "G01", "ScenarioKind": "free_fall",
@@ -157,6 +158,7 @@ def test_dimension_rewrite_preserves_interval_but_clears_geometry_identity(tmp_p
     assert review["detection"]["registration_sha256"] is None
     assert review["candidate"]["item_candidates"] == []
     assert review["candidate"]["geometry"] == {}
+    assert review["candidate"]["support_cycle"] == {"version": 1, "status": "geometry_changed"}
     assert review["identity"]["ista_type"] == "G"
     assert review["identity"]["confirmed"] is False
     assert review["identity"]["scenario_id"] is None

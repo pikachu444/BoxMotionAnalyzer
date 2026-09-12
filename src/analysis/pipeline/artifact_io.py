@@ -653,6 +653,8 @@ def update_slice_box_dimensions(filepath: str, box_dims: tuple[float, float, flo
         review['candidate'].pop('intended_contact', None)
         if 'motion_geometry' in review['candidate']:
             review['candidate']['motion_geometry'] = {'version': 1, 'status': 'geometry_changed'}
+        if 'support_cycle' in review['candidate']:
+            review['candidate']['support_cycle'] = {'version': 1, 'status': 'geometry_changed'}
         review["identity"].update(confirmed=False, scenario_id=None, scenario_kind=None)
         review["candidate"]["item_candidates"] = []
         review["candidate"]["geometry"] = {}
