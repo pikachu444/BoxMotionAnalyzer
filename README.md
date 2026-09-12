@@ -1,6 +1,6 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-09-11
+Last Reviewed: 2026-09-13
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
@@ -9,7 +9,7 @@ Last Reviewed: 2026-09-11
 ### 1. 시뮬레이션 (Simulation) - *New!*
 *   **MuJoCo 기반 디지털 트윈:** 실제 실험 데이터(CSV)가 없더라도, MuJoCo 물리 엔진을 통해 가상의 상자 낙하 데이터를 시뮬레이션할 수 있습니다.
 *   **낙하 자세 시뮬레이션:** 면(Face), 꼭짓점(Corner), 모서리 선(Edge) 자세와 강체 접촉을 생성합니다. 실제 포장재의 충돌·반발·텀블링 정확도는 검증되지 않았습니다.
-*   **데이터 내보내기:** 기존 GUI의 `.proc` exporter에는 시간·회전 정답 관련 제한이 있습니다. #74 검증은 독립 생성한 관측 CSV를 실제 분석 파이프라인에 넣고 별도 정답과 비교합니다. (자세한 내용은 [`docs/simulation.md`](docs/simulation.md) 참조)
+*   **데이터 내보내기:** 실제 시뮬레이션 시간·자세·질량중심을 `.proc`로 저장합니다. 마커 오류 검증은 별도로 생성한 관측 CSV를 분석 파이프라인에 넣고 독립 정답과 비교합니다. (자세한 내용은 [`docs/simulation.md`](docs/simulation.md) 참조)
 
 ### 2. 데이터 분석 (Data Analysis)
 *   **분석 파이프라인 (Analysis Pipeline):** 원본 모션 데이터를 로드하여 전처리(스무딩), 자세 최적화(Pose Optimization), 속도 계산 등의 과정을 자동으로 수행합니다.
@@ -41,7 +41,7 @@ Last Reviewed: 2026-09-11
         *   `engine/`: MuJoCo 물리 환경(Box, Drop setup) 구축 및 시뮬레이션 실행 (`mujoco_engine.py`)
         *   `ui/`: 시뮬레이션 설정(크기, 질량, 시나리오 등)을 위한 GUI (`main_window.py`)
         *   `scenarios.py`: 면, 모서리, 모서리 선 등 국제 규격의 낙하 자세 사전 정의
-        *   `data_exporter.py`: 시뮬레이션 결과를 `.proc`로 내보내는 기존 경로. 시간·회전 제한은 simulation 문서 참조
+        *   `data_exporter.py`: 실제 시간과 자세를 유지해 시뮬레이션 결과를 `.proc`로 저장
     *   **`analysis/`**: 데이터 분석 관련 핵심 로직 및 UI.
         *   `app/`: 분석 메인 윈도우(`MainApp`)와 상위 UI 조립 코드
         *   `pipeline/`: parser, slicer, smoother, pose optimizer, velocity calculator, frame analyzer 등 분석 파이프라인
@@ -160,3 +160,17 @@ GUI 없이 진입점 로직만 빠르게 검증하려면:
 ```bash
 python -m unittest tests/test_launch_headless.py
 ```
+
+공개 필수 검사는 [Windows CI](.github/workflows/public-marker-validation.yml)의 명령을 기준으로 실행합니다. 단위 계약과 합성 데이터 연결 결과는 구분하며, 이 검사는 실측 정확도나 ISTA 적합성을 확인하지 않습니다. 작은 공개 형식 예제 `data/testdata_box_marker.csv`는 유지하고, 촬영 원본과 생성 결과는 `TestSets/Input/`, `TestSets/Output/`, `tmp/` 등 Git에서 제외한 로컬 경로에 둡니다.
+
+기존 VDTest 원본·부분 파일과 파생 결과는 Git 추적만 해제했으며 작업 PC의 파일은 보존했습니다. 과거 Git 이력까지 제거한 것은 아닙니다. 새로 받은 저장소에서 공개 검사를 실행할 때 이 자료는 필요하지 않습니다.
+
+기존 VDTest 자료의 일관성 검사를 별도로 실행하려면 해당 파일 경로를 명시합니다. 지정하지 않으면 실측 검사는 미실행으로 남으며 공개 필수 검사에 포함되지 않습니다. 잘못 지정한 경로는 실패로 표시합니다.
+
+```powershell
+$env:BMA_REAL_CAPTURE = 'C:\LocalCaptures\VDTest_S5_001.csv'
+python -m pytest -q tests/test_real_data_flow.py tests/test_real_drop_posture_physics.py
+Remove-Item Env:BMA_REAL_CAPTURE
+```
+
+이 검사는 기존 자료와 추정 치수의 일관성만 확인합니다. 독립 교정·정답이 필요한 실제 실험 검증은 [#78](https://github.com/pikachu444/BoxMotionAnalyzer/issues/78)에 남아 있습니다.

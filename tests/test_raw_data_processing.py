@@ -22,10 +22,7 @@ class TestWidgetRawDataProcessing(unittest.TestCase):
         # Handcrafted schema fixture; not real-capture evidence.
         import os
         real_file_path = os.path.abspath("data/testdata_box_marker.csv")
-        if not os.path.exists(real_file_path):
-            # Fallback to creating it if missing or using another one
-            # The prompt memory mentions 'src/utils/make_testdata.py'
-             self.skipTest(f"Test file not found: {real_file_path}")
+        self.assertTrue(os.path.isfile(real_file_path), "Required public schema fixture is missing")
 
         # We need to use the real DataLoader and Parser for this integration test
         from src.analysis.pipeline.data_loader import DataLoader

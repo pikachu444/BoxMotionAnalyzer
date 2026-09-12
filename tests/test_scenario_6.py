@@ -10,6 +10,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from src.visualization.main_window import MainWindow
+from tests.public_result_fixture import public_result_file
 
 def test_projections():
     app = QApplication.instance()
@@ -18,39 +19,40 @@ def test_projections():
 
     assert len(MainWindow.open_windows) == 0
 
-    # 1. Create window
-    window = MainWindow.create_and_show()
-    data_path = os.path.join(project_root, 'data', 'test_real_data_result.csv')
-    success = window.data_handler.load_analysis_result(data_path)
-    assert success, "Failed to load data"
+    with public_result_file() as data_path:
+        try:
+            # 1. Create window
+            window = MainWindow.create_and_show()
+            success = window.data_handler.load_analysis_result(data_path)
+            assert success, "Failed to load data"
 
-    # 2. Check initial projection (should be Perspective by default)
-    assert not window.vista_widget.plotter.camera.GetParallelProjection(), "Should default to perspective projection"
-    assert window.perspective_projection_action.isChecked(), "Perspective action should be checked"
-    assert not window.parallel_projection_action.isChecked(), "Parallel action should be unchecked"
+            # 2. Check initial projection (should be Perspective by default)
+            assert not window.vista_widget.plotter.camera.GetParallelProjection(), "Should default to perspective projection"
+            assert window.perspective_projection_action.isChecked(), "Perspective action should be checked"
+            assert not window.parallel_projection_action.isChecked(), "Parallel action should be unchecked"
 
-    # 3. Trigger Parallel Projection (Alt+6) via the method connected to the action
-    window.enable_parallel_projection()
-    app.processEvents()
+            # 3. Trigger Parallel Projection (Alt+6) via the method connected to the action
+            window.enable_parallel_projection()
+            app.processEvents()
 
-    # Verify state changes to Parallel
-    assert window.vista_widget.plotter.camera.GetParallelProjection(), "Camera should be parallel"
-    assert not window.perspective_projection_action.isChecked(), "Perspective action should be unchecked"
-    assert window.parallel_projection_action.isChecked(), "Parallel action should be checked"
+            # Verify state changes to Parallel
+            assert window.vista_widget.plotter.camera.GetParallelProjection(), "Camera should be parallel"
+            assert not window.perspective_projection_action.isChecked(), "Perspective action should be unchecked"
+            assert window.parallel_projection_action.isChecked(), "Parallel action should be checked"
 
-    # 4. Trigger Perspective Projection (Alt+5) via the method connected to the action
-    window.enable_perspective_projection()
-    app.processEvents()
+            # 4. Trigger Perspective Projection (Alt+5) via the method connected to the action
+            window.enable_perspective_projection()
+            app.processEvents()
 
-    # Verify state changes back to Perspective
-    assert not window.vista_widget.plotter.camera.GetParallelProjection(), "Camera should be perspective"
-    assert window.perspective_projection_action.isChecked(), "Perspective action should be checked"
-    assert not window.parallel_projection_action.isChecked(), "Parallel action should be unchecked"
+            # Verify state changes back to Perspective
+            assert not window.vista_widget.plotter.camera.GetParallelProjection(), "Camera should be perspective"
+            assert window.perspective_projection_action.isChecked(), "Perspective action should be checked"
+            assert not window.parallel_projection_action.isChecked(), "Parallel action should be unchecked"
+        finally:
+            for instance in list(MainWindow.open_windows):
+                instance.close()
+            MainWindow.open_windows.clear()
 
-    # 5. Clean up
-    for instance in list(MainWindow.open_windows):
-        instance.close()
-    MainWindow.open_windows.clear()
 
 if __name__ == "__main__":
     test_projections()

@@ -11,6 +11,7 @@ import pytest
 
 from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.pipeline.parser import Parser
+from src.analysis.pipeline.scene_detection import detect_scenes, Registration
 from src.config.data_columns import FACE_PREFIX_TO_INFO
 from src.simulation.corruption_export import write_observations
 from src.simulation.marker_fixtures import example_profile
@@ -63,7 +64,17 @@ def test_physical_visibility_and_id_routing_preserve_solved_analysis_and_truth(t
     header, raw = DataLoader().load_csv(str(faulty / 'observed.csv'))
     parser = Parser(FACE_PREFIX_TO_INFO)
     parsed = parser.process(header, raw)
-    pd.testing.assert_frame_equal(parsed, parser.process(clean_header, clean_raw))
+    clean_parsed = parser.process(clean_header, clean_raw)
+    pd.testing.assert_frame_equal(parsed, clean_parsed)
+    # Negative control: physical visibility/labels do not corrupt the separate
+    # solved-marker channel consumed by scene detection.
+    clean_scenes = detect_scenes(clean_header, clean_raw, clean_parsed, registration=Registration(profile))
+    faulty_scenes = detect_scenes(header, raw, parsed, registration=Registration(profile))
+    pd.testing.assert_frame_equal(faulty_scenes.signals, clean_scenes.signals)
+    assert faulty_scenes.candidates == clean_scenes.candidates
+    np.testing.assert_array_equal(faulty_scenes.valid_pose, clean_scenes.valid_pose)
+    np.testing.assert_array_equal(faulty_scenes.origins_m, clean_scenes.origins_m)
+    np.testing.assert_array_equal(faulty_scenes.rotations, clean_scenes.rotations)
     np.testing.assert_array_equal(parsed.index, values['time_s'])
     np.testing.assert_array_equal(pd.to_numeric(parsed['Frame']), values['frame'])
     np.testing.assert_allclose(physical_rows(header, raw, 'F1')[2], [133., 169., 260.], atol=1e-12)
@@ -79,6 +90,23 @@ def test_physical_visibility_and_id_routing_preserve_solved_analysis_and_truth(t
     observed_text = (faulty / 'observed.csv').read_text()
     for forbidden in ('truth_pose', 'truth_markers', '"events"', '"mapping"', '"seed"', 'start_index'):
         assert forbidden not in observed_text
+
+
+def test_exported_solved_half_turn_has_a_scene_tracking_jump_without_truth_input(tmp_path):
+    values, profile = trajectory(), example_profile()
+    spec = {'schema_version': 1, 'events': [
+        {'kind': 'flip_180_local_axis', 'channel': 'rigid_body_markers', 'start_index': 4, 'axis': 'X'}]}
+    exported = write_observations(tmp_path / 'solved_x', values, profile, spec)
+    before = hashes(exported)
+    header, raw = DataLoader().load_csv(str(exported / 'observed.csv'))
+    parsed = Parser(FACE_PREFIX_TO_INFO).process(header, raw)
+    result = detect_scenes(header, raw, parsed, registration=Registration(profile))
+    jumps = [row for row in result.candidates if row.motion == 'tracking_jump']
+    assert len(jumps) == 1
+    assert (jumps[0].start, jumps[0].end) == (.024, .032)
+    assert 'abrupt_rigid_motion_not_confirmed_error' in jumps[0].tags
+    np.testing.assert_array_equal(result.signals.index, values['time_s'])
+    assert hashes(exported) == before
 
 
 def test_numpy_trajectory_and_explicit_com_round_trip(tmp_path):

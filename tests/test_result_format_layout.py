@@ -1,4 +1,5 @@
 import unittest
+from tests.public_result_fixture import public_result_file
 
 from src.analysis.pipeline.data_loader import DataLoader
 from src.config.data_columns import (
@@ -99,9 +100,11 @@ class TestResultFormatLayout(unittest.TestCase):
         with self.assertRaises(ValueError):
             normalize_result_column([HeaderL1.VEL, HeaderL2.COM])
 
-    def test_real_result_csv_columns_stay_hashable_after_normalization(self):
+    def test_public_schema_csv_columns_stay_hashable_after_normalization(self):
         loader = DataLoader()
-        df = loader.load_result_csv("data/test_real_data_result.csv")
+        # Public handcrafted canonical schema, not measured data.
+        path = self.enterContext(public_result_file())
+        df = loader.load_result_csv(path)
         matched_columns = [col for col in df.columns if col in DISPLAY_RESULT_COLUMNS]
 
         self.assertTrue(matched_columns)

@@ -112,6 +112,12 @@ def pose_error(pose, truth):
                                    * Rotation.from_rotvec(values[valid, 3:])).magnitude()).max())}
 
 
+def _within_pose_tolerance(errors, count, tolerance):
+    return bool(errors['valid_frames'] == count and count > 0
+                and errors['max_position_mm'] < tolerance['position_mm']
+                and errors['max_rotation_deg'] < tolerance['rotation_deg'])
+
+
 def _evaluate(context, *, truth=None, fixed=None):
     """Compare a real production run to the offline oracle, without saving it."""
     manifest, candidates = context['manifest'], context['candidates']
@@ -136,12 +142,44 @@ def _evaluate(context, *, truth=None, fixed=None):
         result['after_oracle_manual_approval'] = errors
         tolerance = manifest['pose_tolerances']
         expected_valid = len(truth) - (5 if case in ('gap', 'gap_x') else 0)
-        checks['pose_recovery'] = bool(errors['valid_frames'] == expected_valid
-                                  and errors['max_position_mm'] < tolerance['position_mm']
-                                  and errors['max_rotation_deg'] < tolerance['rotation_deg'])
+        checks['pose_recovery'] = _within_pose_tolerance(errors, expected_valid, tolerance)
         result['expected']['pose_valid_frames'] = expected_valid
     if case == 'healthy' and manifest['parameters']['scenario'] in ('free_fall','free-fall-no-contact'):
         checks['healthy_no_candidates'] = not candidates
+    if case == 'noise':
+        checks['noisy_raw_pose_within_tolerance'] = _within_pose_tolerance(
+            result['raw_pose_error'], len(truth), manifest['pose_tolerances'])
+        result['expected']['raw_pose_valid_frames'] = len(truth)
+    if case == 'genuine_rotation':
+        checks['genuine_rotation_preserved_without_correction'] = (
+            not context['decisions'] and _within_pose_tolerance(
+                result['raw_pose_error'], len(truth), manifest['pose_tolerances']))
+        # The no-contact/no-error preset has no event requiring review. Actual
+        # collisions in the other presets are allowed to create candidates.
+        if manifest['parameters']['scenario'] in ('free_fall', 'free-fall-no-contact'):
+            checks['genuine_rotation_no_candidates'] = not candidates
+    if case == 'freeze_reconnect':
+        # This oracle is used only after production returned. Frozen samples
+        # describe the last observed pose, not the unobserved motion beneath it.
+        observed_truth = truth.copy(deep=True)
+        pose_fields = [f'body_{axis}_mm' for axis in 'xyz'] + [f'r{i}{j}' for i in range(3) for j in range(3)]
+        observed_truth.loc[observed_truth.index[15:20], pose_fields] = truth.iloc[14][pose_fields].to_numpy()
+        for axis, offset in zip('xyz', (7., -3., 4.)):
+            column = f'body_{axis}_mm'
+            observed_truth.loc[observed_truth.index[20:22], column] += offset
+        normal = np.r_[0:15, 22:len(truth)]
+        regions = {'unaffected': normal, 'frozen': np.arange(15, 20),
+                   'reconnect_offset': np.arange(20, 22), 'return_frame_22': np.array([22])}
+        observed_errors = {name: pose_error(context['pose'].iloc[rows], observed_truth.iloc[rows])
+                           for name, rows in regions.items()}
+        result['observed_pose_model'] = {
+            'regions': observed_errors,
+            'expected_valid_frames': {name: len(rows) for name, rows in regions.items()},
+            'note': 'Frames 15-19 hold frame 14; 20-21 have world offset [7,-3,4] mm; '
+                    '22 returns to truth. Lost motion during freeze is not recovered.'}
+        for name, rows in regions.items():
+            checks[name + '_pose_matches_observation_model'] = _within_pose_tolerance(
+                observed_errors[name], len(rows), manifest['pose_tolerances'])
     if manifest['parameters']['scenario'] in ('face','edge','corner'):
         contact = np.asarray(manifest['parameters']['recorded_contact_force_n'])
         active = np.flatnonzero(contact > 1e-8)
@@ -155,6 +193,10 @@ def _evaluate(context, *, truth=None, fixed=None):
     result['checks'] = checks
     result['validation_scope'] = ('pose_mechanics' if 'pose_recovery' in checks else
                                   'insufficient_data_rejection' if case == 'low_coverage' else 'abstention_policy_only')
+    if case in ('noise', 'genuine_rotation', 'freeze_reconnect'):
+        result['validation_scope'] = {'noise': 'raw_pose_with_declared_noise',
+            'genuine_rotation': 'genuine_motion_without_correction',
+            'freeze_reconnect': 'observation_model_and_unaffected_pose'}[case]
     result['status'] = 'pass' if all(checks.values()) else 'fail'
     return result
 

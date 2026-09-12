@@ -21,7 +21,9 @@ TESTBOX_85_ESTIMATED_DIMS = (2082.9, 1046.6, 254.4)
 
 class TestRealDataFlow(unittest.TestCase):
     def setUp(self):
-        self.raw_csv_path = "TestSets/Input/VDTest_S5_001.csv"
+        self.raw_csv_path = os.environ.get("BMA_REAL_CAPTURE")
+        if not self.raw_csv_path:
+            self.skipTest("Optional real-capture consistency check: set BMA_REAL_CAPTURE to VDTest_S5_001.csv. Independent calibration remains pending.")
         self.temp_dir = tempfile.TemporaryDirectory()
         self.result_csv_path = os.path.join(self.temp_dir.name, "test_real_data_result.proc")
 

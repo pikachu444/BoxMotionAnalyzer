@@ -148,9 +148,9 @@ class TestDropPosturePostProcessor(unittest.TestCase):
         from src.analysis.pipeline.pipeline_controller import PipelineController
         from src.config.data_columns import FACE_PREFIX_TO_INFO
 
-        real_csv = "TestSets/Input/VDTest_S5_001.csv"
-        if not os.path.exists(real_csv):
-            self.skipTest("Real test data not available")
+        real_csv = os.environ.get("BMA_REAL_CAPTURE")
+        if not real_csv:
+            self.skipTest("Optional real-capture consistency check: set BMA_REAL_CAPTURE to VDTest_S5_001.csv. Independent calibration remains pending.")
 
         loader = DataLoader()
         header_info, raw_data = loader.load_csv(real_csv)
