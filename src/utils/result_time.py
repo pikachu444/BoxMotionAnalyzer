@@ -35,7 +35,8 @@ def read_result_frame(path):
     # Identity strings are opaque. Inference must not collapse ModelId 001 and
     # 1, convert a digits-only hash, or treat an ID such as NA as a missing value.
     converters = {i: str for i, col in enumerate(zip(*headers))
-                  if col[:2] == ('Info', 'Artifact') and col[2] not in DIMENSIONS}
+                  if (col[:2] == ('Info', 'Artifact') and col[2] not in DIMENSIONS)
+                  or col == ('Info', 'MarkerCorrection', 'OriginalSourceSha256')}
     df = pd.read_csv(path, header=[0, 1, 2], converters=converters)
     df.columns = pd.MultiIndex.from_tuples(list(zip(*headers)))
     if df.empty:

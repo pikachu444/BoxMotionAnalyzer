@@ -184,3 +184,10 @@ Windows 125% 배율에서 실제 CompareMainWindow/VTK를 실행했다. 창은 1
 `tmp/issue77_comparison_gui_20260912/audit.json`이 단계별 결과를 연결한다. `run_01/01_repeats_duplicate.png`는 실제 중복 제외 통계, `run_02/02_public_inputs_precontact.png`는 공개 처리 결과와 미확정 H/기울임 보류, `run_02/03_public_drop_vtk.png`는 실제 3D 렌더다. 최종 기본 배치는 `run_06_final_layout/01_final_default_metrics_plot.png`로 확인했다. x축 제목의 하단 경계는 -6.194 px에서 +18.750 px로 바뀌어 canvas 안에 있다. 주 에이전트도 화면과 실행 JSON, 현재 코드 해시를 직접 대조했다.
 
 중간 하네스의 불필요한 스크롤 존재 가정과 NumPy bool JSON 직렬화 오류는 별도 실패로 보존했다. 그래프 제목 잘림은 실제 제품 문제였으며 수정 후 해당 화면만 다시 확인했다. 이미 통과한 수치·저장·이벤트 흐름을 이유 없이 재실행하지 않았다. 두 독립 리뷰를 마쳤으며 최종 CI·병합 결과는 #77과 연결 PR에 기록한다.
+
+
+### 첫 원격 CI에서 확인한 식별값 읽기 문제
+
+PR #93의 첫 CI 34669654729는 원본·보정본 중복 제외 사유 검사에서 실패했다. pandas 3.0.5가 숫자로만 된 `OriginalSourceSha256`를 Python int로 읽어 유효한 관측 키를 만들지 못했다. 기존 pandas 2.3.3에서는 문자열로 읽혀 로컬 검사를 통과했던 차이다. 원본 해시 열에도 문자열 converter를 명시했고, 정수에서 해시를 추측해 복원하지 않는다. 선행 0을 포함한 해시도 정확한 문자열로 재열린다.
+
+격리한 pandas 3.0.5에서 실제 직렬화·로더·호환성·집계 경로를 확인하고, 기존 2.3.3에서는 원 실패 사례와 새 해시 보존 사례만 다시 확인했다. 기대 n이나 허용 오차는 바꾸지 않았다. 수치 추정과 GUI 코드는 그대로이며 해당 독립 승인은 유지된다. 기록은 `tmp/issue77_pandas3_fix.xml`과 `tmp/issue77_pandas2_fix.xml`이다. 최종 원격 CI 결과는 PR에 기록한다.

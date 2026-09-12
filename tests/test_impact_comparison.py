@@ -86,12 +86,25 @@ def test_copies_and_corrected_variants_do_not_inflate_repeat_count(tmp_path):
     result = model.get_impact_comparison()
     assert result['statistics']['vertical_velocity']['n'] == 3
     for name in (duplicate, corrected):
-        assert any('already counted' in reason for reason in result['files'][name]['reasons'])
+        assert any('already counted' in reason for reason in result['files'][name]['reasons']), result['files'][name]['reasons']
     model.set_baseline(duplicate)
     result = model.get_impact_comparison()
     assert result['files'][duplicate]['reasons'] == []
     assert result['files'][names[0]]['reasons']
     assert result['statistics']['vertical_velocity']['n'] == 3
+
+
+@pytest.mark.parametrize('source_sha', ['0' * 64, '01' * 32, '1' * 64])
+def test_numeric_original_capture_digest_survives_loading_exactly(tmp_path, source_sha):
+    model = ComparisonModel()
+    frame = make_frame(source_sha256='c' * 64)
+    column = ('Info', 'MarkerCorrection', 'OriginalSourceSha256')
+    frame[column] = source_sha
+    name = load_frame(model, tmp_path / 'numeric_digest.proc', frame)
+    assert model.datasets[name][column].iloc[0] == source_sha
+    assert isinstance(model.datasets[name][column].iloc[0], str)
+    assert model.impact_results[name].observation_key[0] == source_sha
+    assert model.get_impact_comparison()['files'][name]['reasons'] == []
 
 
 @pytest.mark.parametrize('source', ['mujoco_synthetic', 'handcrafted_dummy', 'public_external', 'unknown_legacy'])

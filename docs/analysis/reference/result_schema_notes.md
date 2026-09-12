@@ -415,7 +415,9 @@ sample/window/settings/residual evidence and a reviewed observation key.
 
 The key uses `Info/MarkerCorrection/OriginalSourceSha256` when present, otherwise
 SceneReview's source SHA, together with reviewed start/end and scenario ID.
-Copies and corrected variants of the same observation count once. Valid source
+The result reader preserves OriginalSourceSha256 as an opaque string, including
+digits-only values and leading zeroes under pandas 2/3. Copies and corrected
+variants of the same observation count once. Valid source
 and interval identity is independent of whether a raw-pose derivative is
 supported, so existing diagnostic values remain eligible for their own counts.
 Unknown optional review context does not prevent individual artifact loading.
