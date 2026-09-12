@@ -1,6 +1,6 @@
 # Minimal independent MuJoCo fixture contract for #74
 
-Last Reviewed: 2026-09-11
+Last Reviewed: 2026-09-12
 
 The minimal public example generator is implemented in `src/simulation/marker_fixtures.py`, with a separate production-analysis harness in `validate_marker_fixtures.py`. The separate Simulation UI direct exporter now records actual pose/time with its own contract in [simulation.md](../../simulation.md); it does not consume this fixture oracle or replace this observed-data analysis path. Scope remains the recording/coordinate/layout/oracle portions of #80–#84 needed for #74; broader simulation UI, comprehensive presets, batch matrices and general export redesign remain separate. Measured acceptance and remaining gaps are recorded in [the findings](marker_flip_review_findings.md).
 
@@ -87,24 +87,81 @@ Example commands (use a different output directory for each motion because each 
 
 Repeat the first two commands for edge/corner. Each invocation writes a summary of that invocation only; preserved per-case `validation.json` files are the combined evidence. The Qt-driven production GUI copies its observed/truth/corrected/slice/proc files and input/expected/actual report into ignored `tmp/issue74_gui/collision_face/`. Screenshots cover loaded input, approved X review, reloaded corrected source, and processed result. This is actual MainApp integration using Qt events, not a native manual mouse validation claim.
 
-## Next-task prompt
+## General observation specification (#82)
 
-The #74 collision/review scope merged through PR #87 on 2026-09-11. The bounded
-#83/#76 follow-up is implemented separately in
-`C:\SourceCodes\BoxMotionAnalyzer-worktrees\issue83-provenance-time`; confirm actual
-Git status before continuing. Generator 1.3 adds only the safe artifact identity
-described in `result_schema_notes.md` to observed CSV metadata; truth/event files
-remain test-only. Custom and collision geometry above is unchanged.
+`marker_corruption.apply_corruption(trajectory, profile, spec, seed)` extends the
+fixed examples with independent trajectory input and selected fault intervals.
+It returns copied truth, physical-marker and solved-constraint arrays plus a
+separate manifest. The existing `make_case`/`write_case` presets retain their API.
 
-Next task: review and finish publication of the bounded #83/#76 follow-up. Read
-AGENTS.md, the latest issues, implementation_todo.md, result_schema_notes.md and
-drop_result_comparison_plan.md. Verify source declarations and all exclusion
-reasons, canonical time/t1, mixed sampling/gaps, original frame numbers and actual
-GUI saved-file paths against the recorded commands. The public compatible pair
-is two loads of one independently generated and processed result, not two trials.
-Keep real compatible/mismatched captures pending when unavailable; do not infer
-VDTest model geometry or request unavailable calibration again. Resolve independent
-review findings with focused tests; preserve original XYZ and approval/recommendation
-OFF defaults. Do not expand into #75/#77 or legacy exporter work. Show the final
-diff, obtain separate commit/push/merge approvals and require same-head CI before
-merge. Do not automatically close #74, #76 or #83 on synthetic evidence alone.
+`Marker` is a reconstructed physical-marker position; a rigid-body constraint is
+a calculated position that can remain available during physical occlusion.
+[OptiTrack CSV documentation](https://docs.optitrack.com/motive/data-export/data-export-csv)
+Current production `Parser` consumes `Rigid Body Marker`, while `DataLoader`
+preserves both channel types. Physical-only visibility or ID errors must therefore
+leave current solved-marker analysis input unchanged. This is not a new physical
+marker detector or a model of Motive's response to occlusion.
+
+The trajectory JSON contains integer `schema_version: 1`, `source_kind`
+(`handcrafted_dummy` or `mujoco_synthetic`),
+`coordinate_policy: "world-y-up-box-local-fixed-center-v1"`, `time_s` (N),
+`body_origin_mm` (N×3), and `rotation_matrix` (N×3×3). Optional `frame` preserves
+sample IDs; otherwise output uses zero-based sample indices. Optional `com_mm`
+stays separate and is blank in truth export when unavailable. N must be at least
+two. Times/frames increase strictly, coordinates are finite, and rotation matrices
+must already be proper rotations within the documented numerical 1e-9 matrix
+tolerance. Input is not sorted, interpolated or orthogonalized to hide errors.
+The module accepts synthetic source declarations only, never promotes data to real
+validation, and does not calculate derivatives or infer COM.
+
+The spec is `{"schema_version":1,"events":[...]}`. Window events use zero-based
+`start_index` and `end_index_exclusive`, with an optional list of stable
+`marker_ids` (omitted means all), and a `channel` of `physical_markers` or
+`rigid_body_markers`. Indices refer to sample positions, not original frame IDs.
+
+| Kind | Additional fields and effect |
+| --- | --- |
+| `gaussian_noise` | `std_mm`: seeded independent XYZ noise in the selected window |
+| `missing` | Blank all XYZ of selected physical points or solved constraints, retaining time |
+| `freeze` | Hold the immediately preceding pre-label observation; start index zero is rejected and a missing anchor remains missing |
+| `reconnect_jump` | `offset_mm`: explicit world XYZ offset in the selected window; no inferred decay or hardware-reconnection claim |
+| `flip_180_local_axis` | Solved channel only; `start_index`, local `axis` X/Y/Z; cumulative suffix, no marker subset or end field |
+| `label_permutation` | Physical channel only; window and `mapping` from destination label to the currently routed source label; closed one-to-one mapping, omitted labels unchanged |
+
+For source-local marker r, physical truth is p+Rr. The solved channel is p+RFr,
+where each half-turn updates F←FH at its stated boundary. X/Y/Z half-turns commute:
+XY and YX both end at Z, though their intermediate intervals differ; XX restores
+identity. They are not ID permutations of an asymmetric physical layout.
+
+Each sample applies noise/offset, then freeze, then missing, then physical label
+routing. Events within a stage are ordered by start index and original list order.
+Freeze snapshots the preceding final pre-label observation, including noise or
+missing values; overlapping later-start freezes take precedence. Noise cannot
+fill a missing point or perturb a frozen value. A missing physical F1 routed by
+F1↔B1 appears blank in output B1. This fixed order is a software contract, not a
+claim about internal camera processing. A fault hidden inside a gap remains known
+only to the separate oracle; it does not become an observable precise boundary.
+Routing events compose on the current label state; all preceding visibility,
+noise and freeze selections refer to stable physical IDs. Arithmetic overflow is
+rejected rather than written as an undeclared missing marker.
+
+Run the generator on explicit JSON files:
+
+```powershell
+.venv/Scripts/python.exe -m src.simulation.corruption_export --trajectory tmp/trajectory.json --spec tmp/faults.json --example 18 --seed 42 --output tmp/new_observation
+```
+
+`--profile` selects an explicit custom profile instead of a public example. The
+new output directory contains `observed.csv` (both channels), `truth_pose.csv`,
+`truth_markers.csv`, and `observed.synthetic.json`. Only observed data and public
+registration enter production analysis. Spec, seed, event indices/actual times,
+input/source/file hashes and operator assumptions remain in the manifest. The
+exclusive-end time/frame is null when there is no following sample; no next time
+is fabricated. Truth arrays and input files remain unchanged.
+
+Existing output paths are refused. Validation finishes before creating output;
+an I/O failure may leave a partial new directory without a completion manifest,
+but does not overwrite an earlier export. The manifest is written last. These
+fixtures test mechanics and integration, not sensor statistics, real tracking
+accuracy, contact dynamics or ISTA suitability. Execution and review findings are
+recorded in `marker_flip_review_findings.md`; real calibration remains in #78.
