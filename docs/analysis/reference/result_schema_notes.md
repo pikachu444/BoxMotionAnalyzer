@@ -1,6 +1,6 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-09-12
+Last Reviewed: 2026-09-13
 
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
@@ -71,6 +71,12 @@ its previous decision/identity and reasons in `previous_review`. Confirmed items
 must still belong to the recomputed candidates and supported edition. Saving is
 atomic and rejects CSV destinations; unfinished reviews can be saved, while
 included-slice export continues to require every row's review.
+
+Detector version `observed-motion-v3-approved-face-states` identifies scene results
+whose meaning uses approved v3 face states. Loader headers carry validated context
+and full decisions as JSON primitives; the original correction artifact format is
+unchanged. Older affected ranges require review again, preserving prior choices.
+Unaffected ranges still undergo the existing exact evidence comparison.
 
 ## Artifact identity and comparison time (#83 / #76)
 

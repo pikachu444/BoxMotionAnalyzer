@@ -163,7 +163,7 @@ def save_workspace(path, session, source_path, box_dims, *, selected_id=None, si
         'source': {'path': source_reference, 'sha256': actual_hash},
         'box_dims_mm': list(box_dims),
         'registration': asdict(registration) if registration is not None else None,
-        'settings': asdict(result.settings), 'detection_version': VERSION,
+        'settings': asdict(result.settings), 'detection_version': getattr(result, 'version', VERSION),
         'context': {'ista_type': session.ista_type, 'applied_edition': session.applied_edition},
         'rows': deepcopy(session.rows), 'deleted_ids': sorted(session.deleted_ids),
         'manual_serial': session.manual_serial,
@@ -205,8 +205,6 @@ def restore_session(data, result, source_sha256):
     session = SceneReviewSession(result, source_sha256)
     session.set_context(**data['context'])
     context_reasons = []
-    if data['detection_version'] != VERSION:
-        context_reasons.append('detection_version_changed')
     if _json(data['settings']) != _json(asdict(result.settings)):
         context_reasons.append('detection_settings_changed')
     registration = asdict(result.registration) if result.registration else None
@@ -219,6 +217,9 @@ def restore_session(data, result, source_sha256):
             raise ValueError(f"Saved scene {saved['id']} is outside the observed capture.")
         fresh = session.recompute_saved_row(saved)
         reasons = list(context_reasons)
+        from .scene_face_corrections import version_change_affects_range
+        if version_change_affects_range(result, data['detection_version'], saved['start'], saved['end'], VERSION):
+            reasons.append('detection_version_changed')
         computed_keys = (set(saved) | set(fresh)) - OPERATOR_KEYS
         changed_fields = sorted(key for key in computed_keys
                                 if key not in saved or key not in fresh or _json(saved[key]) != _json(fresh[key]))

@@ -1,6 +1,6 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-09-12
+Last Reviewed: 2026-09-13
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
@@ -22,6 +22,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 - [O] Publish support geometry in [PR #91](https://github.com/pikachu444/BoxMotionAnalyzer/pull/91). Head `0e77022` passed Windows CI [34630053718](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/34630053718) and merged as `23534fb` on 2026-09-12 KST.
 - [O] Implement and independently review #75 whole-record review restoration. Separate actual MainApp processes preserved unfinished rows, manual additions/deletions, selection and 77.645714 mm support evidence; continued review exported a slice that reopened in Step 1.5. Pending registration, plot-target loss, filename collisions and reference-edition findings were corrected and rechecked. See `gui_overview.md` and `../reference/result_schema_notes.md` for outcomes and limits. [PR #92](https://github.com/pikachu444/BoxMotionAnalyzer/pull/92) passed CI 34634363058 at head `1d6b278` and merged as `ff5ef04` on 2026-09-12 KST.
 - [O] Connect complete fixed-edge rise/return motion automatically in existing Step 1 and show measured phases. Public normal/elevated/repeated motion and confusing controls, actual workspace/slice/proc reopening, and independent code/physics corrections are recorded in `gui_overview.md`. Raw activity ranges and operator decisions remain intact; trial intent stays unconfirmed. Final CI/merge status is recorded in #75 and its PR.
+- [O] Connect #75 approved-face corrections to scene detection. Registered axes/corners now follow full approval history; unregistered relative references remain separate. Actual corrected-source save, separate MainApp reopen and Raw processing preserved the selected 12 frames and metadata. Independent reviews fixed unclear-range merging and stale version-refresh evidence; both counterexamples passed rechecks. See `gui_overview.md` for execution limits. Final CI/merge status is recorded in #75 and its PR.
+- [ ] Remove unnecessary support-height and edge details from Step 1 while retaining internal detection evidence and saved review meaning.
 - [ ] Complete #75 test-record/sequence inference and unsupported G16/G17/H support/rotation item identification; validate full and partial real recordings against independent labels. These are separate remaining functions, not completed by the motion detector. Automation `boxmotionanalyzer-74` remains PAUSED; do not resume it without instruction.
 - [O] Implement Issue #74 v3 analysis face-assignment mechanics (issue remains open).
   - Keep every event OFF until explicit operator approval.
