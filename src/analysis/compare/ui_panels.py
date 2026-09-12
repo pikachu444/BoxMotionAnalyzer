@@ -11,19 +11,126 @@ import pandas as pd
 
 from src.config.result_metric_descriptors import METRIC_DESCRIPTORS
 from src.analysis.ui.plot_manager import PlotManager
+from src.analysis.compare.impact_metrics import METRICS
+
+SOURCE_LABELS = {'real': 'Real', 'mujoco_synthetic': 'MuJoCo',
+                 'handcrafted_dummy': 'Constructed', 'public_external': 'Public',
+                 'unknown_legacy': 'Unknown'}
 
 class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
     def __init__(self):
         super().__init__("Experiment Summary")
         layout = QVBoxLayout(self)
+        modes = QHBoxLayout()
+        self.view_combo = QComboBox()
+        self.view_combo.addItems(['Pre-contact (experimental)', 'Repeats (experimental)', 'Diagnostics'])
+        modes.addWidget(self.view_combo)
+        self.cohort_label = QLabel()
+        modes.addWidget(self.cohort_label)
+        modes.addStretch()
+        layout.addLayout(modes)
+        self._table_data = ({}, None, None)
+        self.view_combo.currentIndexChanged.connect(self._render)
         
         self.table = QTableWidget()
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.verticalHeader().setVisible(False)
         layout.addWidget(self.table)
 
-    def update_table(self, diff_data: dict[str, dict], baseline_name: str):
+    def update_table(self, diff_data: dict[str, dict], baseline_name: str, impact=None):
+        self._table_data = (diff_data, baseline_name, impact)
+        self.view_combo.setVisible(impact is not None)
+        self._render()
+
+    def _render(self):
+        diff_data, baseline_name, impact = self._table_data
+        self.cohort_label.clear()
+        if impact is None or self.view_combo.currentIndex() == 2:
+            self._render_diagnostics(diff_data, baseline_name)
+            return
+        if self.view_combo.currentIndex() == 1 and impact['source']:
+            self.cohort_label.setText('Source: ' + SOURCE_LABELS.get(impact['source'], 'Unknown'))
+        self.table.clear()
+        if not impact['files']:
+            self.table.setRowCount(0)
+            self.table.setColumnCount(0)
+            return
+        if self.view_combo.currentIndex() == 1:
+            self._render_statistics(impact)
+        else:
+            self._render_motion(impact, diff_data)
+        self.table.resizeColumnsToContents()
+        for col in range(1, self.table.columnCount()):
+            self.table.setColumnWidth(col, min(220, max(95, self.table.columnWidth(col))))
+        self.table.horizontalHeader().setTextElideMode(Qt.ElideMiddle)
+
+    @staticmethod
+    def _number(value):
+        return '\u2014' if value is None else f'{value:.6g}'
+
+    def _metric_item(self, key):
+        descriptor = METRICS[key]
+        label = descriptor['label']
+        if descriptor['unit']:
+            label += f" ({descriptor['unit']})"
+        if descriptor['role'] == 'diagnostic':
+            label += ' [diagnostic]'
+        item = QTableWidgetItem(label)
+        item.setToolTip(descriptor['tooltip'])
+        return item
+
+    def _render_motion(self, impact, diff_data):
+        keys = [key for key, descriptor in METRICS.items() if descriptor['role'] == 'experimental']
+        names = list(impact['files'])
+        self.table.setRowCount(len(keys))
+        self.table.setColumnCount(len(names) + 1)
+        self.table.setHorizontalHeaderLabels(['Metric'] + [
+            f"{name}\n{SOURCE_LABELS.get(diff_data[name]['source'], 'Unknown')}"
+            for name in names])
+        for r, key in enumerate(keys):
+            self.table.setItem(r, 0, self._metric_item(key))
+            for c, name in enumerate(names, 1):
+                data = impact['files'][name]
+                metric = data['result'].metrics[key]
+                item = QTableWidgetItem(self._number(metric.value))
+                item.setTextAlignment(Qt.AlignCenter)
+                evidence = data['result'].evidence
+                details = [metric.reason] if metric.reason else []
+                details.extend(data['reasons'])
+                if evidence.get('evaluation_time_s') is not None:
+                    details.append(f"Evaluated at {evidence['evaluation_time_s']:.6g} s")
+                if evidence.get('sample_count'):
+                    details.append(f"Pre-contact window: {evidence['window_start_s']:.6g} to "
+                                   f"{evidence['window_end_s']:.6g} s, {evidence['sample_count']} samples")
+                item.setToolTip('\n'.join(details))
+                self.table.setItem(r, c, item)
+        for c, name in enumerate(names, 1):
+            self.table.horizontalHeaderItem(c).setToolTip(
+                name + '\n' + diff_data[name]['source'] + '\n' + '\n'.join(impact['files'][name]['reasons']))
+
+    def _render_statistics(self, impact):
+        self.table.setRowCount(len(METRICS))
+        headers = ['Metric', 'n', 'Mean', 'Min', 'Max', 'Range', 'Counts', 'Match baseline']
+        self.table.setColumnCount(len(headers))
+        self.table.setHorizontalHeaderLabels(headers)
+        for r, key in enumerate(METRICS):
+            self.table.setItem(r, 0, self._metric_item(key))
+            stats = impact['statistics'][key]
+            n = stats['n']
+            count = QTableWidgetItem(str(n) if n >= 3 else f'{n} (low)')
+            count.setToolTip('Valid distinct observations. Fewer than 3 provide insufficient repeat evidence.')
+            self.table.setItem(r, 1, count)
+            for c, field in enumerate(('mean', 'min', 'max', 'range'), 2):
+                self.table.setItem(r, c, QTableWidgetItem(self._number(stats.get(field))))
+            counts = ', '.join(f'{value}: {total}' for value, total in sorted(stats.get('counts', {}).items()))
+            self.table.setItem(r, 6, QTableWidgetItem(counts or '\u2014'))
+            matches = stats.get('matching')
+            item = QTableWidgetItem(f'{matches}/{n}' if matches is not None and n else '\u2014')
+            item.setToolTip('Diagnostic agreement with the baseline category; not agreement with an intended trial target.')
+            self.table.setItem(r, 7, item)
+
+    def _render_diagnostics(self, diff_data, baseline_name):
         if not diff_data:
             self.table.clear()
             self.table.setRowCount(0)
@@ -158,6 +265,7 @@ class CompareGraphPanel(QGroupBox):
         self.plot_manager.ax.set_ylabel(metric_name)
         self.plot_manager.ax.legend(fontsize=8)
         self.plot_manager.ax.grid(True)
+        self.fig.tight_layout()
         self.canvas.draw()
 
     def set_elapsed_cursor(self, elapsed):
@@ -225,16 +333,19 @@ class CompareControlPanel(QGroupBox):
     def _show_details(self, current, *_):
         self.details.setPlainText(current.toolTip() if current else '')
 
-    def update_files(self, file_names: list[str], baseline: str, model=None):
+    def update_files(self, file_names: list[str], baseline: str, model=None, impact=None):
         # Update List
         self.file_list.clear()
         for name in file_names:
-            status = model.status_text(name) if model else ''
+            repeat_reasons = impact['files'][name]['reasons'] if impact else None
+            status = model.status_text(name, repeat_reasons=repeat_reasons) if model else ''
             item = QListWidgetItem(name + '\n' + status)
             item.setData(Qt.UserRole, name)
             details = name + '\n' + status
             if model:
                 details += '\n\n' + '\n'.join(model.exclusion_reasons(name))
+                if repeat_reasons:
+                    details += '\n\nRepeat summary exclusion:\n' + '\n'.join(repeat_reasons)
                 details += '\n\nDeclared metadata:\n' + '\n'.join(f'{key}: {value}' for key, value in model.identities[name].values.items())
             item.setToolTip(details)
             self.file_list.addItem(item)

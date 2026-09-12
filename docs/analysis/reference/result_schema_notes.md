@@ -402,3 +402,30 @@ NaN. Only a missing norm column in a legacy file permits fallback: all three
 components must be finite in that row. A partial/missing/non-finite component
 leaves the norm unavailable. This policy applies to global and supported box-local
 linear velocity/acceleration norms; it never substitutes zero for unknown motion.
+
+
+## Precontact comparison estimates (#77)
+
+The read-only comparison calculator uses original `Position/CoM/P_T*` in mm,
+`P_R*` rotation vectors in radians, and canonical actual seconds. These position
+columns denote the geometric centre. It does not reuse saved Velocity columns.
+Results are computed on reopening; no new `.proc` columns or legacy values are
+written. `ImpactResult` retains per-metric value/unavailability reason, evaluation
+sample/window/settings/residual evidence and a reviewed observation key.
+
+The key uses `Info/MarkerCorrection/OriginalSourceSha256` when present, otherwise
+SceneReview's source SHA, together with reviewed start/end and scenario ID.
+The result reader preserves OriginalSourceSha256 as an opaque string, including
+digits-only values and leading zeroes under pandas 2/3. Copies and corrected
+variants of the same observation count once. Valid source
+and interval identity is independent of whether a raw-pose derivative is
+supported, so existing diagnostic values remain eligible for their own counts.
+Unknown optional review context does not prevent individual artifact loading.
+
+Conditional equivalent height additionally requires current included SceneReview,
+confirmed Type G/free_fall at applied/reference edition 2018-03, matching executed
+geometry/floor and an explicitly registered local COM offset. A zero offset is
+explicit data, not a default. `FinalFace` is read only if present and valid;
+`ReferenceFace` never stands in for it. The current pipeline does not produce
+FinalFace. Physical definitions, software support limits and remaining validation
+are in [the comparison plan](../design/drop_result_comparison_plan.md#6-77-접촉-전-운동과-반복-관측-비교).

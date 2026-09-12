@@ -70,8 +70,9 @@ class ComparePlaybackPanel(QGroupBox):
             container = QFrame()
             container.setMinimumWidth(250)
             layout = QVBoxLayout(container)
-            title = QLabel(name)
-            title.setWordWrap(True)
+            title = QLabel()
+            # Fit the minimum-width viewer; the tooltip retains the full path label.
+            title.setText(title.fontMetrics().elidedText(name, Qt.ElideMiddle, 220))
             title.setToolTip(name)
             title.setTextFormat(Qt.PlainText)
             layout.addWidget(title)

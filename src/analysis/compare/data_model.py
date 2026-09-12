@@ -8,6 +8,7 @@ from src.analysis.pipeline.data_loader import DataLoader
 from src.utils.artifact_metadata import read_identity, compatibility_reasons, SOURCE_KINDS
 from src.utils.result_time import timeline_from_frame, segmented_series
 from src.visualization.data_handler import DataHandler
+from src.analysis.compare.impact_metrics import calculate_impact_metrics, METRICS
 
 
 class ComparisonModel:
@@ -17,6 +18,7 @@ class ComparisonModel:
         self.visualization_handlers = {}
         self.identities = {}
         self.timelines = {}
+        self.impact_results = {}
         self.baseline_name = None
         # Adjustable display policy, not a physical detection threshold.
         self.max_gap_sec = 0.1
@@ -31,6 +33,7 @@ class ComparisonModel:
         df = self.data_loader.load_result_csv(filepath)
         identity = read_identity(df)
         timeline = timeline_from_frame(df)
+        impact = calculate_impact_metrics(df)
         if identity.source_kind not in SOURCE_KINDS - {'unknown_legacy'}:
             reason = 'Synchronization unavailable: unknown or invalid source class; individual review only'
             timeline = replace(timeline, reason='; '.join(filter(None, (timeline.reason, reason))))
@@ -39,6 +42,7 @@ class ComparisonModel:
         self.datasets[name] = df
         self.identities[name] = identity
         self.timelines[name] = timeline
+        self.impact_results[name] = impact
         if visualizable:
             self.visualization_handlers[name] = handler
         if self.baseline_name is None:
@@ -50,7 +54,8 @@ class ComparisonModel:
             self.baseline_name = name
 
     def remove_file(self, name):
-        for entries in (self.datasets, self.visualization_handlers, self.identities, self.timelines):
+        for entries in (self.datasets, self.visualization_handlers, self.identities, self.timelines,
+                        self.impact_results):
             entries.pop(name, None)
         if self.baseline_name == name:
             self.baseline_name = next(iter(self.datasets), None)
@@ -64,12 +69,14 @@ class ComparisonModel:
                 reasons.append(f'{label} {self.timelines[key].reason}')
         return list(dict.fromkeys(reasons))
 
-    def status_text(self, name):
+    def status_text(self, name, *, repeat_reasons=None):
         source = self.identities[name].source_kind
         reasons = self.exclusion_reasons(name)
-        summary = 'Comparison compatible' if not reasons else 'Excluded from aggregation / baseline differences'
+        summary = 'Comparison compatible' if not reasons else 'Baseline differences unavailable'
+        if repeat_reasons is not None:
+            summary += '; repeats excluded' if repeat_reasons else '; repeats included'
         time_status = self.timelines[name].reason or 'Actual-time alignment available'
-        return f'{source} · {summary}\n{time_status}'
+        return f'{source}\n{summary}\n{time_status}'
 
     def get_summary_differences(self):
         """Per-file values and compatible baseline differences. No mean/statistics."""
@@ -106,6 +113,48 @@ class ComparisonModel:
             results[name] = {'summary': values, 'diffs': diffs, 'reasons': reasons,
                              'source': self.identities[name].source_kind}
         return results
+
+    def get_impact_comparison(self):
+        """Per-observation values and compatible, distinct-observation summaries."""
+        if self.baseline_name is None:
+            return {'files': {}, 'statistics': {}, 'source': None}
+        order = [self.baseline_name] + [name for name in self.datasets if name != self.baseline_name]
+        files, seen = {}, set()
+        for name in order:
+            result = self.impact_results[name]
+            reasons = self.exclusion_reasons(name)
+            if result.observation_key is None:
+                reasons.append('Reviewed observation identity unavailable')
+            elif not reasons:
+                if result.observation_key in seen:
+                    reasons.append('Same capture and reviewed interval already counted')
+                else:
+                    seen.add(result.observation_key)
+            files[name] = {'result': result, 'reasons': reasons}
+        statistics = {}
+        baseline = self.impact_results[self.baseline_name]
+        for key, descriptor in METRICS.items():
+            values = [item['result'].metrics[key].value for item in files.values()
+                      if not item['reasons'] and not item['result'].metrics[key].reason]
+            if descriptor['kind'] == 'numeric':
+                values = [float(value) for value in values
+                          if isinstance(value, (int, float, np.number))
+                          and not isinstance(value, (bool, np.bool_)) and np.isfinite(value)]
+                stats = {'n': len(values), 'mean': float(np.mean(values)) if values else None,
+                         'min': min(values) if values else None, 'max': max(values) if values else None,
+                         'range': max(values) - min(values) if values else None}
+            else:
+                counts = {}
+                for value in values:
+                    if isinstance(value, str) and value:
+                        counts[value] = counts.get(value, 0) + 1
+                reference = baseline.metrics[key]
+                stats = {'n': sum(counts.values()), 'counts': counts,
+                         'reference': reference.value if not reference.reason else None}
+                stats['matching'] = counts.get(stats['reference'], 0) if stats['reference'] is not None else None
+            statistics[key] = stats
+        return {'files': {name: files[name] for name in self.datasets},
+                'statistics': statistics, 'source': self.identities[self.baseline_name].source_kind}
 
     def get_timeseries_data(self, group, component, metric, *, individual=None):
         result = {}
