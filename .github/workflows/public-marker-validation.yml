@@ -107,5 +107,6 @@ jobs:
             tmp/ci-*/**/validation*.json
             tmp/ci-*/**/negative_controls*.json
             tmp/ci-*/**/*.synthetic.json
+            tmp/issue84_public_metrics/**/public_impact_metrics.json
           if-no-files-found: warn
           retention-days: 30
