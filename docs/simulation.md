@@ -13,6 +13,14 @@ Last Reviewed: 2026-09-12
 
 기존 GUI는 `.proc`를 직접 내보낸다. #74 검증은 별도의 `observed.csv`를 실제 분석 파이프라인에 넣고, 독립적인 `truth_pose.csv`와 비교한다. 두 저장 경로의 완성도와 검증 범위를 구분해야 한다.
 
+### 오류 구간을 지정한 관측 생성 (#82)
+
+`python -m src.simulation.corruption_export --trajectory tmp/trajectory.json --spec tmp/faults.json --example 18 --seed 42 --output tmp/new_observation`은 독립 시간·자세 궤적에 지정한 가림, 정지, 재연결 점프, 노이즈, ID 교환과 강체 추정의 반회전을 적용한다. 기존 고정 예제 밖의 오류 구간을 재현할 때 사용한다. 입력 형식과 연산 순서는 [fixture 계약](analysis/reference/marker_flip_fixture_contract.md#general-observation-specification-82)에 있다.
+
+출력 `observed.csv`는 물리 `Marker`와 추정 `Rigid Body Marker`를 분리하며 현재 Step 1은 후자만 분석한다. 따라서 물리 마커만 가리거나 ID를 바꾸면 현재 분석 입력은 그대로다. 강체 추정 채널의 오류는 별도로 지정해야 한다. 정답과 오류 지정은 별도 파일에 보존하고 분석기에 전달하지 않는다. 출력 경로가 이미 있으면 덮어쓰지 않는다. 새 GUI나 자동 보정 승인 기능을 추가한 것이 아니며 실제 OptiTrack 오류 분포를 재현했다고 해석하지 않는다.
+
+Step 1에서 `observed.csv`를 열고 사용한 profile의 `box_dims_mm`를 `Box Dimensions`에 입력한다(18마커 예제는 200/120/80 mm). 현재 raw CSV 열기는 이 치수를 자동 반영하지 않는다. 예를 들어 물리 F1을 가린 뒤 B1과 ID를 바꾼 입력에서도 Step 1의 F1/B1 그래프는 solved 채널을 표시하므로 물리 채널의 빈 구간이 나타나지 않는다. 실제 물리 가림을 보고 싶다면 별도 `Marker` 열을 확인해야 한다.
+
 ### 연속 촬영 예제 (#75)
 
 `python -m src.simulation.scene_fixtures --case drops --output tmp/scene_recording`은 공개 300×180×90 mm 박스와 32개 마커로 연속 입력을 만든다. 분석 입력은 `observed.csv`, 선택적 정적 등록은 `registration.json`이다. `truth_pose.csv`, `truth_events.json`은 검출 후 평가용으로 분리한다. 입력에 시험 번호·운동 종류·오류 구간 정답을 넣지 않으며 검출기는 정답 파일을 열지 않는다.

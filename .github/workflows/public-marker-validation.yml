@@ -44,6 +44,8 @@ jobs:
           tests/test_marker_face_assignment.py
           tests/test_marker_flip.py
           tests/test_mujoco_marker_fixtures.py
+          tests/test_marker_corruption.py
+          tests/test_corruption_export.py
           tests/test_marker_flip_artifact_io.py
           tests/test_marker_face_gui_flow.py
           tests/test_simulation_contact_gui.py

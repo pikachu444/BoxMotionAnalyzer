@@ -1,8 +1,20 @@
 # Issue #74: evidence, correction scope, and verification status
 
-Last Reviewed: 2026-09-11
+Last Reviewed: 2026-09-12
 
-## Decision and evidence
+## 2026-09-12 specified observation faults (#82)
+
+The generic API/CLI now accepts an independent synthetic pose trajectory, box-local marker profile, explicit corruption specification and seed. Physical `Marker` visibility/label routing and solved `Rigid Body Marker` faults are separate. The [fixture contract](marker_flip_fixture_contract.md#general-observation-specification-82) owns input fields and operation order. This is software delivery; camera error statistics and registered real-capture validation remain pending in #78.
+
+Actual MuJoCo execution supplied 100 samples at 8 ms intervals (0–0.792 s), a public 200×120×80 mm box and 18 asymmetric markers, in a 4 m starting-height lane without contact. Three separate CLI outputs used clean observations, physical faults, and solved faults. Physical F1 missing at indices [15,20) followed by F1/B1 label exchange correctly moved the blank values to output B1; F2 alone received 0.02 mm Gaussian noise. Production parsing of the physical-only output exactly equaled clean solved-marker input. In the solved-fault output, the production review found the freeze/reconnect boundary at 0.160 s and the X half-turn at 0.240 s; the X-hypothesis residual was 0.00003306 degrees. Recommendations and approvals stayed OFF. These are constructed event-mechanics results, not real detection accuracy.
+
+Reopening all outputs preserved original times/frames and identical truth pose/marker files. Maximum marker serialization error was 9.09e-13 mm. Existing output-directory reuse failed without changing any previous file. A separate nonuniform-time, nonconsecutive-frame case preserved the same meanings. MainApp actually loaded the physical-fault CSV and displayed solved F1/B1 Position-Y curves with the public dimensions entered as 200/120/80 mm. Current raw opening does not automatically apply artifact dimensions and the marker selector displays solved channels only; [simulation.md](../../simulation.md) explains this existing flow. The final screen was inspected, with no claim of physical-channel plotting.
+
+Independent physics and code reviewers read implementation, literal-coordinate controls and execution artifacts. Two numeric defects were corrected: overflowing world offsets could become undeclared blank observations, and Gaussian generation could return Inf before a later missing mask concealed it. Arithmetic overflow and nonfinite generated geometry/noise now fail before output-directory creation; both original counterexamples and the masked-noise case were rechecked. Normal missing/freeze NaNs retain their specified meaning. The independent code reviewer also verified combined physical routing/solved rotation, input-copy ownership, reopening and source/output hashes. A harness-only initial frame comparison mixed strings with integers; numeric comparison fixed the harness without changing production data or expected coordinates.
+
+Local evidence: `tmp/issue82_corruption_20260912/audit.json`, `run_01/execution_resumed.json`, and `mainapp_02_explicit_dimensions/01_step1_solved_marker_selection.png`. The actual normal run preceded the final finite-value rejection guard; its unchanged normal arithmetic was reviewed instead of rerunning the full pipeline. Focused counterexamples exercised the final guard. Required CI and publication are tracked in #82 and its PR. No private capture-derived output is committed.
+
+## Prior decision and evidence
 
 Scope was checked against [#74](https://github.com/pikachu444/BoxMotionAnalyzer/issues/74) and its comments, parent/validation [#73](https://github.com/pikachu444/BoxMotionAnalyzer/issues/73) / [#78](https://github.com/pikachu444/BoxMotionAnalyzer/issues/78), and follow-ups [#79](https://github.com/pikachu444/BoxMotionAnalyzer/issues/79)–[#84](https://github.com/pikachu444/BoxMotionAnalyzer/issues/84). Their proposed thresholds and transforms are requirements to assess, not physical ground truth. This revision implements the subsequently approved face-assignment scope; it does not claim the original XYZ-permutation proposal handles all solved-pose errors.
 
