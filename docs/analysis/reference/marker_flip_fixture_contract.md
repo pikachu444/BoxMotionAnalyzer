@@ -165,3 +165,50 @@ but does not overwrite an earlier export. The manifest is written last. These
 fixtures test mechanics and integration, not sensor statistics, real tracking
 accuracy, contact dynamics or ISTA suitability. Execution and review findings are
 recorded in `marker_flip_review_findings.md`; real calibration remains in #78.
+
+## Public validation reports and intentional faults (#84)
+
+`validate_marker_fixtures` retains its per-case `validation.json` object and the
+per-invocation `validation_summary.json` list. Reports identify the fixture and
+report schema versions separately, source/evidence level, seed, profile/layout,
+input hashes, observed frame/time range, declared events, expected behavior,
+unchanged numerical tolerances and oracle rationale. CLI reports retain the
+interpreter, module, argument list and working directory; API calls are identified
+as API calls rather than assigned an invented shell command. Analysis exceptions
+remain failures. Unreadable metadata is not guessed.
+
+If input generation fails in a reused output folder, the current summary contains
+the new failure and the CLI exits nonzero. `validation_failure.json` records that
+generation failure without overwriting a previous normal `validation.json`.
+Validation also compares final input/truth/manifest hashes with the initial
+hashes before reporting success. Nonfinite JSON metadata is rejected before
+copying it into a report; failure recovery preserves the original error and
+records missing metadata as unknown.
+
+The explicit controls use the public 18-marker free-fall fixtures:
+
+```powershell
+.venv/Scripts/python.exe -m src.simulation.validate_marker_fixtures --case healthy --seed 74082 --negative-controls --output tmp/new_validation_run
+```
+
+Normal healthy and X cases must first pass on the same observations. The first
+control adds 1 mm only to a memory copy of the healthy comparison oracle's body-X
+position after production analysis. The second retains the X approval decision
+but replaces its materialization with an unchanged source copy, then runs the
+real Parser and PoseOptimizer. Neither supplies altered truth to the detector.
+Both must fail `pose_recovery` with all 100 poses present. The existing 0.1 mm and
+0.1 degree limits are not changed; an exception, missing run or unrelated failure
+does not count as a detected fault.
+
+`negative_controls.json` distinguishes the failed mutated validation from the
+successful detection of that intended failure. Original observed/truth/manifest
+files and normal reports are preserved, with before/after hashes. The control
+does not establish automatic axis selection, camera accuracy or ISTA conformity.
+Other profiles and motions do not silently substitute for these control inputs.
+
+The required Windows lane runs the controls and retains generated public JSON
+evidence plus JUnit results in the `public-validation-evidence` Actions artifact,
+including on failure, for 30 days. The pose reports are `synthetic_integration`;
+JUnit records the separately named contract and integration checks. Neither is
+Level 3/4 evidence. External-data access and scope limitations are recorded in
+`marker_flip_review_findings.md`.

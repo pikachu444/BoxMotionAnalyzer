@@ -2,6 +2,51 @@
 
 Last Reviewed: 2026-09-12
 
+## 2026-09-12 public failure evidence and deliberate faults (#84)
+
+The validation CLI now retains case identity, source and evidence level, seed,
+schema, input hashes, observed range, expected behavior, tolerances and invocation
+alongside numerical results. The [fixture contract](marker_flip_fixture_contract.md#public-validation-reports-and-intentional-faults-84)
+defines the two deliberate faults and report files. Production detection still
+runs before the separate truth and inserted-event records are read.
+
+An independent subprocess run used the public 18-marker 200×120×80 mm box,
+seed 74082 and 100 MuJoCo samples at 0–0.792 s without floor contact. Normal
+healthy and manually approved X cases both recovered all 100 poses within the
+unchanged 0.1 mm / 0.1 degree limits. The intended failures were:
+
+| Deliberate fault | Expected | Actual |
+| --- | --- | --- |
+| Add 1 mm only to the comparison oracle's body-X position | Position error >0.9 mm; all poses remain valid; only `pose_recovery` fails | 1.00010419 mm, 0.00029340 degrees, 100 valid poses; exactly the expected check fails |
+| Bypass X face-assignment materialization, then run the real Parser and PoseOptimizer | Approximately 180 degrees of rotation error; all poses remain valid; only `pose_recovery` fails | 179.99999958 degrees, 100 valid poses; exactly the expected check fails |
+
+The CLI exited 0 because both normal runs passed and both specified faults were
+detected. Its nested mutated validations remain `fail`. Original observations,
+truth, manifests and normal reports had identical before/after hashes. Runtime
+source hashes and preregistered expectations also remained unchanged. The
+subprocess took 100.36 s; evidence is
+`tmp/issue84_validation_20260912/run_01/execution.json` and its generated
+`negative_controls.json`. The earlier in-process run produced the same numbers;
+the final pytest contracts do not repeat that expensive numerical execution.
+
+Independent review reproduced these reporting defects and verified the fixes:
+
+| Defect | Correction and focused recheck |
+| --- | --- |
+| Generation failure could reuse an earlier pass | Preserve the old normal report, write the current `validation_failure.json`, put failure in the new summary and exit 1 |
+| A file changed during production could pass with a cached input hash | Recheck all four input/truth/manifest files before finalizing; retain both hashes and fail on change. Each file was changed separately in a reporting-contract counterexample |
+| Nonfinite manifest metadata prevented writing the new failure report | Validate a finite JSON object before copying metadata, retain unknown fields and the original error. NaN, both infinities and numeric overflow `1e999` were rejected in normal and failure-recovery paths |
+
+The numerical CLI run preceded the final file/metadata guards. Its analysis
+math and observed inputs are unchanged; focused failing counterexamples were
+rechecked instead of repeating the expensive normal run. Existing API checks
+also confirmed wrong-profile rejection, no usable pose from two constraints,
+and the independent position/rotation oracle. Physics review directly checked
+the code, actual reports and disk hashes; no changed physical tolerance or truth
+leakage was found. CI and publication status are recorded in #84 and its linked
+PR. This is synthetic software evidence, not camera accuracy, real ISTA
+validation or completion of #78's release gate.
+
 ## 2026-09-12 specified observation faults (#82)
 
 The generic API/CLI now accepts an independent synthetic pose trajectory, box-local marker profile, explicit corruption specification and seed. Physical `Marker` visibility/label routing and solved `Rigid Body Marker` faults are separate. The [fixture contract](marker_flip_fixture_contract.md#general-observation-specification-82) owns input fields and operation order. This is software delivery; camera error statistics and registered real-capture validation remain pending in #78.
@@ -49,11 +94,15 @@ The new GUI therefore reports actual bounded re-fit angular residual and face-fi
 | Filtering across a face change | Segment smoothing, differentiation and resampling | Segment-specific regression checks |
 | Legacy integration fixture has no assigned markers but prefilled pose | Replace fixture with explicit healthy constraints and real Parser; missing pose remains unavailable | Do not preserve stale rotations to make a test succeed |
 
-The pre-existing branch was `codex/issue-74-marker-flip-review`, HEAD `2030e9f`, with 15 modified tracked and 6 untracked files, nothing staged, and no PR for that head. Existing work was preserved; an ignored local snapshot is in `tmp/issue74_implementation_baseline/`. The working diff includes that prior implementation as well as this revision. No commit, push, or merge is authorized by implementation approval alone.
+The initial branch was `codex/issue-74-marker-flip-review`, HEAD `2030e9f`, with 15 modified tracked and 6 untracked files, nothing staged, and no PR for that head. Existing work was preserved; an ignored local snapshot is in `tmp/issue74_implementation_baseline/`. This records the initial session state, not the current branch or publication status.
 
 ## External data availability
 
-The OptiTrack sample archive was checked at file-list level and contains `.tak` simple movement/rotation captures, not a verified labeled flip CSV. Motive export and applicable use terms must be established before using it as a distributable fixture. The 6D-ViCuT Dryad record/README describes PhaseSpace/C3D data with two markers per box; that is not a Motive constraint flip oracle. No useful labeled real flip file was established. Dataset introduction pages and archive listings are not executed validation. Additional broad data collection is not part of this task.
+The OptiTrack sample archive was checked at file-list level and contains `.tak` simple movement/rotation captures, not a verified labeled flip CSV. Motive export and applicable use terms must be established before using it as a distributable fixture. Dataset introduction pages and archive listings are not executed validation. Level 3 public-external robustness remains optional/manual; it cannot replace the independently labeled internal categories in #78.
+
+On 2026-09-12, the [6D-ViCuT official record](https://datadryad.org/dataset/doi:10.5061/dryad.jq2bvq8dv) and public metadata were retrieved. They declare CC0 and a 5,188,865,752-byte group1 archive containing session21 and miscellaneous descriptors. The normal file download returned 403 and API download required authentication (401). No ZIP body, central directory, C3D or original descriptor file was acquired; Range support and actual sample headers remain unverified. The public README was read on the landing page. Local access evidence is `tmp/issue6dvicut_20260912/audit.json`.
+
+The [original paper, section 3.3](https://pmc.ncbi.nlm.nih.gov/articles/PMC10371785/), uses two markers per box. Initial pose construction assumes the top face is parallel to the ground and resolves four possible poses by manual image comparison. Those poses cannot serve as unconstrained continuous 6D rotation or ISTA trial truth. Before any optional robustness run, obtain the C3D and marker/box/session descriptors through authorized access, verify actual units and frames, and preserve this scope. No useful labeled real flip file has been established. The remaining external candidates listed in #84 have not been executed as validation fixtures.
 
 ## Acceptance boundaries and next action
 
