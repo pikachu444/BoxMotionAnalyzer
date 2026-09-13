@@ -19,7 +19,7 @@ from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.pipeline.artifact_io import list_result_files
 from src.analysis.ui.dialog_metric_guide import DropPostureMetricGuideDialog
 from src.analysis.ui.plot_popup_dialog import PlotPopupDialog
-from src.utils.qt_sections import CollapsibleSection, set_path_label
+from src.utils.qt_sections import CollapsibleSection, find_result_column_index, set_path_label
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS,
     RESULT_TIME_COL,
@@ -35,6 +35,8 @@ from src.config.data_columns import (
     get_result_column_display_path,
     get_result_metric_display_name,
     normalize_result_column,
+    RESULT_LEVEL1_DISPLAY, RESULT_LEVEL2_DISPLAY,
+    is_corner_id_column, format_result_value, get_result_metric_tooltip,
 )
 from src.config.result_metric_descriptors import (
     DROP_POSTURE_SUMMARY_GROUP_ORDER,
@@ -221,6 +223,8 @@ class WidgetResultsAnalyzer(QWidget):
         self.find_abs_max_button = QPushButton("Abs Max")
         self.find_max_button = QPushButton("Max")
         self.find_min_button = QPushButton("Min")
+        for button in (self.find_abs_max_button, self.find_max_button, self.find_min_button):
+            button.setEnabled(False)
         target_layout.addWidget(self.find_abs_max_button)
         target_layout.addWidget(self.find_max_button)
         target_layout.addWidget(self.find_min_button)
@@ -330,6 +334,7 @@ class WidgetResultsAnalyzer(QWidget):
         self.find_abs_max_button.clicked.connect(self.on_find_abs_max_click)
         self.find_max_button.clicked.connect(self.on_find_max_click)
         self.find_min_button.clicked.connect(self.on_find_min_click)
+        self.find_max_target_combo.currentIndexChanged.connect(self._on_point_target_changed)
         self.export_point_button.clicked.connect(self.on_export_point_data_click)
         
         # Scenario Output
@@ -464,15 +469,8 @@ class WidgetResultsAnalyzer(QWidget):
     def _format_summary_value(self, value, descriptor=None):
         if self._is_missing_value(value):
             return "N/A"
-        if isinstance(value, bool):
-            return "Yes" if value else "No"
-        if isinstance(value, str) and value == "SustainedContact":
-            return "Stable floor contact"
-        try:
-            numeric_value = float(value)
-            formatted = f"{numeric_value:.3f}"
-        except (TypeError, ValueError):
-            formatted = str(value)
+        column = descriptor.column if descriptor is not None else None
+        formatted = format_result_value(column, value)
         if descriptor is not None and descriptor.unit:
             return f"{formatted} {descriptor.unit}"
         return formatted
@@ -712,9 +710,8 @@ class WidgetResultsAnalyzer(QWidget):
             'plotted': self.last_selected_result_columns.copy(),
             'point': self.selected_point_info.copy(),
             'target': self.find_max_target_combo.currentData(),
-            'limits': (self.plot_manager.ax.get_xlim(), self.plot_manager.ax.get_ylim()),
-            'popups': {name: (popup.selected_columns.copy(), popup.plot_manager.ax.get_xlim(),
-                              popup.plot_manager.ax.get_ylim())
+            'limits': self.plot_manager.capture_limits(),
+            'popups': {name: (popup.selected_columns.copy(), popup.plot_manager.capture_limits())
                        for name, popup in self.popup_windows.items()},
         }
 
@@ -733,26 +730,24 @@ class WidgetResultsAnalyzer(QWidget):
         for control in (self.result_data_tree, self.selection_group_by_combo,
                         self.selection_search_input, self.plot_results_button):
             control.setEnabled(self.result_data is not None)
-        target_index = self.find_max_target_combo.findData(previous['target'])
+        target_index = find_result_column_index(self.find_max_target_combo, previous['target'])
         if target_index >= 0:
             self.find_max_target_combo.setCurrentIndex(target_index)
         self._draw_result_columns([col for col in self.available_result_columns
                                    if col in self.last_selected_result_columns])
         self.selected_point_info = previous['point']
         self.update_point_selection_ui()
-        self.plot_manager.ax.set_xlim(previous['limits'][0])
-        self.plot_manager.ax.set_ylim(previous['limits'][1])
+        self.plot_manager.restore_limits(previous['limits'])
         self.plot_manager.canvas.draw_idle()
         if self.current_result_file:
             self._update_context_from_dataframe(os.path.basename(self.current_result_file))
         else:
             self._reset_context_labels()
-        for name, (columns, xlim, ylim) in previous['popups'].items():
+        for name, (columns, limits) in previous['popups'].items():
             popup = self.popup_windows[name]
             popup.set_plot_data(self.result_data, columns)
             popup.set_selected_time_cursor(self.selected_point_info.get('time'))
-            popup.plot_manager.ax.set_xlim(xlim)
-            popup.plot_manager.ax.set_ylim(ylim)
+            popup.plot_manager.restore_limits(limits)
             popup.plot_manager.canvas.draw_idle()
 
     def load_result_file(self, file_path, *, preserve_selection=False):
@@ -868,6 +863,8 @@ class WidgetResultsAnalyzer(QWidget):
             descriptor = get_result_metric_descriptor(column_tuple)
             if descriptor is not None:
                 leaf_item.setToolTip(0, descriptor.short_description)
+            else:
+                leaf_item.setToolTip(0, get_result_metric_tooltip(column_tuple))
 
             if column_tuple in self.checked_result_columns:
                 leaf_item.setCheckState(0, Qt.Checked)
@@ -991,14 +988,15 @@ class WidgetResultsAnalyzer(QWidget):
                 str(l3),
                 leaf_label,
                 path_label,
+                get_result_metric_tooltip(column),
             ]).lower()
 
             if group_by == "object":
-                top_label = str(l2)
-                mid_label = str(l1)
+                top_label = RESULT_LEVEL2_DISPLAY.get(l2, str(l2))
+                mid_label = RESULT_LEVEL1_DISPLAY.get(l1, str(l1))
             else:
-                top_label = str(l1)
-                mid_label = str(l2)
+                top_label = RESULT_LEVEL1_DISPLAY.get(l1, str(l1))
+                mid_label = RESULT_LEVEL2_DISPLAY.get(l2, str(l2))
 
             entries.append({
                 "column": column,
@@ -1058,10 +1056,17 @@ class WidgetResultsAnalyzer(QWidget):
         for col in checked_columns:
             self.find_max_target_combo.addItem(get_result_column_display_path(col), userData=col)
 
-        if current_target in checked_columns:
-            index = self.find_max_target_combo.findData(current_target)
-            if index >= 0:
-                self.find_max_target_combo.setCurrentIndex(index)
+        index = find_result_column_index(self.find_max_target_combo, current_target)
+        if index >= 0:
+            self.find_max_target_combo.setCurrentIndex(index)
+
+    def _on_point_target_changed(self, *_):
+        column = self.find_max_target_combo.currentData()
+        quantitative = column is not None and not is_corner_id_column(column)
+        for button in (self.find_abs_max_button, self.find_max_button, self.find_min_button):
+            button.setEnabled(quantitative)
+        self.find_max_target_combo.setToolTip(get_result_metric_tooltip(column))
+        self.update_point_selection_ui()
 
     def plot_selected_results(self):
         if self.result_data is None:
@@ -1124,7 +1129,7 @@ class WidgetResultsAnalyzer(QWidget):
         self._sync_popup_cursors()
 
     def on_result_plot_click(self, event):
-        if event.inaxes != self.plot_manager.ax:
+        if event.inaxes not in self.plot_manager.axes:
             return
         if self.result_data is None or self.result_data.empty:
             return
@@ -1177,7 +1182,7 @@ class WidgetResultsAnalyzer(QWidget):
 
             if value is not None:
                 self.selected_point_label.setText(
-                    f"{time_text} s: {float(value):.6g}"
+                    f"{time_text} s: {format_result_value(self.find_max_target_combo.currentData(), value)}"
                 )
             else:
                 self.selected_point_label.setText(f"{time_text} s")
@@ -1254,6 +1259,8 @@ class WidgetResultsAnalyzer(QWidget):
             self.log_message.emit("[WARNING] No target data selected for peak search.")
             return
         target_column = normalize_result_column(target_column)
+        if is_corner_id_column(target_column):
+            return
 
         try:
             series = pd.to_numeric(self.result_data[target_column], errors='coerce')

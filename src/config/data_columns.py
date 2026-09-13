@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+import math
+from numbers import Real
+from numpy import bool_
 
 
 @dataclass(frozen=True)
@@ -576,16 +579,22 @@ RESULT_LEVEL1_DISPLAY = {
     HeaderL1.INFO: HeaderL1.INFO,
 }
 
+RESULT_LEVEL2_DISPLAY = {
+    HeaderL2.COM: "Box centre",
+    HeaderL2.DROP_POSTURE: "Posture",
+    HeaderL2.DROP_POSTURE_SUMMARY: "Summary",
+}
+
 
 RESULT_LEVEL3_DISPLAY = {
     HeaderL3.P_TX: "Position X",
     HeaderL3.P_TY: "Position Y",
     HeaderL3.P_TZ: "Position Z",
-    HeaderL3.P_RX: "Rotation X",
-    HeaderL3.P_RY: "Rotation Y",
-    HeaderL3.P_RZ: "Rotation Z",
-    HeaderL3.REL_H: "Relative Height",
-    HeaderL3.ANALYSIS_INPUT_H: "Analysis Input Height",
+    HeaderL3.P_RX: "Rotation vector X",
+    HeaderL3.P_RY: "Rotation vector Y",
+    HeaderL3.P_RZ: "Rotation vector Z",
+    HeaderL3.REL_H: "Relative height",
+    HeaderL3.ANALYSIS_INPUT_H: "Input height",
     HeaderL3.TIME: "Time",
     HeaderL3.NUM: "Frame",
     HeaderL3.TL_FULL_START_SEC: "Full Start Time",
@@ -593,21 +602,21 @@ RESULT_LEVEL3_DISPLAY = {
     HeaderL3.TL_SLICE_START_SEC: "Slice Start Time",
     HeaderL3.TL_SLICE_END_SEC: "Slice End Time",
     HeaderL3.SRC: "Pose Source",
-    HeaderL3.DROP_BETA_DEG: "Drop Angle Beta",
-    HeaderL3.DROP_THETA_LONG_DEG: "Long Direction Angle",
-    HeaderL3.DROP_THETA_SHORT_DEG: "Short Direction Angle",
-    HeaderL3.DROP_CMIN_INDEX: "Lowest Corner",
-    HeaderL3.DROP_DELTA_H_MM: "Corner Height Difference",
-    HeaderL3.DROP_BETA_AT_T1_MINUS_DEG: "Beta at t1-",
-    HeaderL3.DROP_MAX_BETA_DEG: "Max Beta",
-    HeaderL3.DROP_THETA_LONG_AT_T1_MINUS_DEG: "Long Angle at t1-",
-    HeaderL3.DROP_MAX_ABS_THETA_LONG_DEG: "Max Abs Long Angle",
-    HeaderL3.DROP_THETA_SHORT_AT_T1_MINUS_DEG: "Short Angle at t1-",
-    HeaderL3.DROP_MAX_ABS_THETA_SHORT_DEG: "Max Abs Short Angle",
-    HeaderL3.DROP_DELTA_H_AT_T1_MINUS_MM: "Corner Height Difference at t1-",
-    HeaderL3.DROP_MAX_DELTA_H_MM: "Max Corner Height Difference",
-    HeaderL3.DROP_CMIN_AT_T1_MINUS_INDEX: "Lowest Corner at t1-",
-    HeaderL3.DROP_T1_MINUS_TIME_SEC: "t1- Time",
+    HeaderL3.DROP_BETA_DEG: "Face tilt",
+    HeaderL3.DROP_THETA_LONG_DEG: "Long axis tilt",
+    HeaderL3.DROP_THETA_SHORT_DEG: "Short axis tilt",
+    HeaderL3.DROP_CMIN_INDEX: "Lowest corner",
+    HeaderL3.DROP_DELTA_H_MM: "Face height difference",
+    HeaderL3.DROP_BETA_AT_T1_MINUS_DEG: "Pre-contact face tilt",
+    HeaderL3.DROP_MAX_BETA_DEG: "Maximum face tilt",
+    HeaderL3.DROP_THETA_LONG_AT_T1_MINUS_DEG: "Pre-contact long axis tilt",
+    HeaderL3.DROP_MAX_ABS_THETA_LONG_DEG: "Maximum long axis tilt magnitude",
+    HeaderL3.DROP_THETA_SHORT_AT_T1_MINUS_DEG: "Pre-contact short axis tilt",
+    HeaderL3.DROP_MAX_ABS_THETA_SHORT_DEG: "Maximum short axis tilt magnitude",
+    HeaderL3.DROP_DELTA_H_AT_T1_MINUS_MM: "Pre-contact height difference",
+    HeaderL3.DROP_MAX_DELTA_H_MM: "Maximum face height difference",
+    HeaderL3.DROP_CMIN_AT_T1_MINUS_INDEX: "Pre-contact lowest corner",
+    HeaderL3.DROP_T1_MINUS_TIME_SEC: "Pre-contact sample time",
     HeaderL3.DROP_REFERENCE_FACE: "Reference Face",
     HeaderL3.DROP_LONG_AXIS: "Long Axis",
     HeaderL3.DROP_SHORT_AXIS: "Short Axis",
@@ -625,16 +634,16 @@ RESULT_LEVEL3_DISPLAY = {
 
 
 def _format_motion_metric_display(l1: str, l3: str) -> str:
-    family = "Velocity" if l1 == HeaderL1.VEL else "Acceleration"
+    family = "velocity" if l1 == HeaderL1.VEL else "acceleration"
     if l3.startswith("BoxLocal_"):
-        frame_label = "Box Local Frame"
+        frame_label = "Box"
         metric_key = l3[len("BoxLocal_"):]
     else:
-        frame_label = "Global Frame"
+        frame_label = "World"
         metric_key = l3[len("Global_"):] if l3.startswith("Global_") else l3
 
     if metric_key.endswith("_Norm"):
-        component_label = "Norm"
+        component_label = "magnitude"
     else:
         axis_label = metric_key.rsplit("_", 1)[-1]
         axis_label = {
@@ -648,25 +657,102 @@ def _format_motion_metric_display(l1: str, l3: str) -> str:
         component_label = axis_label
 
     if "_R" in metric_key:
-        base_label = f"Angular {family}"
+        base_label = f"angular {family}"
     else:
         base_label = family
 
-    return f"{base_label} {component_label} ({frame_label})"
+    if component_label == "magnitude" and l1 == HeaderL1.VEL:
+        base_label = "angular speed" if "_R" in metric_key else "speed"
+        component_label = ""
+    return f"{frame_label} {base_label} {component_label}".strip()
 
 
 def get_result_metric_display_name(l1: str, l2: str, l3: str) -> str:
-    del l2
     if l1 in {HeaderL1.VEL, HeaderL1.ACC}:
-        return _format_motion_metric_display(l1, l3)
-    return RESULT_LEVEL3_DISPLAY.get(l3, str(l3))
+        label = _format_motion_metric_display(l1, l3)
+    else:
+        label = RESULT_LEVEL3_DISPLAY.get(l3, str(l3))
+    unit = get_result_column_unit((l1, l2, l3))
+    return f"{label} ({unit})" if unit else label
 
 
 def get_result_column_display_path(column: tuple[str, str, str]) -> str:
     l1, l2, l3 = normalize_result_column(column)
-    l1_label = RESULT_LEVEL1_DISPLAY.get(l1, str(l1))
     l3_label = get_result_metric_display_name(l1, l2, l3)
-    return f"{l1_label} / {l2} / {l3_label}"
+    if l2 in {HeaderL2.DROP_POSTURE, HeaderL2.DROP_POSTURE_SUMMARY}:
+        return l3_label
+    return f"{RESULT_LEVEL2_DISPLAY.get(l2, l2)} / {l3_label}"
+
+
+def get_result_column_unit(column) -> str:
+    """Display units of supported saved columns; never convert stored samples."""
+    if not isinstance(column, (tuple, list)) or len(column) != 3:
+        return "°" if column == "Relative rotation (deg)" else ""
+    l1, _l2, l3 = normalize_result_column(column)
+    if l1 in {HeaderL1.VEL, HeaderL1.ACC} and l3.startswith(("Global_", "BoxLocal_")):
+        return ("rad" if "_R" in l3 else "mm") + ("/s" if l1 == HeaderL1.VEL else "/s²")
+    if l3 in {HeaderL3.P_RX, HeaderL3.P_RY, HeaderL3.P_RZ}:
+        return "rad"
+    if l3 in {HeaderL3.P_TX, HeaderL3.P_TY, HeaderL3.P_TZ, HeaderL3.REL_H,
+              HeaderL3.ANALYSIS_INPUT_H} or l3.endswith("_mm"):
+        return "mm"
+    if l3.endswith("Deg"):
+        return "°"
+    if l3.endswith("Sec") or l3 in {HeaderL3.TIME, HeaderL3.SEC}:
+        return "s"
+    return ""
+
+
+def is_corner_id_column(column) -> bool:
+    return isinstance(column, (tuple, list)) and len(column) == 3 and column[2] in {
+        HeaderL3.DROP_CMIN_INDEX, HeaderL3.DROP_CMIN_AT_T1_MINUS_INDEX}
+
+
+def format_result_value(column, value) -> str:
+    """Format an observed value without treating a corner ID as a quantity."""
+    if is_corner_id_column(column):
+        if isinstance(value, (Real, str)) and not isinstance(value, bool):
+            try:
+                number = float(value)
+                if math.isfinite(number) and number.is_integer() and 1 <= number <= 8:
+                    return f"C{int(number)}"
+            except (TypeError, ValueError):
+                pass
+        return "Unknown"
+    if value is None:
+        return "—"
+    if isinstance(value, (bool, bool_)):
+        return "Yes" if value else "No"
+    try:
+        number = float(value)
+        return f"{number:.6g}" if math.isfinite(number) else "—"
+    except (TypeError, ValueError):
+        return {"SustainedContact": "Stable floor contact"}.get(str(value), str(value))
+
+
+def get_result_metric_tooltip(column) -> str:
+    if not isinstance(column, (tuple, list)) or len(column) != 3:
+        return ""
+    _l1, l2, l3 = normalize_result_column(column)
+    if is_corner_id_column(column):
+        return "One lowest box corner; tied corners can alternate. This is not the complete contact set."
+    if l3 == HeaderL3.DROP_BETA_DEG:
+        return "Reference face normal relative to downward: 0° faces down, 180° faces up."
+    if l3 in {HeaderL3.DROP_THETA_LONG_DEG, HeaderL3.DROP_THETA_SHORT_DEG}:
+        return "Signed reference-face slope; positive means the positive local-axis side is higher."
+    if l3 == HeaderL3.DROP_DELTA_H_MM:
+        return "Highest minus lowest floor-normal height of the four reference-face corners."
+    if l3 == HeaderL3.REL_H:
+        return "Reference varies by file: analysis may use the lowest corner; simulation exports retain world Y."
+    if l3 == HeaderL3.ANALYSIS_INPUT_H:
+        return "Vertical coordinate; shifted to the lowest corner when that corner is at or below the configured floor."
+    if l3 in {HeaderL3.P_RX, HeaderL3.P_RY, HeaderL3.P_RZ}:
+        return "Box rotation-vector component in radians, not an Euler angle."
+    if l3.startswith("BoxLocal_A_"):
+        return "Inertial acceleration expressed along box axes, not acceleration relative to the box."
+    if l2 == HeaderL2.COM:
+        return "The stored CoM position is the box geometric centre, not a measured centre of mass."
+    return ""
 
 
 def normalize_result_column(column: tuple[str, str, str] | list[str]) -> tuple[str, str, str]:

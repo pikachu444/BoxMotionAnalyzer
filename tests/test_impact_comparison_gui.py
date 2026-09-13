@@ -44,10 +44,8 @@ def test_distinct_repeat_count_survives_duplicate_baseline_remove_and_reload(tmp
         assert [panel.table.item(row, col).text() for col in (1, 2, 3, 4, 5)] == ['3', '-2', '-3', '-1', '2']
         _load(window, [paths[0]], monkeypatch, app)
         assert len(window.model.datasets) == 4
-        assert window.warning_label.text() == ('4 files. Repeat summary: 3 included, '
-                                               '1 excluded. Select a file for details.')
+        assert window.warning_label.text() == '4 files   Repeats: 3 included, 1 excluded'
         duplicate = window.control_panel.file_list.item(3)
-        assert 'Repeat summary exclusion:' in duplicate.toolTip()
         assert 'already counted' in duplicate.toolTip()
         row = _metric_row(panel.table, 'Vertical velocity')
         assert panel.table.item(row, 1).text() == '3'

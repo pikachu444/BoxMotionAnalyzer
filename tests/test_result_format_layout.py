@@ -59,37 +59,37 @@ class TestResultFormatLayout(unittest.TestCase):
     def test_result_metric_display_names_follow_schema_meaning(self):
         self.assertEqual(
             get_result_metric_display_name(HeaderL1.POS, HeaderL2.COM, HeaderL3.P_TX),
-            "Position X",
+            "Position X (mm)",
         )
         self.assertEqual(
             get_result_metric_display_name(HeaderL1.POS, HeaderL2.COM, HeaderL3.P_RX),
-            "Rotation X",
+            "Rotation vector X (rad)",
         )
         self.assertEqual(
             get_result_metric_display_name(HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX_ANA),
-            "Velocity X (Box Local Frame)",
+            "Box velocity X (mm/s)",
         )
         self.assertEqual(
             get_result_metric_display_name(HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_RNORM),
-            "Angular Velocity Norm (Global Frame)",
+            "World angular speed (rad/s)",
         )
         self.assertEqual(
             get_result_metric_display_name(HeaderL1.ACC, HeaderL2.COM, HeaderL3.A_TNORM),
-            "Acceleration Norm (Global Frame)",
+            "World acceleration magnitude (mm/s²)",
         )
         self.assertEqual(
             get_result_metric_display_name(HeaderL1.ANALYSIS, "C1", HeaderL3.REL_H),
-            "Relative Height",
+            "Relative height (mm)",
         )
 
     def test_result_column_display_path_uses_user_facing_labels(self):
         self.assertEqual(
             get_result_column_display_path((HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX_ANA)),
-            "Velocity / CoM / Velocity X (Box Local Frame)",
+            "Box centre / Box velocity X (mm/s)",
         )
         self.assertEqual(
             get_result_column_display_path((HeaderL1.ACC, "C3", HeaderL3.A_TNORM)),
-            "Acceleration / C3 / Acceleration Norm (Global Frame)",
+            "C3 / World acceleration magnitude (mm/s²)",
         )
 
     def test_result_column_normalization_accepts_qt_style_lists(self):
@@ -125,7 +125,7 @@ class TestResultFormatLayout(unittest.TestCase):
             key=lambda group: DROP_POSTURE_SUMMARY_GROUP_ORDER.index(group),
         )
         self.assertEqual(group_values, ordered_group_values)
-        self.assertEqual(descriptors[0].display_name, "Beta at t1-")
+        self.assertEqual(descriptors[0].display_name, "Pre-contact face tilt")
         self.assertTrue(all(descriptor.short_description for descriptor in descriptors))
         self.assertTrue(all(descriptor.long_description for descriptor in descriptors))
 

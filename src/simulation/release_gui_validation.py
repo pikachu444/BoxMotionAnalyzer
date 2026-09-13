@@ -22,6 +22,7 @@ from src.analysis.app.main_window import MainApp
 from src.analysis.compare.main_window import CompareMainWindow
 from src.config.data_columns import normalize_result_column
 from src.config import config_visualization as visual
+from src.utils.qt_sections import find_result_column_index
 
 
 def sha(path):
@@ -354,20 +355,31 @@ def run(trial_report, output):
         report['checks']['loading_error_cancel_preserve_comparison'] = True
         stage('Actual-time graph and 3D')
         combo = comparison.graph_panel.cb_plot_target
-        index = combo.findText('Analysis | DropPosture | ThetaLongDeg')
+        index = find_result_column_index(combo, ('Analysis', 'DropPosture', 'ThetaLongDeg'))
         assert index >= 0
         combo.setCurrentIndex(index)
+        control.cb_view.setCurrentIndex(control.cb_view.findData('aligned'))
         playback = comparison.playback_panel
         start, end = playback.bounds
         for elapsed, row in ((0., 21), (.008, 22)):
             playback.master_slider.setValue(round(100000 * (elapsed - start) / (end - start)))
             events()
-            assert playback.local_controls[paths[0].name]['slider'].value() == row
+            assert playback.local_controls[paths[0].name]['label'].text().startswith(f'Sample {row + 1} ')
             assert comparison.graph_panel.cursor.get_xdata()[0] == playback.current_elapsed
             source_time = comparison.model.timelines[paths[0].name].times[row]
             assert abs(source_time - (.312 + elapsed)) < 1e-10
             frame = comparison.model.visualization_handlers[paths[0].name].get_frame_data(row)
             corner_y = float(frame.loc[frame[visual.DF_ENTITY_ID] == 'C1', visual.DF_POS_Y].iloc[0])
+            # Check the mesh actually supplied to VTK, not a removed per-file
+            # slider or the remembered Individual row while viewing Aligned.
+            viewer = playback.widgets[paths[0].name]
+            expected_points = frame.set_index(visual.DF_ENTITY_ID).loc[
+                visual.BOX_CORNERS_LABELS, [visual.DF_POS_X, visual.DF_POS_Y, visual.DF_POS_Z]].to_numpy(float)
+            np.testing.assert_allclose(viewer.polydata[visual.SK_ACTOR_BOX].points,
+                                       expected_points, atol=0, rtol=0)
+            assert tuple(viewer.plotter.camera.up) == (0., 1., 0.)
+            assert all(not actor.GetVisibility()
+                       for actor in viewer.actors[visual.SK_ACTOR_LABELS].values())
             expected_y = 12.24288 if row == 21 else 0.
             assert abs(corner_y - expected_y) <= .315179
             report.setdefault('synchronized_samples', []).append(
@@ -382,26 +394,40 @@ def run(trial_report, output):
         pixels = viewer.plotter.screenshot(str(output / '08_actual_3d.png'))
         assert pixels is not None and pixels.max() > pixels.min()
         report['checks']['vtk_pixel_shape'] = list(pixels.shape)
+        report['checks']['initial_comparison_view'] = {
+            'camera_up': list(viewer.plotter.camera.up), 'labels_visible': False,
+            'mesh_matches_saved_corners': True,
+        }
         comparison.table_panel.view_combo.setCurrentIndex(0)
         events()
-        for bar in (playback.scroll.horizontalScrollBar(), comparison.table_panel.table.horizontalScrollBar()):
+        for bar in (playback.scroll.horizontalScrollBar(), comparison.table_panel.table.horizontalScrollBar(),
+                    comparison.graph_panel.legend_scroll.horizontalScrollBar()):
             assert bar.maximum() > 0
             bar.setValue(bar.maximum())
             events()
             assert bar.value() == bar.maximum()
             bar.setValue(0)
         capture('09_synchronized', 'At approximately +0.008 s from t1-minus, source sample 22 is 0.320 s; graph cursor and 3D selection agree.')
-        comparison.resize(1100, 700)
+        comparison.resize(1100, 720)
         events(150)
+        assert (comparison.width(), comparison.height()) == (1100, 720)
         summary = comparison.table_panel.table
-        assert summary.viewport().rect().contains(summary.visualItemRect(summary.item(0, 0)))
+        first_cell = summary.visualItemRect(summary.item(0, 0))
+        assert summary.viewport().rect().contains(first_cell), (summary.viewport().rect(), first_cell)
+        sample_label = playback.local_controls[paths[0].name]['label']
+        assert sample_label.visibleRegion().contains(sample_label.rect()), sample_label.text()
+        report['checks']['small_window_sample_label_visible'] = True
+        for label in comparison.graph_panel.legend_labels.values():
+            assert label.width() >= label.sizeHint().width(), label.text()
+        report['checks']['filename_legend_preserves_readable_width'] = True
         capture('10_resized', 'Comparison resized to inspect primary actions and scroll access.', [control.btn_add_files])
         summary.setFocus()
         QTest.keyClick(summary, Qt.Key_End, Qt.ControlModifier)
         events()
         assert summary.currentRow() == summary.rowCount() - 1
         summary.horizontalScrollBar().setValue(0)
-        assert summary.viewport().rect().contains(summary.visualItemRect(summary.item(summary.rowCount() - 1, 0)))
+        last_cell = summary.visualItemRect(summary.item(summary.rowCount() - 1, 0))
+        assert summary.viewport().rect().contains(last_cell), (summary.viewport().rect(), last_cell)
         capture('11_last_metric', 'Small window: Ctrl+End reaches the last metric through the existing summary table.', [control.btn_add_files])
         report['checks']['small_window_first_and_last_metric_accessible'] = True
         report['checks']['comparison_metrics_duplicate_count_time_and_3d'] = True

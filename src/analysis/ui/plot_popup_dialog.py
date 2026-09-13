@@ -68,7 +68,7 @@ class PlotPopupDialog(QDialog):
     def _on_plot_click(self, event):
         if self.result_data is None or self.result_data.empty:
             return
-        if event.inaxes != self.plot_manager.ax or event.xdata is None:
+        if event.inaxes not in self.plot_manager.axes or event.xdata is None:
             return
 
         nearest_idx = self.result_data.index.get_indexer([event.xdata], method='nearest')

@@ -1,11 +1,11 @@
 # Drop Result Comparison Plan
 
-Last Reviewed: 2026-09-13
+Last Reviewed: 2026-09-14
 
 ## 1. 목적
 여러 낙하 실험 결과 `.proc`를 같은 기준으로 비교해, 반복 실험 간 자세 편차와 충격 경로 차이를 설명할 수 있게 한다.
 
-현재 구현 범위는 단일 실험 결과에 Drop Posture frame/summary metric과 충격 시퀀스 summary를 저장하고, Step 2 Results Analysis의 `Experiment Summary`에서 확인하는 것은 물론, 런처의 `Experiment Comparison` 전용 윈도우를 통해 여러 결과를 다중 비교하는 기능까지 포함한다.
+현재 구현 범위는 단일 실험 결과에 Drop Posture frame/summary metric과 충격 시퀀스 summary를 저장하고, Step 2 Results Analysis의 `Summary`에서 확인하는 것은 물론, 런처의 `Experiment Comparison` 전용 윈도우를 통해 여러 결과를 다중 비교하는 기능까지 포함한다.
 
 ## 2. 현재 완료 기준
 - processing 완료 및 Result Resampling merge 이후 `DropPosturePostProcessor`가 실행된다.
@@ -17,10 +17,10 @@ Last Reviewed: 2026-09-13
 - summary metric은 `.proc` 호환성을 위해 `Analysis / DropPostureSummary` 상수 컬럼으로 반복 저장한다.
 - `DeltaH_mm`은 8개 전체 코너 높이 범위가 아니라, 기준면을 이루는 코너들의 높이 차이로 계산한다.
 - 충격 시퀀스 `ImpactSequence`는 최소 2 frame 이상 지속된 접촉 이벤트만 사용하며, 동시 접촉은 `{C1,C2}`처럼 그룹으로 표기한다.
-- Results Analysis는 summary를 `3. Drop/Impact Summary` grouped table에 표시하고, frame metric은 컨럼 트리에서 선택해 plot할 수 있다.
-- `3. Drop/Impact Summary`의 표시 순서는 `Posture -> Impact -> Contact`이다.
+- Results Analysis는 summary를 `Summary` grouped table에 표시하고, frame metric은 컬럼 트리에서 선택해 plot할 수 있다.
+- `Summary`의 표시 순서는 `Posture -> Impact -> Contact`이다.
 - Drop Posture summary label, tooltip, metric guide 설명은 `src/config/result_metric_descriptors.py`의 descriptor metadata를 공통 기준으로 사용한다.
-- `Metric Guide...` 버튼은 summary table 아래 푸터에 배치하며, Posture / Impact / Contact 3개 그룹 일러스트레이션과 지표 설명을 표시한다.
+- `Metric guide` 버튼은 summary table 아래 푸터에 배치하며, Posture / Impact / Contact 3개 그룹 일러스트레이션과 지표 설명을 표시한다.
 - `SustainedContact` 상태는 UI에서 `Stable floor contact`로 표시한다.
 - `ReferenceFace`는 접근(Approach) 자세 기준면이다. 실제 충격 코너는 `FirstImpactContact`가 별도 기록한다.
 
@@ -28,19 +28,21 @@ Last Reviewed: 2026-09-13
 1. 비교 전용 윈도우
    - 런처에서 독립 창으로 연다.
    - 여러 `.proc` 파일을 선택하고 기준 실험을 지정한다.
-   - 탭(Tab) 방식을 배제하고, 좌측 설정 사이드바와 우측 3단 뷰어(요약표, 3D 뷰어, 비교 플롯)를 한 화면에 동시 노출하는 입체적 카드 레이아웃을 사용한다.
+   - 좌측 파일 선택과 우측 요약표·3D·그래프를 사용한다. 상세 메타데이터와 간격 설정은 접어서 연다.
 2. 비교 지표 테이블
-   - `Diagnostics`는 기존 파일별 summary와 호환 파일의 기준 대비 차이를 유지한다. `Pre-contact`는 접촉 전 운동 추정값, `Repeats`는 호환되는 서로 다른 관측의 지표별 통계를 표시한다. 모두 아래 #77 적용 범위를 따른다.
+   - `Details`는 기존 파일별 summary와 호환 파일의 기준 대비 차이를 유지한다. `Pre-contact`는 접촉 전 운동 추정값, `Repeats`는 호환되는 서로 다른 관측의 지표별 통계를 표시한다. Summary 옆의 Experimental/Diagnostic 표시는 아래 #77의 미보정 범위를 유지한다.
    - 파일을 선택하면 출처와 모든 제외 사유를 확인할 수 있다. 값이 없거나 여러 행에서 상수가 아닌 summary는 유효한 첫 값으로 대체하지 않는다.
 3. 비교 그래프
    - canonical 실제 시간과 유효한 `T1MinusTimeSec`가 있는 파일은 `t - t1_minus` 축에 표시한다. 파일별 원래 샘플링 시각을 유지한다.
    - 겹쳐 보기는 시각적 검토용이며 출처가 다르거나 집계에서 제외된 파일이 있다는 경고를 계속 표시한다.
    - 개별 보기에서는 실제 시간, 시간이 없으면 명시적인 sample row 축을 제공한다. 시간이나 t1을 0으로 만들지 않는다.
-   - 툴바를 세로로 우측에 배치하여 가로 공간 효율을 높였다.
+   - 표시 이름과 단위를 저장 키에서 분리한다. 파일별 고정 색과 실제 이름 범례를 사용하며, 각도의 기본 축 폭은 최소 1도다. 저장값과 사용자의 확대는 유지한다.
+   - Cmin은 하나의 최저 코너 ID로 점과 C1~C8 축을 사용한다. 최저점 동률이나 전체 접촉부위를 뜻하지 않는다. 요약 비교도 ID를 빼지 않고 기준 ID와의 같은/다름을 표시한다.
 4. 3D 비교 재생
    - 공통 elapsed 시계와 그래프 커서를 공유하며 실제 저장된 가장 가까운 샘플을 표시한다. 목표 시각과 선택된 샘플 시각은 구분한다.
    - 간격 제한(초, 초기 0.1)은 표시 정책이다. 긴 간격 내부·범위 밖·유효하지 않은 위치에서는 뷰어를 숨기고 이유를 표시한다. 보간이나 끝점 고정을 하지 않는다.
-   - Sync를 끄면 개별 샘플 탐색이 가능하다. 유효한 기록 시간이 있는 파일만 개별 시간 재생을 제공한다.
+   - 공통 View의 기본 Individual은 선택 파일의 곡선·3D를 함께 제어한다. Aligned는 기존 충격 직전 표본을 0초로 맞춘다. 시간 미확정 자료는 Sample 1부터 탐색하고 유효한 기록 시간만 재생한다.
+   - 보기·기준 변경에서 파일별 행과 카메라를 보존하고 실제 데이터가 바뀐 뷰어만 교체한다.
    - 자세한 저장 계약과 호환성 필드는 [result_schema_notes.md](../reference/result_schema_notes.md)를 따른다.
 
 ## 4. 검증 방향
@@ -126,7 +128,7 @@ JSON/hash 불일치·상수 아님·누락을 기본값으로 복구하지 않�
 
 ## 6. #77 접촉 전 운동과 반복 관측 비교
 
-사용자는 Step 1에서 자동 검출 구간을 검토하고 Step 1.5에서 처리한 `.proc`를 기존 런처의 `Experiment Comparison`에서 연다. 요약표의 `Pre-contact`, `Repeats`, `Diagnostics`를 바꿔 개별 추정값, 반복 통계, 기존 진단값을 확인한다. 출처는 파일 열에 표시하며, 제외 사유는 파일 상세와 값의 tooltip에서 확인한다. 새로운 장면 관리 팝업은 만들지 않는다.
+사용자는 Step 1에서 자동 검출 구간을 검토하고 Step 1.5에서 처리한 `.proc`를 기존 런처의 `Experiment Comparison`에서 연다. 요약표의 `Pre-contact`, `Repeats`, `Details`를 바꿔 개별 추정값, 반복 통계, 기존 진단값을 확인한다. 출처는 파일 열에 표시하며, 제외 사유는 파일 상세와 값의 tooltip에서 확인한다. 새로운 장면 관리 팝업은 만들지 않는다.
 
 확인한 코드상 `Position/CoM/P_TX...`는 기하학적 중심이다. 실제 COM은 별도 등록값으로 계산해야 한다. 기존 저장 속도는 중앙 미분과 필터 때문에 첫 접촉 표본을 포함할 수 있다. 새 추정기는 저장된 원래 pose와 실제 초 단위 시간에서 `t1-`로 끝나는 한쪽 이차 적합을 계산한다. 적합에는 접촉 이후 자세 표본이나 저장 Velocity 열을 쓰지 않는다. 접촉 구간을 확인하기 위해 다음 실제 timestamp와 접촉 summary는 읽는다. `t1-` 자체는 현재 접촉 알고리즘의 추정 시점이며 힘 센서로 확인한 접촉 시점은 아니다.
 

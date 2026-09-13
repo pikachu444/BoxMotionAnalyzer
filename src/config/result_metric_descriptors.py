@@ -48,25 +48,26 @@ def _summary_column(l3: str) -> tuple[str, str, str]:
 DROP_POSTURE_SUMMARY_DESCRIPTORS = (
     ResultMetricDescriptor(
         column=_summary_column(HeaderL3.DROP_BETA_AT_T1_MINUS_DEG),
-        display_name="Beta at t1-",
+        display_name="Pre-contact face tilt",
         group=DropPostureSummaryGroup.POSTURE,
-        unit="deg",
+        unit="°",
         priority=10,
         short_description="Box reference-face tilt just before the first impact event.",
         long_description=(
-            "Beta is the angle between the selected reference face and the floor just before "
-            "the first detected impact. It answers how tilted the box was when it entered impact."
+            "The angle between the reference face's outward normal and downward at the last "
+            "sample before first impact. A downward-facing normal is 0°; an upward-facing "
+            "normal is 180°. This is the observed posture, not an error from a target angle."
         ),
         visual_guide=DropPostureVisualGuide.BETA,
         t1_based=True,
     ),
     ResultMetricDescriptor(
         column=_summary_column(HeaderL3.DROP_THETA_LONG_AT_T1_MINUS_DEG),
-        display_name="Long angle at t1-",
+        display_name="Pre-contact long axis tilt",
         group=DropPostureSummaryGroup.POSTURE,
-        unit="deg",
+        unit="°",
         priority=20,
-        short_description="Tilt component along the long direction of the reference face at t1-.",
+        short_description="Signed slope along the long reference-face axis at the last sample before impact.",
         long_description=(
             "ThetaLong is the signed slope angle along the long in-plane direction of the "
             "reference face. It separates long-direction tilt from the overall Beta angle."
@@ -76,11 +77,11 @@ DROP_POSTURE_SUMMARY_DESCRIPTORS = (
     ),
     ResultMetricDescriptor(
         column=_summary_column(HeaderL3.DROP_THETA_SHORT_AT_T1_MINUS_DEG),
-        display_name="Short angle at t1-",
+        display_name="Pre-contact short axis tilt",
         group=DropPostureSummaryGroup.POSTURE,
-        unit="deg",
+        unit="°",
         priority=30,
-        short_description="Tilt component along the short direction of the reference face at t1-.",
+        short_description="Signed slope along the short reference-face axis at the last sample before impact.",
         long_description=(
             "ThetaShort is the signed slope angle along the short in-plane direction of the "
             "reference face. Together with ThetaLong, it describes the tilt direction."
@@ -90,25 +91,25 @@ DROP_POSTURE_SUMMARY_DESCRIPTORS = (
     ),
     ResultMetricDescriptor(
         column=_summary_column(HeaderL3.DROP_CMIN_AT_T1_MINUS_INDEX),
-        display_name="Lowest corner at t1-",
+        display_name="Pre-contact lowest corner",
         group=DropPostureSummaryGroup.POSTURE,
         unit="",
         priority=40,
         short_description="Corner closest to the floor just before the first impact event.",
         long_description=(
-            "Cmin identifies the corner with the lowest floor-normal height at t1-. It is a "
-            "candidate for the first physical contact point."
+            "One corner with the lowest floor-normal height at the last sample before impact. "
+            "Tied corners can alternate; the ID is not a distance or the complete contact set."
         ),
         visual_guide=DropPostureVisualGuide.CMIN,
         t1_based=True,
     ),
     ResultMetricDescriptor(
         column=_summary_column(HeaderL3.DROP_DELTA_H_AT_T1_MINUS_MM),
-        display_name="Face DeltaH at t1-",
+        display_name="Pre-contact height difference",
         group=DropPostureSummaryGroup.POSTURE,
         unit="mm",
         priority=50,
-        short_description="Height spread across the reference-face corners at t1-.",
+        short_description="Height difference across the four reference-face corners just before impact.",
         long_description=(
             "DeltaH is the height difference between the highest and lowest corners on the "
             "reference face. It translates a posture angle into a directly visible height gap."
@@ -135,7 +136,7 @@ DROP_POSTURE_SUMMARY_DESCRIPTORS = (
     ),
     ResultMetricDescriptor(
         column=_summary_column(HeaderL3.DROP_T1_MINUS_TIME_SEC),
-        display_name="t1-",
+        display_name="Pre-contact sample time",
         group=DropPostureSummaryGroup.IMPACT,
         unit="s",
         priority=10,
@@ -214,7 +215,7 @@ DROP_POSTURE_SUMMARY_DESCRIPTORS = (
     ),
     ResultMetricDescriptor(
         column=_summary_column(HeaderL3.DROP_SUSTAINED_CONTACT_DETECTED),
-        display_name="Sustained contact",
+        display_name="Stable floor contact",
         group=DropPostureSummaryGroup.CONTACT,
         unit="",
         priority=30,

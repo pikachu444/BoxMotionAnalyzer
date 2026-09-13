@@ -52,7 +52,7 @@ Last Reviewed: 2026-09-14
 - Multi-header 결과 컬럼 트리 표시
 - `Group By (Metric / Object)` 전환
 - 현재 트리를 유지한 검색 필터
-- Drop Posture `Experiment Summary` grouped table 표시
+- Drop Posture `Summary` grouped table 표시
 - Drop Posture metric guide와 descriptor 기반 tooltip 표시
 - 메인 플롯 비교
 - 팝업 플롯 열기
@@ -72,6 +72,11 @@ Last Reviewed: 2026-09-14
 - processing 결과에는 Full/Slice timeline metadata가 함께 포함된다.
 - corrected 입력을 사용한 경우 `.slice`와 `.proc`에는 실제 corrected source, 원본 이름/SHA-256, 전체 검토 결정과 승인 수가 함께 전달된다.
 - processing 결과에는 낙하각, 방향 각도, 최저 코너, 기준면 코너 높이 차이, 접촉 상태와 같은 Drop Posture metric도 포함된다.
+
+### 3.5. 비교와 표시
+- Compare의 Individual/Aligned 상태를 곡선과 3D가 공유한다. 파일별 색·선택·카메라·개별 행을 보존하며 데이터가 교체될 때만 해당 VTK 뷰어를 다시 만든다.
+- 표시 이름·단위는 저장 키와 분리한다. 각도 자동 축 폭은 최소 1도이며 회전벡터에는 동일 폭의 rad를 적용한다. 미분량·길이·원본 값·사용자 확대는 바꾸지 않는다.
+- 꼭짓점 ID는 점과 범주 축을 사용하고 요약에서 번호를 빼지 않는다. Step 2의 혼합 플롯은 별도 범주 축을 사용하며 점 선택·팝업·실패 시 복원도 해당 축을 유지한다.
 
 ## 4. 핵심 설계 원칙
 
