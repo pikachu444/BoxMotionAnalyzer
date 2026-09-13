@@ -1,4 +1,6 @@
 import unittest
+from dataclasses import replace
+import json
 
 from PySide6.QtWidgets import QApplication
 
@@ -166,6 +168,46 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         self.assertIn(long_trigger.strip(), detail_text)
         self.assertIn(long_reason.strip(), detail_text)
         self.assertEqual(dialog.candidate_details.horizontalScrollBar().maximum(), 0)
+
+    def test_face_continuity_recommendation_is_conditional_off_and_override_preserved(self):
+        candidate = replace(_candidate('X'), correction_kind='face_assignment',
+            algorithm_version='3.1', gate_version='face-continuity-v1',
+            reason='If corrected, local X best restores continuity; cause unconfirmed.',
+            correspondence_ratio=float('nan'), confidence_margin=.8,
+            hypotheses=tuple(replace(_hypothesis(label), permutation=(),
+                layout_correspondence_ratio=float('nan'), observed_correspondence_ratio=float('nan'),
+                trace_deg=(0., 0., 0.)) for label in ('NONE', 'X', 'Y', 'Z')))
+        dialog = MarkerFlipReviewDialog([candidate])
+        dialog.resize(820, 600)
+        dialog.show()
+        app.processEvents()
+        details = dialog.candidate_details.toPlainText()
+        self.assertIn('Recommendation: X', details)
+        self.assertIn('cause unconfirmed', details)
+        self.assertIn('Refit NONE 180.0°', details)
+        self.assertIn('score gap 0.80 (not probability)', details)
+        self.assertNotIn('validation pending', details)
+        self.assertNotIn('match=', details)
+        self.assertFalse(dialog.approval_checkbox(0).isChecked())
+        self.assertEqual(dialog.axis_combo(0).currentData(), 'X')
+        self.assertFalse(dialog.button_box.visibleRegion().isEmpty())
+        self.assertEqual(dialog.table.horizontalScrollBar().maximum(), 0)
+        off = dialog.get_decisions()[0]
+        self.assertFalse(off.approved)
+        self.assertIsNone(off.axis)
+        dialog.axis_combo(0).setCurrentIndex(dialog.axis_combo(0).findData('Y'))
+        dialog.approval_checkbox(0).setChecked(True)
+        override = dialog.get_decisions()[0]
+        self.assertEqual((override.axis, override.recommendation_axis, override.permutation), ('Y', 'X', ()))
+        self.assertEqual(override.algorithm_version, '3.1')
+        self.assertIsNone(json.loads(override.evidence_json)['correspondence_ratio'])
+        reopened = MarkerFlipReviewDialog([candidate], existing_decisions=[override])
+        self.assertTrue(reopened.approval_checkbox(0).isChecked())
+        self.assertEqual(reopened.axis_combo(0).currentData(), 'Y')
+        reopened.axis_combo(0).setCurrentIndex(reopened.axis_combo(0).findData('Z'))
+        reopened.reject()
+        self.assertEqual(override.axis, 'Y')
+        self.assertEqual(reopened.result(), 0)
 
 
 if __name__ == "__main__":

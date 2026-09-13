@@ -42,7 +42,7 @@ from src.analysis.pipeline.marker_flip import (
 )
 from src.analysis.pipeline.pose_optimizer import PoseOptimizer
 from src.analysis.pipeline.face_assignment import (
-    FaceAssignmentAnalyzer, materialize_face_assignments, marker_face,
+    FaceAssignmentAnalyzer, materialize_face_assignments, marker_face, FACE_ASSIGNMENT_ALGORITHM_VERSION,
 )
 
 
@@ -506,7 +506,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             "coordinate_policy": "global-y-up-box-xyz-mm",
             "export_metadata": self.header_info.get("export_metadata", {}),
             "original_source_rows": original.get("original_source_rows", self.header_info.get("source_rows", [])),
-            "source_sha256": self.original_source_sha256, "algorithm_version": "3.0",
+            "source_sha256": self.original_source_sha256, "algorithm_version": FACE_ASSIGNMENT_ALGORITHM_VERSION,
         }, sort_keys=True, separators=(",", ":"))
 
     def _set_review_busy(self, busy):

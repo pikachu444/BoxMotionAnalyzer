@@ -18,6 +18,7 @@ from src.analysis.pipeline.marker_flip import (
     normalize_marker_corrections,
     serialize_marker_corrections,
 )
+from src.analysis.pipeline.face_assignment import FACE_ASSIGNMENT_ALGORITHM_VERSION
 from src.config.data_columns import MarkerCorrectionMetaCols, TimeCols, TimelineMetaCols
 from src.utils.header_converter import convert_to_multi_header
 from src.utils.artifact_metadata import add_artifact_columns, metadata_json, normalize_metadata, validate_declared_dimensions
@@ -504,7 +505,7 @@ def save_corrected_source_file(
         reviewed_source=target_path.name,
         created=datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         schema_version="3" if is_face else MARKER_CORRECTION_SCHEMA_VERSION,
-        algorithm_version="3.0" if is_face else MARKER_FLIP_ALGORITHM_VERSION,
+        algorithm_version=FACE_ASSIGNMENT_ALGORITHM_VERSION if is_face else MARKER_FLIP_ALGORITHM_VERSION,
         decisions=tuple(normalized_decisions),
         context_json=context_json,
     )

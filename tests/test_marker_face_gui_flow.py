@@ -149,7 +149,7 @@ def _record_public_impact_metrics(reopened, truth, report):
     checks['first_contact_diagnostic'] = result.metrics['first_contact'].value == '{C5,C6,C7,C8}'
 
 
-@pytest.mark.parametrize('source_kind', ['handcrafted', 'mujoco', 'custom_mujoco', 'collision_face'])
+@pytest.mark.parametrize('source_kind', ['handcrafted', 'mujoco', 'custom_mujoco', 'collision_face', 'continuity_layout'])
 def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, source_kind, request):
     # Production UI changes runtime geometry; isolate it from following tests.
     monkeypatch.setattr(config_app, 'BOX_DIMS', np.array(config_app.BOX_DIMS, copy=True))
@@ -178,7 +178,7 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     else:
         evidence = Path('tmp/issue74_gui') / source_kind
         evidence.mkdir(parents=True, exist_ok=True)
-    if source_kind in ('mujoco', 'custom_mujoco', 'collision_face'):
+    if source_kind in ('mujoco', 'custom_mujoco', 'collision_face', 'continuity_layout'):
         from src.simulation.marker_fixtures import write_case, load_profile
         profile = None
         if source_kind == 'custom_mujoco':
@@ -189,6 +189,10 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
         if source_kind == 'collision_face':
             from src.simulation.marker_fixtures import virtual_profile_32
             profile = virtual_profile_32()
+            dims = tuple(profile['box_dims_mm'])
+        if source_kind == 'continuity_layout':
+            from src.simulation.continuity_fixtures import read_spec
+            profile = read_spec()['profile']
             dims = tuple(profile['box_dims_mm'])
         generated = write_case((evidence if source_kind == 'collision_face' else tmp_path) / 'independent', 'x', profile=profile,
                                motion='face' if source_kind == 'collision_face' else 'free_fall')
@@ -261,10 +265,10 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
         timer.stop()
         try:
             assert all(not c.isChecked() for c in dialog._approval_checkboxes)
-            assert all(c.recommendation_axis is None for c in dialog.candidates)
             rows = [i for i, c in enumerate(dialog.candidates) if abs(c.boundary_time_sec - boundary_time) < 1e-9]
             assert len(rows) == 1, [c.boundary_time_sec for c in dialog.candidates]
             row = rows[0]
+            assert dialog.candidates[row].recommendation_axis == 'X'
             dialog._axis_combos[row].setCurrentIndex(dialog._axis_combos[row].findData('X'))
             QTest.mouseClick(dialog._approval_checkboxes[row], Qt.MouseButton.LeftButton)
             app.processEvents()
@@ -288,6 +292,8 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     assert not raw_widget.marker_review_dirty
     meta = read_corrected_source_metadata(str(corrected))
     assert meta.schema_version == '3' and meta.approved_event_count == 1
+    assert meta.algorithm_version == '3.1'
+    assert any(d.recommendation_axis == 'X' and d.approved for d in meta.decisions)
     assert source.read_bytes() == original_bytes
     _, loaded = DataLoader().load_csv(str(corrected))
     np.testing.assert_allclose(loaded.iloc[:, :raw.shape[1]].to_numpy(dtype=float), raw.to_numpy(dtype=float))
@@ -540,7 +546,7 @@ def test_reordered_annotations_rereview_off_on_and_suffix_pose(tmp_path, monkeyp
                 rows = [i for i,c in enumerate(dialog.candidates) if abs(c.boundary_time_sec - .520) < 1e-9]
                 assert len(rows) == 1
                 i = rows[0]
-                assert all(c.recommendation_axis is None for c in dialog.candidates)
+                assert dialog.candidates[i].recommendation_axis == 'X'
                 assert dialog.candidates[i].hypothesis('X').residual_deg < .1
                 dialog._axis_combos[i].setCurrentIndex(dialog._axis_combos[i].findData('X'))
                 if dialog._approval_checkboxes[i].isChecked() != approved:

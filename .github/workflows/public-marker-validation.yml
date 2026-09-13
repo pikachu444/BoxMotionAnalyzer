@@ -45,6 +45,7 @@ jobs:
           tests/test_marker_flip.py
           tests/test_mujoco_marker_fixtures.py
           tests/test_marker_validation.py
+          tests/test_continuity_fixtures.py
           tests/test_marker_corruption.py
           tests/test_corruption_export.py
           tests/test_marker_flip_artifact_io.py
@@ -96,6 +97,8 @@ jobs:
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             }
           }
+      - name: Check independently specified continuity challenges
+        run: python -m src.simulation.continuity_fixtures --output tmp/ci-continuity
       - name: Preserve public validation evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -107,6 +110,7 @@ jobs:
             tmp/ci-*/**/validation*.json
             tmp/ci-*/**/negative_controls*.json
             tmp/ci-*/**/*.synthetic.json
+            tmp/ci-continuity/**/candidate_evidence.json
             tmp/issue84_public_metrics/**/public_impact_metrics.json
           if-no-files-found: warn
           retention-days: 30

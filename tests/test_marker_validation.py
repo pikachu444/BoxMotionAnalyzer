@@ -89,6 +89,27 @@ def test_genuine_collision_does_not_require_zero_candidates():
     assert 'genuine_rotation_no_candidates' not in result['checks']
 
 
+@pytest.mark.parametrize('damage', ['wrong_axis', 'missing', 'extra'])
+def test_conditional_recommendation_oracle_rejects_wrong_missing_or_extra_axis(damage):
+    context = _evaluation_context('healthy')
+    context['manifest']['case_id'] = 'recommendation_contract'
+    context['manifest']['events'] = [dict(kind='solver_pose_half_turn', time_s=.24, axis='X')]
+    candidate = SimpleNamespace(boundary_time_sec=.24, trigger='pose_jump',
+                                recommendation_axis='X', hypotheses=[])
+    context['candidates'] = [candidate]
+    assert validation._evaluate(context)['checks']['conditional_recommendations_match_oracle']
+    if damage == 'wrong_axis':
+        candidate.recommendation_axis = 'Y'
+    elif damage == 'missing':
+        context['candidates'] = []
+    else:
+        context['candidates'].append(SimpleNamespace(boundary_time_sec=.40, trigger='gap',
+                                   recommendation_axis='X', hypotheses=[]))
+    result = validation._evaluate(context)
+    assert not result['checks']['conditional_recommendations_match_oracle']
+    assert result['status'] == 'fail'
+
+
 def _junit_fixture(path, rows):
     suite = ET.Element('testsuite')
     for module, name, level, status in rows:

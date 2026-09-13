@@ -34,7 +34,7 @@ def _input_digest(value):
     return hashlib.sha256(encoded.encode('utf-8')).hexdigest()
 
 
-def _write_observed(path, result, profile):
+def _write_observed(path, result, profile, *, include_physical=True):
     source = result['manifest']['source_kind']
     version = str(result['manifest']['generator_version'])
     artifact = {
@@ -58,7 +58,7 @@ def _write_observed(path, result, profile):
         writer.writerow([])
         headers = {name: ['', ''] for name in ('type', 'name', 'id', 'parent', 'category', 'component')}
         headers['component'] = ['Frame', 'Time']
-        for kind in ('Rigid Body Marker', 'Marker'):
+        for kind in (('Rigid Body Marker', 'Marker') if include_physical else ('Rigid Body Marker',)):
             for marker in profile['markers']:
                 mid = marker['id']
                 name = profile['profile_id'] + ':' + mid if kind == 'Rigid Body Marker' else mid
@@ -69,8 +69,9 @@ def _write_observed(path, result, profile):
                 headers['component'].extend(['X', 'Y', 'Z'])
         writer.writerows(headers.values())
         for i, time in enumerate(result['time_s']):
-            coordinates = np.concatenate((result['rigid_body_markers'][i].ravel(),
-                                          result['physical_markers'][i].ravel()))
+            coordinates = result['rigid_body_markers'][i].ravel()
+            if include_physical:
+                coordinates = np.concatenate((coordinates, result['physical_markers'][i].ravel()))
             if np.isinf(coordinates).any():
                 raise ValueError('Infinite observation coordinates cannot be written as missing markers.')
             writer.writerow([int(result['frame'][i]), float(time),
