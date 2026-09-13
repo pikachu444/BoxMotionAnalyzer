@@ -158,3 +158,33 @@ def test_empty_malformed_loading_is_atomic(tmp_path):
         model.load_file(str(path))
     assert model.datasets == {}
     assert model.baseline_name is None
+
+
+def test_corner_and_text_summary_use_actual_baseline_categories(tmp_path):
+    model = ComparisonModel()
+    corner = ('Analysis', 'DropPostureSummary', 'CminAtT1MinusIndex')
+    face = ('Analysis', 'DropPostureSummary', 'RefFaceAtT1Minus')
+    paths = [write_proc(tmp_path / 'baseline.proc'), write_proc(tmp_path / 'other.proc')]
+    for path, corner_id, face_name in zip(paths, [5, 6], ['BOTTOM', 'FRONT']):
+        df = pd.read_csv(path, header=[0, 1, 2])
+        df[corner] = corner_id
+        df[face] = face_name
+        df.to_csv(path, index=False)
+        model.load_file(str(path))
+    values = model.get_summary_differences()
+    assert values['other.proc']['summary'][corner[2]] == 6
+    assert values['other.proc']['diffs'][corner[2]] == 'C5'
+    assert values['other.proc']['diffs'][face[2]] == 'BOTTOM'
+    model.set_baseline('other.proc')
+    values = model.get_summary_differences()
+    assert values['baseline.proc']['diffs'][corner[2]] == 'C6'
+    assert values['baseline.proc']['diffs'][face[2]] == 'FRONT'
+    model.datasets['baseline.proc'][corner] = '6'
+    assert model.get_summary_differences()['baseline.proc']['diffs'][corner[2]] == 'Match'
+    # An invalid identifier cannot become a fractional physical difference.
+    for invalid in (1.5, 0., 9., float('nan')):
+        model.datasets['baseline.proc'][corner] = invalid
+        values = model.get_summary_differences()['baseline.proc']
+        assert values['diffs'][corner[2]] is None
+        if np.isfinite(invalid):
+            assert values['summary'][corner[2]] == invalid

@@ -1,5 +1,5 @@
 import os
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QFrame, QLabel, QApplication
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QFrame, QLabel, QApplication, QSizePolicy
 from PySide6.QtCore import Qt, QEventLoop
 
 from src.analysis.compare.data_model import ComparisonModel
@@ -19,9 +19,11 @@ class CompareMainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setContentsMargins(6, 6, 6, 6)
+        main_layout.setSpacing(2)
         self.warning_label = QLabel('No results loaded.')
-        self.warning_label.setWordWrap(True)
+        self._summary_status = 'No results loaded.'
+        self.warning_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.warning_label.setTextFormat(Qt.PlainText)
         main_layout.addWidget(self.warning_label)
         
@@ -29,17 +31,19 @@ class CompareMainWindow(QMainWindow):
         content_frame = QFrame()
         content_frame.setObjectName("MainContentFrame")
         content_layout = QHBoxLayout(content_frame)
-        content_layout.setContentsMargins(5, 5, 5, 5)
+        content_layout.setContentsMargins(3, 3, 3, 3)
+        content_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
         # Splitter to divide controls from data views
         self.splitter = QSplitter(Qt.Horizontal)
         content_layout.addWidget(self.splitter)
         
-        main_layout.addWidget(content_frame)
+        main_layout.addWidget(content_frame, stretch=1)
         
         # Panels
         self.control_panel = CompareControlPanel()
-        self.control_panel.setMinimumWidth(250)  # GUI Principle: Rigid & Bounded Sizing
+        self.control_panel.setMinimumWidth(240)
+        self.control_panel.setMaximumWidth(310)
         self.table_panel = CompareTablePanel()
         self.graph_panel = CompareGraphPanel()
         self.playback_panel = ComparePlaybackPanel(self.model)
@@ -50,13 +54,15 @@ class CompareMainWindow(QMainWindow):
         self.right_splitter.addWidget(self.playback_panel)  # 2. 3D Playback (Middle)
         self.right_splitter.addWidget(self.graph_panel)     # 3. Comparison Plot (Bottom)
         self.right_splitter.setChildrenCollapsible(False)
-        self.right_splitter.setSizes([200, 280, 260])
+        self.right_splitter.setSizes([155, 270, 300])
         self.right_splitter.setStretchFactor(0, 0)
         self.right_splitter.setStretchFactor(1, 1)
         self.right_splitter.setStretchFactor(2, 1)
         
         self.splitter.addWidget(self.control_panel)
         self.splitter.addWidget(self.right_splitter)
+        self.splitter.setStretchFactor(0, 0)
+        self.splitter.setStretchFactor(1, 1)
         self.splitter.setSizes([300, 900])
         
         # Connect signals
@@ -65,7 +71,9 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
         self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
         self.control_panel.view_changed.connect(self._on_view_changed)
+        self.control_panel.labels_changed.connect(self.playback_panel.set_labels_visible)
         self.playback_panel.elapsed_changed.connect(self._on_elapsed_changed)
+        self.playback_panel.sample_changed.connect(self._on_sample_changed)
         # Set white card layout on grey background
         self.setStyleSheet("""
             QMainWindow {
@@ -143,32 +151,45 @@ class CompareMainWindow(QMainWindow):
         self.model.set_baseline(new_baseline)
         self._refresh_ui()
         
-    def _on_plot_target_changed(self, target: str):
+    def _on_plot_target_changed(self, target):
         if not target:
-            self.graph_panel.update_plot({}, '')
+            self.graph_panel.update_plot({}, None)
             return
-        # Extract group, component, metric from target string (e.g., 'Analysis | DropPosture | ThetaLongDeg')
-        parts = [p.strip() for p in target.split('|')]
-        if len(parts) == 3:
-            individual = self.control_panel.cb_view.currentData()
-            series_dict = self.model.get_timeseries_data(parts[0], parts[1], parts[2], individual=individual)
-            xlabel = 'Elapsed since t1− (s)'
-            if individual:
-                xlabel = 'Recorded time (s)' if self.model.timelines[individual].times is not None else 'Sample row (time unavailable)'
-            # Match the full file list, including when only one file is plotted.
-            labels = {name: str(i + 1) for i, name in enumerate(self.model.datasets)}
-            self.graph_panel.update_plot(series_dict, parts[2], xlabel=xlabel, labels=labels)
-            if individual is None and self.playback_panel.current_elapsed is not None:
-                self.graph_panel.set_elapsed_cursor(self.playback_panel.current_elapsed)
+        individual = self.control_panel.selected_file if self.control_panel.cb_view.currentData() == 'individual' else None
+        series_dict = self.model.get_timeseries_data(*target, individual=individual)
+        xlabel = 'Time from pre-contact (s)'
+        if individual:
+            valid_time = self.model.timelines[individual].times is not None
+            xlabel = 'Recorded time (s)' if valid_time else 'Sample'
+            if not valid_time:
+                series_dict = {name: series.set_axis(series.index + 1) for name, series in series_dict.items()}
+        self.graph_panel.update_plot(series_dict, target, xlabel=xlabel,
+                                     colors=self.model.file_colors, paths=self.model.file_paths)
+        if individual is None and self.playback_panel.current_elapsed is not None:
+            self.graph_panel.set_elapsed_cursor(self.playback_panel.current_elapsed)
+        elif individual in self.playback_panel.local_controls:
+            self._on_sample_changed(individual, self.playback_panel.local_controls[individual]['row'])
 
     def _on_view_changed(self):
         self.model.max_gap_sec = self.control_panel.gap_limit.value()
-        self._on_plot_target_changed(self.graph_panel.cb_plot_target.currentText())
-        self.playback_panel._on_master_slider_changed(self.playback_panel.master_slider.value())
+        self.playback_panel.set_view(self.control_panel.cb_view.currentData(), self.control_panel.selected_file)
+        self._on_plot_target_changed(self.graph_panel.cb_plot_target.currentData())
+        self._update_view_status()
+
+    def _update_view_status(self):
+        aligned_sources = {self.model.identities[name].source_kind
+                           for name, timeline in self.model.timelines.items() if timeline.aligned}
+        mixed = self.control_panel.cb_view.currentData() == 'aligned' and len(aligned_sources) > 1
+        self.warning_label.setText(self._summary_status + ('   Mixed sources' if mixed else ''))
 
     def _on_elapsed_changed(self, elapsed):
-        if self.control_panel.cb_view.currentData() is None:
+        if self.control_panel.cb_view.currentData() == 'aligned':
             self.graph_panel.set_elapsed_cursor(elapsed)
+
+    def _on_sample_changed(self, name, row):
+        if self.control_panel.cb_view.currentData() == 'individual' and name == self.control_panel.selected_file:
+            times = self.model.timelines[name].times
+            self.graph_panel.set_elapsed_cursor(times[row] if times is not None else row + 1)
             
     def _refresh_ui(self):
         files = list(self.model.datasets.keys())
@@ -176,12 +197,9 @@ class CompareMainWindow(QMainWindow):
         impact = self.model.get_impact_comparison()
         self.control_panel.update_files(files, baseline, self.model, impact)
         excluded = [name for name in files if impact['files'][name]['reasons']]
-        mixed_sources = len({identity.source_kind for identity in self.model.identities.values()}) > 1
-        self.warning_label.setText(
-            ('No results loaded.' if not files else
-             f'{len(files)} files. Repeat summary: {len(files) - len(excluded)} included, '
-             f'{len(excluded)} excluded. Select a file for details.'
-             + (' Mixed sources; overlay is visual only.' if mixed_sources else '')))
+        self._summary_status = ('No results loaded.' if not files else
+                                f'{len(files)} files   Repeats: {len(files) - len(excluded)} included, {len(excluded)} excluded')
+        self.warning_label.setToolTip('Overlaid curves do not establish compatible repeat trials. See file Details for exclusions.')
         
         # Update Table
         diff_data = self.model.get_summary_differences()
@@ -190,13 +208,14 @@ class CompareMainWindow(QMainWindow):
         # Update Plot Targets (collect all DropPosture metrics for now)
         targets = []
         for df in self.model.datasets.values():
-            targets.extend(' | '.join(col) for col in df.columns if col[:2] == ('Analysis', 'DropPosture'))
+            targets.extend(col for col in df.columns if col[:2] == ('Analysis', 'DropPosture'))
         targets = sorted(set(targets))
                 
-        self.graph_panel.set_plot_targets(targets)
-        
-        # Update Playback Panel Viewers
+        # Replace changed viewers before reading their stored individual rows.
+        # A rewritten file can have fewer samples than the previous version.
         self.playback_panel.refresh_viewers()
+        self.graph_panel.set_plot_targets(targets)
+        self._on_view_changed()
 
     def closeEvent(self, event):
         self.playback_panel.stop()

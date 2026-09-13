@@ -11,6 +11,11 @@ from src.utils.result_time import timeline_from_frame, segmented_series
 from src.visualization.data_handler import DataHandler
 from src.analysis.compare.impact_metrics import calculate_impact_metrics, METRICS
 from src.analysis.compare.contact_metrics import calculate_contact_comparison
+from src.config.data_columns import is_corner_id_column, format_result_value
+
+
+FILE_COLORS = ('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+               '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf')
 
 
 class ComparisonModel:
@@ -19,6 +24,8 @@ class ComparisonModel:
         self.datasets = {}
         self.file_paths = {}
         self.file_hashes = {}
+        self.file_colors = {}
+        self._next_color = 0
         self.visualization_handlers = {}
         self.identities = {}
         self.timelines = {}
@@ -56,6 +63,9 @@ class ComparisonModel:
         self.datasets[name] = df
         self.file_paths[name] = os.path.abspath(filepath)
         self.file_hashes[name] = digest
+        if name not in self.file_colors:
+            self.file_colors[name] = FILE_COLORS[self._next_color % len(FILE_COLORS)]
+            self._next_color += 1
         self.identities[name] = identity
         self.timelines[name] = timeline
         self.impact_results[name] = impact
@@ -72,7 +82,7 @@ class ComparisonModel:
             self.baseline_name = name
 
     def remove_file(self, name):
-        for entries in (self.datasets, self.file_paths, self.file_hashes, self.visualization_handlers, self.identities, self.timelines,
+        for entries in (self.datasets, self.file_paths, self.file_hashes, self.file_colors, self.visualization_handlers, self.identities, self.timelines,
                         self.impact_results, self.contact_results):
             entries.pop(name, None)
         if self.baseline_name == name:
@@ -121,13 +131,20 @@ class ComparisonModel:
                 reference = baseline.get(key)
                 if reasons or pd.isna(value) or pd.isna(reference):
                     diffs[key] = None
+                elif is_corner_id_column(('Analysis', 'DropPostureSummary', key)):
+                    column = ('Analysis', 'DropPostureSummary', key)
+                    rendered = format_result_value(column, value)
+                    reference_label = format_result_value(column, reference)
+                    diffs[key] = ('Match' if rendered == reference_label else reference_label)
+                    if rendered == 'Unknown' or reference_label == 'Unknown':
+                        diffs[key] = None
                 elif isinstance(value, (bool, np.bool_)) or isinstance(reference, (bool, np.bool_)):
-                    diffs[key] = 'Match' if value == reference else str(value)
+                    diffs[key] = 'Match' if value == reference else str(reference)
                 else:
                     try:
                         diffs[key] = value - reference
                     except TypeError:
-                        diffs[key] = 'Match' if value == reference else str(value)
+                        diffs[key] = 'Match' if value == reference else str(reference)
             results[name] = {'summary': values, 'diffs': diffs, 'reasons': reasons,
                              'source': self.identities[name].source_kind}
         return results

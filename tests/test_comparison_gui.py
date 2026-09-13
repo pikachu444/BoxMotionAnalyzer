@@ -88,6 +88,7 @@ def test_actual_comparison_file_loading_and_time_states(tmp_path, monkeypatch):
         # Move the common clock into the long file's internal gap and beyond
         # the normal file end. Neither viewer may clamp to its endpoint.
         panel = window.playback_panel
+        window.control_panel.cb_view.setCurrentIndex(window.control_panel.cb_view.findData('aligned'))
         start, end = panel.bounds
         source_only = paths[3].name
         assert window.model.timelines[source_only].times is not None
@@ -115,14 +116,13 @@ def test_actual_comparison_file_loading_and_time_states(tmp_path, monkeypatch):
         window.control_panel.file_list.setCurrentRow(2)
         assert 'unknown_legacy' in window.control_panel.details.toPlainText()
         assert 'ModelId: missing' in window.control_panel.details.toPlainText()
-        window.control_panel.cb_view.setCurrentIndex(window.control_panel.cb_view.findData(unknown_name))
-        assert window.graph_panel.plot_manager.ax.get_xlabel() == 'Sample row (time unavailable)'
-        panel.chk_sync.setChecked(False)
-        panel.local_controls[unknown_name]['slider'].setValue(1)
+        window.control_panel.cb_view.setCurrentIndex(window.control_panel.cb_view.findData('individual'))
+        assert window.graph_panel.plot_manager.ax.get_xlabel() == 'Sample'
+        panel.master_slider.setValue(1)
         QTest.qWait(150)
         assert not panel.widgets[unknown_name].isHidden()
         assert 'time unavailable' in panel.local_controls[unknown_name]['label'].text()
-        assert not panel.local_controls[unknown_name]['play'].isEnabled()
+        assert not panel.btn_master_play.isEnabled()
         # Qt widget grabs do not reliably include native VTK surfaces on Windows.
         # Capture the actual rendered viewport separately; do not composite it.
         individual_view = panel.widgets[unknown_name]
@@ -139,11 +139,11 @@ def test_actual_comparison_file_loading_and_time_states(tmp_path, monkeypatch):
         captured = individual_view.plotter.screenshot(str(evidence / 'individual_3d.png'))
         assert captured is not None and captured.size and captured.max() > captured.min()
         window.grab().save(str(evidence / 'unknown_individual.png'))
-        window.control_panel.cb_view.setCurrentIndex(window.control_panel.cb_view.findData(source_only))
+        window.control_panel.file_list.setCurrentRow(3)
         assert window.graph_panel.plot_manager.ax.get_xlabel() == 'Recorded time (s)'
-        panel.local_controls[source_only]['slider'].setValue(1)
+        panel.master_slider.setValue(1)
         assert not panel.widgets[source_only].isHidden()
-        assert panel.local_controls[source_only]['play'].isEnabled()
+        assert panel.btn_master_play.isEnabled()
         window.grab().save(str(evidence / 'source_only_individual.png'))
         window.resize(900,650)
         QTest.qWait(150)

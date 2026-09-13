@@ -215,8 +215,8 @@ def test_simulation_run_save_reopen_actual_gui(monkeypatch):
         QTest.mouseClick(compare.control_panel.btn_add_files,Qt.LeftButton)
         assert not errors and path.name in compare.model.datasets
         panel=compare.playback_panel
-        panel.chk_sync.setChecked(False)
-        panel.local_controls[path.name]['slider'].setValue(30)
+        assert compare.control_panel.cb_view.currentData() == 'individual'
+        panel.master_slider.setValue(30)
         QTest.qWait(250)
         viewer=panel.widgets[path.name]
         assert viewer.isVisible()

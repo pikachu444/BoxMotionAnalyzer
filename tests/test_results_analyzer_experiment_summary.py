@@ -69,7 +69,7 @@ class TestResultsAnalyzerExperimentSummary(unittest.TestCase):
             for row in range(self.widget.experiment_summary_table.rowCount())
         ]
         self.assertEqual(first_column_texts[0], "Posture")
-        self.assertIn("Beta at t1-", first_column_texts)
+        self.assertIn("Pre-contact face tilt", first_column_texts)
         self.assertIn("Reference face", first_column_texts)
         self.assertLess(first_column_texts.index("Posture"), first_column_texts.index("Impact"))
         self.assertLess(first_column_texts.index("Impact"), first_column_texts.index("Contact"))
@@ -97,8 +97,8 @@ class TestResultsAnalyzerExperimentSummary(unittest.TestCase):
             if metric_item is not None and value_item is not None:
                 values_by_metric[metric_item.text()] = value_item.text()
 
-        self.assertEqual(values_by_metric["Beta at t1-"], "N/A")
-        self.assertEqual(values_by_metric["t1-"], "N/A")
+        self.assertEqual(values_by_metric["Pre-contact face tilt"], "N/A")
+        self.assertEqual(values_by_metric["Pre-contact sample time"], "N/A")
         self.assertEqual(values_by_metric["Contact state"], "NoContact")
 
     def test_summary_tooltip_comes_from_descriptor(self):
