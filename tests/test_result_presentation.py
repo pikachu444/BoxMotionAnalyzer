@@ -14,6 +14,7 @@ from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.ui.widget_results_analyzer import WidgetResultsAnalyzer
 from src.config.data_columns import RESULT_TIME_COL, get_result_column_unit
+from src.utils.qt_sections import find_result_column_index
 
 
 BETA = ('Analysis', 'DropPosture', 'BetaDeg')
@@ -53,7 +54,13 @@ def test_corner_selection_export_and_failed_switch_preserve_category_context(app
         np.testing.assert_array_equal(manager.ax.lines[0].get_ydata(), [1e-6, 2e-6, np.nan, 3e-6])
         assert window.result_data[CORNER].iloc[2] == 2.5
 
-        window.find_max_target_combo.setCurrentIndex(window.find_max_target_combo.findData(CORNER))
+        corner_index = find_result_column_index(window.find_max_target_combo, CORNER)
+        assert corner_index >= 0
+        window.find_max_target_combo.setCurrentIndex(corner_index)
+        # Rebuilding the selector preserves the same column even when Qt returns
+        # a list, or holds an equal tuple in a different Python object.
+        window._update_find_max_targets([BETA, tuple(list(CORNER))])
+        assert tuple(window.find_max_target_combo.currentData()) == CORNER
         assert not any(button.isEnabled() for button in
                        (window.find_max_button, window.find_min_button, window.find_abs_max_button))
         window.on_result_plot_click(SimpleNamespace(inaxes=manager.category_ax, xdata=.01))

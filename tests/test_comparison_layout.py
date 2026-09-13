@@ -7,13 +7,14 @@ import pandas as pd
 import pytest
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
+from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QComboBox
 
 from comparison_fixtures import write_proc, identity
 from src.analysis.compare.main_window import CompareMainWindow
 from src.config import config_visualization as k
 from src.utils.result_time import TIME_COLUMN, T1_DETECTED_COLUMN
 from src.visualization.vista_widget import VistaWidget
+from src.utils.qt_sections import find_result_column_index
 
 
 @pytest.fixture
@@ -207,7 +208,12 @@ def test_category_graph_and_summary_preserve_ids_without_numeric_differences(tmp
     window.load_result_files([str(path) for path in paths])
     window.control_panel.file_list.setCurrentRow(1)
     target = window.graph_panel.cb_plot_target
-    target.setCurrentIndex(target.findData(corner))
+    target.setCurrentIndex(find_result_column_index(target, corner))
+    assert tuple(target.currentData()) == corner
+    # Rebuilding entries creates different Python tuples for the same column.
+    # Selection must survive this refresh as well as the initial lookup.
+    window.graph_panel.set_plot_targets([('Analysis', 'DropPosture', 'ThetaLongDeg'), tuple(list(corner))])
+    assert tuple(target.currentData()) == corner
     line = _curve(window, paths[1].name)
     assert line.get_linestyle() == 'None'
     np.testing.assert_allclose(line.get_ydata(), [6., np.nan, np.nan], equal_nan=True)
@@ -353,3 +359,20 @@ def test_compare_fit_preserves_y_up_and_labels_are_optional(tmp_path, comparison
     assert not viewer.isHidden()
     pd.testing.assert_frame_equal(window.model.datasets[path.name], original_data)
     viewer.plotter.reset_camera.assert_called_once()
+
+
+def test_column_lookup_uses_values_for_tuple_and_list_user_data():
+    app = QApplication.instance() or QApplication([])
+    combo = QComboBox()
+    key = ('Analysis', 'DropPosture', 'CminIndex')
+    try:
+        for stored in (list(key), tuple(list(key))):
+            combo.clear()
+            combo.addItem('Lowest corner', stored)
+            assert find_result_column_index(combo, tuple(list(key))) == 0
+            assert find_result_column_index(combo, list(key)) == 0
+            assert find_result_column_index(combo, None) == -1
+            assert find_result_column_index(combo, ('Analysis', 'DropPosture', 'BetaDeg')) == -1
+    finally:
+        combo.deleteLater()
+        app.processEvents()

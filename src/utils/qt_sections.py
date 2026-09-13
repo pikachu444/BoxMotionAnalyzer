@@ -5,6 +5,18 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QMenu, QSizePolicy, QToolButton, QVBoxLayout, QWidget
 
 
+def find_result_column_index(combo, column):
+    """Compare column values across Qt's tuple/list UserRole representations."""
+    if not isinstance(column, (tuple, list)) or len(column) != 3:
+        return -1
+    key = tuple(column)
+    for index in range(combo.count()):
+        value = combo.itemData(index)
+        if isinstance(value, (tuple, list)) and tuple(value) == key:
+            return index
+    return -1
+
+
 class CollapsibleSection(QWidget):
     def __init__(self, title, content_widget, expanded=False, parent=None):
         super().__init__(parent)

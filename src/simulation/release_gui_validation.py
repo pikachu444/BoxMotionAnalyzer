@@ -22,6 +22,7 @@ from src.analysis.app.main_window import MainApp
 from src.analysis.compare.main_window import CompareMainWindow
 from src.config.data_columns import normalize_result_column
 from src.config import config_visualization as visual
+from src.utils.qt_sections import find_result_column_index
 
 
 def sha(path):
@@ -354,7 +355,7 @@ def run(trial_report, output):
         report['checks']['loading_error_cancel_preserve_comparison'] = True
         stage('Actual-time graph and 3D')
         combo = comparison.graph_panel.cb_plot_target
-        index = combo.findData(('Analysis', 'DropPosture', 'ThetaLongDeg'))
+        index = find_result_column_index(combo, ('Analysis', 'DropPosture', 'ThetaLongDeg'))
         assert index >= 0
         combo.setCurrentIndex(index)
         control.cb_view.setCurrentIndex(control.cb_view.findData('aligned'))

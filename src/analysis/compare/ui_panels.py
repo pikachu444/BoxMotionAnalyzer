@@ -15,7 +15,7 @@ from src.analysis.ui.plot_manager import PlotManager, plot_result_series, config
 from src.analysis.compare.impact_metrics import METRICS
 from src.config.data_columns import (get_result_metric_display_name, get_result_metric_tooltip,
                                      format_result_value, is_corner_id_column)
-from src.utils.qt_sections import CollapsibleSection
+from src.utils.qt_sections import CollapsibleSection, find_result_column_index
 
 SOURCE_LABELS = {'real': 'Real', 'mujoco_synthetic': 'MuJoCo',
                  'handcrafted_dummy': 'Constructed', 'public_external': 'Public',
@@ -303,9 +303,9 @@ class CompareGraphPanel(QGroupBox):
             self.cb_plot_target.addItem(get_result_metric_display_name(*column), column)
             self.cb_plot_target.setItemData(self.cb_plot_target.count() - 1,
                                            get_result_metric_tooltip(column), Qt.ToolTipRole)
-        index = self.cb_plot_target.findData(current)
+        index = find_result_column_index(self.cb_plot_target, current)
         if index < 0:
-            index = self.cb_plot_target.findData(('Analysis', 'DropPosture', 'BetaDeg'))
+            index = find_result_column_index(self.cb_plot_target, ('Analysis', 'DropPosture', 'BetaDeg'))
         self.cb_plot_target.setCurrentIndex(max(0, index) if targets else -1)
         self.cb_plot_target.blockSignals(False)
         self.plot_target_changed.emit(self.cb_plot_target.currentData())

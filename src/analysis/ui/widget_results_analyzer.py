@@ -19,7 +19,7 @@ from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.pipeline.artifact_io import list_result_files
 from src.analysis.ui.dialog_metric_guide import DropPostureMetricGuideDialog
 from src.analysis.ui.plot_popup_dialog import PlotPopupDialog
-from src.utils.qt_sections import CollapsibleSection, set_path_label
+from src.utils.qt_sections import CollapsibleSection, find_result_column_index, set_path_label
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS,
     RESULT_TIME_COL,
@@ -730,7 +730,7 @@ class WidgetResultsAnalyzer(QWidget):
         for control in (self.result_data_tree, self.selection_group_by_combo,
                         self.selection_search_input, self.plot_results_button):
             control.setEnabled(self.result_data is not None)
-        target_index = self.find_max_target_combo.findData(previous['target'])
+        target_index = find_result_column_index(self.find_max_target_combo, previous['target'])
         if target_index >= 0:
             self.find_max_target_combo.setCurrentIndex(target_index)
         self._draw_result_columns([col for col in self.available_result_columns
@@ -1056,10 +1056,9 @@ class WidgetResultsAnalyzer(QWidget):
         for col in checked_columns:
             self.find_max_target_combo.addItem(get_result_column_display_path(col), userData=col)
 
-        if current_target in checked_columns:
-            index = self.find_max_target_combo.findData(current_target)
-            if index >= 0:
-                self.find_max_target_combo.setCurrentIndex(index)
+        index = find_result_column_index(self.find_max_target_combo, current_target)
+        if index >= 0:
+            self.find_max_target_combo.setCurrentIndex(index)
 
     def _on_point_target_changed(self, *_):
         column = self.find_max_target_combo.currentData()
