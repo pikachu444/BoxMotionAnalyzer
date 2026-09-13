@@ -32,15 +32,32 @@ jobs:
           qt: true
           pyvista: false
           mesa3d-release: '24.3.0'
+      - name: Configure the hosted desktop for the release viewport
+        shell: powershell
+        run: |
+          Get-DisplayResolution
+          Set-DisplayResolution -Width 1920 -Height 1080 -Force
+          Get-DisplayResolution
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.13'
           cache: pip
       - name: Install application and test dependencies
         run: python -m pip install -r requirements.txt pytest mujoco==3.6.0
+      - name: Verify the physical Qt desktop before running GUI checks
+        run: >-
+          python -c "import json; from pathlib import Path; from PySide6.QtGui import QGuiApplication;
+          app = QGuiApplication([]); screen = app.primaryScreen(); dpr = screen.devicePixelRatio();
+          physical = [screen.size().width() * dpr, screen.size().height() * dpr];
+          report = {'physical_size': physical, 'dpr': dpr, 'configured_by_ci': True};
+          Path('tmp').mkdir(exist_ok=True);
+          Path('tmp/ci-desktop.json').write_text(json.dumps(report), encoding='utf-8');
+          print(report); assert physical == [1920, 1080], report"
       - name: Check public geometry, correction, persistence and Qt workflow
         run: >-
-          python -m pytest -q
+          python -m pytest -q --maxfail=1
+          tests/test_comparison_layout.py
+          tests/test_processing_window_layout.py
           tests/test_marker_face_assignment.py
           tests/test_marker_flip.py
           tests/test_mujoco_marker_fixtures.py
@@ -60,7 +77,6 @@ jobs:
           tests/test_contact_comparison_gui.py
           tests/test_artifact_provenance.py
           tests/test_comparison_gui.py
-          tests/test_comparison_layout.py
           tests/test_processing_semantics.py
           tests/test_slice_dimension_provenance_gui.py
           tests/test_simulation_export.py
@@ -80,7 +96,6 @@ jobs:
           tests/test_trial_record_integration.py
           tests/test_trial_record_gui.py
           tests/test_processing_window_close.py
-          tests/test_processing_window_layout.py
           tests/test_result_format_layout.py
           tests/test_scenario_345.py
           tests/test_scenario_6.py
@@ -120,6 +135,7 @@ jobs:
         with:
           name: public-validation-evidence
           path: |
+            tmp/ci-desktop.json
             tmp/public-marker-results.xml
             tmp/public-validation-summary.json
             tmp/ci-*/**/validation*.json

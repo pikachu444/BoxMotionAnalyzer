@@ -124,7 +124,7 @@ def run(trial_report, output):
                    'frame_physical': [frame.width() * dpr, frame.height() * dpr],
                    'monitor_logical': [screen.size().width(), screen.size().height()],
                    'available_logical': [screen.availableGeometry().width(), screen.availableGeometry().height()],
-                   'monitor_resolution_changed': False, 'buttons': {}}
+                   'monitor_resolution_changed_by_validator': False, 'buttons': {}}
         if isinstance(current, CompareMainWindow):
             graph = current.graph_panel
             details['vertical_panel_heights'] = current.right_splitter.sizes()
