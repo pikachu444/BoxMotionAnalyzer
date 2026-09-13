@@ -64,6 +64,10 @@ class MainApp(QMainWindow):
             event.ignore()
             self.statusBar().showMessage('Wait for processing to finish before closing.')
             return
+        if self.processing_widget.batch_running:
+            event.ignore()
+            self.statusBar().showMessage('Wait for batch processing to finish before closing.')
+            return
         super().closeEvent(event)
 
     def __init__(self):
@@ -112,6 +116,9 @@ class MainApp(QMainWindow):
 
         self.result_widget.log_message.connect(self.original_widget.append_log)
         self.result_widget.log_message.connect(self.processing_widget.append_log)
+        self.result_widget.log_message.connect(
+            lambda message: self.statusBar().showMessage(message.split('] ', 1)[-1])
+        )
         self.processing_widget.processing_requested.connect(self.run_processing_pipeline)
         self.processing_widget.log_message.connect(self.processing_widget.append_log)
 

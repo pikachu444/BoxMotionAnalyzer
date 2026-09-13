@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QColor
@@ -60,6 +61,7 @@ class WidgetResultsAnalyzer(QWidget):
         self._setup_ui()
         self._connect_signals()
         self._reset_context_labels()
+        self.update_point_selection_ui()
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -575,6 +577,10 @@ class WidgetResultsAnalyzer(QWidget):
         self.result_file_list.clear()
         try:
             files = list_result_files(folder_path)
+            # Direct opens also support legacy result CSV files. Include only
+            # the validated active CSV, not every unrelated CSV in the folder.
+            if selected_file and selected_file not in files:
+                files = sorted([*files, selected_file])
             self.result_file_list.addItems(files)
             self.log_message.emit(f"[INFO] Found {len(files)} result files in {folder_path}")
             if selected_file:
@@ -605,6 +611,8 @@ class WidgetResultsAnalyzer(QWidget):
         self.current_result_file = None
         self.checked_result_columns.clear()
         self.last_selected_result_columns.clear()
+        self.plot_manager.draw_plot(None, [])
+        self.toolbar.update()
         self.selected_point_info = {'time': None, 'index': None}
         self.update_point_selection_ui()
         self.close_all_popups()
@@ -616,65 +624,165 @@ class WidgetResultsAnalyzer(QWidget):
         file_path = os.path.join(folder_path, item.text())
         self.load_result_file(file_path)
 
+    def _restore_active_file_selection(self):
+        active_name = os.path.basename(self.current_result_file) if self.current_result_file else None
+        self.result_file_list.setCurrentRow(-1)
+        for index in range(self.result_file_list.count()):
+            if self.result_file_list.item(index).text() == active_name:
+                self.result_file_list.setCurrentRow(index)
+                break
+
+    @staticmethod
+    def _prepare_result_data(data):
+        """Validate a candidate without changing the result currently on screen."""
+        if not isinstance(data, pd.DataFrame) or data.empty:
+            raise ValueError('The file has no result samples.')
+        if data.attrs.get('time_error'):
+            raise ValueError('The file needs valid, increasing Time values in seconds.')
+        if not data.columns.is_unique:
+            raise ValueError('The file has conflicting result columns. Choose another result file.')
+        data = data.copy()
+        if data.index.name != TimeCols.TIME:
+            if RESULT_TIME_COL in data.columns:
+                data = data.set_index(RESULT_TIME_COL)
+            elif TimeCols.TIME in data.columns:
+                data = data.set_index(TimeCols.TIME)
+            else:
+                raise ValueError('The file needs a Time column in seconds.')
+        times = pd.to_numeric(data.index, errors='coerce').to_numpy(dtype=float)
+        if not np.isfinite(times).all() or (np.diff(times) <= 0).any():
+            raise ValueError('Time must contain increasing, unique seconds without missing values.')
+        data.index = pd.Index(times, name=TimeCols.TIME)
+        for column in data.columns:
+            if column not in DISPLAY_RESULT_COLUMNS:
+                continue
+            values = pd.to_numeric(data[column], errors='coerce')
+            if (data[column].notna() & values.isna()).any():
+                name = get_result_metric_display_name(*column)
+                raise ValueError(f'{name} contains nonnumeric samples. Choose another result.')
+            # Numeric strings are supported, while genuine missing samples stay
+            # NaN so the graph continues to show the data gap.
+            data[column] = values
+        return data
+
+    def _capture_result_context(self):
+        return {
+            'data': self.result_data,
+            'file': self.current_result_file,
+            'folder': self.result_folder_path_label.text(),
+            'files': [self.result_file_list.item(i).text() for i in range(self.result_file_list.count())],
+            'available': self.available_result_columns.copy(),
+            'checked': self.checked_result_columns.copy(),
+            'plotted': self.last_selected_result_columns.copy(),
+            'point': self.selected_point_info.copy(),
+            'target': self.find_max_target_combo.currentData(),
+            'limits': (self.plot_manager.ax.get_xlim(), self.plot_manager.ax.get_ylim()),
+            'popups': {name: (popup.selected_columns.copy(), popup.plot_manager.ax.get_xlim(),
+                              popup.plot_manager.ax.get_ylim())
+                       for name, popup in self.popup_windows.items()},
+        }
+
+    def _restore_result_context(self, previous):
+        """Recover the last good file if a candidate fails during UI rendering."""
+        self.result_data = previous['data']
+        self.current_result_file = previous['file']
+        self.result_folder_path_label.setText(previous['folder'])
+        self.result_file_list.clear()
+        self.result_file_list.addItems(previous['files'])
+        self._restore_active_file_selection()
+        self.available_result_columns = previous['available']
+        self.checked_result_columns = previous['checked']
+        self.last_selected_result_columns = previous['plotted']
+        self.refresh_result_tree()
+        for control in (self.result_data_tree, self.selection_group_by_combo,
+                        self.selection_search_input, self.plot_results_button):
+            control.setEnabled(self.result_data is not None)
+        target_index = self.find_max_target_combo.findData(previous['target'])
+        if target_index >= 0:
+            self.find_max_target_combo.setCurrentIndex(target_index)
+        self._draw_result_columns([col for col in self.available_result_columns
+                                   if col in self.last_selected_result_columns])
+        self.selected_point_info = previous['point']
+        self.update_point_selection_ui()
+        self.plot_manager.ax.set_xlim(previous['limits'][0])
+        self.plot_manager.ax.set_ylim(previous['limits'][1])
+        self.plot_manager.canvas.draw_idle()
+        if self.current_result_file:
+            self._update_context_from_dataframe(os.path.basename(self.current_result_file))
+        else:
+            self._reset_context_labels()
+        for name, (columns, xlim, ylim) in previous['popups'].items():
+            popup = self.popup_windows[name]
+            popup.set_plot_data(self.result_data, columns)
+            popup.set_selected_time_cursor(self.selected_point_info.get('time'))
+            popup.plot_manager.ax.set_xlim(xlim)
+            popup.plot_manager.ax.set_ylim(ylim)
+            popup.plot_manager.canvas.draw_idle()
+
     def load_result_file(self, file_path):
-        if not file_path or not os.path.isfile(file_path):
-            self.log_message.emit(f"[ERROR] Result file not found: {file_path}")
+        if not file_path:
+            self._restore_active_file_selection()
+            return False
+        if not os.path.isfile(file_path):
+            self._restore_active_file_selection()
+            self.log_message.emit('[ERROR] Result file not found. Choose an existing result file.')
             return False
 
+        file_path = os.path.abspath(file_path)
         folder_path = os.path.dirname(file_path)
         file_name = os.path.basename(file_path)
+        try:
+            candidate = self.data_loader.load_result_csv(file_path)
+        except Exception:
+            self._restore_active_file_selection()
+            self.log_message.emit('[ERROR] Could not read this result. Choose a saved .proc or result CSV file.')
+            return False
+        try:
+            candidate = self._prepare_result_data(candidate)
+        except ValueError as error:
+            self._restore_active_file_selection()
+            self.log_message.emit(f'[ERROR] {error}')
+            return False
+
+        previous = self._capture_result_context()
+        try:
+            self._activate_result_data(candidate, file_path)
+        except Exception:
+            self._restore_result_context(previous)
+            self.log_message.emit('[ERROR] Could not display this result. The previous result is still open.')
+            return False
+        self.log_message.emit(f'[INFO] Loaded {file_name}.')
+        return True
+
+    def _activate_result_data(self, candidate, file_path):
+        first_result = self.result_data is None
+        folder_path = os.path.dirname(file_path)
+        file_name = os.path.basename(file_path)
+        self.result_data = candidate
+        self.current_result_file = file_path
         self.result_folder_path_label.setText(folder_path)
         self._refresh_result_file_list(folder_path, selected_file=file_name)
-
-        try:
-            self.log_message.emit(f"[INFO] Loading result file: {file_path}")
-            self.result_data = self.data_loader.load_result_csv(file_path)
-            self.current_result_file = file_path
-
-            if self.result_data.index.name != TimeCols.TIME:
-                if RESULT_TIME_COL in self.result_data.columns:
-                    self.result_data.set_index(RESULT_TIME_COL, inplace=True)
-                    self.result_data.index.name = TimeCols.TIME
-                elif TimeCols.TIME in self.result_data.columns:
-                    self.result_data.set_index(TimeCols.TIME, inplace=True)
-                    self.result_data.index.name = TimeCols.TIME
-
-            if self.result_data.index.name != TimeCols.TIME:
-                self.log_message.emit(
-                    f"[WARNING] '{TimeCols.TIME}' column not found in {file_name}. "
-                    "Using default integer index for plotting."
-                )
-
-            self.populate_result_tree(self.result_data)
-            self.result_data_tree.setEnabled(True)
-            self.selection_group_by_combo.setEnabled(True)
-            self.selection_search_input.setEnabled(True)
-            self.plot_results_button.setEnabled(True)
-            self.selected_point_info = {'time': None, 'index': None}
-            self.update_point_selection_ui()
-            self._update_context_from_dataframe(file_name)
-            if self.popup_windows:
-                self._refresh_popup_plots()
-            self._update_popup_status_label()
-            self.log_message.emit("[INFO] Result data loaded. Select columns and plot.")
-            return True
-        except Exception as e:
-            self.log_message.emit(f"[ERROR] Failed to load result file: {e}")
-            self.selection_search_input.blockSignals(True)
-            self.selection_search_input.clear()
-            self.selection_search_input.blockSignals(False)
-            self.result_data = None
-            self.current_result_file = None
-            self.result_data_tree.clear()
-            self.result_data_tree.setEnabled(False)
-            self.selection_group_by_combo.setEnabled(False)
-            self.selection_search_input.setEnabled(False)
-            self.plot_results_button.setEnabled(False)
-            self.find_max_target_combo.clear()
-            self.available_result_columns = []
-            self.checked_result_columns.clear()
-            self._reset_context_labels()
-            return False
+        if first_result and not self.checked_result_columns:
+            for default in (
+                (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_BETA_DEG),
+                (HeaderL1.POS, HeaderL2.COM, HeaderL3.P_TY),
+            ):
+                if default in candidate.columns:
+                    self.checked_result_columns = {default}
+                    break
+            self.last_selected_result_columns = self.checked_result_columns.copy()
+        self.populate_result_tree(candidate)
+        self.last_selected_result_columns.intersection_update(self.available_result_columns)
+        self.result_data_tree.setEnabled(True)
+        self.selection_group_by_combo.setEnabled(True)
+        self.selection_search_input.setEnabled(True)
+        self.plot_results_button.setEnabled(True)
+        self._draw_result_columns([
+            col for col in self.available_result_columns if col in self.last_selected_result_columns
+        ])
+        self._update_context_from_dataframe(file_name)
+        self._refresh_popup_plots()
+        self._update_popup_status_label()
 
     def populate_result_tree(self, df):
         self.available_result_columns = [
@@ -910,23 +1018,19 @@ class WidgetResultsAnalyzer(QWidget):
         self._set_selected_columns_context(len(checked_columns))
         self._update_find_max_targets(checked_columns)
         self.log_message.emit(f"[INFO] Plotting {len(checked_columns)} result columns...")
+        self._draw_result_columns(checked_columns)
 
-        if not checked_columns:
-            self.plot_manager.clear_plot()
-            self.selected_point_info = {'time': None, 'index': None}
-            self.update_point_selection_ui()
-            self.toolbar.update()
-            self.toolbar.push_current()
-            return
-
-        plot_df = self.result_data[checked_columns].copy()
-        self.plot_manager.draw_plot(plot_df, checked_columns)
-        self.plot_manager.ax.set_title("")
+    def _draw_result_columns(self, columns):
+        plot_df = self.result_data[columns].copy() if columns else None
+        self.plot_manager.draw_plot(plot_df, columns)
+        if columns:
+            self.plot_manager.ax.set_title("")
         self.plot_manager.canvas.draw_idle()
         self.toolbar.update()
         self.toolbar.push_current()
         self.selected_point_info = {'time': None, 'index': None}
         self.update_point_selection_ui()
+        self._sync_popup_cursors()
 
     def _get_nearest_row_index(self, time_val):
         if self.result_data is None or self.result_data.empty:
@@ -1024,9 +1128,11 @@ class WidgetResultsAnalyzer(QWidget):
             else:
                 self.selected_point_label.setText(f"Selected Point: T={time_text}s")
             self.export_point_button.setEnabled(True)
+            self.export_scenario_button.setEnabled(True)
         else:
             self.selected_point_label.setText("Selected Point: None")
             self.export_point_button.setEnabled(False)
+            self.export_scenario_button.setEnabled(False)
             self.plot_manager.canvas.draw()
 
     def _open_popup(self, selected_columns):
@@ -1062,7 +1168,8 @@ class WidgetResultsAnalyzer(QWidget):
         for popup in list(self.popup_windows.values()):
             if popup is None:
                 continue
-            popup.set_plot_data(self.result_data, popup.selected_columns)
+            columns = [col for col in popup.selected_columns if col in self.result_data.columns]
+            popup.set_plot_data(self.result_data, columns)
             popup.set_selected_time_cursor(self.selected_point_info.get('time'))
 
     def close_all_popups(self):

@@ -1,12 +1,16 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-09-13
+Last Reviewed: 2026-09-14
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [ ] #106: Keep Step 2 file, curves, point selection and exports in one result context; preserve open launcher windows. Implemented and independently rechecked with the native 243-row tilt to 27-row drop case and exact point export. Code/physics review is complete; CI and merge remain pending.
+- [ ] #106: Connect scene saving, single/batch processing, result viewing and comparison; simplify the existing Step 1/1.5/2 controls.
+- [ ] #106: Simplify comparison controls and metric names; correct corner-ID presentation, default angular scale and individual/aligned viewing.
+- [ ] #106: Fit Simulation actions to the window and prioritize marker-correction decisions and plots over diagnostic detail.
 - [O] Retain #84 public validation context and failure reports, execute deliberate oracle-offset and omitted-correction controls through real pose validation, and preserve original files and normal reports. Actual CLI results and independently reproduced/fixed report-integrity defects are recorded in `../reference/marker_flip_review_findings.md`. The Windows lane retains public JSON/JUnit evidence; final CI/publication status is tracked in #84 and its PR.
 - [O] Connect the existing public face-drop MainApp/Raw/proc execution to precontact metrics in required CI, retaining synthetic identity and actual-time evidence. Reuse the same optimized poses for a 12-row sustained-contact control; no additional normal Raw run is added. Independent review fixed final input-change/deletion failure propagation. See `drop_result_comparison_plan.md` for values, bounds and execution limits; final CI/publication status is tracked in #84 and its PR.
 - [O] Complete #84 public noise/freeze/genuine-rotation acceptance, generic export-to-scene coverage, per-test Level 1/2 reporting, and current-checkout independence from captures. Preserve all local capture bytes while removing their Git tracking; public schema/viewer tests use literal canonical geometry and real consistency checks require an explicit local path. Execution, limitations and independent review are in `../reference/marker_flip_review_findings.md`; final CI/publication is tracked in #84 and its PR.

@@ -263,6 +263,16 @@ class SimulationThread(QThread):
             self.error_signal.emit(simulation_error_message(e))
 
 class SimulationUI(QWidget):
+    def closeEvent(self, event):
+        worker = self.__dict__.get('thread')
+        # Keep the worker and batch queue alive until their completion/error
+        # callbacks have restored the controls, including the gap between jobs.
+        if ((isinstance(worker, QThread) and worker.isRunning())
+                or not self.run_btn.isEnabled()):
+            event.ignore()
+            return
+        super().closeEvent(event)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Simulation Setup")

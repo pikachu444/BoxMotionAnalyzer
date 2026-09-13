@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, QSize
+from shiboken6 import isValid
 
 from src.config import config_visualization as config
 from src.visualization.main_window import MainWindow
@@ -127,28 +128,40 @@ class LauncherWindow(QMainWindow):
 
     def open_data_processing(self):
         """Opens the data processing window (MainApp)."""
-        # Keep the current window and worker when closing is deferred.
-        if self.data_processing_window is not None and not self.data_processing_window.close():
-            return
-
-        self.data_processing_window = MainApp()
-        self.data_processing_window.show()
+        self._open_work_window('data_processing_window', MainApp)
 
     def open_simulation(self):
         """Opens the simulation window."""
-        if self.simulation_window is not None:
-            self.simulation_window.close()
-
-        self.simulation_window = SimulationUI()
-        self.simulation_window.show()
+        self._open_work_window('simulation_window', SimulationUI)
 
     def open_comparison(self):
         """Opens the experiment comparison window."""
-        if self.comparison_window is not None:
-            self.comparison_window.close()
+        self._open_work_window('comparison_window', CompareMainWindow)
 
-        self.comparison_window = CompareMainWindow()
-        self.comparison_window.show()
+    def _open_work_window(self, attribute, factory):
+        window = getattr(self, attribute)
+        # A successfully closed comparison window has already released its VTK
+        # resources, even before Qt delivers deferred deletion. Only reuse an
+        # open window; minimizing leaves isVisible() true.
+        if window is None or not isValid(window) or not window.isVisible():
+            window = factory()
+            window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+            setattr(self, attribute, window)
+            window.destroyed.connect(
+                lambda _object=None, name=attribute, closed=window: self._forget_work_window(name, closed)
+            )
+        if window.isMinimized():
+            window.showNormal()
+        else:
+            window.show()
+        window.raise_()
+        window.activateWindow()
+
+    def _forget_work_window(self, attribute, closed):
+        # A new window may already have replaced a closed one while Qt was
+        # waiting to delete the old object.
+        if getattr(self, attribute) is closed:
+            setattr(self, attribute, None)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
