@@ -56,7 +56,15 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
     app, window = comparison
     paths = [write_proc(tmp_path / (f'{index:02}_' + 'long_name_' * 10 + '.proc'), offset=index)
              for index in range(9)]
+    corner = ('Analysis', 'DropPosture', 'CminIndex')
+    slope = ('Analysis', 'DropPosture', 'ThetaLongDeg')
+    for index, path in enumerate(paths):
+        frame = pd.read_csv(path, header=[0, 1, 2])
+        frame[corner] = index % 8 + 1
+        frame.to_csv(path, index=False)
     window.load_result_files([str(path) for path in paths])
+    target = window.graph_panel.cb_plot_target
+    target.setCurrentIndex(find_result_column_index(target, slope))
     names = list(window.model.datasets)
     assert window.control_panel.cb_view.currentData() == 'individual'
     assert not window.control_panel.details_section.button.isChecked()
@@ -95,7 +103,28 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
             QTest.qWait(30)
             assert (window.width(), window.height()) == (width, height)
             table = window.table_panel.table
-            assert table.viewport().rect().contains(table.visualItemRect(table.item(0, 0)))
+            # Contact uses two-line filename/source rows; returning to a
+            # numeric mode must remeasure those rows, including after resize.
+            for mode in (0, 1, 2, 3, 0):
+                window.table_panel.view_combo.setCurrentIndex(mode)
+                QTest.qWait(20)
+                table.setFocus()
+                QTest.keyClick(table, Qt.Key_Home, Qt.ControlModifier)
+                assert table.viewport().rect().contains(table.visualItemRect(table.item(0, 0)))
+                QTest.keyClick(table, Qt.Key_End, Qt.ControlModifier)
+                table.horizontalScrollBar().setValue(0)
+                assert table.currentRow() == table.rowCount() - 1
+                assert table.viewport().rect().contains(table.visualItemRect(table.item(table.currentRow(), 0)))
+                table.scrollToTop()
+            # Horizontal comparison scrolling must not hide the sample text
+            # underneath the render surface at either end of the file list.
+            playback = window.playback_panel
+            for name in (names[0], names[-1]):
+                label = playback.local_controls[name]['label']
+                playback.scroll.ensureWidgetVisible(playback.containers[name])
+                app.processEvents()
+                assert label.visibleRegion().contains(label.rect())
+            playback.scroll.horizontalScrollBar().setValue(0)
             for button in (window.control_panel.btn_add_files, window.control_panel.btn_remove_file,
                            window.control_panel.cb_view, window.playback_panel.btn_master_play,
                            window.playback_panel.master_slider, window.graph_panel.cb_plot_target):
@@ -103,6 +132,12 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
                 origin = button.mapTo(window, QPoint(0, 0))
                 assert window.rect().contains(origin) and window.rect().contains(origin + button.rect().bottomRight())
             graph = window.graph_panel
+            # Rebuild the nine-file legend through real metric and view
+            # changes; readable strings must not be squeezed to one glyph.
+            target.setCurrentIndex(find_result_column_index(target, corner))
+            window.control_panel.cb_view.setCurrentIndex(0)
+            window.control_panel.cb_view.setCurrentIndex(1)
+            app.processEvents()
             assert graph.legend_scroll.geometry().bottom() < graph.canvas.geometry().top()
             assert graph.plot_manager.ax.get_legend() is None
             assert graph.canvas.height() >= 130
@@ -111,6 +146,14 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
                 label = graph.legend_labels[name]
                 assert not label.text().isdigit() and name[:3] in label.text()
                 assert window.model.file_paths[name] == label.toolTip()
+                assert label.width() >= label.fontMetrics().horizontalAdvance(label.text())
+            assert graph.legend_scroll.horizontalScrollBar().maximum() > 0
+            for name in (names[0], names[-1]):
+                label = graph.legend_labels[name]
+                graph.legend_scroll.ensureWidgetVisible(label)
+                app.processEvents()
+                assert label.visibleRegion().contains(label.rect())
+            graph.legend_scroll.horizontalScrollBar().setValue(0)
 
     window.control_panel.cb_baseline.setCurrentIndex(1)
     assert window.control_panel.selected_file == names[-1]

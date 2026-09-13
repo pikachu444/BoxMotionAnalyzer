@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QTableWidget, QTableWidgetItem, QHeaderView, QListWidget, QComboBox, QSplitter,
     QGroupBox, QFrame, QListWidgetItem, QPlainTextEdit, QDoubleSpinBox,
-    QScrollArea, QSizePolicy, QFormLayout, QCheckBox
+    QScrollArea, QSizePolicy, QFormLayout, QCheckBox, QLayout
 )
 from PySide6.QtCore import Qt, Signal, QSize
 from PySide6.QtGui import QColor, QIcon, QPixmap
@@ -84,6 +84,10 @@ class CompareTablePanel(QGroupBox):
         for col in range(1, self.table.columnCount()):
             self.table.setColumnWidth(col, min(220, max(95, self.table.columnWidth(col))))
         self.table.horizontalHeader().setTextElideMode(Qt.ElideMiddle)
+        # Contact rows contain a filename and source on separate lines. Qt
+        # retains their heights across clear()/setRowCount(), so measure the
+        # current mode instead of carrying those heights into numeric rows.
+        self.table.resizeRowsToContents()
 
     def _render_contact(self, contact):
         self.table.clear()
@@ -245,6 +249,7 @@ class CompareTablePanel(QGroupBox):
         self.table.horizontalHeader().setTextElideMode(Qt.ElideMiddle)
         for column in range(1, self.table.columnCount()):
             self.table.setColumnWidth(column, min(220, max(155, self.table.columnWidth(column))))
+        self.table.resizeRowsToContents()
 
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 
@@ -287,6 +292,7 @@ class CompareGraphPanel(QGroupBox):
         self.legend_widget = QWidget()
         self.legend_layout = QHBoxLayout(self.legend_widget)
         self.legend_layout.setContentsMargins(0, 0, 0, 0)
+        self.legend_layout.setSizeConstraint(QLayout.SetMinimumSize)
         self.legend_labels = {}
         self.legend_scroll.setWidget(self.legend_widget)
         target_layout.addWidget(self.legend_scroll, stretch=1)
@@ -331,6 +337,7 @@ class CompareGraphPanel(QGroupBox):
             label = QLabel()
             label.setTextFormat(Qt.PlainText)
             label.setText(label.fontMetrics().elidedText(name, Qt.ElideMiddle, 190))
+            label.setMinimumWidth(label.sizeHint().width())
             label.setToolTip((paths or {}).get(name, name))
             label.setProperty('fileKey', name)
             label.setProperty('fileColor', color)

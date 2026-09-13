@@ -400,7 +400,8 @@ def run(trial_report, output):
         }
         comparison.table_panel.view_combo.setCurrentIndex(0)
         events()
-        for bar in (playback.scroll.horizontalScrollBar(), comparison.table_panel.table.horizontalScrollBar()):
+        for bar in (playback.scroll.horizontalScrollBar(), comparison.table_panel.table.horizontalScrollBar(),
+                    comparison.graph_panel.legend_scroll.horizontalScrollBar()):
             assert bar.maximum() > 0
             bar.setValue(bar.maximum())
             events()
@@ -411,14 +412,22 @@ def run(trial_report, output):
         events(150)
         assert (comparison.width(), comparison.height()) == (1100, 720)
         summary = comparison.table_panel.table
-        assert summary.viewport().rect().contains(summary.visualItemRect(summary.item(0, 0)))
+        first_cell = summary.visualItemRect(summary.item(0, 0))
+        assert summary.viewport().rect().contains(first_cell), (summary.viewport().rect(), first_cell)
+        sample_label = playback.local_controls[paths[0].name]['label']
+        assert sample_label.visibleRegion().contains(sample_label.rect()), sample_label.text()
+        report['checks']['small_window_sample_label_visible'] = True
+        for label in comparison.graph_panel.legend_labels.values():
+            assert label.width() >= label.sizeHint().width(), label.text()
+        report['checks']['filename_legend_preserves_readable_width'] = True
         capture('10_resized', 'Comparison resized to inspect primary actions and scroll access.', [control.btn_add_files])
         summary.setFocus()
         QTest.keyClick(summary, Qt.Key_End, Qt.ControlModifier)
         events()
         assert summary.currentRow() == summary.rowCount() - 1
         summary.horizontalScrollBar().setValue(0)
-        assert summary.viewport().rect().contains(summary.visualItemRect(summary.item(summary.rowCount() - 1, 0)))
+        last_cell = summary.visualItemRect(summary.item(summary.rowCount() - 1, 0))
+        assert summary.viewport().rect().contains(last_cell), (summary.viewport().rect(), last_cell)
         capture('11_last_metric', 'Small window: Ctrl+End reaches the last metric through the existing summary table.', [control.btn_add_files])
         report['checks']['small_window_first_and_last_metric_accessible'] = True
         report['checks']['comparison_metrics_duplicate_count_time_and_3d'] = True

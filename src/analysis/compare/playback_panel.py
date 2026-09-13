@@ -106,7 +106,7 @@ class ComparePlaybackPanel(QGroupBox):
             handler = self.model.visualization_handlers.get(name)
             if handler is not None:
                 viewer = VistaWidget(data_handler=handler)
-                viewer.setMinimumSize(220, 125)
+                viewer.setMinimumSize(220, 115)
                 viewer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Ignored)
                 viewer.setToolTip('View follows box centre')
                 layout.addWidget(viewer, stretch=1)
