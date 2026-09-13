@@ -93,6 +93,18 @@ class TestMarkerFlipRawWidget(unittest.TestCase):
         self.widget.deleteLater()
         app.processEvents()
 
+    def test_position_plot_uses_declared_units_without_rescaling_samples(self):
+        self.widget.parsed_data = pd.DataFrame({"A_X": [1.25, -2.5]}, index=[0., 1.])
+        self.widget.current_selected_targets = ["A"]
+        for metadata, label in (({"Length Units": "Millimeters"}, "Position (mm)"),
+                                ({"Length Units": "Meters"}, "Position (m)"),
+                                ({}, "Position (unit unknown)")):
+            with self.subTest(metadata=metadata):
+                self.widget.header_info["export_metadata"] = metadata
+                self.widget.update_plot()
+                self.assertEqual(self.widget.plot_manager.ax.get_ylabel(), label)
+                self.assertEqual(list(self.widget.plot_manager.ax.lines[0].get_ydata()), [1.25, -2.5])
+
     def test_review_cancel_preserves_existing_decisions_and_dirty_state(self):
         existing = [_approved_decision()]
         self.widget.marker_correction_decisions = list(existing)
@@ -233,7 +245,7 @@ class TestMarkerFlipRawWidget(unittest.TestCase):
         self.assertEqual(self.widget.file_path_label.property("fullPath"), long_path)
         self.assertEqual(self.widget.file_path_label.toolTip(), long_path)
         self.assertTrue(self.widget.marker_review_source_label.wordWrap())
-        self.assertEqual(self.widget.marker_review_source_label.text(), "Active source: corrected")
+        self.assertEqual(self.widget.marker_review_source_label.text(), "Source: corrected")
         self.assertEqual(
             self.widget.marker_review_source_label.toolTip(),
             long_path,

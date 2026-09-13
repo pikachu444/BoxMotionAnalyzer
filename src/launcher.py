@@ -65,18 +65,20 @@ class LauncherWindow(QMainWindow):
         sim_layout.setContentsMargins(0, 0, 0, 0)
         sim_layout.setSpacing(2)
 
-        self.btn_simulation = QPushButton("Run Simulation (WIP)")
+        self.btn_simulation = QPushButton("Simulation")
         self.btn_simulation.clicked.connect(self.open_simulation)
         self.btn_simulation.setFixedSize(320, 50)
         sim_layout.addWidget(self.btn_simulation, 0, Qt.AlignHCenter)
 
-        self.simulation_warning_label = QLabel(
-            "⚠️ Work in progress. Please do not use this for actual tasks."
+        self.simulation_warning_label = QLabel("Experimental")
+        self.simulation_warning_label.setToolTip(
+            "Synthetic free-fall data, not independently calibrated. "
+            "Type H support motion and the Type G hazard block are not modeled."
         )
         self.simulation_warning_label.setWordWrap(True)
         self.simulation_warning_label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         self.simulation_warning_label.setFixedWidth(320)
-        self.simulation_warning_label.setStyleSheet("color: #e53e3e; font-size: 11px;")
+        self.simulation_warning_label.setStyleSheet("color: #805d00;")
         sim_layout.addWidget(self.simulation_warning_label, 0, Qt.AlignHCenter)
 
         right_panel_layout.addLayout(sim_layout)
@@ -92,14 +94,7 @@ class LauncherWindow(QMainWindow):
         self.btn_visualization.setFixedSize(320, 50)
         right_panel_layout.addWidget(self.btn_visualization, 0, Qt.AlignHCenter)
 
-        self.visualization_hint_label = QLabel(
-            "Click again to open another independent 3D visualization window."
-        )
-        self.visualization_hint_label.setWordWrap(True)
-        self.visualization_hint_label.setAlignment(Qt.AlignCenter)
-        self.visualization_hint_label.setFixedWidth(320)
-        self.visualization_hint_label.setStyleSheet("color: #4a5568;")
-        right_panel_layout.addWidget(self.visualization_hint_label, 0, Qt.AlignHCenter)
+        self.btn_visualization.setToolTip("Open an independent 3D window.")
 
         right_panel_layout.addSpacing(8)
 
@@ -107,15 +102,6 @@ class LauncherWindow(QMainWindow):
         self.btn_compare.clicked.connect(self.open_comparison)
         self.btn_compare.setFixedSize(320, 50)
         right_panel_layout.addWidget(self.btn_compare, 0, Qt.AlignHCenter)
-
-        self.compare_hint_label = QLabel(
-            "Compare multiple processed drop test results."
-        )
-        self.compare_hint_label.setWordWrap(True)
-        self.compare_hint_label.setAlignment(Qt.AlignCenter)
-        self.compare_hint_label.setFixedWidth(320)
-        self.compare_hint_label.setStyleSheet("color: #4a5568;")
-        right_panel_layout.addWidget(self.compare_hint_label, 0, Qt.AlignHCenter)
 
         right_panel_layout.addStretch(1)
 

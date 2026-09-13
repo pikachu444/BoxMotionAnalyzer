@@ -108,7 +108,7 @@ def test_batch_stops_at_failed_file_and_keeps_completed_outputs(saving_window, t
     from src.simulation.scenarios import Scenarios
     from src.simulation import data_exporter
     _, window = saving_window
-    sequences = Scenarios.get_drop_sequence_specs(window.cat_combo.currentText())
+    sequences = Scenarios.get_drop_sequence_specs(window.cat_combo.currentData())
     # Use the real batch list; failure at its second export must stop the list.
     first = tmp_path / f'TypeG_{sequences[0].id}.proc'
     second = tmp_path / f'TypeG_{sequences[1].id}.proc'
@@ -176,16 +176,34 @@ def test_simulation_run_save_reopen_actual_gui(monkeypatch):
         QTimer.singleShot(150,accept)
     try:
         window.show()
+        app.processEvents()
+        for section in (window.physics_section, window.rotation_section):
+            window.form_scroll.ensureWidgetVisible(section.button)
+            app.processEvents()
+            assert section.button.visibleRegion().contains(section.button.rect())
+            QTest.mouseClick(section.button, Qt.LeftButton)
+            app.processEvents()
         for widget,value in [(window.w_input,200),(window.d_input,120),(window.h_input,80),
                               (window.mass_input,1),(window.com_x,3),(window.com_y,-4),(window.com_z,2),
                               (window.custom_h_input,100),(window.custom_r_input,20),
                               (window.custom_p_input,35),(window.custom_y_input,-15),(window.duration_input,.5)]:
-            widget.setValue(value)
-        window.viewer_cb.setChecked(False)
-        window.noise_cb.setChecked(False)
+            window.form_scroll.ensureWidgetVisible(widget)
+            app.processEvents()
+            assert widget.visibleRegion().contains(widget.rect())
+            widget.setFocus()
+            widget.selectAll()
+            QTest.keyClicks(widget, str(value))
+            QTest.keyClick(widget, Qt.Key_Tab)
+            assert widget.value() == value
+        window.form_scroll.ensureWidgetVisible(window.viewer_cb)
+        app.processEvents()
+        assert window.viewer_cb.visibleRegion().contains(window.viewer_cb.rect())
+        QTest.mouseClick(window.viewer_cb, Qt.LeftButton)
+        assert not window.viewer_cb.isChecked() and not window.noise_cb.isChecked()
         QTest.qWait(200)
         window.grab().save(str(evidence/'simulation_inputs.png'))
         QTimer.singleShot(100,pick_file)
+        assert window.run_btn.visibleRegion().contains(window.run_btn.rect())
         QTest.mouseClick(window.run_btn,Qt.LeftButton)
         deadline=time.monotonic()+30
         while not messages and not errors and time.monotonic()<deadline:

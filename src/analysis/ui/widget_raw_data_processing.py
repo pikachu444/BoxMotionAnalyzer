@@ -164,21 +164,21 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         box_dims_layout.addWidget(self.le_box_h, 2, 1)
         self.box_section = CollapsibleSection('Box dimensions', self.box_dims_group)
 
-        self.marker_review_group = QGroupBox("Marker Flip Review")
+        self.marker_review_group = QGroupBox()
         marker_review_layout = QVBoxLayout(self.marker_review_group)
-        self.marker_review_summary_label = QLabel("Load a CSV file to review marker flips.")
+        self.marker_review_summary_label = QLabel("Not reviewed")
         self.marker_review_summary_label.setWordWrap(True)
         marker_review_layout.addWidget(self.marker_review_summary_label)
-        self.marker_review_source_label = QLabel("Active source: original")
+        self.marker_review_source_label = QLabel("Source: original")
         self.marker_review_source_label.setWordWrap(True)
         self.marker_review_source_label.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
         marker_review_layout.addWidget(self.marker_review_source_label)
         marker_review_button_row = QHBoxLayout()
-        self.review_marker_flips_button = QPushButton("Review Candidates...")
+        self.review_marker_flips_button = QPushButton("Review")
         self.review_marker_flips_button.setEnabled(False)
-        self.save_corrected_source_button = QPushButton("Save Corrected Source...")
+        self.save_corrected_source_button = QPushButton("Save corrected")
         self.save_corrected_source_button.setEnabled(False)
         marker_review_button_row.addWidget(self.review_marker_flips_button)
         marker_review_button_row.addWidget(self.save_corrected_source_button)
@@ -386,13 +386,12 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         if self.marker_review_dirty:
             self.marker_review_section.setExpanded(True)
             self.marker_review_summary_label.setText(
-                f"{reviewed_count} reviewed event(s), {approved_count} approved. "
-                "Save the corrected source before creating a slice."
+                f"{reviewed_count} reviewed, {approved_count} approved; unsaved"
             )
         elif self.correction_source_metadata is not None:
             self.marker_review_summary_label.setText(
-                f"Loaded corrected source with {self.correction_source_metadata.event_count} "
-                f"reviewed event(s), {self.correction_source_metadata.approved_event_count} approved."
+                f"{self.correction_source_metadata.event_count} reviewed, "
+                f"{self.correction_source_metadata.approved_event_count} approved"
             )
         elif self.marker_flip_candidates:
             recommended_count = sum(
@@ -400,18 +399,17 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 for candidate in self.marker_flip_candidates
             )
             self.marker_review_summary_label.setText(
-                f"Reviewed {len(self.marker_flip_candidates)} candidate(s); "
-                f"{recommended_count} had a supported-axis recommendation."
+                f"{len(self.marker_flip_candidates)} events, {recommended_count} recommended"
             )
         else:
             self.marker_review_summary_label.setText(
-                "No marker correction is active. Review is optional."
+                "Not reviewed"
             )
 
         if self.correction_source_metadata is not None and self.source_path:
-            source_text = "Active source: corrected"
+            source_text = "Source: corrected"
         else:
-            source_text = "Active source: original"
+            source_text = "Source: original"
         self.marker_review_source_label.setText(source_text)
         self.marker_review_source_label.setToolTip(self.source_path or source_text)
         self.save_corrected_source_button.setEnabled(
@@ -541,10 +539,10 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.marker_review_busy = bool(busy)
         self.load_csv_button.setEnabled(not busy)
         self.review_marker_flips_button.setEnabled(not busy)
-        self.review_marker_flips_button.setText('Calculating poses...' if busy else 'Review Candidates...')
+        self.review_marker_flips_button.setText('Reviewing...' if busy else 'Review')
         self.box_dims_group.setEnabled(not busy)
         if busy:
-            self.marker_review_summary_label.setText('Calculating analysis poses and four face hypotheses. Please wait.')
+            self.marker_review_summary_label.setText('Estimating box motion')
             self.save_slice_button.setEnabled(False)
             self.save_corrected_source_button.setEnabled(False)
         else:
@@ -748,6 +746,11 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         previous_region = (self.plot_manager.span_selector.extents
                            if self.plot_manager.span_selector is not None else None)
         self.plot_manager.draw_plot(df, columns_to_plot)
+        if columns_to_plot and axis_suffix:
+            declared_unit = (self.header_info or {}).get("export_metadata", {}).get("Length Units", "")
+            unit = {"millimeters": "mm", "centimeters": "cm", "meters": "m"}.get(
+                str(declared_unit).strip().lower(), "unit unknown")
+            self.plot_manager.ax.set_ylabel(f"Position ({unit})")
         # Clearing the axes also removes the selector's artists. Reattach them
         # before restoring the selected scene or the manual CSV slice range.
         self.plot_manager.enable_interactions(df)

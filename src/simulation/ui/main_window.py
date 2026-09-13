@@ -5,7 +5,8 @@ import numpy as np
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QLineEdit, QComboBox, QPushButton, QDoubleSpinBox, QCheckBox,
-    QGroupBox, QFormLayout, QMessageBox, QFileDialog, QProgressBar
+    QGroupBox, QFormLayout, QMessageBox, QFileDialog, QProgressBar,
+    QScrollArea, QSizePolicy
 )
 from PySide6.QtCore import Qt, QThread, Signal, QPointF, QSize
 from PySide6.QtGui import QColor, QBrush, QPainter, QPen, QPolygonF
@@ -15,6 +16,7 @@ from scipy.spatial.transform import Rotation as R
 from src.simulation.engine import MuJoCoEngine
 from src.simulation.scenarios import Scenarios
 from src.simulation.data_exporter import DataExporter
+from src.utils.qt_sections import CollapsibleSection
 
 
 class OrientationPreviewWidget(QWidget):
@@ -71,13 +73,19 @@ class OrientationPreviewWidget(QWidget):
 
     def _project(self, vertices):
         object_rot = R.from_euler("xyz", self.euler, degrees=True)
-        # Floor-first preview: keep the world-down direction easy to read.
-        # Keep camera roll at zero so the preview is not visually skewed.
-        camera_rot = R.from_euler("xyz", [60.0, -18.0, 0.0], degrees=True)
-        transformed = camera_rot.apply(object_rot.apply(vertices))
+        transformed = object_rot.apply(vertices) @ self._camera_basis().T
         projected = transformed[:, [0, 1]]
         depth = transformed[:, 2]
         return projected, depth
+
+    @staticmethod
+    def _camera_basis():
+        """One world Z-up camera for both the box and the world-axis icon."""
+        direction = np.ones(3) / np.sqrt(3)
+        right = np.cross(-direction, [0., 0., 1.])
+        right /= np.linalg.norm(right)
+        up = np.cross(right, -direction)
+        return np.array([right, up, direction])
 
     def _to_widget_points(self, projected):
         available_width = max(self.width() - 20, 1)
@@ -110,28 +118,18 @@ class OrientationPreviewWidget(QWidget):
 
     def _contact_text(self):
         if self.sequence_spec is None or not getattr(self.sequence_spec, "faces", None):
-            return "Contact: N/A"
-        kind = str(getattr(self.sequence_spec, "kind", "contact")).capitalize()
+            return "Preset target unavailable"
+        kind = str(getattr(self.sequence_spec, "kind", "contact")).lower()
+        kind = {"rotational_edge": "Rotational edge, face", "tip": "Tip, face"}.get(kind, kind.capitalize())
         faces = "-".join(str(number) for number in self.sequence_spec.faces)
-        return f"Contact: {kind} {faces}"
+        return f"Preset: {kind} {faces}"
 
     def _draw_fixed_axes(self, painter):
         center = np.array([self.width() - 56.0, 48.0])
         axis_length = 24.0
-        # Screen-fixed icon so axis labels remain stable and easy to read.
-        axes = (
-            ("X", np.array([1.0, 0.0]), QColor("#d84315")),
-            ("Y", np.array([0.0, -1.0]), QColor("#2e7d32")),
-            ("Z", np.array([-0.68, 0.68]), QColor("#1565c0")),
-        )
-        painter.setPen(QColor("#607d8b"))
-        painter.drawText(int(center[0] - 34), int(center[1] - 26), "Fixed Axes")
-
-        for label, vec2, color in axes:
-            norm = np.linalg.norm(vec2)
-            if norm < 1e-8:
-                continue
-            end = center + vec2 / norm * axis_length
+        projected_axes = np.eye(3) @ self._camera_basis().T
+        for label, vector, color in zip("XYZ", projected_axes, (QColor("#d84315"), QColor("#2e7d32"), QColor("#1565c0"))):
+            end = center + vector[:2] * [1., -1.] * axis_length
             painter.setPen(QPen(color, 2.0))
             painter.drawLine(
                 QPointF(float(center[0]), float(center[1])),
@@ -221,14 +219,14 @@ class OrientationPreviewWidget(QWidget):
         self._draw_fixed_axes(painter)
 
         painter.setPen(QColor("#455a64"))
-        painter.drawText(10, 16, "Orientation Preview")
+        painter.drawText(10, 16, "Initial pose")
         painter.setPen(QColor("#546e7a"))
         painter.drawText(10, self.height() - 26, self._contact_text())
         painter.setPen(QColor("#607d8b"))
         painter.drawText(
             10,
             self.height() - 10,
-            f"Fixed X {self.euler[0]:.1f}  Y {self.euler[1]:.1f}  Z {self.euler[2]:.1f}"
+            f"Fixed XYZ (°): {self.euler[0]:.1f}, {self.euler[1]:.1f}, {self.euler[2]:.1f}"
         )
 
 def simulation_error_message(error):
@@ -275,21 +273,37 @@ class SimulationUI(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Simulation Setup")
+        self.setWindowTitle("Simulation")
         self.resize(500, 600)
 
         self.layout = QVBoxLayout(self)
+        self.experimental_label = QLabel("Experimental")
+        self.experimental_label.setStyleSheet("color: #916000;")
+        self.experimental_label.setToolTip("Uncalibrated free-fall presets; supported Type H rotation and the Type G hazard block are not simulated.")
+        self.layout.addWidget(self.experimental_label)
+
+        self.form_scroll = QScrollArea()
+        self.form_scroll.setWidgetResizable(True)
+        self.form_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        form_widget = QWidget()
+        self.form_layout = QVBoxLayout(form_widget)
+        self.form_layout.setContentsMargins(4, 4, 4, 4)
+        self.form_scroll.setWidget(form_widget)
+        self.layout.addWidget(self.form_scroll, 1)
 
         self._init_box_group()
         self._init_scenario_group()
-        self._init_noise_group()
         self._init_export_group()
+        self.form_layout.addWidget(self.physics_section)
+        self._init_noise_group()
+        self.form_layout.addStretch()
 
         btn_layout = QHBoxLayout()
-        self.run_btn = QPushButton("Run Current Sequence")
+        self.run_btn = QPushButton("Run")
         self.run_btn.clicked.connect(self.run_simulation)
 
-        self.batch_btn = QPushButton("Run Full Test Sequence (Batch)")
+        self.batch_btn = QPushButton("Run all presets")
+        self.batch_btn.setToolTip("Run the existing free-fall presets; this is not a complete ISTA test sequence.")
         self.batch_btn.clicked.connect(self.run_batch_simulation)
 
         btn_layout.addWidget(self.run_btn)
@@ -301,10 +315,8 @@ class SimulationUI(QWidget):
         self.progress_bar.hide()
         self.layout.addWidget(self.progress_bar)
 
-        self.layout.addStretch()
-
     def _init_box_group(self):
-        group = QGroupBox("Box Parameters")
+        group = QGroupBox("Box")
         form = QFormLayout(group)
 
         self.w_input = QDoubleSpinBox()
@@ -350,32 +362,44 @@ class SimulationUI(QWidget):
         self.com_y.setValue(-200.0) # Y is the height axis in legacy, offset here for tumbling
         self.com_y.setToolTip("Assumed local COM offset; it can change contact dynamics. It is not required for all tumbling motion.")
 
-        form.addRow("Width (Local X, mm):", self.w_input)
-        form.addRow("Height (Local Y, mm):", self.d_input)
-        form.addRow("Depth/Thickness (Local Z, mm):", self.h_input)
+        for widget, axis, meaning in ((self.w_input, "X", "width"), (self.d_input, "Y", "height"), (self.h_input, "Z", "depth")):
+            widget.setToolTip(f"Box local {axis} {meaning} in mm. Simulation world Z is up; analysis world Y is up.")
+        form.addRow("Width X (mm):", self.w_input)
+        form.addRow("Height Y (mm):", self.d_input)
+        form.addRow("Depth Z (mm):", self.h_input)
         form.addRow("Mass (kg):", self.mass_input)
-        form.addRow("Friction:", self.friction_input)
-        form.addRow("Contact damping control:", self.elasticity_input)
-        form.addRow("CoM X Offset (Local mm):", self.com_x)
-        form.addRow("CoM Y Offset (Local mm):", self.com_y)
-        form.addRow("CoM Z Offset (Local mm):", self.com_z)
+        self.form_layout.addWidget(group)
 
-        self.layout.addWidget(group)
+        physics = QWidget()
+        physics_form = QFormLayout(physics)
+        physics_form.setContentsMargins(8, 0, 0, 0)
+        physics_form.addRow("Friction:", self.friction_input)
+        physics_form.addRow("Contact damping:", self.elasticity_input)
+        for axis, control in (("X", self.com_x), ("Y", self.com_y), ("Z", self.com_z)):
+            control.setToolTip(f"Local {axis} offset from the geometric box centre in mm. " + control.toolTip())
+            physics_form.addRow(f"COM {axis} (mm):", control)
+        self.physics_section = CollapsibleSection("Physics", physics)
 
     def _init_scenario_group(self):
-        group = QGroupBox("Drop Scenario (ISTA 6-Amazon.com SIOC)")
+        group = QGroupBox("Scenario")
         form = QFormLayout(group)
 
         self.cat_combo = QComboBox()
-        self.cat_combo.addItems(Scenarios.get_categories())
+        for category in Scenarios.get_categories():
+            self.cat_combo.addItem("Type G" if "Type G" in category else "Type H", category)
+        self.cat_combo.setToolTip("SIOC free-fall presets. Type H supported rotation and the G17 hazard block are not simulated.")
         self.cat_combo.currentIndexChanged.connect(self._on_cat_changed)
 
         self.drop_combo = QComboBox()
+        self.drop_combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.drop_combo.setMinimumContentsLength(18)
+        self.drop_combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.drop_combo.currentIndexChanged.connect(self._update_custom_fields_from_scenario)
 
         self.custom_h_input = QDoubleSpinBox()
         self.custom_h_input.setRange(10, 10000)
         self.custom_h_input.setValue(810)
+        self.custom_h_input.setToolTip("Initial vertical clearance from the lowest box corner to the floor, in mm.")
 
         self.custom_r_input = QDoubleSpinBox()
         self.custom_r_input.setRange(-180, 180)
@@ -389,22 +413,12 @@ class SimulationUI(QWidget):
         self.custom_y_input.setRange(-180, 180)
         self.custom_y_input.setValue(0)
 
-        self.preview_hint_label = QLabel(
-            "Advanced: adjust fixed-axis X/Y/Z rotations about the box center for a manual perturbation. "
-            "The preview updates live with Floor-First view and dashed hidden-contact cues."
-        )
-        self.preview_hint_label.setStyleSheet("color: gray; font-size: 11px;")
-        self.preview_hint_label.setWordWrap(True)
-
         self.orientation_preview = OrientationPreviewWidget()
-
-        self.info_label = QLabel("")
-        self.info_label.setStyleSheet("color: #4CAF50; font-size: 11px;")
-        self.info_label.setWordWrap(True)
+        self.orientation_preview.setToolTip("Simulation world Z is up. Highlight shows the preset target, not a predicted contact after manual rotation.")
 
         self.warning_label = QLabel("")
-        self.warning_label.setStyleSheet("color: red; font-weight: bold; font-size: 11px;")
-        self.warning_label.setWordWrap(True)
+        self.warning_label.setStyleSheet("color: #916000;")
+        self.warning_label.hide()
 
         # Connect manual user edits to trigger warning label
         self.custom_h_input.valueChanged.connect(self._check_for_modifications)
@@ -423,37 +437,44 @@ class SimulationUI(QWidget):
 
         self.base_h, self.base_r, self.base_p, self.base_y = 810, 0, 0, 0
 
-        form.addRow("Category:", self.cat_combo)
-        form.addRow("Drop Sequence:", self.drop_combo)
-        form.addRow("Height (mm):", self.custom_h_input)
-        form.addRow("Fixed X Rot (deg):", self.custom_r_input)
-        form.addRow("Fixed Y Rot (deg):", self.custom_p_input)
-        form.addRow("Fixed Z Rot (deg):", self.custom_y_input)
-        form.addRow("", self.preview_hint_label)
-        form.addRow("Preview:", self.orientation_preview)
-        form.addRow("", self.info_label)
-        form.addRow("", self.warning_label)
+        form.addRow("Type:", self.cat_combo)
+        form.addRow("Preset:", self.drop_combo)
+        form.addRow("Initial clearance (mm):", self.custom_h_input)
+        form.addRow(self.orientation_preview)
+        rotation = QWidget()
+        rotation_form = QFormLayout(rotation)
+        rotation_form.setContentsMargins(8, 0, 0, 0)
+        for axis, control in (("X", self.custom_r_input), ("Y", self.custom_p_input), ("Z", self.custom_y_input)):
+            control.setToolTip("Fixed world-axis XYZ rotation about the geometric box centre, in degrees; not a marker-local half-turn.")
+            rotation_form.addRow(f"Fixed {axis} (°):", control)
+        self.rotation_section = CollapsibleSection("Rotation", rotation)
+        form.addRow(self.rotation_section)
+        form.addRow(self.warning_label)
 
-        self.layout.addWidget(group)
+        self.form_layout.addWidget(group)
         self._on_cat_changed() # Trigger initial population
 
     def _on_cat_changed(self):
-        cat = self.cat_combo.currentText()
+        cat = self.cat_combo.currentData()
 
         self.drop_combo.blockSignals(True)
         self.drop_combo.clear()
         for spec in Scenarios.get_drop_sequence_specs(cat):
-            self.drop_combo.addItem(spec.id, spec)
+            text = spec.id.replace("_", " ").replace("RotationalEdge", "Rotational edge").replace("BottomLong", "bottom long").replace("BottomShort", "bottom short")
+            text = text.replace("MostCritical DefaultFace6", "critical face 6 default")
+            self.drop_combo.addItem(text, spec)
+            self.drop_combo.setItemData(self.drop_combo.count() - 1, spec.id, Qt.ToolTipRole)
         self.drop_combo.blockSignals(False)
         self._update_custom_fields_from_scenario()
 
     def _update_custom_fields_from_scenario(self):
-        cat = self.cat_combo.currentText()
+        cat = self.cat_combo.currentData()
         if self.drop_combo.count() == 0:
             return
 
         seq_spec = self.drop_combo.currentData()
-        seq_name = self.drop_combo.currentText()
+        seq_name = seq_spec.id
+        self.drop_combo.setToolTip(seq_name)
         mass = self.mass_input.value()
         box_size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
 
@@ -464,14 +485,6 @@ class SimulationUI(QWidget):
         roll, pitch, yaw = Scenarios.get_euler_angles(seq_spec or seq_name, box_size, category=cat)
 
         self.base_h, self.base_r, self.base_p, self.base_y = height, roll, pitch, yaw
-
-        # Generate Context Info String
-        is_type_g = "Type G" in cat
-        weight_str = "< 32kg" if mass < 32.0 else ">= 32kg"
-        drop_type_str = "High Drop" if "High" in seq_name else "Standard Drop" if is_type_g else ("Tip" if "Tip" in seq_name else "Drop")
-
-        info_text = f"ℹ Standard Height: {height}mm (Rule: {cat.split(' ')[2]}, Mass {weight_str}, {drop_type_str})"
-        self.info_label.setText(info_text)
 
         # Temporarily block signals so setting the values programmatically doesn't trigger user modification warnings
         self.custom_h_input.blockSignals(True)
@@ -484,6 +497,7 @@ class SimulationUI(QWidget):
         self.custom_p_input.setValue(pitch)
         self.custom_y_input.setValue(yaw)
         self.warning_label.setText("")
+        self.warning_label.hide()
 
         self.custom_h_input.blockSignals(False)
         self.custom_r_input.blockSignals(False)
@@ -502,15 +516,12 @@ class SimulationUI(QWidget):
         if (abs(h - self.base_h) > 0.1 or abs(r - self.base_r) > 0.1 or
             abs(p - self.base_p) > 0.1 or abs(y - self.base_y) > 0.1):
 
-            changes = []
-            if abs(h - self.base_h) > 0.1: changes.append(f"Height ({self.base_h:.1f}➔{h:.1f})")
-            if abs(r - self.base_r) > 0.1: changes.append(f"Roll ({self.base_r:.1f}➔{r:.1f})")
-            if abs(p - self.base_p) > 0.1: changes.append(f"Pitch ({self.base_p:.1f}➔{p:.1f})")
-            if abs(y - self.base_y) > 0.1: changes.append(f"Yaw ({self.base_y:.1f}➔{y:.1f})")
-
-            self.warning_label.setText("⚠ Modified: " + ", ".join(changes))
+            self.warning_label.setText("Custom")
+            self.warning_label.setToolTip(f"Preset clearance {self.base_h:g} mm; fixed XYZ {self.base_r:g}, {self.base_p:g}, {self.base_y:g} degrees.")
+            self.warning_label.show()
         else:
             self.warning_label.setText("")
+            self.warning_label.hide()
 
     def _update_orientation_preview(self):
         if self.drop_combo.count() == 0:
@@ -523,25 +534,26 @@ class SimulationUI(QWidget):
             self.custom_p_input.value(),
             self.custom_y_input.value(),
         )
-        self.orientation_preview.set_preview_state(box_size, euler, spec, self.cat_combo.currentText())
+        self.orientation_preview.set_preview_state(box_size, euler, spec, self.cat_combo.currentData())
 
     def _init_noise_group(self):
-        group = QGroupBox("Noise Simulation")
+        group = QWidget()
         layout = QVBoxLayout(group)
 
-        self.noise_cb = QCheckBox("Add synthetic Gaussian noise to corner positions")
+        self.noise_cb = QCheckBox("Corner noise")
         self.noise_cb.setToolTip("Seed 0 for repeatable stress data, not calibrated sensor noise. Body pose remains simulation truth.")
         self.noise_std_input = QDoubleSpinBox()
         self.noise_std_input.setRange(0.01, 100)
         self.noise_std_input.setValue(1.0)
-        self.noise_std_input.setPrefix("Std Dev (mm): ")
+        self.noise_std_input.setPrefix("Std (mm): ")
 
         layout.addWidget(self.noise_cb)
         layout.addWidget(self.noise_std_input)
-        self.layout.addWidget(group)
+        self.noise_section = CollapsibleSection("Noise", group)
+        self.form_layout.addWidget(self.noise_section)
 
     def _init_export_group(self):
-        group = QGroupBox("Simulation Settings & Visualization")
+        group = QGroupBox("Run options")
         form = QFormLayout(group)
 
         self.duration_input = QDoubleSpinBox()
@@ -549,21 +561,14 @@ class SimulationUI(QWidget):
         self.duration_input.setSingleStep(0.5)
         self.duration_input.setValue(2.0)
 
-        self.viewer_cb = QCheckBox("Show 3D Viewer during Simulation")
+        self.viewer_cb = QCheckBox("Show viewer")
         self.viewer_cb.setChecked(True)
 
-        info_label = QLabel("Tip: When the 3D Viewer opens, you can use your Mouse:\n"
-                            "- Left Click + Drag: Rotate Camera\n"
-                            "- Right Click + Drag: Translate Camera\n"
-                            "- Scroll: Zoom\n"
-                            "- Double Click on Box: Apply physical perturbation (force)")
-        info_label.setStyleSheet("color: gray; font-size: 11px;")
+        self.viewer_cb.setToolTip("Drag to rotate, right-drag to pan, scroll to zoom. Double-click applies a force to the box.")
 
-        form.addRow("Simulation Duration (s):", self.duration_input)
+        form.addRow("Duration (s):", self.duration_input)
         form.addRow("", self.viewer_cb)
-        form.addRow("", info_label)
-
-        self.layout.addWidget(group)
+        self.form_layout.addWidget(group)
 
     def run_simulation(self):
         # 1. Gather Params
@@ -627,7 +632,7 @@ class SimulationUI(QWidget):
             self.thread.start()
 
     def run_batch_simulation(self):
-        cat = self.cat_combo.currentText()
+        cat = self.cat_combo.currentData()
         sequences = Scenarios.get_drop_sequence_specs(cat)
 
         if not sequences:

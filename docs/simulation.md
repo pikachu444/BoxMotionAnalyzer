@@ -1,6 +1,6 @@
 # 박스 낙하 시뮬레이션 문서
 
-Last Reviewed: 2026-09-12
+Last Reviewed: 2026-09-14
 
 현재 simulation은 WIP이다. #74용 별도 생성기 `src/simulation/marker_fixtures.py`는 실제 `data.time`, 갱신된 body origin/COM/회전을 기록하고 정상 정답과 고장 관측을 분리한다. 기존 GUI의 `data_exporter.py`도 실제 시각·회전을 비파괴적으로 저장하도록 보완했다. 이 직접 `.proc` 출력은 분석 solver를 실행한 결과가 아니며 #74의 독립 관측/정답 경로를 대체하지 않는다. 명세와 실행 방법은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md), 검증 결과와 한계는 [조사 결과](analysis/reference/marker_flip_review_findings.md)를 따른다. 아래 물리 결과 설명은 실제 실험 정확도 보장이 아니다.
 
@@ -102,23 +102,15 @@ Exporter `simulation-pose-actual-time-v1`은 엔진의 기록을 변경하지 �
 정확한 tuple/type/결측 및 소비자 정책은 [결과 스키마](analysis/reference/result_schema_notes.md)의 Simulation 항목을 따른다. 수학/필드 근거: [SciPy rotation vector](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.as_rotvec.html), [Euler convention and singularity](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.as_euler.html), [MuJoCo mjData의 xpos/xipos/xquat](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata).
 
 ### 2.4 시뮬레이션 GUI (`src/simulation/ui/main_window.py`)
-메인 런처의 **[Simulation] 탭**에서 마우스 클릭만으로 손쉽게 시뮬레이션을 수행하고 `.proc` 파일로 저장할 수 있습니다.
-1. 박스 크기(Width, Depth, Height)와 질량(Mass), 마찰 및 Contact damping control 입력.
-2. 낙하 높이(Drop Height, mm) 및 낙하 자세 시나리오 선택.
-3. **Simulation Duration(s):** 시뮬레이션을 몇 초 동안 실행할지 설정할 수 있습니다. (기본 2초. 낙하 높이가 높을 경우 시간을 늘려야 합니다.)
-4. [Run Current Sequence]를 누르고 저장 파일을 선택한다. Show 3D Viewer를 끄면 SimulationThread가 실행·저장하고, 켜면 기존 MuJoCo viewer 경로를 사용한다.
-5. 이후 메인 [Analysis & Visualization] 탭에서 생성된 파일을 로드하여 3D 시각화 가능.
+런처의 **Simulation** 버튼은 별도 실험용 창을 연다. Box에서 로컬 X/Y/Z 치수와 질량을 입력하고 Scenario에서 Type과 Preset을 고른다. Initial clearance는 회전된 박스의 가장 낮은 꼭짓점과 바닥 사이 거리이며 중심 높이가 아니다. 프리뷰의 강조 표시는 선택한 프리셋의 면·모서리·꼭짓점이고, 수동 회전 뒤의 실제 접촉 예측은 아니다.
+
+Physics에는 마찰·접촉 감쇠·질량 중심 오프셋, Noise에는 꼭짓점 좌표 잡음, Rotation에는 기하학적 중심 기준 고정 월드 XYZ 회전이 있다. 이 항목들은 기본적으로 접혀 있으며 접어도 입력값은 유지된다. 프리뷰 박스와 축 표시는 같은 Z-up 투영을 쓴다. Type G/H와 읽기 쉬운 프리셋 이름은 화면 표시이며 내부 category·sequence ID와 기존 Batch 파일명은 유지한다.
+
+기록 시간과 3D viewer 사용 여부를 정한 뒤 고정 하단의 **Run**을 눌러 저장 파일을 선택한다. viewer를 끄면 백그라운드에서 실행·저장하고, 켜면 MuJoCo viewer를 사용한다. **Run all presets**는 현재 Type의 기존 프리셋 목록을 실행하며 완전한 ISTA 시험 절차를 뜻하지 않는다. 저장한 `.proc`는 결과·비교·3D 창에서 열 수 있다.
 
 파일/폴더 선택을 취소하면 시뮬레이션을 시작하지 않는다. 단일 실행과 Batch 모두 실행 중에는 두 실행 버튼을 잠그고 완료·오류 뒤 복구한다. viewer 경로는 설정한 기록 시간이 끝나도 viewer를 닫은 뒤에 저장한다. Batch는 파일마다 교체를 완료한 후 다음 항목으로 넘어가며, 실패한 항목에서 중단한다. 그 전에 완료한 파일은 유지한다. Batch 전체를 한꺼번에 되돌리는 저장 방식은 아니다.
 
-현재 GUI의 `Roll / Pitch / Yaw` 값은 표준 시나리오를 선택했을 때 **자동 계산된 결과를 보여주는 필드**로 이해해야 합니다.  
-특히 Type G에서는 `Edge` / `Corner` 자세의 기울기 크기가 박스 크기 비율에 따라 달라져야 하므로, 이 값은 수동 상수로 고정되면 안 됩니다.
-
-사용자가 표준 자세에서 작은 perturbation을 주고 싶을 수 있으므로, 시뮬레이션 UI는 다음 흐름을 지원하는 것이 적절합니다.
-- 표준 시나리오를 선택하면 `Roll / Pitch / Yaw`를 자동 계산해서 채운다.
-- 사용자가 각도를 직접 수정하면 이를 수동 perturbation으로 간주한다.
-- 현재 자세를 보여주는 작은 박스 프리뷰를 함께 표시해, 접촉 면과 기울어진 방향을 직관적으로 확인할 수 있게 한다.
-- 표준값과 다른 값이 들어오면 기존처럼 경고 메시지를 표시한다.
+프리셋이나 치수·질량을 바꾸면 기존 계산식으로 초기 거리와 회전을 채운다. 이후 직접 바꾼 값은 Custom 상태로 표시한다. GUI 기본값은 치수 1578×930×142 mm, 질량 25 kg, COM Y −200 mm, 마찰 0.5, 감쇠 제어 0.15, Noise OFF(표준편차 1 mm), viewer ON, 기록 2초다. 기본값은 제품 실측값이나 시험 적합성 보장이 아니다.
 
 ## 3. 박스 모델링 방법론 (Box Modeling)
 
@@ -179,6 +171,6 @@ GUI 검사는 실제 Qt widget/worker/file dialog 및 VTK renderer를 실행한�
 
 실행 증거는 로컬 작업 트리의 `tmp/issue81_gui/`(입력·저장·재열기 화면, VTK 원본, result.json), `tmp/issue81_native/`(입력, viewer, 오류/성공 화면, observations.json, reopened.json)에 있다. 이 ignored 경로는 배포 자료가 아니다. 회귀 범위는 두 `test_simulation_export*.py` 파일이며 전체 #74 matrix를 반복하지 않았다. GUI 검사 초기에 QObject의 `thread()`를 worker로 오인한 판정과 UI 최소 0.5s에 맞지 않는 0.1s 입력을 수정했다. Qt 대기 중 Python writer가 실행되도록 event 처리 사이 GIL을 양보했으며 제한 시간과 수치 허용 오차는 늘리지 않았다.
 
-남은 항목: 커밋·push·새 커밋 CI·병합, 알려진 실측 회전 사례와의 축/부호 교정. 사용자는 2026-09-12에 커밋·push·병합의 계속 진행을 승인했다. 기존 PR #89 CI 34600918652는 변경 전 `b0fd685`의 결과다. 현재 저장 안정성 결과는 실제 OptiTrack 정확도, ISTA 적합성 또는 #81 전체 완료가 아니다.
+PR #89는 `da2137d`로 병합됐으며 #81은 닫혔다. 저장 안정성과 합성 검증의 완료를 실제 OptiTrack 정확도나 ISTA 적합성으로 해석하지 않는다. 알려진 실측 회전 사례와의 독립 축·부호 교정은 [#104](https://github.com/pikachu444/BoxMotionAnalyzer/issues/104)에 별도로 남아 있다.
 
 후속 시험 해석에서는 확인한 [2018 SIOC 원문](https://d39w7f4ix9f5s9.cloudfront.net/32/98/c52dd6b841f18bcb8af679b1f1ac/9.TESTING_thumbnail_ISTA%20Project%206-Amazon.com-SIOC%2018-18.pdf)과 실제 시험에 적용한 판본을 구분해야 한다. 적용 판본은 아직 시험 기록으로 확인되지 않았다. Type G/H 선택에는 제품·중량·치수·운송 취급 기록이 필요하며, 반복 자세나 일부만 찍힌 운동만으로 고유 시험 번호를 확정할 수 없다. Type H 지지/해제 조건과 원문의 경계값·hazard 표기 충돌을 해결한 뒤 #75 자동 구간 검출용 정답을 정의한다. 접근하지 못했거나 충돌하는 절차를 임의 임계값으로 채우지 않는다.
