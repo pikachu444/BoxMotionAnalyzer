@@ -60,6 +60,7 @@ jobs:
           tests/test_contact_comparison_gui.py
           tests/test_artifact_provenance.py
           tests/test_comparison_gui.py
+          tests/test_comparison_layout.py
           tests/test_processing_semantics.py
           tests/test_slice_dimension_provenance_gui.py
           tests/test_simulation_export.py
@@ -78,11 +79,22 @@ jobs:
           tests/test_scene_trial_record.py
           tests/test_trial_record_integration.py
           tests/test_trial_record_gui.py
+          tests/test_processing_window_close.py
+          tests/test_processing_window_layout.py
           tests/test_result_format_layout.py
           tests/test_scenario_345.py
           tests/test_scenario_6.py
           tests/test_raw_data_processing.py
           --junitxml=tmp/public-marker-results.xml
+      - name: Replay retained public results in the release GUI at 125 percent
+        env:
+          QT_SCALE_FACTOR: '1.25'
+        shell: pwsh
+        run: |
+          $trialReports = @(Get-ChildItem -LiteralPath tmp/issue75_trial_gui -Filter execution.json -Recurse -File)
+          if ($trialReports.Count -ne 1) { throw 'Expected one retained trial workflow report.' }
+          python -m src.simulation.release_gui_validation --trial-report $trialReports[0].FullName --output tmp/issue78_release_gui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Summarize required public evidence levels
         if: always()
         run: >-
@@ -116,5 +128,6 @@ jobs:
             tmp/ci-continuity/**/candidate_evidence.json
             tmp/issue84_public_metrics/**/public_impact_metrics.json
             tmp/issue75_trial_gui/**
+            tmp/issue78_release_gui/**
           if-no-files-found: warn
           retention-days: 30

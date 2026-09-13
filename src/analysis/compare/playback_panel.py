@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QGroupBox, QCheckBox, QFrame, QScrollArea, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QLabel, QGroupBox, QCheckBox, QFrame, QScrollArea, QWidget, QSizePolicy, QLayout
 from PySide6.QtCore import Qt, QTimer, QElapsedTimer, Signal
 
 from src.visualization.vista_widget import VistaWidget
@@ -13,6 +13,7 @@ class ComparePlaybackPanel(QGroupBox):
 
     def __init__(self, model):
         super().__init__('3D samples · actual-time comparison')
+        self.setMinimumHeight(240)
         self.model = model
         self.widgets = {}
         self.local_controls = {}
@@ -41,6 +42,7 @@ class ComparePlaybackPanel(QGroupBox):
         self.scroll.setWidgetResizable(True)
         self.viewers_widget = QWidget()
         self.viewers_layout = QHBoxLayout(self.viewers_widget)
+        self.viewers_layout.setSizeConstraint(QLayout.SetMinimumSize)
         self.scroll.setWidget(self.viewers_widget)
         layout.addWidget(self.scroll)
         self.master_timer = QTimer(self)
@@ -85,6 +87,10 @@ class ComparePlaybackPanel(QGroupBox):
             handler = self.model.visualization_handlers.get(name)
             if handler is not None:
                 viewer = VistaWidget(data_handler=handler)
+                # Preserve a usable render surface; the existing scroll area
+                # exposes the full sample card when the splitter is smaller.
+                viewer.setMinimumSize(220, 160)
+                viewer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Ignored)
                 layout.addWidget(viewer, stretch=1)
                 self.widgets[name] = viewer
             slider = QSlider(Qt.Horizontal)

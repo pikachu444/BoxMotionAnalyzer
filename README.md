@@ -26,7 +26,7 @@ Last Reviewed: 2026-09-13
 
 ### 4. 비교 분석 (Experiment Comparison) - *New!*
 *   **다중 실험 비교:** 여러 개의 `.proc` 실험 결과를 한 번에 불러와 기준(Baseline) 실험 대비 편차와 주요 낙하 지표(Drop Angle, Corner Height 등)를 한눈에 비교할 수 있습니다.
-*   **동기화된 분석 환경:** 두 개의 3D 화면을 동기화하여 서로 다른 실험의 1차 충격 시점을 일치시켜 재생할 수 있으며, 하단 그래프에서 여러 실험의 데이터를 시간축 정렬(Event-aligned)하여 중첩 비교할 수 있습니다.
+*   **동기화된 분석 환경:** 여러 결과의 저장 시간에서 첫 접촉 직전 표본 `t1−`을 기준으로 그래프와 3D 표본을 맞춥니다. 시간·출처가 불명확하거나 구간이 끊긴 결과는 해당 시점의 동기화에서 제외하고 개별로 확인할 수 있습니다. 같은 관측 파일을 복사해 열어도 반복 횟수가 늘어나지 않습니다.
 
 ---
 
@@ -62,8 +62,9 @@ Last Reviewed: 2026-09-13
     *   사용자 입력(박스 크기/질량, 낙하 시나리오 등)을 받아 MuJoCo로 시뮬레이션 후 `.proc` 형식으로 가상 낙하 데이터 추출
 *   **Data Analysis**
     *   `src/analysis/app/main_window.py`
-    *   Step 1: Raw Data Processing (실제 실험 CSV 데이터 전처리)
-    *   Step 2: Results Analysis
+    *   Step 1: 촬영 CSV를 열고 자동 검출한 운동 구간을 검토합니다. 필요하면 마커 보정과 독립 시험 기록을 연결하고, 확정한 포함 구간을 `.slice`로 저장합니다. 기록된 시험 항목과 관측 결과는 따로 유지합니다.
+    *   Step 1.5: `.slice`의 선택 범위와 보정 상태를 확인하고 Raw 처리한 `.proc`를 저장합니다.
+    *   Step 2: 저장된 `.proc`의 자세·운동 결과와 그래프를 확인합니다.
     *   Step 1/Step 2의 메인 플롯은 창 크기 변화에 따라 더 크게 확장되도록 조정되어 있으며, 세로 splitter로 높이를 수동 조절할 수 있습니다.
 *   **Experiment Comparison**
     *   `src/analysis/compare/main_window.py`
@@ -173,4 +174,4 @@ python -m pytest -q tests/test_real_data_flow.py tests/test_real_drop_posture_ph
 Remove-Item Env:BMA_REAL_CAPTURE
 ```
 
-이 검사는 기존 자료와 추정 치수의 일관성만 확인합니다. 독립 교정·정답이 필요한 실제 실험 검증은 [#78](https://github.com/pikachu444/BoxMotionAnalyzer/issues/78)에 남아 있습니다.
+이 검사는 기존 자료와 추정 치수의 일관성만 확인합니다. 독립 교정·정답이 필요한 실제 실험 검증은 [#104](https://github.com/pikachu444/BoxMotionAnalyzer/issues/104)에 별도로 남아 있습니다. 공개·가상 검증의 완료는 실측 정확도나 ISTA 적합성 확인을 뜻하지 않습니다.

@@ -323,3 +323,19 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
    - 툴바는 세로 방향으로 우측에 배치하여 가로 공간 활용도를 높였다.
 
 The v3 loader and corrected/slice writers reject persisted analysis faces that disagree with the complete approved history and original face map. Valid suffix slices retain the cumulative effect of earlier events. Pose processing reports `UnknownFace` or `UnidentifiableGeometry` when face constraints cannot support the local six-DOF fit; unavailable pose/corners do not become detector evidence. This is a conservative local guard, not global uniqueness certification.
+
+## 7. 공개 결과를 이용한 최종 화면 확인 (#78)
+
+`python -m src.simulation.release_gui_validation --trial-report <기존 trial GUI execution.json> --output <새 폴더>`는 앞서 저장한 공개 관측·workspace·slice·proc를 실제 MainApp과 Comparison에서 다시 연다. 새 프로세스에 `QT_SCALE_FACTOR=1.25`를 지정한다. Raw/Optimizer는 다시 실행하지 않으며 CI도 앞 단계의 저장물을 재사용한다.
+
+입력은 200×120×80 mm 박스·32마커·125 Hz의 처방 궤적이다. Step 1에서는 긴 CSV 이름, G16 기록과 다른 관측 접근면, 24개 추가 범위의 끝까지 이동, Tab/Backtab·Space·실제 파일 대화상자 Escape 취소를 확인한다. 추가 범위는 목록 부하용이며 새 시험 정답이 아니다. Step 1.5는 기존 slice를 읽고, Step 2는 저장된 27행의 시간과 중심 Y를 그대로 그린다.
+
+Comparison은 같은 proc의 긴 이름 복사본 9개를 읽는다. 기대값 −1.49112 m/s에 대해 수직 속도는 −1.491123630 m/s이고, 조건부 속도 환산 높이는 113.364384 mm였다. 출발 높이나 충격력으로 해석하지 않는다. 기존 0.1 mm·0.1° 계산 허용값에서 유도한 미분·코너 한계를 사용했으며, 결과에 맞춰 바꾸지 않았다. 별도 접촉 의도가 없으므로 Contact는 Unclear, 반복 집계는 1관측·8제외다. 약 +0.008초의 슬라이더 위치에서 그래프 커서와 3D가 선택한 실제 표본은 0.320초이며, 직전 0.312초와 구별된다. 잘못된 파일과 파일 선택 취소는 이미 읽은 결과를 유지한다.
+
+실제 화면에서 발견해 고친 사항은 처리 중 창 닫기·Launcher 교체, 긴 경로의 그래프 폭 침범, 수치적 무회전 잔차의 과장, 여러 파일 범례의 곡선 가림, 3D 높이 축소와 작은 창의 요약표 본문 가림이다. 경로 원문·선택 복사와 저장값은 유지한다. 회전의 기본 0–최소 1° 축은 표시 범위이며 측정 한계나 시험 기준이 아니다. Comparison 범례 번호는 파일 목록과 연결하고, 작은 창은 최소 본문 높이를 유지하며 기존 스크롤로 나머지 지표와 샘플 조작에 접근한다.
+
+Qt 배율은 1.25이며 창 프레임이 물리 1920×1080 범위 안에 들어가는지 기록한다. 실제 모니터 해상도를 1920×1080으로 바꾼 확인은 아니다. Qt 키·마우스 이벤트와 실제 위젯/파일 대화상자를 사용했으며 외부 네이티브 마우스 검증으로 보고하지 않는다. Qt 창 캡처에서 VTK 영역은 검게 나올 수 있어, 별도 실제 VTK 렌더와 선택 표본의 좌표·시간을 함께 확인한다. 전체 파일명은 실제 표시 중인 `QToolTip.text()`로 확인하고 tooltip 이미지 저장을 증거로 삼지 않는다.
+
+독립 코드 리뷰는 작은 창 본문 가림과 종료 중 예외가 생겨도 보고서가 pass로 남는 문제를 지적했다. 표 최소 높이를 확보하고 종료 이벤트 처리 후 상태·해시를 확정하도록 수정했다. 원래 실패 사례와 재검토를 보존한다. 초기 하네스의 메뉴 키 입력, Qt 컬럼 list/tuple 차이, tooltip 이미지 저장 실패도 제품 실패와 구별한다. 공개·가상 검증의 완료와 별개로 독립 실측 검증 8개 범주는 [#104](https://github.com/pikachu444/BoxMotionAnalyzer/issues/104)에 Unavailable로 남아 있다.
+
+최종 로컬 실행은 `tmp/issue78_public_release_20260913/gui_06/execution.json`과 같은 폴더의 PNG에 있다. 10번 화면은 작은 창의 첫 속도 행, 11번은 Ctrl+End로 도달한 마지막 환산높이 행이다. 작은 창은 내용의 최소 높이에 맞춘 1100×765이며 물리 프레임은 1375×987.5였다. 원본 9개와 작업용 복사본 13개의 SHA가 실행 전후 같았고, 코드·물리 담당이 실제 소스·저장 결과·PNG를 직접 읽어 남은 지적 없이 승인했다. 물리 담당의 독립 미분·회전 재계산도 표시값과 일치했다. CI는 해당 실행 자료를 artifact로 보존하며 최종 CI·병합 상태는 #78과 PR에 기록한다.
