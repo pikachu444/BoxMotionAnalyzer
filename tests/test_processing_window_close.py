@@ -16,6 +16,8 @@ def _running_processing(window, monkeypatch):
     def held_analysis(config, parsed):
         started.set()
         release.wait(5.)
+        window.pipeline_controller.analysis_finished.emit(
+            pd.DataFrame({'Time': [0., .1], 'DropPosture_BetaDeg': [1., 2.]}))
 
     monkeypatch.setattr(window.pipeline_controller, 'run_analysis_from_parsed', held_analysis)
     window.run_processing_pipeline({}, None, None, pd.DataFrame({'value': [1.]}, index=[0.]), {})
