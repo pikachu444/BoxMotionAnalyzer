@@ -257,6 +257,9 @@ def run(trial_report, output):
         QTest.mouseClick(result.result_file_list.viewport(), Qt.LeftButton, pos=result.result_file_list.visualItemRect(item).center())
         events()
         assert len(result.result_data) == 27
+        # Opening a result now plots its default quantity. Select only centre Y
+        # for this saved-position check, using the same visible user action.
+        click(result.clear_selection_button)
         tree = result.result_data_tree
         iterator = QTreeWidgetItemIterator(tree)
         leaf = None

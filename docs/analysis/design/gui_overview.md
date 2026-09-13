@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-09-13
+Last Reviewed: 2026-09-14
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -265,6 +265,8 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
   - `Export Scenario CSV`
 
 ### 4.4. 하단 메인 플롯
+- 처음 결과를 열면 기준면 기울기(Beta), 해당 열이 없으면 기하중심 Y를 표시한다. 파일을 바꾸면 기존에 그리던 공통 항목을 새 파일로 다시 그리고, 없는 항목은 제거한다. 체크만 하고 아직 그리지 않은 항목은 임의로 추가하지 않는다.
+- 성공한 파일 전환은 요약·팝업·선택점·내보내기 상태도 함께 갱신한다. 읽기 또는 표시 실패와 취소는 이전 파일·그래프·선택을 보존하며 현재 상태 표시줄에서 알린다. 새 폴더 선택은 이전 결과와 곡선을 함께 비운다.
 - 현재 체크된 결과 컬럼을 한 그래프에 겹쳐서 표시한다.
 - 범례와 타겟 선택 문자열은 raw schema key를 직접 이어붙이지 않고, export 의미를 풀어쓴 표시명을 사용한다.
 - 현재 체크된 컬럼 집합은 트리 정렬 방식과 검색 필터가 바뀌어도 유지된다.
@@ -287,7 +289,7 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 8. processing을 실행한다.
 9. `.proc`를 저장한다.
 10. Step 2에서 결과 폴더를 선택하고 저장된 `.proc`를 목록에서 연다.
-11. Step 2에서 컬럼을 체크하고 메인 플롯 또는 팝업 플롯으로 비교한다.
+11. Step 2의 기본 곡선을 확인하고, 필요한 컬럼을 체크해 메인 플롯 또는 팝업 플롯으로 비교한다.
 12. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
 
 낙하 자세 비교 지표 확인:
@@ -325,6 +327,10 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 The v3 loader and corrected/slice writers reject persisted analysis faces that disagree with the complete approved history and original face map. Valid suffix slices retain the cumulative effect of earlier events. Pose processing reports `UnknownFace` or `UnidentifiableGeometry` when face constraints cannot support the local six-DOF fit; unavailable pose/corners do not become detector evidence. This is a conservative local guard, not global uniqueness certification.
 
 ## 7. 공개 결과를 이용한 최종 화면 확인 (#78)
+
+후속 네이티브 감사 두 차례에서 이 검사의 사용성 범위가 부족했음을 확인했다. 특히 Step 2에서 243행 기울임 파일을 그린 뒤 27행 낙하 파일을 선택하면 파일명·요약만 바뀌고 이전 15도 곡선이 남았다. 단계 사이 파일 인계, 기본 선택 영역, 내부 용어, Simulation 실행 버튼 접근도 별도 수정 대상이다. 아래 기록은 당시 실행·저장·제한된 레이아웃 검사의 근거이며 전체 실사용 검증 완료를 의미하지 않는다. 수정과 재검토는 [#106](https://github.com/pikachu444/BoxMotionAnalyzer/issues/106)에서 단위별로 추적한다.
+
+#106 첫 수정의 네이티브 실행은 동일한 공개 243행 기울임에서 27행 낙하로 전환해 주 곡선·기존 팝업·요약의 일치와 이전 선택점 해제를 확인했다. 새 파일의 Long Direction Angle 최대점 0.312초를 내보낸 CSV는 원본 21행의 328필드와 정확히 같았다. 독립 리뷰에서 발견한 문자 수치 열의 늦은 표시 실패와 실행 중 Simulation 창 삭제는 각각 이전 결과 보존과 실행·완료 콜백 동안 닫힘 보류로 수정하고 원 반례를 재검토했다. 실제 NaN 공백은 유지한다. 열린 런처 작업창은 다시 누르면 복귀하며, 실제 닫힌 뷰어는 정리된 리소스를 재사용하지 않는다. 입력·PNG·내보낸 CSV는 `tmp/ui106/unit1`에 있다. 축 범위·용어·화면 배치와 단계 인계는 후속 단위로 남는다.
 
 `python -m src.simulation.release_gui_validation --trial-report <기존 trial GUI execution.json> --output <새 폴더>`는 앞서 저장한 공개 관측·workspace·slice·proc를 실제 MainApp과 Comparison에서 다시 연다. 새 프로세스에 `QT_SCALE_FACTOR=1.25`를 지정한다. Raw/Optimizer는 다시 실행하지 않으며 CI도 앞 단계의 저장물을 재사용한다.
 
