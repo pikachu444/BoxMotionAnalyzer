@@ -1,6 +1,7 @@
 """Unit-GUI path layout checks; no data parsing or Raw analysis runs."""
 import pytest
 from PySide6.QtCore import Qt
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QSplitter
 
 from src.analysis.app.main_window import MainApp
@@ -26,9 +27,13 @@ def test_long_paths_preserve_text_and_allow_plot_panel_resizing(tab_index):
             for label in labels:
                 label.setText(path)
         original_texts = [label.text() for label in labels]
-        window.resize(1510, 800)
         window.show()
-        app.processEvents()
+        assert QTest.qWaitForWindowExposed(window, 2000)
+        # Windows may constrain the initial native window to the desktop.
+        # Apply the layout-test size after those first geometry events settle.
+        QTest.qWait(100)
+        window.resize(1510, 800)
+        QTest.qWait(100)
         splitter, = [item for item in widget.findChildren(QSplitter)
                      if item.orientation() == Qt.Orientation.Horizontal]
 

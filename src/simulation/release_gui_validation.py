@@ -103,10 +103,14 @@ def run(trial_report, output):
         nonlocal current
         current = window
         windows.append(window)
+        window.show()
+        assert QTest.qWaitForWindowExposed(window, 5000)
+        events(100)
+        # Apply the requested viewport after native show/geometry events.
         window.resize(1510, 800)
         window.move(5, 5)
-        window.show()
         events(200)
+        assert window.width() == 1510
         return window
 
     def capture(name, description, buttons=()):

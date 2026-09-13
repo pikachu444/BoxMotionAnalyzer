@@ -1,5 +1,6 @@
 """Unit-GUI layout/identification contracts; no Raw or optimizer execution."""
 from PySide6.QtCore import Qt
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from comparison_fixtures import write_proc
@@ -21,9 +22,13 @@ def test_numbered_legend_stays_outside_axes_and_keeps_individual_file_identity(t
                                         window.model.get_impact_comparison())
         window.graph_panel.set_plot_targets(['Analysis | DropPosture | ThetaLongDeg'])
         window.show()
+        assert QTest.qWaitForWindowExposed(window, 2000)
+        # Set the requested sizes after Windows' initial desktop-constrained
+        # geometry has been delivered, not while its first show is pending.
+        QTest.qWait(100)
         for width, height in ((1510, 800), (1100, 700)):
             window.resize(width, height)
-            app.processEvents()
+            QTest.qWait(100)
             graph = window.graph_panel
             graph.canvas.draw()
             renderer = graph.canvas.get_renderer()
