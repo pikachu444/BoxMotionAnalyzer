@@ -1,8 +1,8 @@
 # Box Motion Analyzer GUI 설계 원칙 (GUI Principles)
 
-Last Reviewed: 2026-06-10
+Last Reviewed: 2026-09-14
 
-본 애플리케이션의 프론트엔드는 "엔지니어링/분석 툴"로서의 직관성과 정보 밀도를 극대화하기 위해 다음의 7가지 설계 원칙을 따릅니다.
+사용자가 현재 파일, 선택한 데이터와 다음 행동을 쉽게 알 수 있도록 구성한다. 설명 문단과 긴 제목을 늘리기보다 파일 열기, 검토, 처리, 결과 보기의 동작을 연결한다.
 
 ## 1. 순정(Native) 시스템 렌더링 유지 (Native Consistency)
 - 각 패널을 감쌀 때는 시스템이 기본으로 제공하는 '얇고 깔끔한 까만색 선(Native Border)'을 그대로 유지합니다.
@@ -17,9 +17,9 @@ class MyPanel(QGroupBox):
         super().__init__("Panel Title")
 ```
 
-## 2. 견고한 레이아웃 (Rigid & Bounded Sizing)
-- 레이아웃이 단순히 `Stretch`에 의존하여 무한정 늘어지거나 화면 축소 시 찌그러지지 않아야 합니다.
-- 각 핵심 컴포넌트(사이드바, 주요 플롯 등)는 명확한 최소 크기(`MinimumWidth`, `MinimumHeight`)를 가져 레이아웃의 형태를 고정합니다.
+## 2. 창 크기에 맞는 레이아웃
+- 핵심 행동과 결과에 공간을 먼저 배분한다. 부가 설정은 접고 긴 폼에는 스크롤을 제공한다.
+- 컴포넌트의 최소 크기를 합친 결과가 실제 화면보다 커지지 않게 한다. 기본 창과 작은 창에서 버튼, 표의 행, 범례와 재생 정보를 읽을 수 있어야 한다.
 
 **[예시]**
 ```python
@@ -65,25 +65,12 @@ content_frame.setStyleSheet("background-color: #ffffff; border: 1px solid #ccccc
 main_layout.addWidget(content_frame)
 ```
 
-## 6. 작업 흐름을 명시하는 넘버링 (Workflow Numbering)
-- 애매한 패널 이름 대신, 사용자가 무엇을 먼저 해야 할지 파악할 수 있도록 각 패널 제목에 직관적인 넘버링을 부여합니다.
+## 6. 짧은 이름과 필요한 상태
+- Step 1 / 1.5 / 2의 단계 구분은 유지하되 패널마다 번호를 강제로 붙이지 않는다. 버튼은 Open, Review, Run처럼 행동을 나타내는 짧은 이름을 쓴다.
+- 저장 컬럼 키, 알고리즘 버전, 내부 점수 이름을 기본 화면의 제목과 범례로 사용하지 않는다. 단위와 판단에 필요한 불확실성은 짧게 표시하고 자세한 근거는 필요한 곳에서 확인하게 한다.
+- 안내 문단이나 장식 기호로 조작의 부재를 메우지 않는다. 현재 파일명, 선택, 저장 전후 상태가 서로 맞아야 한다.
 
-**[예시]**
-```python
-class CompareControlPanel(QGroupBox):
-    def __init__(self):
-        super().__init__("1. Result Files") # 직관적 넘버링 적용
-```
-
-## 7. 기능적 통일성 유지 (Feature Parity)
-- 특정 화면에 존재하는 유용한 기본 기능(예: 그래프 네비게이션 툴바)은 다른 화면의 동일한 뷰어에도 누락 없이 100% 동일하게 제공해야 합니다.
-
-**[예시]**
-```python
-# 다른 화면과 통일되도록 네비게이션 툴바 반드시 포함
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
-
-self.toolbar = NavigationToolbar2QT(self.canvas, self)
-layout.addWidget(self.toolbar)
-layout.addWidget(self.canvas)
-```
+## 7. 실제 사용 흐름 확인
+- 같은 역할의 조작은 일관되게 제공하되 모든 화면에 같은 도구를 무조건 복제하지 않는다. 해당 화면의 판단에 필요한 도구를 우선한다.
+- 서로 다른 입력으로 파일 변경, 선택, 미리보기, 저장과 재열기를 확인한다. 창이 그려졌거나 화면 밖 버튼을 코드로 누를 수 있다는 사실만으로 사용성을 판단하지 않는다.
+- 코너 식별자와 물리량, 실제 관측과 보정 미리보기, 가상 검증과 실측 정확도를 구분한다. 측정값을 보기 좋게 바꾸지 않는다.

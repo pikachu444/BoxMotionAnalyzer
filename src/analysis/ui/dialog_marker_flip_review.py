@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterable
+import numpy as np
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -11,7 +12,6 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QGroupBox,
     QHeaderView,
     QLabel,
     QMessageBox,
@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from src.utils.qt_sections import CollapsibleSection
 
 from src.analysis.pipeline.marker_flip import (
     MarkerCorrectionDecision,
@@ -50,30 +51,25 @@ class MarkerFlipReviewDialog(QDialog):
         self._axis_combos: list[QComboBox] = []
         self._evidence_canvas_disposed = False
 
-        self.setWindowTitle("Marker Flip Review")
+        self.setWindowTitle("Marker correction")
         self.resize(960, 680)
         self.setMinimumSize(820, 600)
         self._setup_ui()
 
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
-        intro = QLabel(
-            "Recommended axes restore continuity; they do not confirm a tracking error."
-        )
-        intro.setWordWrap(True)
-        layout.addWidget(intro)
-
         self.table = QTableWidget(len(self.candidates), 4, self)
         self.table.setHorizontalHeaderLabels(
-            ["Boundary (s)", "Recommendation", "Apply", "Selected local axis"]
+            ["Event (s)", "Recommendation", "Apply", "Local axis"]
         )
+        self.table.horizontalHeaderItem(1).setToolTip("Recommended half-turn restores continuity conditionally; it does not confirm a tracking error.")
+        self.table.horizontalHeaderItem(3).setToolTip("180° about the selected box-local axis.")
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setAlternatingRowColors(True)
         self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.table.setMinimumHeight(125)
-        self.table.setMaximumHeight(210)
-        self.table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.table.verticalHeader().setVisible(False)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
@@ -88,7 +84,7 @@ class MarkerFlipReviewDialog(QDialog):
             boundary_item.setToolTip(candidate.trigger)
             self.table.setItem(row, 0, boundary_item)
             recommendation_text = (
-                f"Local {candidate.recommendation_axis} (180°)"
+                candidate.recommendation_axis
                 if candidate.recommendation_axis is not None
                 else "No recommendation"
             )
@@ -111,9 +107,10 @@ class MarkerFlipReviewDialog(QDialog):
             axis_combo.setAccessibleName(
                 f"Local correction axis at {candidate.boundary_time_sec:.6f} seconds"
             )
-            axis_combo.addItem("No correction", userData=None)
+            axis_combo.setToolTip("180° about the selected box-local axis. Changing the preview does not enable Apply.")
+            axis_combo.addItem("None", userData=None)
             for axis in SUPPORTED_LOCAL_AXES:
-                axis_combo.addItem(f"Local {axis} (180°)", userData=axis)
+                axis_combo.addItem(axis, userData=axis)
             axis_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             selected_axis = (
                 existing.axis
@@ -126,12 +123,16 @@ class MarkerFlipReviewDialog(QDialog):
 
             self._approval_checkboxes.append(approval)
             self._axis_combos.append(axis_combo)
-            axis_combo.currentIndexChanged.connect(lambda _index, r=row: self._update_evidence_plot(r))
+            axis_combo.currentIndexChanged.connect(lambda _index, r=row: self._select_event(r))
+            approval.toggled.connect(lambda _checked, r=row: self._select_event(r))
 
-        layout.addWidget(self.table, 1)
+        self.table.resizeRowsToContents()
+        visible_rows = min(5, len(self.candidates))
+        self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
+                                  + sum(self.table.rowHeight(row) for row in range(visible_rows))
+                                  + 2 * self.table.frameWidth())
+        layout.addWidget(self.table)
 
-        details_group = QGroupBox("Selected candidate details")
-        details_layout = QVBoxLayout(details_group)
         self.candidate_details = QPlainTextEdit()
         self.candidate_details.setReadOnly(True)
         self.candidate_details.setLineWrapMode(QPlainTextEdit.LineWrapMode.WidgetWidth)
@@ -141,8 +142,11 @@ class MarkerFlipReviewDialog(QDialog):
         self.candidate_details.setMinimumHeight(82)
         self.candidate_details.setMaximumHeight(115)
         self.candidate_details.setAccessibleName("Selected marker flip candidate details")
-        details_layout.addWidget(self.candidate_details)
-        layout.addWidget(details_group)
+        self.details_section = CollapsibleSection("Details", self.candidate_details)
+
+        self.preview_status = QLabel()
+        self.preview_status.setStyleSheet("color: #916000;")
+        layout.addWidget(self.preview_status)
 
         self.evidence_figure = Figure(figsize=(8, 2.4), dpi=100)
         self.evidence_canvas = FigureCanvas(self.evidence_figure)
@@ -152,6 +156,7 @@ class MarkerFlipReviewDialog(QDialog):
             QSizePolicy.Policy.Expanding,
         )
         layout.addWidget(self.evidence_canvas, 2)
+        layout.addWidget(self.details_section)
         self.table.currentCellChanged.connect(self._update_evidence_plot)
         if self.candidates:
             self.table.selectRow(0)
@@ -163,106 +168,93 @@ class MarkerFlipReviewDialog(QDialog):
         )
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
+        self.button_box.button(QDialogButtonBox.StandardButton.Ok).setText("Done")
         layout.addWidget(self.button_box)
+
+    def _select_event(self, row):
+        if self.table.currentRow() != row:
+            self.table.setCurrentCell(row, 3)
+        else:
+            self._update_evidence_plot(row)
+        self.table.scrollToItem(self.table.item(row, 0))
+
+    @staticmethod
+    def _trace_available(times, values):
+        return (len(times) == len(values) and len(times) > 0
+                and np.any(np.isfinite(times) & np.isfinite(values)))
+
+    @staticmethod
+    def _number(value, suffix="°"):
+        return f"{value:.6g}{suffix}" if value is not None and np.isfinite(value) else "unavailable"
 
     def _update_evidence_plot(self, current_row: int, *_args) -> None:
         self.evidence_figure.clear()
         axis = self.evidence_figure.add_subplot(111)
         if current_row < 0 or current_row >= len(self.candidates):
-            axis.text(0.5, 0.5, "Select a candidate to inspect its evidence.", ha="center", va="center")
+            axis.text(0.5, 0.5, "No event selected", ha="center", va="center")
             axis.set_axis_off()
             self.candidate_details.clear()
+            self.preview_status.clear()
+            self.preview_status.setToolTip("")
             self.evidence_canvas.draw()
             return
 
         candidate = self.candidates[current_row]
         selected_axis = self._axis_combos[current_row].currentData()
         selected = candidate.hypothesis(selected_axis)
-        marker_rmse = (
-            "N/A" if candidate.marker_rmse_mm is None else f"{candidate.marker_rmse_mm:.2f} mm"
-        )
-        self.candidate_details.setPlainText(
-            "\n".join(
-                (
-                    f"Trigger: {candidate.trigger}",
-                    "Recommendation: "
-                    f"{candidate.recommendation_axis or 'none'} — {candidate.reason}",
-                    "Evidence: "
-                    f"jump {candidate.no_correction_residual_deg:.1f}° → "
-                    f"{candidate.best_residual_deg:.1f}°; reduction="
-                    f"{candidate.discontinuity_reduction_deg:.1f}°; "
-                    f"best={candidate.best_hypothesis_label}; "
-                    f"match={candidate.correspondence_ratio:.0%}; "
-                    f"coverage={candidate.coverage_ratio:.0%}; "
-                    f"margin={candidate.confidence_margin:.0%}; "
-                    f"markers={candidate.common_marker_count}; RMSE={marker_rmse}",
-                    "Stable windows: "
-                    f"pre={candidate.pre_stability_deg:.1f}°; "
-                    f"post={candidate.post_stability_deg:.1f}° | "
-                    f"algorithm={candidate.algorithm_version}; gates={candidate.gate_version}",
-                )
-            )
-        )
-        if candidate.correction_kind == "face_assignment":
-            residual = f"{selected.residual_deg:.2f}°" if selected and selected.trace_deg else "unavailable"
-            fit = f"{selected.marker_rmse_mm:.3f} mm" if selected and selected.marker_rmse_mm is not None else "unavailable"
-            self.candidate_details.setPlainText(
-                f"Recommendation: {candidate.recommendation_axis or 'none'} — {candidate.reason}\n"
-                f"Refit NONE {candidate.no_correction_residual_deg:.1f}° → best {candidate.best_residual_deg:.1f}°; "
-                f"gain {candidate.discontinuity_reduction_deg:.1f}°; score gap {candidate.confidence_margin:.2f} (not probability).\n"
-                f"Selected {selected_axis or 'NONE'}: residual {residual}; fit RMSE {fit}; coverage {candidate.coverage_ratio:.0%}."
-                + (f"\n{selected.mapping_reason}" if selected and selected.mapping_reason else '')
-            )
+        post_times = candidate.post_window_time_offsets_sec
+        actual_refit = candidate.correction_kind == "face_assignment"
+        selected_trace = bool(selected and self._trace_available(post_times, selected.trace_deg))
+        none = candidate.hypothesis(None)
+        none_trace = bool(none and self._trace_available(post_times, none.trace_deg))
+        preview_available = selected_trace if actual_refit else bool(
+            selected_axis and selected and np.isfinite(selected.residual_deg)
+            and any(np.isfinite(post_times)))
+        self.preview_status.setText("" if preview_available else "Preview unavailable")
+        self.preview_status.setToolTip("" if preview_available else
+            f"Comparison samples: {len(candidate.pre_window_time_offsets_sec)} before, {len(post_times)} after. {candidate.reason}")
 
-        if not candidate.pre_window_time_offsets_sec or not candidate.post_window_time_offsets_sec:
-            axis.text(
-                0.5,
-                0.5,
-                "Stable-window traces are unavailable for this candidate.",
-                ha="center",
-                va="center",
-            )
-            axis.set_axis_off()
-            self.evidence_figure.tight_layout()
-            self.evidence_canvas.draw()
-            return
+        if actual_refit:
+            comparison = "available" if selected_trace and none_trace else "unavailable"
+            values = (f"Comparison: {comparison}",
+                      f"Refit none: {self._number(none.residual_deg if none_trace else None)}",
+                      f"Selected {selected_axis or 'none'}: {self._number(selected.residual_deg if selected_trace else None)}")
+        else:
+            values = (f"Predicted {selected_axis or 'none'}: {self._number(selected.residual_deg if preview_available else None)}",)
+        fit = selected.marker_rmse_mm if selected else None
+        coverage = selected.coverage_ratio if selected else candidate.coverage_ratio
+        coverage_text = f"{coverage:.0%}" if np.isfinite(coverage) else "unavailable"
+        self.candidate_details.setPlainText("\n".join((
+            f"Event: {candidate.trigger}",
+            f"Recommendation: {candidate.recommendation_axis or 'none'} — {candidate.reason}",
+            *values,
+            f"Marker fit error: {self._number(fit, ' mm')}; coverage: {coverage_text}",
+        )))
 
-        axis.plot(
-            candidate.pre_window_time_offsets_sec,
-            candidate.pre_window_residual_deg,
-            marker="o",
-            label="Pre stable window",
-        )
-        axis.plot(
-            candidate.post_window_time_offsets_sec,
-            candidate.post_window_raw_residual_deg,
-            marker="o",
-            label="Post window: raw",
-        )
-        if candidate.correction_kind == "face_assignment" and selected and selected.trace_deg:
-            # A partial failed refit has no complete time trace; never attach it to wrong samples.
-            if len(selected.trace_deg) == len(candidate.post_window_time_offsets_sec):
-                axis.plot(candidate.post_window_time_offsets_sec, selected.trace_deg, marker="o",
-                    linestyle="--", label=f"Selected {selected_axis or 'NONE'}: actual pose refit")
-        elif candidate.correction_kind != "face_assignment" and selected_axis:
-            # Legacy view labels the mathematical prediction explicitly.
-            hypothesis = candidate.hypothesis(selected_axis)
-            if hypothesis:
-                axis.axhline(hypothesis.residual_deg, linestyle="--",
-                    label=f"Selected {selected_axis}: predicted mean residual")
-        if candidate.correction_kind != "face_assignment" and candidate.best_hypothesis_label != "NONE":
-            axis.plot(
-                candidate.post_window_time_offsets_sec,
-                candidate.post_window_best_residual_deg,
-                marker="o",
-                linestyle="--",
-                label=f"Post window: {candidate.best_hypothesis_label} hypothesis",
-            )
-        axis.axvline(0.0, linestyle=":", linewidth=1.0, label="Candidate boundary")
-        axis.set_xlabel("Time from candidate boundary (s)")
-        axis.set_ylabel("Orientation residual (deg)")
+        for times, values, label in (
+            (candidate.pre_window_time_offsets_sec, candidate.pre_window_residual_deg, "Before"),
+            (post_times, candidate.post_window_raw_residual_deg, "Original"),
+        ):
+            if self._trace_available(times, values):
+                axis.plot(times, values, marker="o", label=label)
+        if actual_refit and selected_trace:
+            axis.plot(post_times, selected.trace_deg, marker="o", linestyle="--",
+                      label=f"Preview {selected_axis}" if selected_axis else "Refit none")
+        elif not actual_refit and preview_available:
+            if selected_axis == candidate.best_hypothesis_label and self._trace_available(post_times, candidate.post_window_best_residual_deg):
+                axis.plot(post_times, candidate.post_window_best_residual_deg, marker="o", linestyle="--", label=f"Predicted {selected_axis}")
+            else:
+                axis.axhline(selected.residual_deg, linestyle="--", label=f"Predicted {selected_axis} mean")
+        axis.axvline(0.0, linestyle=":", linewidth=1.0, color="0.5")
+        axis.set_xlabel("Time from event (s)")
+        axis.set_ylabel("Relative rotation (degrees)")
         axis.grid(True, alpha=0.25)
-        axis.legend(loc="best", fontsize=8)
+        if axis.get_legend_handles_labels()[0]:
+            axis.legend(loc="best", fontsize=8)
+        low, high = axis.get_ylim()
+        if high - low < 1.0:
+            centre = (low + high) / 2.0
+            axis.set_ylim(centre - .5, centre + .5)
         self.evidence_figure.tight_layout()
         self.evidence_canvas.draw()
 
