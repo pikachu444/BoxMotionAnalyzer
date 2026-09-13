@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from src.analysis.pipeline.scene_detection import detect_scenes, Registration, DetectionSettings
 from src.analysis.pipeline.scene_review import SceneReviewSession
+from src.analysis.pipeline.scene_trial_record import load_trial_record
 from src.analysis.pipeline.scene_workspace import (save_workspace, read_workspace,
     workspace_source_path, restore_session)
 from src.analysis.pipeline.artifact_io import (_sha256_file, save_slice_file,
@@ -56,6 +57,8 @@ class SceneReviewFlow:
         panel.open_review_button.clicked.connect(self.open_scene_review)
         panel.save_review_button.clicked.connect(self.save_scene_review)
         panel.geometry_button.clicked.connect(self.load_scene_geometry)
+        panel.load_trial_record_action.triggered.connect(self.load_scene_trial_record)
+        panel.clear_trial_record_action.triggered.connect(self.clear_scene_trial_record)
         panel.add_button.clicked.connect(self.add_scene_range)
         panel.save_all_button.clicked.connect(self.save_included_scenes)
         panel.row_selected.connect(self._select_scene)
@@ -89,6 +92,7 @@ class SceneReviewFlow:
         self.scene_panel.geometry_button.setEnabled(ready)
         self.scene_panel.open_review_button.setEnabled(not busy and not self.marker_review_dirty)
         self.scene_panel.save_review_button.setEnabled(ready and self.scene_session is not None)
+        self.scene_panel.trial_record_button.setEnabled(ready and self.scene_session is not None)
         self.scene_panel.table.setEnabled(not busy)
         for widget in (self.scene_panel.type_combo, self.scene_panel.edition_combo,
                        self.scene_panel.add_button, self.scene_panel.remove_button,
@@ -155,7 +159,8 @@ class SceneReviewFlow:
         try:
             self._validate_scene_source()
             if self.scene_session is None:
-                self.scene_session = SceneReviewSession(result, self.active_source_sha256)
+                self.scene_session = SceneReviewSession(result, self.active_source_sha256,
+                    original_source_sha256=self.original_source_sha256)
             else:
                 self.scene_session.refresh(result)
             panel = self.scene_panel
@@ -254,7 +259,8 @@ class SceneReviewFlow:
         try:
             data, source, preview = context['data'], context['source'], context['preview']
             source_hash = _sha256_file(source)
-            session, changed = restore_session(data, result, source_hash)
+            session, changed = restore_session(data, result, source_hash,
+                original_source_sha256=preview['marker_state'][4])
             # All reads and evidence checks finish before replacing active work.
             self._apply_csv_preview(source, preview, emit=False)
             self.scene_session, self.scene_registration = session, result.registration
@@ -321,12 +327,47 @@ class SceneReviewFlow:
         except Exception as exc:
             self.append_log(f'[ERROR] Geometry: {exc}')
 
+    def load_scene_trial_record(self):
+        if self.scene_busy or self.scene_session is None:
+            return
+        path, _ = QFileDialog.getOpenFileName(self, 'Test record', '', 'Test record (*.json)')
+        if not path:
+            return
+        try:
+            self._validate_scene_source()
+            record = load_trial_record(path)
+            self.scene_session.set_trial_record(record)
+            panel = self.scene_panel
+            for combo in (panel.type_combo, panel.edition_combo):
+                combo.blockSignals(True)
+            try:
+                panel.type_combo.setCurrentText(self.scene_session.ista_type)
+                edition = self.scene_session.applied_edition
+                if panel.edition_combo.findData(edition) < 0:
+                    panel.edition_combo.addItem(edition, edition)
+                panel.edition_combo.setCurrentIndex(panel.edition_combo.findData(edition))
+            finally:
+                for combo in (panel.type_combo, panel.edition_combo):
+                    combo.blockSignals(False)
+            panel.trial_record_button.setToolTip(record['record_id'])
+            panel.refresh()
+            self.append_log(f"[INFO] Test record loaded: {record['record_id']}")
+        except Exception as exc:
+            self.append_log(f'[ERROR] Test record: {exc}')
+
+    def clear_scene_trial_record(self):
+        if not self.scene_busy and self.scene_session is not None:
+            self.scene_session.set_trial_record(None)
+            self.scene_panel.trial_record_button.setToolTip('')
+            self.scene_panel.refresh()
+
     def _invalidate_scene_evidence(self, reason):
         if self.scene_session:
             for row in self.scene_session.rows:
+                self.scene_session._remember_trial_review(row, reason)
                 if row['decision'] != 'unreviewed':
-                    row['previous_review'] = {'decision': row['decision'],
-                        'identity': deepcopy(row['identity']), 'reasons': [reason]}
+                    row.setdefault('previous_review', {'decision': row['decision'],
+                        'identity': deepcopy(row['identity']), 'reasons': [reason]})
                     if row.get('intended_contact') is not None:
                         row['previous_review']['intended_contact'] = deepcopy(row['intended_contact'])
                 elif 'previous_review' in row and reason not in row['previous_review']['reasons']:

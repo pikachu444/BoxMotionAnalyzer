@@ -46,6 +46,14 @@ SYNTHETIC_TESTS = {
     },
     'test_scene_review_gui': {'test_detect_select_edit_review_save_and_reopen'},
     'test_scene_workspace_gui': {'test_reopen_unfinished_review_and_continue_without_reviving_deleted_rows'},
+    'test_trial_record_integration': {
+        'test_repeated_postures_use_explicit_anchors_and_survive_workspace',
+        'test_analytic_wrong_face_retains_g16_intent_and_different_approach',
+        'test_partial_capture_can_link_record_but_not_verify_complete_motion',
+        'test_handling_record_does_not_promote_air_rotation_to_a_trial',
+        'test_hazard_intent_does_not_invent_a_hazard_observation',
+    },
+    'test_trial_record_gui': {'test_mainapp_record_import_reopen_and_raw_process'},
 }
 INTERNAL_MODULES = {'test_real_data_flow', 'test_real_drop_posture_physics'}
 INTERNAL_POSTURE_METHOD = 'test_real_contact_slice_theta_angles_are_physically_consistent_around_t1'

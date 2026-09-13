@@ -1,8 +1,9 @@
 """Compact scene review inside Step 1; the existing plot edits the range."""
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView)
+    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QMenu)
 from src.analysis.pipeline.intended_contact import feature_options, feature_label, feature_corners
+from src.analysis.pipeline.scene_trial_record import eligibility_suggestion
 
 
 MOTION_LABELS = {'stationary': 'Stationary', 'free_fall': 'Free-fall candidate',
@@ -11,6 +12,23 @@ MOTION_LABELS = {'stationary': 'Stationary', 'free_fall': 'Free-fall candidate',
 
 
 def _item_tooltip(row):
+    record = row.get('record_evidence')
+    if record:
+        status = 'confirmed' if row['identity']['confirmed'] else 'unconfirmed'
+        notes = [f'Recorded item {status}; observed agreement is separate.']
+        if record.get('attempt_id'):
+            notes.append(f"Attempt {record['attempt_id']}; anchor {record['anchor_time_s']} s.")
+        reasons = {'ambiguous_anchors': 'Multiple anchors fall within this interval.',
+                   'overlapping_included_ranges': 'Anchor belongs to overlapping included intervals.',
+                   'contradictory_order': 'Performed order conflicts with capture anchors.',
+                   'no_anchor': 'No explicit anchor in this interval.',
+                   'not_included': 'Include this interval before linking an item.',
+                   'handling_record': 'Recorded as handling, without a trial item.'}
+        if record['association'] in reasons:
+            notes.append(reasons[record['association']])
+        elif not record['confirmation_supported']:
+            notes.append('Record Type, item or applied edition remains unconfirmed.')
+        return '\n'.join(notes)
     notes = [row.get('sequence_evidence', ''), row.get('eligibility_condition', '')]
     geometry = row.get('geometry', {})
     if geometry.get('status') == 'registration_required':
@@ -22,6 +40,21 @@ def _item_tooltip(row):
         elif not crossings[0].get('approach_feature'):
             notes.append('Approach feature unclear.')
     return '\n'.join(note for note in notes if note)
+
+
+def _observed_label(row):
+    evidence = row.get('observed_consistency')
+    if not evidence:
+        return '—'
+    if evidence['motion'] == 'different':
+        return 'Different motion'
+    if evidence['approach'] == 'different':
+        return 'Different approach'
+    if evidence['approach'] == 'match':
+        return 'Approach matches'
+    if evidence['motion'] == 'unavailable':
+        return 'Unavailable'
+    return 'Rotation observed' if row['motion'] == 'tip_or_rotation' else 'Free fall observed'
 
 
 class SceneReviewWidget(QWidget):
@@ -41,19 +74,24 @@ class SceneReviewWidget(QWidget):
         self.save_review_button = QPushButton('Save review...')
         self.geometry_button = QPushButton('Geometry...')
         self.geometry_button.setToolTip('Optional marker coordinates in box axes, floor height and COM.')
+        self.trial_record_button = QPushButton('Test record...')
+        record_menu = QMenu(self.trial_record_button)
+        self.load_trial_record_action = record_menu.addAction('Load...')
+        self.clear_trial_record_action = record_menu.addAction('Clear')
+        self.trial_record_button.setMenu(record_menu)
         self.add_button = QPushButton('Add range')
         self.remove_button = QPushButton('Remove')
         self.include_button = QPushButton('Include')
         self.exclude_button = QPushButton('Exclude')
-        for button in (self.detect_button, self.open_review_button, self.save_review_button, self.geometry_button, self.add_button,
+        for button in (self.detect_button, self.open_review_button, self.save_review_button, self.geometry_button, self.trial_record_button, self.add_button,
                        self.remove_button, self.include_button, self.exclude_button):
             tools.addWidget(button)
         tools.addStretch()
         self.count_label = QLabel('No scenes')
         tools.addWidget(self.count_label)
         layout.addLayout(tools)
-        self.table = QTableWidget(0, 8)
-        self.table.setHorizontalHeaderLabels(['Scene', 'Start (s)', 'End (s)', 'Motion', 'Rotation (deg)', 'Review', 'Item', 'Intended contact'])
+        self.table = QTableWidget(0, 9)
+        self.table.setHorizontalHeaderLabels(['Scene', 'Start (s)', 'End (s)', 'Motion', 'Rotation (deg)', 'Review', 'Item', 'Intended contact', 'Observed'])
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -132,7 +170,10 @@ class SceneReviewWidget(QWidget):
                       MOTION_LABELS[row['motion']],
                       f"{row['rotation_deg']:.2f}" if row['rotation_deg'] is not None else '—',
                       row['decision'].title(), row['identity']['scenario_id'] or ', '.join(row['item_candidates']) or 'Unconfirmed',
-                      feature_label(row['intended_contact']['faces']) if row.get('intended_contact') else '—']
+                      feature_label(row['intended_contact']['faces']) if row.get('intended_contact') else '—',
+                      _observed_label(row)]
+            if row.get('record_evidence', {}).get('item') and not row['identity']['confirmed']:
+                labels[6] = row['record_evidence']['item'] + ' ?'
             details = ', '.join(row['tags'])
             if row['left_censored'] or row['right_censored']:
                 details += ' Full motion is not established within this interval.'
@@ -154,10 +195,16 @@ class SceneReviewWidget(QWidget):
                 if j == 7:
                     item.setToolTip('Operator-specified local contact; independent of detected motion/items.'
                                     if row.get('intended_contact') else 'No intended contact specified.')
+                if j == 8:
+                    item.setToolTip(row.get('observed_consistency', {}).get('reason', 'No test record linked.'))
                 self.table.setItem(i, j, item)
         self.table.blockSignals(False)
         self.count_label.setText(f"{sum(r['decision'] != 'unreviewed' for r in rows)} / {len(rows)} reviewed" if rows else 'No scenes')
         enabled = bool(rows)
+        self.trial_record_button.setEnabled(enabled)
+        self.clear_trial_record_action.setEnabled(bool(self.session and self.session.trial_record))
+        suggestion = eligibility_suggestion(self.session.trial_record, applied_edition=self.session.applied_edition)['suggested_type'] if self.session and self.session.trial_record else None
+        self.type_combo.setToolTip(f'2018-03 p.2 suggests Type {suggestion}; verify test eligibility.' if suggestion else '')
         for button in (self.add_button, self.remove_button, self.include_button, self.exclude_button):
             button.setEnabled(enabled)
         reviewed = enabled and self.session.all_reviewed

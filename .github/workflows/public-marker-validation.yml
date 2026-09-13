@@ -75,6 +75,9 @@ jobs:
           tests/test_scene_review_gui.py
           tests/test_scene_workspace.py
           tests/test_scene_workspace_gui.py
+          tests/test_scene_trial_record.py
+          tests/test_trial_record_integration.py
+          tests/test_trial_record_gui.py
           tests/test_result_format_layout.py
           tests/test_scenario_345.py
           tests/test_scenario_6.py
@@ -112,5 +115,6 @@ jobs:
             tmp/ci-*/**/*.synthetic.json
             tmp/ci-continuity/**/candidate_evidence.json
             tmp/issue84_public_metrics/**/public_impact_metrics.json
+            tmp/issue75_trial_gui/**
           if-no-files-found: warn
           retention-days: 30
