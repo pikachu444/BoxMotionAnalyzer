@@ -2,6 +2,56 @@
 
 Last Reviewed: 2026-09-13
 
+## 2026-09-13 conditional continuity recommendations (#74)
+
+Version 3.1 recommends the local half-turn that best restores continuity if the
+operator chooses to correct an event. Cause remains unconfirmed and Apply starts
+OFF. Four actual refits use the same samples; face-fit RMSE is not an independent
+marker-correspondence score. Policy and challenge specification are in
+`marker_flip_fixture_contract.md`.
+
+The first new 24-marker challenge found X/Y correctly but missed Z at 1.408 s:
+one failed optimization was misread as a tracking gap at 1.416 s. The 24 observed
+markers were intact. Independent SVD found 179.824394 degrees and 0.068821 mm
+RMS, supporting the observed boundary. V3 now finds stable-ID rotation boundaries
+and keeps optimization failure separate from missing observations. A 10% scale
+change remains rejected by the additional pair-distance guard.
+
+Independent physics review also found a moving-window error: pre Y angles
+[-50,-25,0,25,50] and post [140,165,190,215,240] gave a false conditional Y
+recommendation through their means. The actual 90-degree boundary was not improved.
+The v3 30-degree stability gate now uses maximum pairwise SO(3) angle over the
+whole window. Repeating the original four refits gives 100-degree spans and no
+recommendation; v2's existing statistic is preserved. Exact threshold roundoff is
+limited to eight floating-point epsilons at the corresponding angular/score scale.
+
+Final cached-pose rechecks took 65.83 s without repeating Raw optimization:
+record 01 recommends X/Y/Z at .384/.896/1.408 s; record 02 X/X/X/Y at
+.320/.640/1.152/1.472 s, with no recommendation for its gap or freeze;
+record 03 conditionally recommends X for the same observed input under either
+physical interpretation; record 04 recommends nothing for resolved motion,
+unsupported changes, insufficient markers or a position jump. All initial review
+decisions are OFF and original inputs/truth/cached poses retain their hashes.
+Freeze's unobserved motion is not claimed recovered.
+
+Actual MainApp used the new 24-marker layout with the existing MuJoCo X trajectory:
+recommendation, explicit approval, corrected reload, slice and proc retained all
+100 rows, source values and 3.1 event/context metadata, with unchanged 0.1 mm /
+0.1 degree pose assertions. Qt controls and the real file dialogs were exercised;
+review/reloaded/processed screenshots are under `tmp/issue74_gui/continuity_layout`.
+This run preceded the final window-span change; final span behavior was checked
+separately using cached poses and the independent moving-window counterexample.
+Persistence/cancel checks also passed. Native mouse/DPI-wide release review belongs
+to #78. A SciPy 1.18.1 test-array incompatibility was fixed using (N,1) inputs and
+independently checked without changing expected angles or tolerances.
+
+Code, physics and data reviewers directly inspected code and saved outputs; all
+reported defects were corrected and rechecked. Local evidence is in
+`tmp/issue74_continuity_20260913` (original failures, two bounded rechecks, GUI,
+persistence and the independent physics ledger). CI and publication are tracked
+by the linked issue/PR. This completes the conditional-recommendation software
+scope after required CI; real tracking accuracy and ISTA conformity are unverified.
+
 ## 2026-09-13 public validation completion (#84)
 
 The validator now checks the existing computed poses for three previously incomplete controls. Separate actual CLI runs used seed 74082, the public 18-marker box and 100 samples at 0–0.792 s; no second optimizer run was added.

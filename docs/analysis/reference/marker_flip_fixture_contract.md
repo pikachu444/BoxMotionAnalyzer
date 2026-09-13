@@ -6,6 +6,25 @@ The minimal public example generator is implemented in `src/simulation/marker_fi
 
 ## Recording and coordinates
 
+The 3.1 `face-continuity-v1` review policy ranks the actual NONE/X/Y/Z refits by
+`clip(1 - residual_deg / 180, 0, 1)` on common post samples. It requires at least
+three valid samples, 80% requested-window marker and pose/refit coverage, whole-window
+SO(3) diameter at most 30 degrees, best residual at most 35 degrees, at least
+20 degrees improvement over the refitted NONE, and score gap at least 0.15.
+These are configurable software support conditions, not target angles or error
+probabilities. Stable-ID Kabsch supplies observed boundaries when the pose optimizer
+fails; RMS and maximum pair-distance change must each stay within the declared
+5%-of-box-diagonal support limit. Actual gaps and insufficient geometry abstain.
+
+`src/simulation/fixtures/continuity_challenge.json` preserves the independently
+specified 24-marker, 410x230x135 mm challenge and its pre-execution revision history.
+Four 241-sample prescribed-kinematics records cover XYZ, cumulative changes,
+noise/gap/freeze, genuine motion and unsupported inputs. A single solved-only CSV
+has two incompatible physical interpretations with separate truth. Run
+`python -m src.simulation.continuity_fixtures --output tmp/continuity-validation`.
+Truth/event files never enter the detector. This challenge exposed implementation
+defects and is now regression evidence, not an untouched statistical validation set.
+
 - Record `data.time`, `data.xpos[body]`, `data.xmat[body]` (or `xquat`, wxyz), and `data.xipos[body]` separately. `xpos` is the body frame origin; `xipos` is the inertial COM. Call `mj_forward` after state changes / before sampling the derived transforms after stepping. Copy arrays, never retain mutable views.
 - Use timestep 0.002 s and four steps per saved sample for the first fixture: measured time increment 0.008 s. Include the initial t=0 state. Do not generate timestamps using nominal 1/120 s or a separate loop counter.
 - Convert world vectors with A = [[1,0,0],[0,0,1],[0,-1,0]] (MuJoCo Z-up to analysis Y-up); multiply meters by 1000 for millimeters. Keep box-local axes X=L, Y=W, Z=H unchanged. Then R_analysis=A R_mujoco. `A R A^T` applies only if the local basis is also transformed; do not copy that expression from #81 without identifying both bases.

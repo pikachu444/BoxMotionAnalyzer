@@ -21,7 +21,7 @@ from scipy.spatial.transform import Rotation
 from .engine.mujoco_engine import MuJoCoEngine
 from src.utils.artifact_metadata import metadata_json, RAW_KEY
 
-VERSION = '1.3'
+VERSION = '1.4'
 WORLD_TO_ANALYSIS = np.array([[1., 0., 0.], [0., 0., 1.], [0., -1., 0.]])
 HALF_TURNS = {'X': np.diag([1., -1., -1.]), 'Y': np.diag([-1., 1., -1.]),
               'Z': np.diag([-1., -1., 1.])}
@@ -262,7 +262,8 @@ def make_case(case_id, *, seed=74082, profile=None, motion='free_fall'):
                 'world_transform': WORLD_TO_ANALYSIS.tolist(), 'local_basis_changed': False,
                 'quaternion_order': 'wxyz', 'events': events,
                 'expected_flip_frames': [f for f, _ in flips], 'expected_axes': [a for _, a in flips],
-                'expected_recommendation': None, 'expected_approval': False,
+                'expected_recommendation': [{'time_s': float(times[f]), 'axis': a} for f, a in flips],
+                'recommendation_contract': 'conditional-continuity-v1', 'expected_approval': False,
                 'pose_tolerances': {'position_mm': .1, 'rotation_deg': .1},
                 'truth_note': 'Body origin is the analysis pose origin. COM remains separate.'}
     return manifest, times, origins, com, rotations, truth_markers, observed

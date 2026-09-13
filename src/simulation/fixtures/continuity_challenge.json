@@ -1,0 +1,760 @@
+{
+  "schema_version": 1,
+  "created_date": "2026-09-13",
+  "status": "frozen-before-new-detector-output",
+  "scope": "Issue 74 conditional continuity-axis recommendation only; no issue 75 implementation or test-identity claim",
+  "ownership": "Independent data specification. Main implements generator/validator. Do not alter these expectations to fit detector outputs.",
+  "provenance": {
+    "source_kind": "handcrafted_dummy",
+    "dynamics": "Prescribed kinematics, with no force/contact/inertia model. Rapid intersample turn is a mathematical observation-equivalence control, not a validated human/robot maneuver.",
+    "capture_coordinates_used": false,
+    "already_seen_inputs": "Existing public18/public32 and their known trajectories remain regression/calibration inputs, not this new held-out set."
+  },
+  "profile": {
+    "profile_id": "public-continuity-holdout-24",
+    "profile_version": "1",
+    "units": "mm",
+    "origin": "box-geometric-center",
+    "dimension_policy": "absolute-mm",
+    "box_dims_mm": [
+      410,
+      230,
+      135
+    ],
+    "publication": "public-virtual-example-not-capture-or-production-standard",
+    "source": "New independently declared literal geometry for continuity recommendation evaluation; no capture-derived coordinates",
+    "license": "same as repository source code",
+    "markers": [
+      {
+        "id": "F1",
+        "face": "FRONT",
+        "xyz_mm": [
+          -163,
+          -72,
+          67.5
+        ]
+      },
+      {
+        "id": "F2",
+        "face": "FRONT",
+        "xyz_mm": [
+          -57,
+          83,
+          67.5
+        ]
+      },
+      {
+        "id": "F3",
+        "face": "FRONT",
+        "xyz_mm": [
+          61,
+          -39,
+          67.5
+        ]
+      },
+      {
+        "id": "F4",
+        "face": "FRONT",
+        "xyz_mm": [
+          172,
+          61,
+          67.5
+        ]
+      },
+      {
+        "id": "B1",
+        "face": "BACK",
+        "xyz_mm": [
+          -151,
+          54,
+          -67.5
+        ]
+      },
+      {
+        "id": "B2",
+        "face": "BACK",
+        "xyz_mm": [
+          -31,
+          -87,
+          -67.5
+        ]
+      },
+      {
+        "id": "B3",
+        "face": "BACK",
+        "xyz_mm": [
+          88,
+          76,
+          -67.5
+        ]
+      },
+      {
+        "id": "B4",
+        "face": "BACK",
+        "xyz_mm": [
+          166,
+          -28,
+          -67.5
+        ]
+      },
+      {
+        "id": "R1",
+        "face": "RIGHT",
+        "xyz_mm": [
+          205,
+          -82,
+          -37
+        ]
+      },
+      {
+        "id": "R2",
+        "face": "RIGHT",
+        "xyz_mm": [
+          205,
+          -19,
+          46
+        ]
+      },
+      {
+        "id": "R3",
+        "face": "RIGHT",
+        "xyz_mm": [
+          205,
+          47,
+          -21
+        ]
+      },
+      {
+        "id": "R4",
+        "face": "RIGHT",
+        "xyz_mm": [
+          205,
+          91,
+          34
+        ]
+      },
+      {
+        "id": "L1",
+        "face": "LEFT",
+        "xyz_mm": [
+          -205,
+          -71,
+          41
+        ]
+      },
+      {
+        "id": "L2",
+        "face": "LEFT",
+        "xyz_mm": [
+          -205,
+          -12,
+          -48
+        ]
+      },
+      {
+        "id": "L3",
+        "face": "LEFT",
+        "xyz_mm": [
+          -205,
+          38,
+          17
+        ]
+      },
+      {
+        "id": "L4",
+        "face": "LEFT",
+        "xyz_mm": [
+          -205,
+          84,
+          -29
+        ]
+      },
+      {
+        "id": "T1",
+        "face": "TOP",
+        "xyz_mm": [
+          -172,
+          115,
+          -31
+        ]
+      },
+      {
+        "id": "T2",
+        "face": "TOP",
+        "xyz_mm": [
+          -62,
+          115,
+          49
+        ]
+      },
+      {
+        "id": "T3",
+        "face": "TOP",
+        "xyz_mm": [
+          57,
+          115,
+          -44
+        ]
+      },
+      {
+        "id": "T4",
+        "face": "TOP",
+        "xyz_mm": [
+          159,
+          115,
+          23
+        ]
+      },
+      {
+        "id": "M1",
+        "face": "BOTTOM",
+        "xyz_mm": [
+          -156,
+          -115,
+          38
+        ]
+      },
+      {
+        "id": "M2",
+        "face": "BOTTOM",
+        "xyz_mm": [
+          -43,
+          -115,
+          -51
+        ]
+      },
+      {
+        "id": "M3",
+        "face": "BOTTOM",
+        "xyz_mm": [
+          81,
+          -115,
+          27
+        ]
+      },
+      {
+        "id": "M4",
+        "face": "BOTTOM",
+        "xyz_mm": [
+          177,
+          -115,
+          -18
+        ]
+      }
+    ]
+  },
+  "coordinate_contract": {
+    "world": "right-handed, Y-up",
+    "local": "fixed box axes X/Y/Z; origin is geometric center",
+    "position_unit": "mm",
+    "time_unit": "s",
+    "rotation": "active local-to-world matrix; p_world=origin+R@p_local",
+    "com_offset_mm": [
+      0,
+      0,
+      0
+    ],
+    "floor_y_mm": 0,
+    "floor_note": "Declared virtual reference only; no contact/support test interpretation."
+  },
+  "sampling": {
+    "dt_s": 0.008,
+    "sample_count": 241,
+    "frame": "integer i, 0 <= i <= 240",
+    "time_s": "i/125, derived from integer i; inclusive final sample 1.920 s",
+    "no_resampling": true
+  },
+  "interpolation": {
+    "s": "S(u)=10*u^3-15*u^4+6*u^5, u=(i-k0)/(k1-k0), 0<=u<=1; valid for real i=t/dt too",
+    "position": "componentwise origin=(1-S)*origin0+S*origin1 between adjacent knots",
+    "orientation": "componentwise interpolate listed degree angles using S, convert to radians, then R=Rx(ax)@Ry(ay)@Rz(az). This matrix product is authoritative; do not infer a SciPy Euler case convention.",
+    "endpoints": "No extrapolation; exact knot values; repeated knots values create a true rest."
+  },
+  "families": {
+    "A": {
+      "name": "offset-lift-bend-reverse",
+      "knot_frames": [
+        0,
+        24,
+        72,
+        120,
+        168,
+        216,
+        240
+      ],
+      "origin_mm": [
+        [
+          70,
+          1500,
+          -40
+        ],
+        [
+          70,
+          1500,
+          -40
+        ],
+        [
+          230,
+          1565,
+          20
+        ],
+        [
+          315,
+          1530,
+          145
+        ],
+        [
+          180,
+          1610,
+          85
+        ],
+        [
+          95,
+          1525,
+          -65
+        ],
+        [
+          95,
+          1525,
+          -65
+        ]
+      ],
+      "angles_xyz_deg": [
+        [
+          11,
+          -17,
+          8
+        ],
+        [
+          11,
+          -17,
+          8
+        ],
+        [
+          24,
+          -7,
+          19
+        ],
+        [
+          8,
+          16,
+          31
+        ],
+        [
+          -13,
+          9,
+          14
+        ],
+        [
+          6,
+          -11,
+          -5
+        ],
+        [
+          6,
+          -11,
+          -5
+        ]
+      ]
+    },
+    "B": {
+      "name": "regrasp-S-turn-with-hold",
+      "knot_frames": [
+        0,
+        24,
+        72,
+        120,
+        168,
+        216,
+        240
+      ],
+      "origin_mm": [
+        [
+          -120,
+          1480,
+          90
+        ],
+        [
+          -120,
+          1480,
+          90
+        ],
+        [
+          15,
+          1550,
+          -35
+        ],
+        [
+          15,
+          1550,
+          -35
+        ],
+        [
+          -95,
+          1580,
+          -135
+        ],
+        [
+          50,
+          1495,
+          65
+        ],
+        [
+          50,
+          1495,
+          65
+        ]
+      ],
+      "angles_xyz_deg": [
+        [
+          -9,
+          14,
+          -12
+        ],
+        [
+          -9,
+          14,
+          -12
+        ],
+        [
+          17,
+          29,
+          6
+        ],
+        [
+          17,
+          29,
+          6
+        ],
+        [
+          -21,
+          3,
+          24
+        ],
+        [
+          4,
+          -19,
+          2
+        ],
+        [
+          4,
+          -19,
+          2
+        ]
+      ]
+    }
+  },
+  "corruption_algebra": {
+    "H_X": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        -1,
+        0
+      ],
+      [
+        0,
+        0,
+        -1
+      ]
+    ],
+    "H_Y": [
+      [
+        -1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        -1
+      ]
+    ],
+    "H_Z": [
+      [
+        -1,
+        0,
+        0
+      ],
+      [
+        0,
+        -1,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "persistent_event": "At inclusive frame k, F becomes F@H_axis for all following solved samples; F initially I. R_observed=R_truth@F. Expected recommendation is this event incremental local axis, not the absolute accumulated F.",
+    "order": "truth pose -> cumulative solved transform -> additive solved XYZ Gaussian noise -> explicit missing/freeze masks. Freeze copies already noised observed values from stated source frame.",
+    "noise": "NumPy Generator(PCG64(seed)).normal(0,sigma_mm,size=(241,24,3)), ordered frame then profile marker order then XYZ. Never perturb truth.",
+    "channel": "Rigid Body Marker positions only; omit physical Marker channels for every recording. Do not export true physical coordinates as extra evidence.",
+    "coverage": "A missing marker has all XYZ NaN; timestamps and frame IDs remain present."
+  },
+  "recordings": [
+    {
+      "id": "recording_01",
+      "family": "A",
+      "noise_sigma_mm": 0.03,
+      "seed": 74013101,
+      "events": [
+        {
+          "frame": 48,
+          "time_s": 0.384,
+          "axis": "X"
+        },
+        {
+          "frame": 112,
+          "time_s": 0.896,
+          "axis": "Y"
+        },
+        {
+          "frame": 176,
+          "time_s": 1.408,
+          "axis": "Z"
+        }
+      ],
+      "expected": {
+        "incremental_axes": [
+          "X",
+          "Y",
+          "Z"
+        ],
+        "cumulative_states_after_events": [
+          "X",
+          "Z",
+          "I"
+        ],
+        "cause": "unknown",
+        "automatic_apply": false,
+        "automatic_approval": false
+      }
+    },
+    {
+      "id": "recording_02",
+      "family": "B",
+      "noise_sigma_mm": 0.03,
+      "seed": 74013102,
+      "events": [
+        {
+          "frame": 40,
+          "time_s": 0.32,
+          "axis": "X"
+        },
+        {
+          "frame": 80,
+          "time_s": 0.64,
+          "axis": "X"
+        },
+        {
+          "frame": 144,
+          "time_s": 1.152,
+          "axis": "X"
+        },
+        {
+          "frame": 184,
+          "time_s": 1.472,
+          "axis": "Y"
+        }
+      ],
+      "masks": [
+        {
+          "kind": "missing",
+          "frames_half_open": [
+            98,
+            104
+          ],
+          "times_half_open_s": [
+            0.784,
+            0.832
+          ],
+          "marker_ids": "all"
+        },
+        {
+          "kind": "freeze",
+          "frames_half_open": [
+            124,
+            130
+          ],
+          "times_half_open_s": [
+            0.992,
+            1.04
+          ],
+          "source_frame": 123,
+          "source_time_s": 0.984,
+          "marker_ids": "all"
+        }
+      ],
+      "expected": {
+        "incremental_axes": [
+          "X",
+          "X",
+          "X",
+          "Y"
+        ],
+        "cumulative_states_after_events": [
+          "X",
+          "I",
+          "X",
+          "Z"
+        ],
+        "pairs": "40/80 is XX returning to I; 144/184 is XY from I ending at Z.",
+        "missing": "No recommendation based on missing samples alone; preserve invalid coverage and interval uncertainty.",
+        "freeze_reconnect": "No half-turn recommendation for freeze or reconnect with unchanged solved F.",
+        "cause": "unknown",
+        "automatic_apply": false,
+        "automatic_approval": false
+      }
+    },
+    {
+      "id": "recording_03",
+      "family": "A",
+      "noise_sigma_mm": 0,
+      "seed": 74013103,
+      "observed_definition": "Use family A origin and R_A@H_X at every sample i>=112; otherwise R_A. Write exactly one solved-only observed CSV and static profile shared by both oracle interpretations.",
+      "oracle_interpretations": [
+        {
+          "id": "solver_half_turn",
+          "true_rotation": "R_A at every sample",
+          "fault": "persistent local X solved half-turn at frame112, time0.896"
+        },
+        {
+          "id": "actual_intersample_turn",
+          "true_rotation": "R_A(t)@Rx(pi*S((t-0.888)/0.008)) for 0.888<=t<=0.896; R_A before; R_A@H_X afterwards. At sampled endpoints this produces exactly the same solved observations.",
+          "fault": "none",
+          "warning": "No intersample observations exist; prescribed rapid turn is not a claim about physically feasible handling."
+        }
+      ],
+      "expected": {
+        "candidate_frame": 112,
+        "candidate_time_s": 0.896,
+        "incremental_axis": "X",
+        "same_output_for_both_interpretations": true,
+        "same_ambiguity_for_both_interpretations": true,
+        "cause": "unknown",
+        "automatic_apply": false,
+        "automatic_approval": false,
+        "compute_once": "Evaluate shared observed input once; compare the same output against both distinct oracle narratives. Require a single observed SHA; no second processing run."
+      }
+    },
+    {
+      "id": "recording_04",
+      "family": "B",
+      "noise_sigma_mm": 0,
+      "seed": 74013104,
+      "true_motion_extra": {
+        "kind": "resolved genuine local Y turn",
+        "frame_start": 32,
+        "time_start_s": 0.256,
+        "frame_end": 64,
+        "time_end_s": 0.512,
+        "rotation": "R_true=R_B@Ry(pi*S((i-32)/32)) during [32,64], R_B before, R_B@H_Y after. Continuous sampled motion, not a solved half-turn."
+      },
+      "solved_state_overrides": [
+        {
+          "frames_half_open": [
+            112,
+            144
+          ],
+          "times_half_open_s": [
+            0.896,
+            1.152
+          ],
+          "F": "Rx(pi/2)"
+        },
+        {
+          "frames_half_open": [
+            176,
+            208
+          ],
+          "times_half_open_s": [
+            1.408,
+            1.664
+          ],
+          "F": "Rodrigues(unit([1,2,3]), pi/3)"
+        },
+        {
+          "otherwise": "I"
+        }
+      ],
+      "masks": [
+        {
+          "kind": "missing",
+          "frames_half_open": [
+            208,
+            216
+          ],
+          "times_half_open_s": [
+            1.664,
+            1.728
+          ],
+          "marker_ids": "all except F1 and B1"
+        }
+      ],
+      "position_override": {
+        "frames_half_open": [
+          224,
+          241
+        ],
+        "times_s_inclusive": [
+          1.792,
+          1.92
+        ],
+        "observed_origin_offset_mm": [
+          120,
+          -25,
+          80
+        ]
+      },
+      "expected": {
+        "resolved_true_turn": "No half-turn recommendation on the sampled smooth 180-degree motion. Never classify it as tracking error or approve correction.",
+        "unsupported_90": "At frames112 and144 the 90-degree change has no uniquely supported X/Y/Z half-turn correction; retain no recommendation/ambiguity.",
+        "unsupported_arbitrary": "At frame176 the 60-degree arbitrary-axis change is closer to the unchanged state than to an X/Y/Z half-turn; no recommendation.",
+        "low_coverage": "Frames208..215 have only 2 markers; do not certify an axis across missing geometry.",
+        "translation_offset": "At frame224 the position jump alone is not evidence for a local X/Y/Z half-turn; no recommendation.",
+        "automatic_apply": false,
+        "automatic_approval": false
+      }
+    }
+  ],
+  "evaluation_contract": {
+    "conditional_recommendation": "If this selected event were corrected, the proposed local half-turn reduces the observed discontinuity. This is not evidence that a tracking error occurred.",
+    "label_leakage_prohibited": [
+      "Do not pass this JSON, truth, error events, expected axes, generator case IDs, or scenario trial labels to detector/analysis.",
+      "Production receives only neutral-name observed CSV, static geometry, and normal user approval metadata if explicitly applied.",
+      "Use SourceKind handcrafted_dummy; no synthetic error or motion-family answer in source metadata."
+    ],
+    "evaluation_order": "Freeze this file and SHA before implementation output inspection. Generate observations/independent truth separately, run production on observed, then compare outcomes. Preserve failures; do not tune these held-out expectations.",
+    "boundaries": "Exact event frame is ground truth for isolated sampled jumps; a detector candidate may cover neighboring frames. Its review range must contain the transition between frames k-1 and k. Do not pretend a missing interval gives an exact error onset.",
+    "score_tolerances": "Use pre-existing product acceptance thresholds. Do not invent or widen thresholds here to obtain a pass. Report candidate coverage and score/margin separately from axis/cause/approval state.",
+    "posthoc_changes": "If this set drives a fix or tuning, disclose it as an independently specified challenge set and rerun only affected checks; do not report it as untouched final statistical validation.",
+    "minimum_runs": "Four observed captures total, two base trajectory families, one analysis per capture. The equal-observation pair is one input with two oracle interpretations; no full case Cartesian product."
+  },
+  "gui_candidate": "recording_01 for event recommendation -> explicit user approval -> corrected save/reopen; recording_03 ambiguity text can reuse its single observed analysis. No new full GUI processing matrix required.",
+  "spec_revision": 2,
+  "revision_history": [
+    {
+      "revision": 1,
+      "sha256": "78d08d24fc4d02a3e4d622d824802fe0a66350571f6c131388e353aa018b5775",
+      "change": "Before detector execution/output inspection, source-only review found freeze112:118 was inside family B true hold72:120. Move only freeze to124:130 from source123 to exercise moving cloud freeze/reconnect. All axes, normal-motion and ambiguity expectations unchanged.",
+      "previous_freeze": {
+        "frames_half_open": [
+          112,
+          118
+        ],
+        "source_frame": 111
+      }
+    }
+  ]
+}

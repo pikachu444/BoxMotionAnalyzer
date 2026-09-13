@@ -77,6 +77,7 @@ class MarkerFlipCandidate:
     post_window_raw_residual_deg: tuple[float, ...] = ()
     post_window_best_residual_deg: tuple[float, ...] = ()
     correction_kind: str = "marker_permutation"
+    continuity_evidence: dict[str, object] | None = None
 
     def hypothesis(self, axis: str | None) -> MarkerFlipHypothesis | None:
         label = _NO_CORRECTION if axis is None else str(axis).strip().upper()
@@ -106,6 +107,7 @@ class MarkerFlipCandidate:
             "marker_rmse_mm": self.marker_rmse_mm,
             "pre_stability_deg": self.pre_stability_deg,
             "post_stability_deg": self.post_stability_deg,
+            **({"continuity_evidence": self.continuity_evidence} if self.continuity_evidence is not None else {}),
             "hypotheses": {
                 item.label: {
                     "residual_deg": item.residual_deg,
@@ -134,6 +136,9 @@ class MarkerFlipCandidate:
 
     def evidence_summary(self) -> str:
         marker_rmse = "N/A" if self.marker_rmse_mm is None else f"{self.marker_rmse_mm:.2f} mm"
+        if self.correction_kind == "face_assignment":
+            return (f"refit NONE {self.no_correction_residual_deg:.1f}° → {self.best_residual_deg:.1f}°; "
+                    f"score gap={self.confidence_margin:.2f}; coverage={self.coverage_ratio:.0%}; RMSE={marker_rmse}")
         return (
             f"jump {self.no_correction_residual_deg:.1f}° → {self.best_residual_deg:.1f}°; "
             f"match={self.correspondence_ratio:.0%}; coverage={self.coverage_ratio:.0%}; "

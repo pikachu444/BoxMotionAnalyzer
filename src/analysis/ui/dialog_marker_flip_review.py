@@ -58,10 +58,7 @@ class MarkerFlipReviewDialog(QDialog):
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
         intro = QLabel(
-            "Recommendations are evidence only. Every correction is OFF until you explicitly "
-            "check Apply and choose a local X, Y, or Z axis. The axis identifies the box-local "
-            "half-turn for analysis. Face review preserves solved marker XYZ and changes their "
-            "analysis face assignments in a separate file. It does not restore physical marker positions."
+            "Recommended axes restore continuity; they do not confirm a tracking error."
         )
         intro.setWordWrap(True)
         layout.addWidget(intro)
@@ -210,10 +207,11 @@ class MarkerFlipReviewDialog(QDialog):
             residual = f"{selected.residual_deg:.2f}°" if selected and selected.trace_deg else "unavailable"
             fit = f"{selected.marker_rmse_mm:.3f} mm" if selected and selected.marker_rmse_mm is not None else "unavailable"
             self.candidate_details.setPlainText(
-                f"Trigger: {candidate.trigger}\nRecommendation: none — validation pending.\n"
-                f"Selected: {selected_axis or 'NONE'}; actual bounded refit residual: {residual}; face fit RMSE: {fit}.\n"
-                f"{selected.mapping_reason if selected else 'No valid refit window.'}\n"
-                "Face fit is not marker correspondence or physical truth. Original Motive pose remains unchanged."
+                f"Recommendation: {candidate.recommendation_axis or 'none'} — {candidate.reason}\n"
+                f"Refit NONE {candidate.no_correction_residual_deg:.1f}° → best {candidate.best_residual_deg:.1f}°; "
+                f"gain {candidate.discontinuity_reduction_deg:.1f}°; score gap {candidate.confidence_margin:.2f} (not probability).\n"
+                f"Selected {selected_axis or 'NONE'}: residual {residual}; fit RMSE {fit}; coverage {candidate.coverage_ratio:.0%}."
+                + (f"\n{selected.mapping_reason}" if selected and selected.mapping_reason else '')
             )
 
         if not candidate.pre_window_time_offsets_sec or not candidate.post_window_time_offsets_sec:

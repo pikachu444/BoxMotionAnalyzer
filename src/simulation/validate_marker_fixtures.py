@@ -16,7 +16,9 @@ from .marker_fixtures import CASES, MOTIONS, write_case, load_profile, validate_
 from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.pipeline.parser import Parser
 from src.analysis.pipeline.pose_optimizer import PoseOptimizer
-from src.analysis.pipeline.face_assignment import FaceAssignmentAnalyzer, materialize_face_assignments, POSE_COLUMNS
+from src.analysis.pipeline.face_assignment import (
+    FaceAssignmentAnalyzer, materialize_face_assignments, POSE_COLUMNS, FACE_ASSIGNMENT_ALGORITHM_VERSION,
+)
 from src.analysis.pipeline.marker_flip import MarkerCorrectionDecision
 from src.config import config_app
 from src.config.data_columns import FACE_PREFIX_TO_INFO, SourceCols, TimeCols
@@ -126,8 +128,18 @@ def _evaluate(context, *, truth=None, fixed=None):
     result = deepcopy(context['report'])
     expected_times = [e['time_s'] for e in manifest['events'] if e['kind'] == 'solver_pose_half_turn']
     found = [c.boundary_time_sec for c in candidates]
+    # This oracle is read only after production detection. Recommendations are
+    # conditional continuity hypotheses, never approvals or fault diagnoses.
+    expected_recommendations = [{'time_s': e['time_s'], 'axis': e['axis']}
+                               for e in manifest['events'] if e['kind'] == 'solver_pose_half_turn']
+    recommendations = [{'time_s': c.boundary_time_sec, 'axis': c.recommendation_axis}
+                       for c in candidates if c.recommendation_axis is not None]
     checks = {'execution_completed': True,
-              'no_automatic_recommendations': all(c.recommendation_axis is None for c in candidates),
+              'conditional_recommendations_match_oracle': (
+                  len(recommendations) == len(expected_recommendations)
+                  and all(any(abs(actual['time_s'] - expected['time_s']) < 1e-8
+                              and actual['axis'] == expected['axis'] for actual in recommendations)
+                          for expected in expected_recommendations)),
               'declared_flip_boundaries_found': all(any(abs(t - f) < 1e-8 for f in found) for t in expected_times)}
     result.update({'expected_flip_times_s': expected_times,
               'candidates': [{'time_s': c.boundary_time_sec, 'trigger': c.trigger,
@@ -135,7 +147,8 @@ def _evaluate(context, *, truth=None, fixed=None):
                               'refit_residual_deg': {h.label: h.residual_deg if np.isfinite(h.residual_deg) else None for h in c.hypotheses}}
                              for c in candidates],
               'raw_pose_error': pose_error(context['pose'], truth),
-              'note': 'Recommendation checks prove abstention policy only; recommendations remain disabled.'})
+              'expected_conditional_recommendations': expected_recommendations,
+              'note': 'Recommendations select continuity hypotheses only; they do not diagnose a tracking fault or approve correction.'})
     case = manifest['case_id']
     if case in RECOVERY_CASES:
         errors = pose_error(fixed, truth)
@@ -192,7 +205,7 @@ def _evaluate(context, *, truth=None, fixed=None):
         checks['no_candidate_from_insufficient_pose'] = not candidates
     result['checks'] = checks
     result['validation_scope'] = ('pose_mechanics' if 'pose_recovery' in checks else
-                                  'insufficient_data_rejection' if case == 'low_coverage' else 'abstention_policy_only')
+                                  'insufficient_data_rejection' if case == 'low_coverage' else 'conditional_recommendation_policy')
     if case in ('noise', 'genuine_rotation', 'freeze_reconnect'):
         result['validation_scope'] = {'noise': 'raw_pose_with_declared_noise',
             'genuine_rotation': 'genuine_motion_without_correction',
@@ -239,7 +252,7 @@ def _validate_run(root, *, profile=None, invocation=None, failure_reports=None):
                 raise ValueError(f'Fixture integrity mismatch: {name}')
         truth = pd.read_csv(root / 'truth_pose.csv')
         decisions = [MarkerCorrectionDecision(f'oracle-{e["frame"]}', e['time_s'], True, e['axis'],
-                      correction_kind='face_assignment', algorithm_version='3.0')
+                      correction_kind='face_assignment', algorithm_version=FACE_ASSIGNMENT_ALGORITHM_VERSION)
                      for e in manifest['events'] if e['kind'] == 'solver_pose_half_turn'] if manifest['case_id'] in RECOVERY_CASES else []
         report['manual_approval'] = [{'time_s': d.boundary_time_sec, 'axis': d.axis,
                                      'approved': d.approved, 'kind': d.correction_kind} for d in decisions]
