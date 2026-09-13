@@ -21,6 +21,8 @@ class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
     def __init__(self):
         super().__init__("Experiment Summary")
+        # Keep at least one metric row beneath the controls and table header.
+        self.setMinimumHeight(180)
         layout = QVBoxLayout(self)
         modes = QHBoxLayout()
         self.view_combo = QComboBox()
@@ -236,6 +238,7 @@ class CompareGraphPanel(QGroupBox):
 
     def __init__(self):
         super().__init__("Time-History")
+        self.setMinimumHeight(260)
         layout = QVBoxLayout(self)
         
         target_layout = QHBoxLayout()
@@ -247,6 +250,7 @@ class CompareGraphPanel(QGroupBox):
         
         self.fig = Figure(figsize=(5, 3), dpi=100)
         self.canvas = FigureCanvas(self.fig)
+        self.canvas.setMinimumHeight(160)
         self.toolbar = NavigationToolbar(self.canvas, self)
         
         # Set to vertical and reduce size
@@ -301,7 +305,12 @@ class CompareGraphPanel(QGroupBox):
             self.plot_manager.ax.plot(series.index, series.values, label=(labels or {}).get(name, name))
         self.plot_manager.ax.set_xlabel(xlabel)
         self.plot_manager.ax.set_ylabel(metric_name)
-        self.plot_manager.ax.legend(fontsize=8)
+        # Numbers map to the existing file list. Keep the key above the axes,
+        # so many files cannot cover the measured curves.
+        self.plot_manager.ax.legend(fontsize=8, loc='lower left',
+                                    bbox_to_anchor=(0., 1.01),
+                                    ncols=min(9, len(series_dict)), frameon=False,
+                                    handlelength=1.4, columnspacing=.8)
         self.plot_manager.ax.grid(True)
         self.fig.tight_layout()
         self.canvas.draw()
@@ -374,10 +383,10 @@ class CompareControlPanel(QGroupBox):
     def update_files(self, file_names: list[str], baseline: str, model=None, impact=None):
         # Update List
         self.file_list.clear()
-        for name in file_names:
+        for index, name in enumerate(file_names, 1):
             repeat_reasons = impact['files'][name]['reasons'] if impact else None
             status = model.status_text(name, repeat_reasons=repeat_reasons) if model else ''
-            item = QListWidgetItem(name + '\n' + status)
+            item = QListWidgetItem(f'{index}. {name}\n' + status)
             item.setData(Qt.UserRole, name)
             details = name + '\n' + status
             if model:

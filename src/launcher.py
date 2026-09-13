@@ -127,9 +127,9 @@ class LauncherWindow(QMainWindow):
 
     def open_data_processing(self):
         """Opens the data processing window (MainApp)."""
-        # Ensure any existing window is closed and a fresh instance is created
-        if self.data_processing_window is not None:
-            self.data_processing_window.close()
+        # Keep the current window and worker when closing is deferred.
+        if self.data_processing_window is not None and not self.data_processing_window.close():
+            return
 
         self.data_processing_window = MainApp()
         self.data_processing_window.show()

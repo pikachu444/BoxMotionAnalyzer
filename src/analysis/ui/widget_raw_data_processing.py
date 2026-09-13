@@ -265,6 +265,14 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         slice_output_layout.addWidget(self.slice_path_label, 2, 1)
         h_controls_layout.addWidget(self.slice_output_group)
 
+        # Paths remain selectable content, without imposing a panel/window width.
+        for label in (self.file_path_label, self.slice_path_label):
+            label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+            label.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextSelectableByMouse
+                | Qt.TextInteractionFlag.TextSelectableByKeyboard
+            )
+
         # Keep bottom controls stable across processing mode text changes.
         plot_options_group.setMinimumWidth(
             config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["plot_options_group_min_width"]

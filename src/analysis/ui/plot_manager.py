@@ -49,6 +49,10 @@ class PlotManager(QObject):
         self.ax.set_xlabel("Time (s)")
         self.ax.set_ylabel("Value")
         self.ax.grid(True)
+        if labels_to_plot == ['Relative rotation (deg)']:
+            # Display range only: do not magnify numerical zero into apparent
+            # motion. Raw samples and toolbar zoom remain unchanged.
+            self.ax.set_ylim(0., max(1., self.ax.get_ylim()[1]))
         if labels_to_plot:
             self.ax.legend()
 

@@ -147,7 +147,7 @@ def test_junit_levels_summarize_existing_results_and_keep_real_accuracy_pending(
     assert summary['levels']['public_external']['status'] == 'optional-manual'
     assert summary['levels']['internal_real']['level'] == 4
     assert summary['levels']['internal_real']['status'] == 'pending'
-    assert summary['levels']['internal_real']['issue'] == '#78'
+    assert summary['levels']['internal_real']['issue'] == '#104'
     assert summary['levels']['internal_real']['release_gate_satisfied'] is False
 
 

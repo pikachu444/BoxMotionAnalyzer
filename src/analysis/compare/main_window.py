@@ -47,7 +47,11 @@ class CompareMainWindow(QMainWindow):
         self.right_splitter.addWidget(self.table_panel)     # 1. Summary Table (Top)
         self.right_splitter.addWidget(self.playback_panel)  # 2. 3D Playback (Middle)
         self.right_splitter.addWidget(self.graph_panel)     # 3. Comparison Plot (Bottom)
-        self.right_splitter.setSizes([300, 210, 250])       # Show motion rows and graph axis labels initially.
+        self.right_splitter.setChildrenCollapsible(False)
+        self.right_splitter.setSizes([200, 280, 260])
+        self.right_splitter.setStretchFactor(0, 0)
+        self.right_splitter.setStretchFactor(1, 1)
+        self.right_splitter.setStretchFactor(2, 1)
         
         self.splitter.addWidget(self.control_panel)
         self.splitter.addWidget(self.right_splitter)
@@ -121,7 +125,8 @@ class CompareMainWindow(QMainWindow):
             xlabel = 'Elapsed since t1− (s)'
             if individual:
                 xlabel = 'Recorded time (s)' if self.model.timelines[individual].times is not None else 'Sample row (time unavailable)'
-            labels = {name: f'{i + 1}. {name[:24]} [{self.model.identities[name].source_kind}]' for i, name in enumerate(series_dict)}
+            # Match the full file list, including when only one file is plotted.
+            labels = {name: str(i + 1) for i, name in enumerate(self.model.datasets)}
             self.graph_panel.update_plot(series_dict, parts[2], xlabel=xlabel, labels=labels)
             if individual is None and self.playback_panel.current_elapsed is not None:
                 self.graph_panel.set_elapsed_cursor(self.playback_panel.current_elapsed)

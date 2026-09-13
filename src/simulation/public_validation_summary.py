@@ -74,7 +74,7 @@ def summarize_junit(path, *, public_required=False):
               ((1, 'unit_contract'), (2, 'synthetic_integration'), (3, 'public_external'), (4, 'internal_real'))}
     levels['public_external'].update(status='optional-manual', release_gate_satisfied=False,
                                     meaning='Public external data requires separate source and scope review.')
-    levels['internal_real'].update(status='pending', issue='#78', release_gate_satisfied=False,
+    levels['internal_real'].update(status='pending', issue='#104', release_gate_satisfied=False,
                                   meaning='Internal consistency observations; independently calibrated accuracy is pending.')
     report = {'report_version': 1, 'source_junit': str(Path(path).resolve()),
               'public_required': public_required, 'levels': levels, 'unclassified': [], 'errors': []}
@@ -130,7 +130,7 @@ def main(argv=None):
         data = report['levels'][level]
         print(f"Level {data['level']} {level}: {data['counts']}")
     print(f"Public evidence summary: {report['status']} ({target}); Level 3 public_external optional-manual; "
-          'Level 4 internal_real pending independent calibration #78.')
+          'Level 4 internal_real pending independent calibration #104.')
     raise SystemExit(0 if report['status'] == 'pass' else 1)
 
 

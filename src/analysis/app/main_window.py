@@ -59,6 +59,11 @@ class MainApp(QMainWindow):
             event.ignore()
             self.statusBar().showMessage('Wait for marker review calculation before closing.')
             return
+        processing_worker = getattr(self, 'worker', None)
+        if processing_worker is not None and processing_worker.isRunning():
+            event.ignore()
+            self.statusBar().showMessage('Wait for processing to finish before closing.')
+            return
         super().closeEvent(event)
 
     def __init__(self):
