@@ -28,6 +28,8 @@ class CompareTablePanel(QGroupBox):
         # Keep at least one metric row beneath the controls and table header.
         self.setMinimumHeight(150)
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(4)
         modes = QHBoxLayout()
         self.view_combo = QComboBox()
         self.view_combo.addItems(['Pre-contact', 'Repeats', 'Details', 'Contact'])
