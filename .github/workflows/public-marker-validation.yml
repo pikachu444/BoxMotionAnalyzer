@@ -98,6 +98,9 @@ jobs:
           tests/test_processing_window_close.py
           tests/test_result_file_context.py
           tests/test_slice_batch_processing.py
+          tests/test_workflow_navigation.py
+          tests/test_processing_handoff.py
+          tests/test_scene_processing_handoff.py
           tests/test_result_format_layout.py
           tests/test_scenario_345.py
           tests/test_scenario_6.py

@@ -1,14 +1,15 @@
 import os
 import numpy as np
 import pandas as pd
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal, Qt, QItemSelectionModel
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QScrollArea,
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QGroupBox, QTreeWidget, QTreeWidgetItem,
     QFileDialog, QListWidget, QFormLayout, QCheckBox, QGridLayout, QSplitter, QFrame,
-    QSizePolicy, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView
+    QSizePolicy, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView,
+    QListWidgetItem, QMenu, QToolButton
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -18,6 +19,7 @@ from src.analysis.ui.plot_manager import PlotManager
 from src.analysis.pipeline.artifact_io import list_result_files
 from src.analysis.ui.dialog_metric_guide import DropPostureMetricGuideDialog
 from src.analysis.ui.plot_popup_dialog import PlotPopupDialog
+from src.utils.qt_sections import CollapsibleSection, set_path_label
 from src.config.data_columns import (
     DISPLAY_RESULT_COLUMNS,
     RESULT_TIME_COL,
@@ -43,6 +45,7 @@ from src.config.result_metric_descriptors import (
 class WidgetResultsAnalyzer(QWidget):
     # Signals
     log_message = Signal(str)
+    compare_requested = Signal(list)
     
     def __init__(self, data_loader):
         super().__init__()
@@ -50,6 +53,7 @@ class WidgetResultsAnalyzer(QWidget):
         
         self.result_data = None
         self.current_result_file = None
+        self.explicit_result_files = None
         self.available_result_columns = []
         self.checked_result_columns = set()
         self.last_selected_result_columns = set()
@@ -65,20 +69,20 @@ class WidgetResultsAnalyzer(QWidget):
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
-        main_splitter = QSplitter(Qt.Orientation.Vertical)
+        main_splitter = QSplitter(Qt.Orientation.Horizontal)
         main_splitter.setChildrenCollapsible(False)
 
-        context_group = QGroupBox("Time Window")
+        context_group = QWidget()
         context_layout = QVBoxLayout(context_group)
 
         context_row_1 = QHBoxLayout()
-        context_row_1.addWidget(QLabel("Active File:"))
+        context_row_1.addWidget(QLabel("Result:"))
         self.context_active_file_label = QLabel("N/A")
         self.context_active_file_label.setWordWrap(True)
         self.context_active_file_label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self.context_active_file_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         context_row_1.addWidget(self.context_active_file_label, 1)
-        context_row_1.addWidget(QLabel("Number of Samples:"))
+        context_row_1.addWidget(QLabel("Samples:"))
         self.context_rows_label = QLabel("N/A")
         context_row_1.addWidget(self.context_rows_label)
         context_layout.addLayout(context_row_1)
@@ -106,19 +110,25 @@ class WidgetResultsAnalyzer(QWidget):
         context_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         layout.addWidget(context_group)
 
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        sidebar = QWidget()
+        sidebar.setMinimumWidth(260)
+        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
 
-        files_group = QGroupBox("1. Result Files")
+        files_group = QWidget()
         files_layout = QVBoxLayout(files_group)
+        files_layout.setContentsMargins(0, 0, 0, 0)
         button_row = QHBoxLayout()
-        self.select_result_folder_button = QPushButton("Select Result Folder...")
+        self.open_result_button = QPushButton("Open")
+        self.select_result_folder_button = QPushButton("Folder")
+        self.compare_button = QPushButton("Compare")
+        self.compare_button.setEnabled(False)
+        button_row.addWidget(self.open_result_button)
         button_row.addWidget(self.select_result_folder_button)
-        button_row.addStretch()
-        files_layout.addLayout(button_row)
+        button_row.addWidget(self.compare_button)
+        sidebar_layout.addLayout(button_row)
 
         path_row = QHBoxLayout()
-        path_row.addWidget(QLabel("Folder Path:"))
         self.result_folder_path_label = QLineEdit()
         self.result_folder_path_label.setReadOnly(True)
         self.result_folder_path_label.setPlaceholderText("No folder selected.")
@@ -126,10 +136,13 @@ class WidgetResultsAnalyzer(QWidget):
         files_layout.addLayout(path_row)
 
         self.result_file_list = QListWidget()
+        self.result_file_list.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.result_file_list.setMaximumHeight(115)
         files_layout.addWidget(self.result_file_list)
-        splitter.addWidget(files_group)
+        self.files_section = CollapsibleSection("Files", files_group)
+        sidebar_layout.addWidget(self.files_section)
 
-        selection_group = QGroupBox("2. Data Selection")
+        selection_group = QGroupBox("Data")
         selection_layout = QVBoxLayout(selection_group)
 
         selection_controls_row = QHBoxLayout()
@@ -145,52 +158,40 @@ class WidgetResultsAnalyzer(QWidget):
         selection_search_row = QHBoxLayout()
         selection_search_row.addWidget(QLabel("Search:"))
         self.selection_search_input = QLineEdit()
-        self.selection_search_input.setPlaceholderText("Search (space=AND, comma=OR)")
+        self.selection_search_input.setPlaceholderText("Search")
+        self.selection_search_input.setToolTip("Space: match all words. Comma: match either term.")
         self.selection_search_input.setEnabled(False)
         selection_search_row.addWidget(self.selection_search_input)
         selection_layout.addLayout(selection_search_row)
 
         self.result_data_tree = QTreeWidget()
-        self.result_data_tree.setHeaderLabel("Select Data to Plot")
+        self.result_data_tree.setHeaderHidden(True)
+        self.result_data_tree.setMinimumHeight(200)
         self.result_data_tree.setEnabled(False)
-        selection_layout.addWidget(self.result_data_tree)
-        self.selection_help_label = QLabel(
-            "Search filters the current tree. Checked items stay selected when Group By changes."
-        )
-        self.selection_help_label.setWordWrap(True)
-        self.selection_help_label.setStyleSheet("color: #4a5568;")
-        selection_layout.addWidget(self.selection_help_label)
+        selection_layout.addWidget(self.result_data_tree, 1)
 
         selection_buttons_row = QHBoxLayout()
-        self.clear_selection_button = QPushButton("Clear Selection")
-        self.plot_results_button = QPushButton("Plot Selected Results")
+        self.clear_selection_button = QPushButton("Clear")
+        self.plot_results_button = QPushButton("Plot")
         self.plot_results_button.setEnabled(False)
-        self.open_popup_current_button = QPushButton("Open Popup (Current Selection)")
+        self.open_popup_current_button = QToolButton()
+        self.open_popup_current_button.setText("Popup")
+        self.open_popup_current_button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
+        popup_menu = QMenu(self.open_popup_current_button)
+        self.close_all_popups_action = popup_menu.addAction("Close all popups")
+        self.open_popup_current_button.setMenu(popup_menu)
         selection_buttons_row.addWidget(self.clear_selection_button)
         selection_buttons_row.addWidget(self.plot_results_button)
         selection_buttons_row.addWidget(self.open_popup_current_button)
         selection_layout.addLayout(selection_buttons_row)
 
-        popup_buttons_row = QHBoxLayout()
-        self.close_all_popups_button = QPushButton("Close All Popups")
-        popup_buttons_row.addStretch()
-        popup_buttons_row.addWidget(self.close_all_popups_button)
-        selection_layout.addLayout(popup_buttons_row)
+        sidebar_layout.addWidget(selection_group, 1)
 
-        self.popup_status_label = QLabel("Opened Popups: 0")
-        selection_layout.addWidget(self.popup_status_label)
-        self.selection_checked_columns_label = QLabel("Checked Columns: 0")
-        selection_layout.addWidget(self.selection_checked_columns_label)
-        splitter.addWidget(selection_group)
-
-        experiment_summary_group = QGroupBox("3. Drop/Impact Summary")
+        experiment_summary_group = QWidget()
         experiment_summary_layout = QVBoxLayout(experiment_summary_group)
-        experiment_summary_header = QHBoxLayout()
         self.experiment_summary_status_label = QLabel("N/A")
         self.experiment_summary_status_label.setStyleSheet("color: #4a5568;")
-        experiment_summary_header.addWidget(self.experiment_summary_status_label)
-        experiment_summary_header.addStretch()
-        experiment_summary_layout.addLayout(experiment_summary_header)
+        context_row_1.addWidget(self.experiment_summary_status_label)
 
         self.experiment_summary_table = QTableWidget(0, 2)
         self.experiment_summary_table.setHorizontalHeaderLabels(["Metric", "Value"])
@@ -205,40 +206,25 @@ class WidgetResultsAnalyzer(QWidget):
 
         experiment_summary_footer = QHBoxLayout()
         experiment_summary_footer.addStretch()
-        self.metric_guide_button = QPushButton("Metric Guide...")
+        self.metric_guide_button = QPushButton("Metric guide")
         experiment_summary_footer.addWidget(self.metric_guide_button)
         experiment_summary_layout.addLayout(experiment_summary_footer)
 
-        splitter.addWidget(experiment_summary_group)
-
-        right_panel = QWidget()
-        right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-
-        point_analysis_group = QGroupBox("4. Peak & Point Selection")
+        point_analysis_group = QGroupBox("Point")
         point_analysis_layout = QVBoxLayout(point_analysis_group)
 
         target_layout = QHBoxLayout()
-        target_layout.addWidget(QLabel("Target:"))
+        target_layout.addWidget(QLabel("Metric:"))
         self.find_max_target_combo = QComboBox()
         target_layout.addWidget(self.find_max_target_combo)
         point_analysis_layout.addLayout(target_layout)
-        self.target_help_label = QLabel(
-            "Peak search uses the metric currently selected in Target."
-        )
-        self.target_help_label.setWordWrap(True)
-        self.target_help_label.setStyleSheet("color: #4a5568;")
-        point_analysis_layout.addWidget(self.target_help_label)
-
-        find_layout = QHBoxLayout()
-        find_layout.addWidget(QLabel("Find:"))
         self.find_abs_max_button = QPushButton("Abs Max")
         self.find_max_button = QPushButton("Max")
         self.find_min_button = QPushButton("Min")
-        find_layout.addWidget(self.find_abs_max_button)
-        find_layout.addWidget(self.find_max_button)
-        find_layout.addWidget(self.find_min_button)
-        point_analysis_layout.addLayout(find_layout)
+        target_layout.addWidget(self.find_abs_max_button)
+        target_layout.addWidget(self.find_max_button)
+        target_layout.addWidget(self.find_min_button)
+        self.find_max_target_combo.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
 
         selected_export_layout = QHBoxLayout()
         self.selected_point_label = QLabel("Selected Point: None")
@@ -246,15 +232,11 @@ class WidgetResultsAnalyzer(QWidget):
         selected_export_layout.addStretch()
         point_analysis_layout.addLayout(selected_export_layout)
 
-        export_button_row = QHBoxLayout()
-        export_button_row.addStretch()
-        self.export_point_button = QPushButton("Export Point Data...")
+        self.export_point_button = QPushButton("Save point CSV")
         self.export_point_button.setEnabled(False)
-        export_button_row.addWidget(self.export_point_button)
-        point_analysis_layout.addLayout(export_button_row)
-        right_layout.addWidget(point_analysis_group)
+        selected_export_layout.addWidget(self.export_point_button)
 
-        analysis_scenario_group = QGroupBox("5. Export Analysis Input")
+        analysis_scenario_group = QWidget()
         analysis_scenario_layout = QVBoxLayout(analysis_scenario_group)
 
         manual_check_row = QHBoxLayout()
@@ -296,13 +278,7 @@ class WidgetResultsAnalyzer(QWidget):
 
         self.export_scenario_button = QPushButton("Export Scenario CSV")
         analysis_scenario_layout.addWidget(self.export_scenario_button)
-        right_layout.addWidget(analysis_scenario_group)
-        right_layout.addStretch()
-
-        splitter.setSizes([320, 520, 420])
-        main_splitter.addWidget(splitter)
-
-        main_plot_group = QGroupBox("Main Plot")
+        main_plot_group = QWidget()
         main_plot_layout = QVBoxLayout(main_plot_group)
         main_plot_layout.setContentsMargins(4, 4, 4, 4)
         main_plot_layout.setSpacing(2)
@@ -315,22 +291,31 @@ class WidgetResultsAnalyzer(QWidget):
         main_plot_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.plot_manager = PlotManager(self.canvas, self.fig)
 
-        bottom_splitter = QSplitter(Qt.Orientation.Horizontal)
-        bottom_splitter.setChildrenCollapsible(False)
-        bottom_splitter.addWidget(main_plot_group)
-        export_scroll = QScrollArea()
-        export_scroll.setWidgetResizable(True)
-        export_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        export_scroll.setWidget(right_panel)
-        bottom_splitter.addWidget(export_scroll)
-        bottom_splitter.setSizes([820, 380])
-        main_splitter.addWidget(bottom_splitter)
-        main_splitter.setStretchFactor(0, 2)
-        main_splitter.setStretchFactor(1, 5)
-        main_splitter.setSizes([360, 560])
-        layout.addWidget(main_splitter)
+        right_panel = QWidget()
+        right_layout = QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.addWidget(main_plot_group, 1)
+        right_layout.addWidget(point_analysis_group)
+        for name, content, attr in (("Summary", experiment_summary_group, "summary_section"),
+                                    ("Export input", analysis_scenario_group, "export_section")):
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            scroll.setFrameShape(QFrame.Shape.NoFrame)
+            scroll.setMaximumHeight(220)
+            scroll.setWidget(content)
+            section = CollapsibleSection(name, scroll)
+            setattr(self, attr, section)
+            right_layout.addWidget(section)
+        main_splitter.addWidget(sidebar)
+        main_splitter.addWidget(right_panel)
+        main_splitter.setStretchFactor(0, 0)
+        main_splitter.setStretchFactor(1, 1)
+        main_splitter.setSizes([300, 900])
+        layout.addWidget(main_splitter, 1)
 
     def _connect_signals(self):
+        self.open_result_button.clicked.connect(self.open_result_file)
+        self.compare_button.clicked.connect(self.compare_selected_results)
         self.select_result_folder_button.clicked.connect(self.select_result_folder)
         self.result_file_list.itemClicked.connect(self.on_result_file_selected)
         self.selection_group_by_combo.currentIndexChanged.connect(self.refresh_result_tree)
@@ -339,7 +324,7 @@ class WidgetResultsAnalyzer(QWidget):
         self.clear_selection_button.clicked.connect(self.clear_selection)
         self.plot_results_button.clicked.connect(self.plot_selected_results)
         self.open_popup_current_button.clicked.connect(self.open_popup_current_selection)
-        self.close_all_popups_button.clicked.connect(self.close_all_popups)
+        self.close_all_popups_action.triggered.connect(self.close_all_popups)
         self.metric_guide_button.clicked.connect(self.open_metric_guide)
         self.canvas.mpl_connect('button_press_event', self.on_result_plot_click)
         self.find_abs_max_button.clicked.connect(self.on_find_abs_max_click)
@@ -355,15 +340,16 @@ class WidgetResultsAnalyzer(QWidget):
         self.export_scenario_button.clicked.connect(self.export_analysis_scenario)
 
     def _reset_context_labels(self):
-        self.context_active_file_label.setText("N/A")
+        set_path_label(self.context_active_file_label, None)
+        self.compare_button.setEnabled(False)
         self.context_rows_label.setText("N/A")
         self.timeline_bar_info_label.setText("Full/Slice Range: unknown")
-        self.selection_checked_columns_label.setText("Checked Columns: 0")
+        self._set_selected_columns_context(0)
         self._clear_experiment_summary()
         self._set_timeline_bar_unknown()
 
     def _set_selected_columns_context(self, count):
-        self.selection_checked_columns_label.setText(f"Checked Columns: {count}")
+        self.plot_results_button.setToolTip(f"Plot {count} selected quantities")
 
     @staticmethod
     def _first_numeric_value(df, column_tuple):
@@ -425,7 +411,8 @@ class WidgetResultsAnalyzer(QWidget):
             self._set_timeline_bar_unknown()
             return
 
-        self.context_active_file_label.setText(file_name)
+        set_path_label(self.context_active_file_label, self.current_result_file or file_name)
+        self.compare_button.setEnabled(bool(self.current_result_file))
         self.context_rows_label.setText(str(len(self.result_data)))
 
         full_start = self._first_numeric_value(self.result_data, RESULT_TIMELINE_FULL_START_COL)
@@ -573,15 +560,15 @@ class WidgetResultsAnalyzer(QWidget):
         dialog = DropPostureMetricGuideDialog(get_drop_posture_summary_descriptors(), self)
         dialog.exec()
 
-    def _refresh_result_file_list(self, folder_path, selected_file=None):
+    def _refresh_result_file_list(self, folder_path, selected_file=None, files=None):
         self.result_file_list.clear()
         try:
-            files = list_result_files(folder_path)
+            files = list_result_files(folder_path) if files is None else list(files)
             # Direct opens also support legacy result CSV files. Include only
             # the validated active CSV, not every unrelated CSV in the folder.
             if selected_file and selected_file not in files:
                 files = sorted([*files, selected_file])
-            self.result_file_list.addItems(files)
+            self._set_result_paths([os.path.join(folder_path, name) for name in files])
             self.log_message.emit(f"[INFO] Found {len(files)} result files in {folder_path}")
             if selected_file:
                 for i in range(self.result_file_list.count()):
@@ -591,11 +578,61 @@ class WidgetResultsAnalyzer(QWidget):
         except Exception as e:
             self.log_message.emit(f"[ERROR] Failed to read folder: {e}")
 
+    def _item_path(self, item):
+        return item.data(Qt.ItemDataRole.UserRole) or os.path.join(
+            self.result_folder_path_label.text(), item.text())
+
+    def _set_result_paths(self, paths):
+        self.result_file_list.clear()
+        names = [os.path.basename(path) for path in paths]
+        for path, name in zip(paths, names):
+            text = name
+            if names.count(name) > 1:
+                text += f" ({os.path.dirname(path)})"
+            item = QListWidgetItem(text)
+            item.setData(Qt.ItemDataRole.UserRole, os.path.abspath(path))
+            item.setToolTip(os.path.abspath(path))
+            self.result_file_list.addItem(item)
+
+    def open_result_file(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, 'Open result', '', 'Results (*.proc *.proc.csv *.csv)')
+        if path:
+            self.open_result_files([path])
+
+    def open_result_files(self, paths):
+        """Open the exact saved output list passed by the processing stage."""
+        unique = {}
+        for path in paths:
+            path = os.path.abspath(path)
+            unique.setdefault(os.path.normcase(os.path.realpath(path)), path)
+        paths = list(unique.values())
+        if not paths or not self.load_result_file(paths[0]):
+            return False
+        self.explicit_result_files = paths
+        self._set_result_paths(paths)
+        self._restore_active_file_selection()
+        self.files_section.setExpanded(len(paths) > 1)
+        return True
+
+    def compare_selected_results(self):
+        paths = [self._item_path(item) for item in self.result_file_list.selectedItems()]
+        if not paths and self.current_result_file:
+            paths = [self.current_result_file]
+        if paths:
+            self.compare_requested.emit(paths)
+
     def select_result_folder(self):
         folder_path = QFileDialog.getExistingDirectory(self, "Select Result Folder")
         if not folder_path:
             return
+        try:
+            files = list_result_files(folder_path)
+        except OSError as error:
+            self.log_message.emit(f'[ERROR] Could not read folder: {error}')
+            return
 
+        self.explicit_result_files = None
         self.selection_search_input.blockSignals(True)
         self.selection_search_input.clear()
         self.selection_search_input.blockSignals(False)
@@ -617,18 +654,16 @@ class WidgetResultsAnalyzer(QWidget):
         self.update_point_selection_ui()
         self.close_all_popups()
         self._reset_context_labels()
-        self._refresh_result_file_list(folder_path)
+        self._refresh_result_file_list(folder_path, files=files)
+        self.files_section.setExpanded(True)
 
     def on_result_file_selected(self, item):
-        folder_path = self.result_folder_path_label.text()
-        file_path = os.path.join(folder_path, item.text())
-        self.load_result_file(file_path)
+        self.load_result_file(self._item_path(item), preserve_selection=True)
 
     def _restore_active_file_selection(self):
-        active_name = os.path.basename(self.current_result_file) if self.current_result_file else None
         self.result_file_list.setCurrentRow(-1)
         for index in range(self.result_file_list.count()):
-            if self.result_file_list.item(index).text() == active_name:
+            if self._item_path(self.result_file_list.item(index)) == self.current_result_file:
                 self.result_file_list.setCurrentRow(index)
                 break
 
@@ -670,7 +705,8 @@ class WidgetResultsAnalyzer(QWidget):
             'data': self.result_data,
             'file': self.current_result_file,
             'folder': self.result_folder_path_label.text(),
-            'files': [self.result_file_list.item(i).text() for i in range(self.result_file_list.count())],
+            'files': [self._item_path(self.result_file_list.item(i)) for i in range(self.result_file_list.count())],
+            'explicit': self.explicit_result_files,
             'available': self.available_result_columns.copy(),
             'checked': self.checked_result_columns.copy(),
             'plotted': self.last_selected_result_columns.copy(),
@@ -687,8 +723,8 @@ class WidgetResultsAnalyzer(QWidget):
         self.result_data = previous['data']
         self.current_result_file = previous['file']
         self.result_folder_path_label.setText(previous['folder'])
-        self.result_file_list.clear()
-        self.result_file_list.addItems(previous['files'])
+        self.explicit_result_files = previous['explicit']
+        self._set_result_paths(previous['files'])
         self._restore_active_file_selection()
         self.available_result_columns = previous['available']
         self.checked_result_columns = previous['checked']
@@ -719,7 +755,7 @@ class WidgetResultsAnalyzer(QWidget):
             popup.plot_manager.ax.set_ylim(ylim)
             popup.plot_manager.canvas.draw_idle()
 
-    def load_result_file(self, file_path):
+    def load_result_file(self, file_path, *, preserve_selection=False):
         if not file_path:
             self._restore_active_file_selection()
             return False
@@ -746,7 +782,7 @@ class WidgetResultsAnalyzer(QWidget):
 
         previous = self._capture_result_context()
         try:
-            self._activate_result_data(candidate, file_path)
+            self._activate_result_data(candidate, file_path, preserve_selection=preserve_selection)
         except Exception:
             self._restore_result_context(previous)
             self.log_message.emit('[ERROR] Could not display this result. The previous result is still open.')
@@ -754,14 +790,22 @@ class WidgetResultsAnalyzer(QWidget):
         self.log_message.emit(f'[INFO] Loaded {file_name}.')
         return True
 
-    def _activate_result_data(self, candidate, file_path):
+    def _activate_result_data(self, candidate, file_path, *, preserve_selection=False):
         first_result = self.result_data is None
         folder_path = os.path.dirname(file_path)
         file_name = os.path.basename(file_path)
         self.result_data = candidate
         self.current_result_file = file_path
         self.result_folder_path_label.setText(folder_path)
-        self._refresh_result_file_list(folder_path, selected_file=file_name)
+        listed_paths = [self._item_path(self.result_file_list.item(i)) for i in range(self.result_file_list.count())]
+        if file_path not in listed_paths:
+            self.explicit_result_files = None
+            self._refresh_result_file_list(folder_path, selected_file=file_name)
+        elif not preserve_selection:
+            self._restore_active_file_selection()
+        else:
+            item = self.result_file_list.item(listed_paths.index(file_path))
+            self.result_file_list.setCurrentItem(item, QItemSelectionModel.SelectionFlag.NoUpdate)
         if first_result and not self.checked_result_columns:
             for default in (
                 (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE, HeaderL3.DROP_BETA_DEG),
@@ -830,7 +874,17 @@ class WidgetResultsAnalyzer(QWidget):
             else:
                 leaf_item.setCheckState(0, Qt.Unchecked)
 
-        self.result_data_tree.expandAll()
+        if self.selection_search_input.text().strip():
+            self.result_data_tree.expandAll()
+        else:
+            for _top, _mid, leaf in self._iter_leaf_items():
+                if leaf.checkState(0) == Qt.Checked:
+                    _top.setExpanded(True)
+                    _mid.setExpanded(True)
+            first_checked = next((leaf for _top, _mid, leaf in self._iter_leaf_items()
+                                  if leaf.checkState(0) == Qt.Checked), None)
+            if first_checked:
+                self.result_data_tree.scrollToItem(first_checked, QAbstractItemView.ScrollHint.PositionAtTop)
         self.result_data_tree.blockSignals(False)
         checked_columns = self._get_checked_columns()
         self._set_selected_columns_context(len(checked_columns))
@@ -1123,14 +1177,14 @@ class WidgetResultsAnalyzer(QWidget):
 
             if value is not None:
                 self.selected_point_label.setText(
-                    f"Selected Point: T={time_text}s, Value={float(value):.4f}"
+                    f"{time_text} s: {float(value):.6g}"
                 )
             else:
-                self.selected_point_label.setText(f"Selected Point: T={time_text}s")
+                self.selected_point_label.setText(f"{time_text} s")
             self.export_point_button.setEnabled(True)
             self.export_scenario_button.setEnabled(True)
         else:
-            self.selected_point_label.setText("Selected Point: None")
+            self.selected_point_label.setText("No point selected")
             self.export_point_button.setEnabled(False)
             self.export_scenario_button.setEnabled(False)
             self.plot_manager.canvas.draw()
@@ -1186,7 +1240,8 @@ class WidgetResultsAnalyzer(QWidget):
         self._update_popup_status_label()
 
     def _update_popup_status_label(self):
-        self.popup_status_label.setText(f"Opened Popups: {len(self.popup_windows)}")
+        self.open_popup_current_button.setToolTip(f"{len(self.popup_windows)} open popups")
+        self.close_all_popups_action.setEnabled(bool(self.popup_windows))
 
     def on_popup_point_selected(self, selected_time):
         self._select_time_by_xdata(selected_time)

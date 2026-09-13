@@ -857,7 +857,18 @@ def save_proc_file(filepath: str, processed_df: pd.DataFrame) -> None:
         processed_df['Artifact_ProcessingSemanticsVersion'] = version
         processed_df['Artifact_ProcessingSettingsJson'] = settings
     export_df = convert_to_multi_header(processed_df)
-    export_df.to_csv(filepath, index=False)
+    target_path = Path(filepath).resolve()
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', newline='', delete=False,
+                                         dir=target_path.parent, prefix='.proc-',
+                                         suffix='.tmp') as outfile:
+            temporary_path = Path(outfile.name)
+            export_df.to_csv(outfile, index=False)
+        os.replace(temporary_path, target_path)
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
 
 def validate_face_context(value):

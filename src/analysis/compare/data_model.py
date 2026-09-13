@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from src.analysis.pipeline.data_loader import DataLoader
+from src.analysis.pipeline.artifact_io import _sha256_file
 from src.utils.artifact_metadata import read_identity, compatibility_reasons, SOURCE_KINDS, FIELDS
 from src.utils.result_time import timeline_from_frame, segmented_series
 from src.visualization.data_handler import DataHandler
@@ -16,6 +17,8 @@ class ComparisonModel:
     def __init__(self):
         self.data_loader = DataLoader()
         self.datasets = {}
+        self.file_paths = {}
+        self.file_hashes = {}
         self.visualization_handlers = {}
         self.identities = {}
         self.timelines = {}
@@ -25,13 +28,19 @@ class ComparisonModel:
         # Adjustable display policy, not a physical detection threshold.
         self.max_gap_sec = 0.1
 
-    def load_file(self, filepath):
-        name = os.path.basename(filepath)
-        base, ext = os.path.splitext(name)
-        count = 1
-        while name in self.datasets:
-            name = f'{base}_{count}{ext}'
-            count += 1
+    def load_file(self, filepath, *, replace_name=None):
+        if replace_name is not None:
+            if replace_name not in self.datasets:
+                raise ValueError('The result to replace is no longer loaded.')
+            name = replace_name
+        else:
+            name = os.path.basename(filepath)
+            base, ext = os.path.splitext(name)
+            count = 1
+            while name in self.datasets:
+                name = f'{base}_{count}{ext}'
+                count += 1
+        digest = _sha256_file(filepath)
         df = self.data_loader.load_result_csv(filepath)
         identity = read_identity(df)
         timeline = timeline_from_frame(df)
@@ -42,11 +51,16 @@ class ComparisonModel:
             timeline = replace(timeline, reason='; '.join(filter(None, (timeline.reason, reason))))
         handler = DataHandler()
         visualizable = handler.load_analysis_result(filepath)
+        if digest != _sha256_file(filepath):
+            raise ValueError('The result changed while loading. Open it again.')
         self.datasets[name] = df
+        self.file_paths[name] = os.path.abspath(filepath)
+        self.file_hashes[name] = digest
         self.identities[name] = identity
         self.timelines[name] = timeline
         self.impact_results[name] = impact
         self.contact_results[name] = contact
+        self.visualization_handlers.pop(name, None)
         if visualizable:
             self.visualization_handlers[name] = handler
         if self.baseline_name is None:
@@ -58,7 +72,7 @@ class ComparisonModel:
             self.baseline_name = name
 
     def remove_file(self, name):
-        for entries in (self.datasets, self.visualization_handlers, self.identities, self.timelines,
+        for entries in (self.datasets, self.file_paths, self.file_hashes, self.visualization_handlers, self.identities, self.timelines,
                         self.impact_results, self.contact_results):
             entries.pop(name, None)
         if self.baseline_name == name:

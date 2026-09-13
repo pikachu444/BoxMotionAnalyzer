@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-09-11
+Last Reviewed: 2026-09-14
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -44,7 +44,7 @@ Last Reviewed: 2026-09-11
 - processing 실행
 - processing 완료 후 낙하 자세 비교용 post-processing 지표 계산
 - `.proc` 저장
-- Step 1과 같은 splitter 기반 상단 plot / 우측 패널 / 하단 controls 구조를 유지한다.
+- Single/Batch 입력과 결과를 별도로 보존한다. 좌측에는 입력·방법·실행 버튼을, 우측에는 단일 미리보기 또는 정확한 배치 파일 목록을 둔다. 세부 설정만 스크롤한다.
 
 ### 3.3. Step 2: Results Analysis
 - 결과 폴더 선택
@@ -59,14 +59,15 @@ Last Reviewed: 2026-09-11
 - 선택 시점 분석
 - point export
 - scenario export
-- 상단 분석 제어 영역과 하단 메인 플롯 사이에는 세로 splitter가 있어, 기본 레이아웃을 유지하면서도 메인 플롯 높이를 수동 조절할 수 있다.
-- Step 2의 Time Window는 현재 파일과 timeline 정보를 담당하고, 본문 상단 row는 `Result Files / Data Selection / Experiment Summary`로 구성한다.
-- `Peak & Point Selection`과 `Export Analysis Input`은 Main Plot 옆 하단 패널에 배치한다.
+- 좌측 측정값 선택 영역과 우측 그래프 사이의 가로 splitter로 폭을 조절한다. 그래프 아래에서 점을 선택·저장하며, 전체 요약과 시나리오 출력 설정은 접어서 연다.
+- 현재 파일·시간을 상단에 표시한다. Open/Folder/Compare는 기본 조작이며, 입력 경로는 파일명과 별도로 보존한다.
 
 ### 3.4. Step 간 연결
 - Step 1은 원본 CSV를 보존하고, 필요하면 별도 corrected CSV를 만든 뒤 현재 활성 입력에서 `.slice`를 생성한다.
-- Step 1.5는 `.slice`를 열어 `.proc`를 생성한다.
-- Step 2는 결과 폴더에서 `.proc`를 선택해 연다.
+- Save and Process는 Step 1에서 저장에 성공한 정확한 경로 목록을 Step 1.5에 한 번 전달한다. 하나면 Single, 여러 개면 Batch를 준비하고 Run은 사용자가 실행한다.
+- Step 1.5는 `.slice`를 열어 `.proc`를 생성한다. 단일 Save and View, 배치 View Results는 실제 저장된 결과 목록을 Step 2에 전달한다. 실패/건너뛴 파일을 새 결과로 전달하지 않는다.
+- Step 2는 직접 파일/폴더를 열거나 전달된 결과를 읽는다. Compare는 현재/선택 결과를 기존 비교 창에 추가하며 이미 열린 경로와 기준 선택을 보존한다.
+- 처리 중 입력 교체를 막는다. 미저장 단일 결과를 교체할 때만 Save/Discard/Cancel을 제공하며, 배치 전환은 단일 결과를 버리지 않는다. `.proc`는 임시 파일 작성 성공 후 교체한다.
 - `.proc`는 기존 result CSV와 동일한 multi-header 구조를 사용한다.
 - processing 결과에는 Full/Slice timeline metadata가 함께 포함된다.
 - corrected 입력을 사용한 경우 `.slice`와 `.proc`에는 실제 corrected source, 원본 이름/SHA-256, 전체 검토 결정과 승인 수가 함께 전달된다.

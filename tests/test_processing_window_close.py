@@ -268,8 +268,8 @@ def test_processing_batch_defers_close_and_keeps_both_jobs(monkeypatch, tmp_path
         assert saved == [str(path.with_suffix('.proc')) for path in inputs]
         assert not processing.batch_running
         assert processing.run_batch_button.isEnabled()
-        assert 'processed=2' in processing.batch_summary_label.text()
-        assert 'failed=0' in processing.batch_summary_label.text()
+        assert '2 saved' in processing.batch_summary_label.text()
+        assert '0 failed' in processing.batch_summary_label.text()
         assert window.close() is True
         QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         assert not isValid(window) and launcher.data_processing_window is None

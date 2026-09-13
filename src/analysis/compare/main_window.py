@@ -1,7 +1,9 @@
+import os
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QFrame, QLabel, QApplication
 from PySide6.QtCore import Qt, QEventLoop
 
 from src.analysis.compare.data_model import ComparisonModel
+from src.analysis.pipeline.artifact_io import _sha256_file
 from src.analysis.compare.ui_panels import CompareControlPanel, CompareTablePanel, CompareGraphPanel
 from src.analysis.compare.playback_panel import ComparePlaybackPanel
 
@@ -92,19 +94,47 @@ class CompareMainWindow(QMainWindow):
         )
         if not filepaths:
             return
-            
+        self.load_result_files(filepaths)
+
+    def load_result_files(self, filepaths, *, deduplicate=False):
+        """Accept saved results directly while preserving the current comparison."""
+        pending = []
+        if deduplicate:
+            seen = set()
+            for path in filepaths:
+                key = os.path.normcase(os.path.realpath(path))
+                if key in seen:
+                    continue
+                seen.add(key)
+                matches = [name for name, existing in self.model.file_paths.items()
+                           if key == os.path.normcase(os.path.realpath(existing))]
+                try:
+                    digest = _sha256_file(path)
+                except OSError:
+                    digest = None  # Let the regular loader report the read failure.
+                if not matches:
+                    pending.append((path, None))
+                else:
+                    pending.extend((path, name) for name in matches
+                                   if digest != self.model.file_hashes.get(name))
+        else:
+            pending = [(path, None) for path in filepaths]
+        if not pending:
+            return
         new_files_added = False
         self.playback_panel.stop()
         self.control_panel.setEnabled(False)
-        for path in filepaths:
-            try:
-                self.statusBar().showMessage(f'Loading {path}…')
-                QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
-                self.model.load_file(path)
-                new_files_added = True
-            except Exception as e:
-                QMessageBox.warning(self, "Load Error", f"Failed to load {path}:\n{str(e)}")
-        self.control_panel.setEnabled(True)
+        try:
+            for path, replace_name in pending:
+                try:
+                    self.statusBar().showMessage(f'Loading {path}…')
+                    QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+                    self.model.load_file(path, replace_name=replace_name)
+                    new_files_added = True
+                except Exception as e:
+                    QMessageBox.warning(self, "Load Error", f"Failed to load {path}:\n{str(e)}")
+        finally:
+            self.control_panel.setEnabled(True)
         self.statusBar().showMessage('Loading complete.')
         if new_files_added:
             self._refresh_ui()

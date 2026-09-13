@@ -6,13 +6,14 @@ from PySide6.QtCore import Signal, Qt, QThread
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog,
-    QDialog, QMessageBox, QSizePolicy, QSplitter
+    QDialog, QMessageBox, QSizePolicy, QSplitter, QScrollArea
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
+from src.utils.qt_sections import CollapsibleSection, set_path_label
 from src.analysis.ui.widget_scene_review import SceneReviewWidget
 from src.analysis.ui.scene_review_flow import SceneReviewFlow
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
@@ -70,6 +71,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
     file_loaded = Signal(dict, object, object) # header_info, raw_data, parsed_data
     log_message = Signal(str)
     slice_saved = Signal(str)
+    process_requested = Signal()
 
     def __init__(self, data_loader, parser):
         super().__init__()
@@ -80,6 +82,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.header_info = None
         self.parsed_data = None
         self.source_path = None
+        self.last_saved_slice_path = None
         self.original_source_reference = None
         self.original_source_sha256 = ""
         self.review_raw_data = None
@@ -105,7 +108,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
 
-        group_box = QGroupBox("Raw Data Slice")
+        group_box = QGroupBox("Capture")
         group_layout = QVBoxLayout(group_box)
 
         main_splitter = QSplitter(Qt.Orientation.Vertical)
@@ -137,7 +140,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         right_panel = QWidget()
         right_panel_layout = QVBoxLayout()
         right_panel.setLayout(right_panel_layout)
-        self.load_csv_button = QPushButton("Load CSV File...")
+        self.load_csv_button = QPushButton("Open capture...")
         self.file_path_label = QLabel("No file selected.")
         self.file_path_label.setWordWrap(True)
         self.file_path_label.setTextInteractionFlags(
@@ -159,7 +162,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         box_dims_layout.addWidget(QLabel("H:"), 2, 0)
         self.le_box_h = QLineEdit(str(config_app.BOX_DIMS[2]))
         box_dims_layout.addWidget(self.le_box_h, 2, 1)
-        right_panel_layout.addWidget(self.box_dims_group)
+        self.box_section = CollapsibleSection('Box dimensions', self.box_dims_group)
 
         self.marker_review_group = QGroupBox("Marker Flip Review")
         marker_review_layout = QVBoxLayout(self.marker_review_group)
@@ -180,7 +183,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         marker_review_button_row.addWidget(self.review_marker_flips_button)
         marker_review_button_row.addWidget(self.save_corrected_source_button)
         marker_review_layout.addLayout(marker_review_button_row)
-        right_panel_layout.addWidget(self.marker_review_group)
+        self.marker_review_section = CollapsibleSection('Marker correction', self.marker_review_group)
 
         # Log Output (Local to this widget for immediate feedback, or shared?)
         # The plan says "Encapsulates...". MainApp has a log output. 
@@ -189,7 +192,19 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
         self.log_output.setPlaceholderText("[INFO] Load a CSV file to start.")
-        right_panel_layout.addWidget(self.log_output)
+        self.log_output.setMinimumHeight(100)
+        self.log_section = CollapsibleSection('Log', self.log_output)
+        details = QWidget()
+        details_layout = QVBoxLayout(details)
+        details_layout.setContentsMargins(0, 0, 0, 0)
+        for section in (self.box_section, self.marker_review_section, self.log_section):
+            details_layout.addWidget(section)
+        details_layout.addStretch()
+        details_scroll = QScrollArea()
+        details_scroll.setWidgetResizable(True)
+        details_scroll.setFrameShape(QScrollArea.NoFrame)
+        details_scroll.setWidget(details)
+        right_panel_layout.addWidget(details_scroll)
         right_panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
 
         top_splitter.addWidget(right_panel)
@@ -205,13 +220,13 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         controls_widget = QWidget()
         h_controls_layout = QHBoxLayout(controls_widget)
         controls_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        controls_widget.setMinimumHeight(150)
+        controls_widget.setMinimumHeight(110)
 
         # Plot Options
         plot_options_group = QGroupBox("Plot Options")
         plot_options_layout = QVBoxLayout(plot_options_group)
         plot_options_top_row = QHBoxLayout()
-        self.select_data_button = QPushButton("Select Data...")
+        self.select_data_button = QPushButton("Markers...")
         self.selected_data_label = QLabel("Selected: None")
         self.selected_data_label.setWordWrap(True)
 
@@ -222,7 +237,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         plot_options_bottom_row = QHBoxLayout()
         plot_options_bottom_row.addWidget(QLabel("Signal:"))
         self.combo_plot_axis = QComboBox()
-        self.combo_plot_axis.setMinimumWidth(230)
+        self.combo_plot_axis.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.combo_plot_axis.setMinimumContentsLength(12)
         self.combo_plot_axis.addItem("Position-X", userData=PoseCols.POS_X)
         self.combo_plot_axis.addItem("Position-Y", userData=PoseCols.POS_Y)
         self.combo_plot_axis.addItem("Position-Z", userData=PoseCols.POS_Z)
@@ -233,7 +249,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         h_controls_layout.addWidget(plot_options_group)
 
         # Slice Range
-        self.slice_group = QGroupBox("Slice Range")
+        self.slice_group = QGroupBox("Range (s)")
         self.slice_group.setCheckable(True)
         self.slice_group.setChecked(False)
         slice_layout = QVBoxLayout(self.slice_group)
@@ -251,15 +267,16 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         slice_layout.addLayout(slice_end_row)
         h_controls_layout.addWidget(self.slice_group)
 
-        self.slice_output_group = QGroupBox("Slice Output")
+        self.slice_output_group = QGroupBox("Scene")
         slice_output_layout = QGridLayout(self.slice_output_group)
-        slice_output_layout.addWidget(QLabel("Scene Name:"), 0, 0)
+        slice_output_layout.addWidget(QLabel("Name:"), 0, 0)
         self.le_scene_name = QLineEdit("scene")
         slice_output_layout.addWidget(self.le_scene_name, 0, 1)
         slice_output_layout.addWidget(QLabel("Padding:"), 1, 0)
-        self.slice_padding_label = QLabel(f"{DEFAULT_SLICE_PADDING_ROWS} rows on each side")
+        self.slice_padding_label = QLabel(f"{DEFAULT_SLICE_PADDING_ROWS} rows per side")
+        self.slice_padding_label.setWordWrap(True)
         slice_output_layout.addWidget(self.slice_padding_label, 1, 1)
-        slice_output_layout.addWidget(QLabel("Last Saved:"), 2, 0)
+        slice_output_layout.addWidget(QLabel("Saved:"), 2, 0)
         self.slice_path_label = QLabel("Not saved yet.")
         self.slice_path_label.setWordWrap(True)
         slice_output_layout.addWidget(self.slice_path_label, 2, 1)
@@ -273,21 +290,17 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 | Qt.TextInteractionFlag.TextSelectableByKeyboard
             )
 
-        # Keep bottom controls stable across processing mode text changes.
-        plot_options_group.setMinimumWidth(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["plot_options_group_min_width"]
-        )
-        self.slice_group.setMinimumWidth(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["slice_group_min_width"]
-        )
-        self.slice_output_group.setMinimumWidth(
-            config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["resampling_group_min_width"]
-        )
         # Run/Export Buttons
         run_button_layout = QVBoxLayout()
-        self.save_slice_button = QPushButton("Save Scene Slice")
+        self.save_slice_button = QPushButton("Save slice...")
         self.save_slice_button.setEnabled(False)
         run_button_layout.addWidget(self.save_slice_button)
+        self.save_process_button = QPushButton('Save and Process')
+        self.save_process_button.setEnabled(False)
+        run_button_layout.addWidget(self.save_process_button)
+        self.save_status_label = QLabel('')
+        self.save_status_label.setWordWrap(True)
+        run_button_layout.addWidget(self.save_status_label)
         h_controls_layout.addLayout(run_button_layout)
 
         stretch_values = config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["bottom_controls_stretch"]
@@ -301,7 +314,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         main_splitter.setStretchFactor(0, 6)
         main_splitter.setStretchFactor(1, 2)
         main_splitter.setStretchFactor(2, 1)
-        main_splitter.setSizes([470, 230, 180])
+        main_splitter.setSizes([440, 190, 120])
 
         group_layout.addWidget(main_splitter)
         layout.addWidget(group_box)
@@ -310,6 +323,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.load_csv_button.clicked.connect(self.open_csv_file)
         self.select_data_button.clicked.connect(self.open_data_selection_dialog)
         self.save_slice_button.clicked.connect(self.save_scene_slice)
+        self.save_process_button.clicked.connect(self.process_requested)
         self.review_marker_flips_button.clicked.connect(self.open_marker_flip_review)
         self.save_corrected_source_button.clicked.connect(self.save_corrected_source)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
@@ -370,6 +384,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         reviewed_count = len(normalize_marker_corrections(self.marker_correction_decisions))
         approved_count = len(self._approved_marker_corrections())
         if self.marker_review_dirty:
+            self.marker_review_section.setExpanded(True)
             self.marker_review_summary_label.setText(
                 f"{reviewed_count} reviewed event(s), {approved_count} approved. "
                 "Save the corrected source before creating a slice."
@@ -475,12 +490,17 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self._set_file_path_display(filepath)
         self.append_log("[INFO] Preview parsing complete.")
 
-        # Default selection logic
+        # Keep an explicit selection when the new capture has those markers.
+        # A marker-only capture still needs an initial visible trajectory.
         all_targets = self.data_loader.get_plottable_targets(self.parsed_data)
-        if DisplayNames.RB_CENTER in all_targets:
+        retained_targets = [target for target in self.current_selected_targets if target in all_targets]
+        if retained_targets:
+            self.current_selected_targets = retained_targets
+        elif DisplayNames.RB_CENTER in all_targets:
             self.current_selected_targets = [DisplayNames.RB_CENTER]
-            self.selected_data_label.setText(f"Selected: {DisplayNames.RB_CENTER}")
-            self.append_log(f"[INFO] Default target '{DisplayNames.RB_CENTER}' selected for plotting.")
+        else:
+            self.current_selected_targets = all_targets[:1]
+        self.selected_data_label.setText('Selected: ' + (', '.join(self.current_selected_targets) or 'None'))
 
         self.update_plot()
         self.slice_group.setChecked(False)
@@ -675,8 +695,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.append_log(f"[INFO] Corrected source saved and activated: {filepath}")
 
     def _set_file_path_display(self, filepath: str) -> None:
-        self.file_path_label.setText(filepath)
-        self.file_path_label.setToolTip(filepath)
+        set_path_label(self.file_path_label, filepath)
 
     def update_plot(self):
         df = self.parsed_data
@@ -842,7 +861,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 marker_correction_metadata=self.correction_source_metadata,
                 scene_review_json=scene_review_json,
             )
-            self.slice_path_label.setText(filepath)
+            self.last_saved_slice_path = os.path.abspath(filepath)
+            set_path_label(self.slice_path_label, self.last_saved_slice_path)
             self.append_log(
                 "[INFO] Scene slice saved: "
                 f"{filepath} "
@@ -857,3 +877,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
     def save_scene_slice(self):
         self._save_slice()
+
+    def save_for_processing(self):
+        if self.scene_session is not None:
+            return self.save_included_scenes()
+        return [self.last_saved_slice_path] if self._save_slice() else []

@@ -7,11 +7,11 @@ Last Reviewed: 2026-09-14
 
 ## 1. 전체 구조
 - 메인 분석 창은 `QTabWidget` 기반의 3단계 흐름으로 구성된다.
-- `Step 1: Raw Data Slice`
+- `Step 1: Scenes`
   - 원본 CSV 로드, 미리보기, 슬라이스 범위 지정, `.slice` 저장
-- `Step 1.5: Slice Processing`
+- `Step 1.5: Process`
   - `.slice` 로드, processing mode / Result Resampling 설정, processing 실행, `.proc` 저장
-- `Step 2: Results Analysis`
+- `Step 2: Results`
   - `.proc` 로드, 컬럼 선택 플롯, 팝업 플롯, 지점 분석, 시나리오 CSV 내보내기
 - 하단 `QStatusBar`는 파일 로드, 처리 진행, 저장 성공/실패 상태를 표시한다.
 
@@ -23,15 +23,14 @@ Last Reviewed: 2026-09-14
   - 파일 로드 직후 파싱된 `parsed_data`를 기준으로 미리보기 그래프를 그린다.
   - `PlotManager`가 확대/축소, 마우스 오버, 슬라이스 구간 선택을 처리한다.
 - 우측: 제어 패널
-  - `Load CSV File...`
-  - 선택된 파일 경로 표시
-  - `Box Dimensions (mm)` 입력
-  - `Marker Flip Review`
+  - `Open`과 파일명. 전체 경로는 툴팁과 경로 복사 메뉴로 확인한다.
+  - 접어서 여는 `Box dimensions` 입력
+  - 접어서 여는 `Marker correction`
     - `Review Candidates...`
     - 현재 검토 이벤트 수와 승인 이벤트 수
     - 현재 활성 원본 또는 corrected CSV 경로
     - `Save Corrected Source...`
-  - 로그 출력 텍스트 영역
+  - 필요할 때 여는 `Log`
 
 ### 2.2. 하단 컨트롤
 - `Plot Options`
@@ -46,7 +45,8 @@ Last Reviewed: 2026-09-14
   - 고정 padding 설명 (`50 rows on each side`)
   - 최근 저장된 `.slice` 경로 표시
 - 실행 버튼
-  - `Save Scene Slice`
+  - `Save slice...`는 현재 구간만 저장한다.
+  - `Save and Process`는 검토한 포함 구간들을 저장하고 Step 1.5의 입력으로 전달한다. 장면 검토가 없는 수동 범위는 하나의 slice로 전달한다. 검토/저장이 끝나지 않았거나 취소·실패하면 단계가 바뀌지 않는다.
 
 ### 2.3. 주요 동작
 - 파일 로드 시 `DataLoader`와 `Parser`가 즉시 미리보기용 데이터를 준비한다.
@@ -159,149 +159,55 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 
 독립 코드·물리 리뷰는 연속 기록 교체 시 이전 번호와 기록이 섞이는 문제, 검출 버전 변경 시 이전 기록이 빠지는 문제, 미지원 판본·Type 충돌에서 2018 목표면을 유도하는 문제를 지적했다. 번호·기록·해시를 같은 시점의 스냅샷으로 보존하고, 표에서 유도하는 목표는 판본·Type가 일치할 때만 사용하도록 수정했다. 검토자가 원 반례를 다시 실행해 해결을 확인했다. 명시된 로컬 목표면은 별도 근거로 비교할 수 있다. 최종 CI·병합 상태는 #75와 PR에 기록한다.
 
-## 3. Step 1.5: Slice Processing
+## 3. Step 1.5: Process
 `WidgetSliceProcessing`이 담당한다.
 
-### 3.1. 상단 레이아웃
-- 좌측: Matplotlib 그래프와 네비게이션 툴바
-  - `.slice`를 다시 파싱한 `parsed_data`를 기준으로 preview를 그린다.
-- 우측: 제어 패널
-  - `Load Slice File...`
-  - 선택된 `.slice` 경로 표시
-  - `Slice Summary`
-    - source
-    - user range
-    - padded range
-    - marker correction 검토 이벤트 수 / 승인 이벤트 수
-  - `Box Dimensions (mm)`
-    - `.slice` 메타에 저장된 box 치수를 읽어 자동으로 채운다
-    - 기본적으로 입력은 비활성화한다
-    - `.slice` 메타에 box 치수가 없으면 경고를 띄우고, 단일 처리에 한해 임시 수동 입력과 `.slice` 메타 저장 옵션을 제공한다
-  - 로그 출력 텍스트 영역
+### 3.1. 입력과 실행
+- 좌측에서 Single/Batch, 실제 입력, Raw/Smoothing/Advanced 방법을 선택한다. Run과 완료 후 동작은 고정 위치에 둔다.
+- Single은 오른쪽에 마커 미리보기를, Batch는 전달된 정확한 slice 목록과 파일별 결과를 표시한다. 모드를 바꾸어도 단일 입력·결과와 배치 입력·결과를 각각 유지한다.
+- 파일을 열거나 Step 1에서 전달받으면 처리 준비만 한다. Run을 자동으로 누르지 않는다.
+- 단일 처리 후 `Save and View`는 저장 성공한 `.proc`를 Step 2에서 연다. `Save...`만 눌러 현재 단계에 머물 수도 있다.
+- 배치는 각 slice의 치수를 사용해 처리·저장한다. `View Results`는 이번에 저장 성공한 파일만 연다. 실패와 기존 파일 건너뛰기를 구분한다.
+- 미저장 단일 결과를 다른 단일 입력으로 교체할 때만 Save/Discard/Cancel을 묻는다. 취소나 저장 실패는 이전 입력과 결과를 유지한다.
+- 실행 중에는 입력·방법·설정·모드 교체를 막는다. 저장 파일명은 완료한 실행의 방법을 사용한다.
 
-### 3.2. 하단 컨트롤
-- `Plot Options`
-  - Step 1과 같은 preview 선택 구조를 유지한다
-- `Result Resampling`
-  - processing 완료 후 최종 결과 컬럼을 시간축에서 보간할지 결정한다
-  - `Limit to Time Range`를 켜면 지정한 Start/End 시간 구간에만 중간 result row를 추가한다
-  - 기존 timestamp row의 결과값은 보존하고, 새 중간 timestamp row만 `.proc` 결과에 삽입한다
-- `Processing Mode`
-  - Raw / Smoothing / Advanced
-  - `Advanced Settings...` 다이얼로그 재사용
-  - Advanced 설정에는 낙하 자세 post-processing의 접촉 높이 허용값(`Contact threshold (mm)`)도 포함된다
-- `Processing Output`
-  - 현재 처리 상태
-  - 최근 저장된 `.proc` 경로
-- 실행 버튼
-  - `Run Processing`
-  - `Save Processed Result`
+### 3.2. 설정과 데이터 의미
+- 박스 치수, 원본·사용자 구간·패딩·보정 이력, 재샘플링 세부값, 고급 설정과 로그는 접어서 연다.
+- 파일을 열기 전 치수는 빈칸이다. 치수가 없는 slice는 입력 영역을 펼쳐 단일 처리에 필요한 수동 치수를 받는다. 별도 선택 없이 원본 slice에 쓰지 않는다.
+- 기본 방법은 Raw이고 Result Resampling은 OFF다. 재샘플링은 결과 시각 사이에 값을 보간하며 원래 timestamp의 값을 유지한다. 측정 정확도 향상을 뜻하지 않는다.
+- 기존 `PipelineController`와 `DropPosturePostProcessor`를 사용한다. 접촉은 높이·운동·지속성 근거로 판정하며 `t1-`는 ImpactEvent가 확인된 경우에만 정의한다. 기준면은 t1- 또는 첫 유효 프레임에서 정한다.
+- 시간·좌표·보정/장면 메타데이터와 multi-header 형식은 바꾸지 않는다. `.proc`는 임시 파일을 완전히 쓴 뒤 교체하므로 쓰기 실패로 기존 결과를 자르지 않는다.
 
-### 3.3. 주요 동작
-- `.slice`를 열면 `DataLoader.load_csv()`와 `Parser.process()`를 다시 사용해 parsed slice를 준비한다.
-- processing은 `PipelineController.run_analysis_from_parsed()`를 통해 실행한다.
-- batch processing은 각 `.slice` 파일의 box 치수를 파일별 메타에서 읽어 사용하며, box 치수가 없는 파일은 해당 파일만 실패 처리한다.
-- processing과 Result Resampling이 끝난 뒤 `DropPosturePostProcessor`가 낙하 자세 비교용 지표를 계산한다.
-  - 접촉 판정은 높이 threshold, 하강/저점/반전, 낮은 plateau, 접촉 corner set 지속성을 함께 보는 evidence 기반 summary로 계산한다.
-  - 접촉 상태는 `NoContact`, `Approach`, `ImpactEvent`, `SustainedContact`로 요약한다.
-  - 기준면은 `t1-`가 있으면 그 frame에서, 없으면 slice 첫 valid frame에서 아래 방향을 가장 많이 향한 박스 면으로 자동 추정한다.
-  - `t1-`는 `ImpactEvent`가 확인될 때만 정의한다.
-- 완료된 결과는 Step 1.5 내부에서 확인한 뒤 `.proc`로 저장한다.
-
-## 4. Step 2: Results Analysis
+## 4. Step 2: Results
 `WidgetResultsAnalyzer`가 담당한다.
 
-### 4.1. Time Window 영역
-- Active File
-- Number of Samples
-- Full timeline / Slice timeline 정보 문자열
-- Slice 구간을 시각적으로 보여주는 막대형 타임라인
+### 4.1. 기본 화면
+- 상단에 현재 파일명, 표본 수, 촬영/선택 시간 범위를 표시한다. 전체 파일 경로는 툴팁과 복사 메뉴로 확인한다.
+- 좌측 `Open`은 결과 파일을 직접 연다. `Folder`는 폴더의 결과 목록을 연다. 여러 처리 결과를 전달받으면 그 목록만 사용한다.
+- `Compare`는 현재 또는 목록에서 선택한 파일들을 기존 비교 창에 전달한다. 같은 경로의 내용이 바뀌었으면 해당 결과만 다시 읽고, 같으면 그대로 둔다. 기존 파일과 기준 선택을 보존한다.
+- 좌측 Data 트리는 Group By와 검색을 제공한다. 체크 상태와 실제로 그린 항목을 구분해 유지한다. 기본 항목의 그룹을 펼치며 나머지는 필요할 때 연다.
+- `Clear`, `Plot`, `Popup`을 사용한다. 팝업 전체 닫기는 Popup 메뉴에 있다. 선택 개수와 창 개수 설명을 별도 행으로 늘어놓지 않는다.
+- 우측 그래프 아래 Point에서 대상 측정값, Abs Max/Max/Min, 현재 시각과 값, `Save point CSV`를 사용한다.
+- 전체 Summary와 Export input은 접어서 연다. Summary의 Posture/Impact/Contact 그룹, descriptor 설명과 Metric guide는 유지한다. t1-가 없는 값은 N/A이며 안정 접촉과 충격을 구분한다.
 
-### 4.2. 본문 상단 3분할 레이아웃
-- `1. Result Files`
-  - `Select Result Folder...`
-  - 읽기 전용 Folder Path
-  - 결과 `.proc` 목록
-- `2. Data Selection`
-  - `Group By` (`Metric / Object`)
-  - `Search`
-  - 결과 컬럼 트리 (`QTreeWidget`)
-  - 내부 선택값은 `(L1, L2, L3)` tuple을 유지하지만, 사용자에게는 `Velocity X (Box Local Frame)` 같은 표시명을 노출
-  - `Group By`는 동일한 결과 컬럼 집합을 `Metric -> Object -> Component` 또는 `Object -> Metric -> Component` 기준으로 다시 묶어 보여준다.
-  - `Search`는 현재 트리를 평면 리스트로 바꾸지 않고, 일치한 leaf와 그 부모 경로만 남기는 필터로 동작한다.
-  - 체크 상태는 `Group By` 전환이나 `Search` 필터와 무관하게 유지된다.
-  - 트리 아래 안내 라벨이 raw export key 대신 표시명이 보인다는 점을 예시와 함께 설명
-  - `Clear Selection`
-  - `Plot Selected Results`
-  - `Open Popup (Current Selection)`
-  - `Close All Popups`
-  - Opened Popups / Checked Columns 상태 표시
-- `3. Drop/Impact Summary`
-  - 선택된 `.proc`의 Drop Posture summary를 grouped key-value table로 표시한다.
-  - 표시 순서는 `Posture -> Impact -> Contact`이다.
-  - `Posture`에는 `Beta at t1-`, 방향 각도, `Cmin`, `DeltaH`, 기준면을 표시한다.
-  - `Impact`에는 `t1-`, 첫 충격 시각, 첫 접촉 코너, `ImpactSequence`를 표시한다.
-  - `Contact`에는 contact state, impact/sustained contact 여부, confidence, detection method를 낮은 우선순위로 표시한다.
-  - `T1Detected=False`이면 t1 기반 값은 `N/A`로 표시한다.
-  - Summary row tooltip과 `Metric Guide...` 설명창은 `src/config/result_metric_descriptors.py`의 descriptor metadata를 참조한다.
-  - `Metric Guide...` 버튼은 summary table 아래 푸터에 배치한다.
-  - Metric Guide 다이얼로그는 Posture / Impact / Contact 3개 그룹 단위 일러스트레이션과 해당 지표 설명을 표시한다.
-  - `SustainedContact` 상태는 UI에서 `Stable floor contact`로 표시한다.
-
-### 4.3. 하단 분석 패널
-- `3. Peak & Point Selection`
-  - `Target`
-  - 현재 Target 기준으로 peak search가 동작한다는 안내 라벨
-  - `Find: Abs Max / Max / Min`
-  - `Selected Point`
-  - `Export Point Data...`
-- `4. Export Analysis Input`
-  - `Manual Offset`
-  - `Manual Height`
-  - `Offset0~2`
-  - `Run Time`
-  - `Step`
-  - `Scene Name`
-  - `Export Scenario CSV`
-
-### 4.4. 하단 메인 플롯
-- 처음 결과를 열면 기준면 기울기(Beta), 해당 열이 없으면 기하중심 Y를 표시한다. 파일을 바꾸면 기존에 그리던 공통 항목을 새 파일로 다시 그리고, 없는 항목은 제거한다. 체크만 하고 아직 그리지 않은 항목은 임의로 추가하지 않는다.
-- 성공한 파일 전환은 요약·팝업·선택점·내보내기 상태도 함께 갱신한다. 읽기 또는 표시 실패와 취소는 이전 파일·그래프·선택을 보존하며 현재 상태 표시줄에서 알린다. 새 폴더 선택은 이전 결과와 곡선을 함께 비운다.
-- 현재 체크된 결과 컬럼을 한 그래프에 겹쳐서 표시한다.
-- 범례와 타겟 선택 문자열은 raw schema key를 직접 이어붙이지 않고, export 의미를 풀어쓴 표시명을 사용한다.
-- 현재 체크된 컬럼 집합은 트리 정렬 방식과 검색 필터가 바뀌어도 유지된다.
-- 그래프 클릭 시 가장 가까운 시점을 선택한다.
-- 선택된 시점은 붉은 수직선 커서와 선택 정보 레이블로 반영된다.
-
-### 4.5. 팝업 플롯
-- `PlotPopupDialog`는 현재 체크된 컬럼 집합으로 별도 창을 연다.
-- 팝업 그래프도 클릭 가능하며, 선택된 시간이 메인 Step 2와 동기화된다.
-- 현재 구현은 "현재 선택 항목으로 팝업 열기"만 지원하며, 별도 subset 편집 버튼은 노출하지 않는다.
+### 4.2. 파일과 그래프의 일치
+- 첫 결과는 기준면 기울기 Beta, 해당 열이 없으면 기하중심 Y를 표시한다. 파일 전환은 기존에 그리던 공통 항목만 다시 그리고 없는 항목은 제거한다.
+- 파일·요약·주 그래프·팝업을 함께 갱신하고 이전 선택점을 해제한다. 읽기/표시 실패와 취소는 이전 결과와 선택을 유지한다.
+- 그래프에서 가장 가까운 실제 시각을 선택하며, 같은 행을 point CSV로 저장한다. 팝업 선택 시각도 메인 그래프와 동기화한다.
+- 처리 단계에서 온 목록은 절대경로로 보존한다. 폴더가 달라도 이름이 같은 파일을 혼동하거나 주변 파일을 목록에 끼워 넣지 않는다.
 
 ## 5. 현재 사용자 흐름
-1. Step 1에서 원본 CSV 또는 기존 corrected CSV를 로드한다.
-2. 필요한 경우 `Review Candidates...`에서 이벤트별 증거를 확인하고 Apply/축을 결정한다.
-3. 검토 상태가 바뀌었다면 별도 corrected CSV를 저장해 활성 입력으로 전환한다.
-4. 필요한 데이터와 축, 슬라이스 범위를 조정한다.
-5. 활성 입력에서 `.slice`를 저장한다.
-6. Step 1.5에서 저장한 `.slice`를 연다.
-7. 필요하면 Result Resampling factor와 processing mode를 조정한다.
-8. processing을 실행한다.
-9. `.proc`를 저장한다.
-10. Step 2에서 결과 폴더를 선택하고 저장된 `.proc`를 목록에서 연다.
-11. Step 2의 기본 곡선을 확인하고, 필요한 컬럼을 체크해 메인 플롯 또는 팝업 플롯으로 비교한다.
-12. 특정 시점을 선택하거나 최대값을 찾아 point export 또는 scenario export를 수행한다.
+1. Step 1에서 CSV를 열고 Detect scenes로 구간을 찾는다. 필요한 경우 보정/등록/시험 기록을 확인하며 보정 결정은 별도 corrected CSV로 저장한다.
+2. 그래프와 목록에서 범위를 조정하고 Include/Exclude로 검토한다. 수동 범위와 중간 검토 저장도 사용할 수 있다.
+3. Save and Process로 포함 구간을 저장한다. 저장을 모두 마친 뒤 Step 1.5에 하나면 Single, 여러 개면 Batch로 준비한다.
+4. 입력과 방법을 확인하고 Run을 누른다.
+5. 단일 Save and View 또는 배치 View Results로 저장된 결과를 Step 2에서 연다.
+6. 곡선과 점을 확인·저장하거나 Compare로 결과를 비교한다. 기존 `.proc`와 legacy 결과 CSV는 Open으로 바로 열 수 있다.
 
-낙하 자세 비교 지표 확인:
-- Step 1.5 processing 후 저장한 `.proc`에는 `Analysis / DropPosture` frame metric과 `Analysis / DropPostureSummary` summary metric이 포함된다.
-- Step 2에서는 frame metric을 컬럼 트리에서 선택해 시간 이력으로 확인할 수 있고, summary metric은 `Experiment Summary` 영역에서 확인한다.
-- 접촉이 없는 구간도 frame별 낙하 자세 metric과 max summary는 계산되며, `t1-` 의미가 필요한 summary만 비어 있을 수 있다.
-
-참고:
-- legacy 결과 `.csv`가 필요하면 파일 확장자를 `.proc`로 바꾼 뒤 연다.
+낙하/기울임의 관측값과 시험 번호의 확정은 별개다. 항목 미확정, t1 미검출, 비교 제외 조건은 단계 연결만으로 바뀌지 않는다.
 
 ## 6. Compare Results (비교 윈도우)
-런처에서 독립적으로 실행되는 여러 실험 결과(`.proc`)의 비교 분석 전용 윈도우이다. 
+런처 또는 Step 2의 Compare에서 여는 여러 실험 결과(`.proc`)의 비교 윈도우이다.
 `gui_principles.md`의 새로운 '입체적 카드 레이아웃 (회색 바탕 + 하얀 카드)' 원칙과 '작업 흐름을 명시하는 넘버링' 원칙에 따라 레이아웃이 구성되어 있다.
 
 ### 6.1. 좌측 사이드바 (Left Rail / Control Panel)
@@ -331,6 +237,12 @@ The v3 loader and corrected/slice writers reject persisted analysis faces that d
 후속 네이티브 감사 두 차례에서 이 검사의 사용성 범위가 부족했음을 확인했다. 특히 Step 2에서 243행 기울임 파일을 그린 뒤 27행 낙하 파일을 선택하면 파일명·요약만 바뀌고 이전 15도 곡선이 남았다. 단계 사이 파일 인계, 기본 선택 영역, 내부 용어, Simulation 실행 버튼 접근도 별도 수정 대상이다. 아래 기록은 당시 실행·저장·제한된 레이아웃 검사의 근거이며 전체 실사용 검증 완료를 의미하지 않는다. 수정과 재검토는 [#106](https://github.com/pikachu444/BoxMotionAnalyzer/issues/106)에서 단위별로 추적한다.
 
 #106 첫 수정의 네이티브 실행은 동일한 공개 243행 기울임에서 27행 낙하로 전환해 주 곡선·기존 팝업·요약의 일치와 이전 선택점 해제를 확인했다. 새 파일의 Long Direction Angle 최대점 0.312초를 내보낸 CSV는 원본 21행의 328필드와 정확히 같았다. 독립 리뷰에서 발견한 문자 수치 열의 늦은 표시 실패와 실행 중 창 삭제는 각각 이전 결과 보존과 작업 완료까지 닫힘 보류로 수정했다. Simulation의 완료 콜백뿐 아니라 Step 1.5 일괄 처리도 보호한다. 닫기 반례는 실제 Qt 이벤트 루프에서 계산·저장만 대역으로 확인했으며 새 물리 실행으로 보고하지 않는다. 실제 NaN 공백은 유지한다. 열린 런처 작업창은 다시 누르면 복귀하며, 실제 닫힌 뷰어는 정리된 리소스를 재사용하지 않는다. 입력·PNG·내보낸 CSV는 `tmp/ui106/unit1`에 있다. 축 범위·용어·화면 배치와 단계 인계는 후속 단위로 남는다.
+
+#106 단계 연결은 원본 Open → Detect → 대기 구간 Exclude → Save and Process → Raw Run → Save and View → Compare 순서로 실제 조작했다. 구성한 낙하 입력은 패딩 61행에서 선택한 0.144–0.352초의 27행으로 저장됐고, 치수 200×120×80mm와 기존 동일 입력 결과의 숫자 274열이 정확히 유지됐다. 이번 새 작업에는 시험 기록을 지정하지 않아 Type·항목은 미확정이며, 과거 G16 기록을 복원한 실행으로 보고하지 않는다. MuJoCo 배치는 기존 두 선택 범위로 준비한 작업 파일을 열어 실행했다. 각각 패딩 134행에서 34행(1.584–1.848초 / 4.384–4.648초), 300×180×90mm로 저장됐고 결과 목록에는 성공한 두 경로만 전달됐다. 원본 관측값·등록·검토 정보와 H 항목 미확정 상태가 보존됐다. 기존 바닥 관통 때문에 Contact는 Unclear로 남으며, 이 실행은 실측 정확도나 ISTA 적합성을 검증하지 않는다.
+
+실제 화면 검토에서 마커 전용 CSV의 빈 초기 그래프, 작은 Step 1의 강제 최소폭, 재열기 시 가려진 활성 행, Batch에 남은 Single 상세를 발견해 수정했다. 코드 리뷰의 긴 파일명 저장 실패, 동일 경로 덮어쓰기 후 오래된 비교 결과, 작업 스레드 종료 전 Run 해제도 원래 반례로 수정·재확인했다. 입력 교체와 저장 취소는 기존 결과를 보존하며, 저장 도중 실패하면 기존 `.proc` 바이트를 보존한다. 단계 실행과 각 수정의 증거는 `tmp/ui106/unit2`에 있다. 보정 이벤트가 있는 입력은 이 단계 실행에 포함하지 않았고, 그 보존 경로는 기존 회귀 및 코드 검토 범위다.
+
+수정 후 새 프로그램에서 125% 배율의 Main 1510×800 및 1100×720 화면을 확인했다. 작은 화면에서도 자세 5항목 또는 CoM의 위치·회전 6항목과 주요 버튼에 접근했다. Compare 자체의 최소 높이 765와 용어·축·범례는 다음 단위에 남는다. 별도의 기존 결과 재사용 하네스는 로컬 툴팁 대기에서 중단됐다. 긴 행의 화면 밖 중심을 사용하던 좌표 오류를 고쳤지만, 좁힌 Windows 실행에서도 QTest 포인터 이동 뒤 해당 창의 마우스 이벤트가 발생하지 않았다. 실패 기록을 보존하고 성공으로 집계하지 않으며 필수 hosted CI 결과는 #106/PR에서 구분해 추적한다. 추가 Raw 계산은 하지 않았다.
 
 `python -m src.simulation.release_gui_validation --trial-report <기존 trial GUI execution.json> --output <새 폴더>`는 앞서 저장한 공개 관측·workspace·slice·proc를 실제 MainApp과 Comparison에서 다시 연다. 새 프로세스에 `QT_SCALE_FACTOR=1.25`를 지정한다. Raw/Optimizer는 다시 실행하지 않으며 CI도 앞 단계의 저장물을 재사용한다.
 
