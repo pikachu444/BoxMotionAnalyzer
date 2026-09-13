@@ -10,8 +10,10 @@ import re
 import tempfile
 
 from .scene_detection import VERSION, DetectionSettings, Registration
-from .scene_review import REFERENCE_EDITION, SceneReviewSession
+from .scene_review import REFERENCE_EDITION, SceneReviewSession, previous_review_snapshot
 from .intended_contact import validate_intended_contact, validate_intended_contact_context
+from .scene_trial_record import (validate_trial_record, validate_binding, validate_record_confirmation,
+                                ITEM_KINDS)
 
 
 KIND = 'boxmotion-scene-review'
@@ -83,6 +85,8 @@ def _validate(data):
         rows = data['rows']
         if not isinstance(rows, list):
             raise ValueError('Workspace rows must be a list.')
+        if 'trial_record' in data:
+            data['trial_record'] = validate_trial_record(data['trial_record'])
         ids = []
         for row in rows:
             if (row['origin'] not in ('automatic', 'manual') or row['decision'] not in DECISIONS
@@ -98,6 +102,10 @@ def _validate(data):
                 if not _finite(row[first]) or not _finite(row[last]) or row[first] > row[last]:
                     raise ValueError('Invalid saved scene range.')
             _identity(row['identity'])
+            if 'trial_record' in data:
+                validate_record_confirmation(data['trial_record'], row, row['identity'], rows)
+            elif row['identity'].get('record_reference') is not None:
+                raise ValueError('A recorded identity needs its original test record.')
             if row.get('intended_contact') is not None:
                 if (row['decision'] != 'include' or row['evidence_status'] != 'current'
                         or registration is None or registration.floor_y_mm is None):
@@ -158,7 +166,7 @@ def save_workspace(path, session, source_path, box_dims, *, selected_id=None, si
     result = session.result
     if registration is _USE_RESULT_REGISTRATION:
         registration = result.registration
-    data = _validate({
+    data = {
         'kind': KIND, 'version': 1,
         'source': {'path': source_reference, 'sha256': actual_hash},
         'box_dims_mm': list(box_dims),
@@ -169,7 +177,11 @@ def save_workspace(path, session, source_path, box_dims, *, selected_id=None, si
         'manual_serial': session.manual_serial,
         'view': {'selected_id': selected_id if selected_id in {r['id'] for r in session.rows} else None,
                  'signal': signal, 'targets': [] if targets is None else deepcopy(targets)},
-    })
+    }
+    if session.trial_record is not None:
+        validate_binding(session.trial_record, actual_hash, session.original_source_sha256)
+        data['trial_record'] = deepcopy(session.trial_record)
+    data = _validate(data)
     temporary = None
     try:
         with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', newline='\n',
@@ -198,12 +210,18 @@ def workspace_source_path(path, data):
     return (source if source.is_absolute() else Path(path).resolve().parent / source).resolve()
 
 
-def restore_session(data, result, source_sha256):
+def restore_session(data, result, source_sha256, *, original_source_sha256=None):
     data = _validate(deepcopy(data))
     if source_sha256 != data['source']['sha256']:
         raise ValueError('Observed source differs from the saved workspace.')
-    session = SceneReviewSession(result, source_sha256)
+    session = SceneReviewSession(result, source_sha256, original_source_sha256=original_source_sha256)
     session.set_context(**data['context'])
+    if 'trial_record' in data:
+        validate_binding(data['trial_record'], source_sha256, original_source_sha256)
+        session.trial_record = deepcopy(data['trial_record'])
+        # Association uses the operator's saved ranges and decisions, not new
+        # automatic candidate IDs or removed rows.
+        session.rows = deepcopy(data['rows'])
     context_reasons = []
     if _json(data['settings']) != _json(asdict(result.settings)):
         context_reasons.append('detection_settings_changed')
@@ -234,7 +252,7 @@ def restore_session(data, result, source_sha256):
         if identity['confirmed'] and not (
             saved['decision'] == 'include' and fresh['evidence_status'] == 'current'
             and identity['scenario_id'] in fresh['item_candidates']
-            and identity['scenario_kind'] == 'free_fall'
+            and identity['scenario_kind'] == ITEM_KINDS.get(identity['scenario_id'], 'free_fall')
             and identity['ista_type'] == session.ista_type != 'Unknown'
             and identity['applied_edition'] == session.applied_edition == REFERENCE_EDITION
             and identity['reference_edition'] == REFERENCE_EDITION
@@ -242,14 +260,8 @@ def restore_session(data, result, source_sha256):
             reasons.append('confirmed_item_no_longer_supported')
         if reasons:
             changed_ids.add(saved['id'])
-            previous = deepcopy(saved.get('previous_review')) if saved['decision'] == 'unreviewed' else None
-            if previous is None:
-                previous = {'decision': saved['decision'], 'identity': deepcopy(identity), 'reasons': []}
-            if saved.get('intended_contact') is not None:
-                previous['intended_contact'] = deepcopy(saved['intended_contact'])
-            previous['reasons'] = list(dict.fromkeys(previous['reasons'] + reasons))
             fresh['decision'] = 'unreviewed'
-            fresh['previous_review'] = previous
+            fresh['previous_review'] = previous_review_snapshot(saved, reasons, data.get('trial_record'))
         else:
             fresh['identity'] = deepcopy(identity)
             if 'intended_contact' in saved:

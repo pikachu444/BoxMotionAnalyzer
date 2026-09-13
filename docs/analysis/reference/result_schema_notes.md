@@ -78,6 +78,43 @@ and full decisions as JSON primitives; the original correction artifact format i
 unchanged. Older affected ranges require review again, preserving prior choices.
 Unaffected ranges still undergo the existing exact evidence comparison.
 
+## Optional trial record in scene metadata (#75)
+
+The optional `trial_record` block has its own `kind=boxmotion-trial-record`, version 1.
+It is stored beside the existing workspace `context` and inside `SceneReviewJson`;
+the two existing context arguments and numeric proc columns are unchanged.
+Old files without the block retain their previous meaning.
+
+`capture` contains SHA-256, `basis` (`active` or `original`) and
+`time_basis=capture_seconds`. Original binding uses the verified corrected-source
+provenance, while workspace reopening still requires the exact active CSV hash.
+`ista_type`, `applied_edition`, optional eligibility inputs and the original `trials`
+are kept separately from recomputed association and observation evidence.
+
+Each trial has `attempt_id`, `performed_order`, nullable `anchor_time_s`,
+`anchor_kind`, `activity_kind`, and nullable `item`. Optional `repeat_of` and
+`conditions` retain test intent. Performed order is not the protocol item number;
+missing records, repeated items or file-list order never shift later scenes.
+Only a unique included interval containing the anchor can support confirmation.
+Unsupported editions, conflicting context, overlapping ranges or contradictory
+order do not silently create confirmed identities.
+
+Rows retain `posture_candidates`, `record_evidence` and `observed_consistency`
+separately. Confirmed identity records its item kind and `record_reference`;
+a wrong observed approach does not replace the recorded item. Target comparison
+records `target_basis`: `explicit_record`, `2018_reference`,
+or `unavailable`. Catalogue targets require matching Type and applied edition;
+an explicitly recorded local target can be compared independently.
+Operator `intended_contact` remains independent. Record/range/context changes and dimension
+edits invalidate stale confirmation and computed agreement while retaining prior
+review and record evidence. Reopening recomputes association from saved operator
+ranges and current observations, including unfinished work and deleted rows.
+
+Generate an importable public example with
+`python -m src.simulation.trial_record_fixtures --output tmp/new-trial-example`.
+The input CSV, trial record and separate truth are distinct files. The generator
+and `scene_trial_record.validate_trial_record` define the versioned field contract.
+
 ## Artifact identity and comparison time (#83 / #76)
 
 `src/utils/artifact_metadata.py` owns the versioned public identity contract. The

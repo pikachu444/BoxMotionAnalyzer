@@ -14,6 +14,8 @@ from src.analysis.pipeline.scene_detection import VERSION, Registration, SceneCa
 from src.analysis.pipeline.intended_contact import validate_intended_contact_context
 from src.analysis.pipeline.support_motion import support_motion_evidence
 from src.analysis.pipeline.support_cycles import analyze_support_cycle
+from src.analysis.pipeline.scene_trial_record import (validate_trial_record, validate_binding,
+    associate, observe_trial, record_reference, validate_record_confirmation, ITEM_KINDS)
 from src.config.config_app import FACE_DEFINITIONS
 
 
@@ -36,6 +38,23 @@ def empty_identity(ista_type='Unknown', applied_edition=None):
     return {'ista_type': ista_type, 'scenario_id': None, 'scenario_kind': None,
             'confirmed': False, 'reference_edition': REFERENCE_EDITION,
             'applied_edition': applied_edition}
+
+
+def previous_review_snapshot(row, reasons, trial_record=None):
+    """Keep one coherent previous choice, with the record used for that choice."""
+    previous = deepcopy(row.get('previous_review'))
+    if previous is None or row['identity'].get('confirmed'):
+        same_choice = bool(previous and previous['identity'] == row['identity']
+                           and previous.get('trial_record') == trial_record)
+        kept_reasons = previous['reasons'] if same_choice else []
+        previous = {'decision': row['decision'], 'identity': deepcopy(row['identity']), 'reasons': kept_reasons}
+        if trial_record is not None:
+            previous['trial_record'] = deepcopy(trial_record)
+        for key in ('record_evidence', 'intended_contact'):
+            if row.get(key) is not None:
+                previous[key] = deepcopy(row[key])
+    previous['reasons'] = list(dict.fromkeys(previous['reasons'] + list(reasons)))
+    return previous
 
 
 def validate_scene_review_json(value, *, start=None, end=None):
@@ -66,6 +85,12 @@ def validate_scene_review_json(value, *, start=None, end=None):
         raise ValueError('Confirmed identity needs Type, item, kind and applied edition.')
     if candidate['evidence_status'] != 'current' and identity['confirmed']:
         raise ValueError('Changed evidence cannot retain a confirmed identity.')
+    if 'trial_record' in data:
+        data['trial_record'] = validate_trial_record(data['trial_record'])
+        validate_binding(data['trial_record'], data['source_sha256'], data.get('original_source_sha256'))
+        validate_record_confirmation(data['trial_record'], candidate, identity, data.get('review_decisions', [candidate]))
+    elif identity.get('record_reference') is not None:
+        raise ValueError('A recorded identity needs its original test record.')
     if candidate.get('intended_contact') is not None:
         if candidate['evidence_status'] != 'current':
             raise ValueError('Changed evidence cannot retain intended contact.')
@@ -122,9 +147,11 @@ def geometry_evidence(result, row):
 
 
 class SceneReviewSession:
-    def __init__(self, result, source_sha256):
+    def __init__(self, result, source_sha256, *, original_source_sha256=None):
         self.result = result
         self.source_sha256 = source_sha256
+        self.original_source_sha256 = original_source_sha256
+        self.trial_record = None
         self.ista_type = 'Unknown'
         self.applied_edition = None
         self.rows = [self._row(c) for c in result.candidates]
@@ -156,6 +183,43 @@ class SceneReviewSession:
         row['item_candidates'], row['geometry'] = [], {}
         row.pop('eligibility_condition', None)
         row.pop('sequence_evidence', None)
+        for key in ('posture_candidates', 'record_evidence', 'observed_consistency'):
+            row.pop(key, None)
+
+    def _remember_trial_review(self, row, reason):
+        if self.trial_record is None and not row['identity'].get('confirmed'):
+            return
+        row['previous_review'] = previous_review_snapshot(row, [reason], self.trial_record)
+
+    def set_trial_record(self, record):
+        """Validate and bind before changing any active review work."""
+        record = validate_trial_record(record) if record is not None else None
+        if record is not None:
+            validate_binding(record, self.source_sha256, self.original_source_sha256)
+            if self.ista_type != 'Unknown' and record['ista_type'] not in ('Unknown', self.ista_type):
+                raise ValueError('Test record conflicts with the explicitly selected Type.')
+            if self.applied_edition and record['applied_edition'] not in (None, self.applied_edition):
+                raise ValueError('Test record conflicts with the selected applied edition.')
+        if record == self.trial_record:
+            return
+        for row in self.rows:
+            self._remember_trial_review(row, 'test_record_changed')
+        old_context = self.ista_type, self.applied_edition
+        self.trial_record = record
+        if record:
+            if self.ista_type == 'Unknown':
+                self.ista_type = record['ista_type']
+            if self.applied_edition is None:
+                self.applied_edition = record['applied_edition']
+        for row in self.rows:
+            if old_context != (self.ista_type, self.applied_edition):
+                row.pop('intended_contact', None)
+            self._identify_row(row)
+
+    def _refresh_trial_links(self):
+        if self.trial_record is not None:
+            for row in self.rows:
+                self._identify_row(row, preserve_confirmation=True)
 
     def set_context(self, ista_type, applied_edition):
         applied_edition = applied_edition or None
@@ -163,18 +227,23 @@ class SceneReviewSession:
             return
         self.ista_type, self.applied_edition = ista_type, applied_edition
         for row in self.rows:
+            self._remember_trial_review(row, 'test_context_changed')
             self._reset_identity(row)
             row.pop('intended_contact', None)
+        self._refresh_trial_links()
 
     def set_decision(self, row_id, decision):
         if decision not in ('unreviewed', 'include', 'exclude'):
             raise ValueError('Invalid scene review decision.')
         row = self.row(row_id)
         if row['decision'] != decision:
+            self._remember_trial_review(row, 'review_decision_changed')
             row['decision'] = decision
-            row.pop('previous_review', None)
+            if self.trial_record is None:
+                row.pop('previous_review', None)
             self._reset_identity(row)
             row.pop('intended_contact', None)
+            self._refresh_trial_links()
 
     def set_intended_contact(self, row_id, faces):
         """Record operator intent independently of motion or item candidates."""
@@ -204,14 +273,17 @@ class SceneReviewSession:
         row = self.row(row_id)
         if (start, end) == (row['start'], row['end']):
             return
+        self._remember_trial_review(row, 'reviewed_range_changed')
         row.update(start=start, end=end, decision='unreviewed', evidence_status='range_changed', evidence_mode='range')
-        row.pop('previous_review', None)
+        if self.trial_record is None:
+            row.pop('previous_review', None)
         row.pop('intended_contact', None)
         row['motion_geometry'] = {'version': 1, 'status': 'range_changed'}
         row['support_cycle'] = {'version': 1, 'status': 'range_changed'}
         row.update(gravity_evidence_start=None, gravity_evidence_end=None, gravity_episodes=[],
                    rotation_deg=None, displacement_mm=None, left_censored=False, right_censored=False)
         self._reset_identity(row)
+        self._refresh_trial_links()
 
     def add_range(self, start, end):
         self.manual_serial += 1
@@ -231,6 +303,7 @@ class SceneReviewSession:
     def remove(self, row_id):
         self.deleted_ids.add(row_id)
         self.rows = [r for r in self.rows if r['id'] != row_id]
+        self._refresh_trial_links()
 
     def refresh(self, result):
         """Same source/registration: preserve reviews, edited ranges and removals."""
@@ -243,14 +316,9 @@ class SceneReviewSession:
         self.result = result
         for row in self.rows:
             if not same_context or version_changed:
+                self._remember_trial_review(row, 'detection_context_changed')
                 if version_changed:
-                    previous = deepcopy(row.get('previous_review')) if row['decision'] == 'unreviewed' else None
-                    if previous is None:
-                        previous = {'decision': row['decision'], 'identity': deepcopy(row['identity']), 'reasons': []}
-                    if row.get('intended_contact') is not None:
-                        previous['intended_contact'] = deepcopy(row['intended_contact'])
-                    previous['reasons'] = list(dict.fromkeys(previous['reasons'] + ['detection_version_changed']))
-                    row['previous_review'] = previous
+                    row['previous_review'] = previous_review_snapshot(row, ['detection_version_changed'], self.trial_record)
                 row['decision'], row['evidence_status'] = 'unreviewed', 'geometry_changed'
                 self._reset_identity(row)
                 row.pop('intended_contact', None)
@@ -258,6 +326,7 @@ class SceneReviewSession:
                 self._recompute_range(row)
             else:
                 row['support_cycle'] = analyze_support_cycle(self.result, row)
+        self._refresh_trial_links()
 
     def _recompute_range(self, row):
         row['evidence_mode'] = 'range'
@@ -300,8 +369,37 @@ class SceneReviewSession:
         for row in self.rows:
             self._identify_row(row)
 
-    def _identify_row(self, row):
+    def _identify_row(self, row, *, preserve_confirmation=False):
+        old_identity = deepcopy(row['identity'])
+        old_record = deepcopy(row.get('record_evidence'))
+        old_observed = deepcopy(row.get('observed_consistency'))
         self._reset_identity(row)
+        self._identify_posture(row)
+        if self.trial_record is None:
+            return
+        row['posture_candidates'] = list(row['item_candidates'])
+        evidence = associate(self.trial_record, self.rows, row, self.ista_type, self.applied_edition)
+        row['record_evidence'] = evidence
+        row['item_candidates'] = [evidence['item']] if evidence['confirmation_supported'] else []
+        trial = next((t for t in self.trial_record['trials'] if t['attempt_id'] == evidence['attempt_id']), None)
+        if trial is not None and evidence['association'] == 'linked':
+            effective_type = self.ista_type if self.trial_record['ista_type'] in ('Unknown', self.ista_type) else 'Unknown'
+            effective_edition = self.applied_edition if self.trial_record['applied_edition'] in (None, self.applied_edition) else None
+            row['observed_consistency'] = observe_trial(self.result, row, trial, effective_type, effective_edition)
+        else:
+            row['observed_consistency'] = {'version': 1, 'motion': 'unavailable', 'approach': 'unavailable',
+                'expected_faces': None, 'target_basis': 'unavailable', 'observed_faces': None, 'reason': 'Unique trial association not established.',
+                'hazard_contact': 'unverified', 'support_condition': 'unverified', 'release_condition': 'unverified'}
+        row['sequence_evidence'] = 'Recorded identity and observed agreement are independent.'
+        if (preserve_confirmation and old_identity.get('confirmed') and old_record == evidence
+                and old_observed == row['observed_consistency'] and old_identity['scenario_id'] in row['item_candidates']):
+            row['identity'] = old_identity
+        elif old_identity.get('confirmed') and preserve_confirmation:
+            # Keep the operator choice even when another range changes anchor uniqueness.
+            old_state = dict(row, identity=old_identity, record_evidence=old_record)
+            row['previous_review'] = previous_review_snapshot(old_state, ['trial_association_changed'], self.trial_record)
+
+    def _identify_posture(self, row):
         if row['decision'] != 'include' or row['evidence_status'] != 'current':
             return
         row['geometry'] = geometry_evidence(self.result, row)
@@ -338,17 +436,22 @@ class SceneReviewSession:
         for key in ('id', 'origin', 'auto_start', 'auto_end', 'start', 'end', 'decision'):
             row[key] = deepcopy(saved[key])
         self._reset_identity(row)
-        if saved.get('geometry') or saved.get('sequence_evidence') or saved.get('item_candidates'):
+        if self.trial_record is not None or saved.get('geometry') or saved.get('sequence_evidence') or saved.get('item_candidates'):
             self._identify_row(row)
         return row
 
     def confirm_item(self, row_id, item):
+        self._refresh_trial_links()
         row = self.row(row_id)
         if not self.all_reviewed or row['decision'] != 'include' or item not in row['item_candidates']:
             raise ValueError('Identify an included interval before confirming its item.')
         if self.applied_edition != REFERENCE_EDITION:
             raise ValueError('This catalogue covers the 2018-03 edition. Verify the test record first.')
-        row['identity'].update(scenario_id=item, scenario_kind='free_fall', confirmed=True)
+        row['identity'].update(scenario_id=item, scenario_kind=ITEM_KINDS.get(item, 'free_fall'), confirmed=True)
+        if self.trial_record is not None:
+            if not row['record_evidence']['confirmation_supported']:
+                raise ValueError('The recorded item needs a unique anchor and matching Type/edition.')
+            row['identity']['record_reference'] = record_reference(row['record_evidence'])
 
     def payload(self, row_id):
         if not self.all_reviewed:
@@ -356,7 +459,7 @@ class SceneReviewSession:
         row = deepcopy(self.row(row_id))
         identity = row.pop('identity')
         reg = self.result.registration
-        return validate_scene_review_json({
+        data = {
             'version': 1, 'source_sha256': self.source_sha256, 'candidate': row, 'identity': identity,
             'detection': {'version': getattr(self.result, 'version', VERSION), 'settings': asdict(self.result.settings),
                           'registration_sha256': reg.fingerprint if reg else None,
@@ -364,4 +467,9 @@ class SceneReviewSession:
                           'coordinate_policy': 'world-y-up-box-xyz-mm',
                           'gravity_time_semantics': 'accepted window centres, not release or contact'},
             'review_decisions': [{'id': r['id'], 'start': r['start'], 'end': r['end'], 'decision': r['decision']}
-                                 for r in self.rows], 'deleted_ids': sorted(self.deleted_ids)})
+                                 for r in self.rows], 'deleted_ids': sorted(self.deleted_ids)}
+        if self.trial_record is not None:
+            data['trial_record'] = deepcopy(self.trial_record)
+            if self.original_source_sha256 is not None:
+                data['original_source_sha256'] = self.original_source_sha256
+        return validate_scene_review_json(data)
