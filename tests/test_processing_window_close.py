@@ -3,7 +3,7 @@ from threading import Event
 
 import pandas as pd
 import pytest
-from PySide6.QtCore import QCoreApplication, QEvent
+from PySide6.QtCore import QCoreApplication, QEvent, QObject, Signal, QTimer
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from shiboken6 import isValid
 
@@ -203,6 +203,77 @@ def test_simulation_keeps_window_and_worker_until_completion_callback(monkeypatc
         release.set()
         if worker is not None:
             assert worker.wait(5000)
+        if isValid(window):
+            window.close()
+        launcher.close()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+
+
+def test_processing_batch_defers_close_and_keeps_both_jobs(monkeypatch, tmp_path):
+    """Lifecycle only: two named inputs, a held controller, and captured saves."""
+    from src import launcher as launcher_module
+    from src.analysis.pipeline.artifact_io import SliceMetadata
+    from src.analysis.ui import widget_slice_processing as slice_module
+    app = QApplication.instance() or QApplication([])
+    launcher = launcher_module.LauncherWindow()
+    launcher.open_data_processing()
+    window = launcher.data_processing_window
+    processing = window.processing_widget
+    inputs = [tmp_path / name for name in ('first.slice', 'second.slice')]
+    for path in inputs:
+        path.touch()
+    metadata = SliceMetadata(
+        source='fixture.csv', created='2026-09-14T00:00:00+00:00', scene='fixture',
+        box_l=200., box_w=120., box_h=80., full_start=0., full_end=.1,
+        user_start=0., user_end=.1, padded_start=0., padded_end=.1,
+        pad_rows=0, row_count=2,
+    )
+    processed, saved = [], []
+
+    class HeldController(QObject):
+        log_message = Signal(str)
+
+        def process_parsed_data(self, config, parsed):
+            processed.append(parsed)
+            assert processing.batch_running
+            assert window.close() is False
+            QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+            assert isValid(window) and window.isVisible()
+            launcher.open_data_processing()
+            assert launcher.data_processing_window is window
+            return pd.DataFrame({'metric': [1., 2.]}, index=[0., .1])
+
+    controller = HeldController()
+    processing.batch_slice_folder = str(tmp_path)
+    processing.pipeline_controller_factory = lambda: controller
+    monkeypatch.setattr(processing, '_load_slice_bundle', lambda _path: (
+        metadata, {}, pd.DataFrame(), pd.DataFrame(index=[0., .1])))
+    monkeypatch.setattr(slice_module, 'save_proc_file', lambda path, _data: saved.append(path))
+    completed, errors = [], []
+
+    def run_from_event_loop():
+        try:
+            processing.run_batch_processing()
+        except BaseException as error:
+            errors.append(error)
+        finally:
+            completed.append(True)
+
+    try:
+        assert not processing.batch_running
+        QTimer.singleShot(0, run_from_event_loop)
+        app.processEvents()
+        assert completed and not errors
+        assert len(processed) == 2
+        assert saved == [str(path.with_suffix('.proc')) for path in inputs]
+        assert not processing.batch_running
+        assert processing.run_batch_button.isEnabled()
+        assert 'processed=2' in processing.batch_summary_label.text()
+        assert 'failed=0' in processing.batch_summary_label.text()
+        assert window.close() is True
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        assert not isValid(window) and launcher.data_processing_window is None
+    finally:
         if isValid(window):
             window.close()
         launcher.close()

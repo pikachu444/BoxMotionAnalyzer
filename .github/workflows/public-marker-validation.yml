@@ -97,6 +97,7 @@ jobs:
           tests/test_trial_record_gui.py
           tests/test_processing_window_close.py
           tests/test_result_file_context.py
+          tests/test_slice_batch_processing.py
           tests/test_result_format_layout.py
           tests/test_scenario_345.py
           tests/test_scenario_6.py

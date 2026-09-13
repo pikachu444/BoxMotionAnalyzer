@@ -51,6 +51,7 @@ class WidgetSliceProcessing(QWidget):
         self.current_processed_result = None
         self.current_proc_path = None
         self.batch_slice_folder = None
+        self.batch_running = False
         self.manual_box_dimensions = None
         self.pipeline_controller_factory = PipelineController
 
@@ -819,19 +820,20 @@ class WidgetSliceProcessing(QWidget):
         original_box_dims = config_app.BOX_DIMS.copy()
         original_local_box_corners = config_app.LOCAL_BOX_CORNERS.copy()
 
-        self._set_batch_controls_enabled(False)
-        self.save_proc_button.setEnabled(False)
-        self.current_processed_result = None
-        self.current_proc_path = None
-        self.proc_path_label.setText("Not saved yet.")
-        self.result_status_label.setText("Batch processing...")
-        self.batch_summary_label.setText("Running...")
-        self.append_log(
-            f"[INFO] Starting batch processing in {folder_path} "
-            f"(total={total_files}, overwrite={overwrite_existing})"
-        )
-
+        self.batch_running = True
         try:
+            self._set_batch_controls_enabled(False)
+            self.save_proc_button.setEnabled(False)
+            self.current_processed_result = None
+            self.current_proc_path = None
+            self.proc_path_label.setText("Not saved yet.")
+            self.result_status_label.setText("Batch processing...")
+            self.batch_summary_label.setText("Running...")
+            self.append_log(
+                f"[INFO] Starting batch processing in {folder_path} "
+                f"(total={total_files}, overwrite={overwrite_existing})"
+            )
+
             for filename in slice_filenames:
                 QApplication.processEvents()
                 slice_path = os.path.join(folder_path, filename)
@@ -859,18 +861,19 @@ class WidgetSliceProcessing(QWidget):
                 except Exception as e:
                     failed_count += 1
                     self.append_log(f"[ERROR] Batch processing failed for {slice_path}: {e}")
+
+            summary = (
+                f"Batch complete: total={total_files}, processed={processed_count}, "
+                f"skipped={skipped_count}, failed={failed_count}"
+            )
+            self.batch_summary_label.setText(summary)
+            self.result_status_label.setText("Batch complete.")
+            self.append_log(f"[INFO] {summary}")
         finally:
             config_app.BOX_DIMS = original_box_dims
             config_app.LOCAL_BOX_CORNERS = original_local_box_corners
             self._set_batch_controls_enabled(True)
-
-        summary = (
-            f"Batch complete: total={total_files}, processed={processed_count}, "
-            f"skipped={skipped_count}, failed={failed_count}"
-        )
-        self.batch_summary_label.setText(summary)
-        self.result_status_label.setText("Batch complete.")
-        self.append_log(f"[INFO] {summary}")
+            self.batch_running = False
 
     def save_processed_result(self):
         if self.current_processed_result is None or self.current_processed_result.empty:

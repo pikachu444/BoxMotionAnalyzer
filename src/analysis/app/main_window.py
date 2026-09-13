@@ -64,6 +64,10 @@ class MainApp(QMainWindow):
             event.ignore()
             self.statusBar().showMessage('Wait for processing to finish before closing.')
             return
+        if self.processing_widget.batch_running:
+            event.ignore()
+            self.statusBar().showMessage('Wait for batch processing to finish before closing.')
+            return
         super().closeEvent(event)
 
     def __init__(self):
