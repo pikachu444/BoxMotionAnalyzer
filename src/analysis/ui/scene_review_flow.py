@@ -110,6 +110,11 @@ class SceneReviewFlow:
         self.scene_panel.set_intended_button.setEnabled(contact_ready)
         self.save_slice_button.setEnabled(ready and (self.scene_session is None
             or (reviewed and selected is not None and selected['decision'] == 'include')))
+        self.save_process_button.setEnabled(ready and (self.scene_session is None
+            or (reviewed and any(row['decision'] == 'include' for row in self.scene_session.rows))))
+        self.save_status_label.setText('Save correction first' if self.marker_review_dirty else
+                                       'Review running' if marker_busy else '')
+        self.save_status_label.setVisible(bool(self.save_status_label.text()))
         self.load_csv_button.setEnabled(not busy)
         self.review_marker_flips_button.setEnabled(loaded and not busy)
         self.box_dims_group.setEnabled(not busy)
@@ -441,13 +446,18 @@ class SceneReviewFlow:
         return header, review_json
 
     def save_included_scenes(self):
-        if not self.scene_session or not self.scene_session.all_reviewed:
-            return
+        if (not self.scene_session or not self.scene_session.all_reviewed
+                or not any(row['decision'] == 'include' for row in self.scene_session.rows)):
+            return []
         parent = QFileDialog.getExistingDirectory(self, 'Save included scenes', str(Path(self.source_path).parent))
         if not parent:
-            return
+            return []
         written = []
+        selected = self.scene_panel.selected_row()
+        selected_id = selected['id'] if selected else None
         try:
+            if self.marker_review_dirty or self.marker_review_busy or self.scene_busy:
+                raise ValueError('Finish and save marker review before saving scenes.')
             self._validate_scene_source()
             dims = self._read_box_dimensions()
             base = Path(parent) / (Path(self.source_path).stem + '_scenes')
@@ -470,8 +480,13 @@ class SceneReviewFlow:
                     scene_review_json=review_json)
                 written.append(path)
                 self.slice_saved.emit(str(path))
-            self.slice_path_label.setText(str(output))
+            from src.utils.qt_sections import set_path_label
+            set_path_label(self.slice_path_label, str(output))
             self.append_log(f'[INFO] Saved {len(written)} included scenes to {output}')
+            return [str(path.resolve()) for path in written]
         except Exception as exc:
             self.append_log(f'[ERROR] Saved {len(written)} scenes before failure: {exc}')
             QMessageBox.warning(self, 'Scene save failed', str(exc))
+            return []
+        finally:
+            self.scene_panel.refresh(selected_id)

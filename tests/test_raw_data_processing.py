@@ -65,5 +65,34 @@ class TestWidgetRawDataProcessing(unittest.TestCase):
             print(f"Successfully loaded and parsed {real_file_path}")
             print(f"Parsed data shape: {args[2].shape}")
 
+    def test_initial_marker_preview_and_retained_explicit_selection(self):
+        from src.analysis.pipeline.data_loader import DataLoader
+        from src.config.data_columns import DisplayNames, RigidBodyCols
+        import numpy as np
+
+        self.widget.data_loader = DataLoader()
+        marker_only = pd.DataFrame({'B1_X': [10., 11., 12.], 'B1_Y': [20., 21., 22.],
+                                    'B1_Z': [30., 31., 32.]}, index=[0., .01, .02])
+        with_center = marker_only.copy()
+        with_center[f'{RigidBodyCols.BASE_NAME}_X'] = [100., 101., 102.]
+
+        for frame, selected, expected_target, expected_values in (
+                (marker_only, [], 'Marker B1', [10., 11., 12.]),
+                (with_center, [], DisplayNames.RB_CENTER, [100., 101., 102.]),
+                (with_center, ['Marker B1'], 'Marker B1', [10., 11., 12.])):
+            with self.subTest(expected_target=expected_target, selected=selected):
+                self.widget.current_selected_targets = selected
+                preview = dict(header_info={}, raw_data=frame, parsed_data=frame,
+                    source_sha256='a' * 64,
+                    marker_state=(None, frame, frame, 'capture.csv', 'a' * 64, [], {}))
+                self.widget._apply_csv_preview('capture.csv', preview, emit=False)
+                self.assertEqual(self.widget.current_selected_targets, [expected_target])
+                self.assertEqual(self.widget.selected_data_label.text(), f'Selected: {expected_target}')
+                # SpanSelector also owns two handle lines; count data channels.
+                lines = [line for line in self.widget.plot_manager.ax.lines if line.get_label() in frame.columns]
+                self.assertEqual(len(lines), 1)
+                np.testing.assert_array_equal(lines[0].get_xdata(), frame.index)
+                np.testing.assert_array_equal(lines[0].get_ydata(), expected_values)
+
 if __name__ == '__main__':
     unittest.main()

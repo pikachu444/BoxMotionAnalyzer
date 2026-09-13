@@ -41,7 +41,9 @@ def test_existing_slice_dimension_patch_rejects_conflict_before_save(tmp_path):
     try:
         widget.load_slice_file(str(path))
         QTest.qWait(100)
-        assert len(messages) == 1 and 'does not include complete box dimensions' in messages[0]
+        assert messages == ['Enter the missing box dimensions to run.']
+        assert widget.box_section.button.isChecked()
+        assert widget.apply_box_dims_button.visibleRegion().contains(widget.apply_box_dims_button.rect())
         messages.clear()
         assert widget.le_box_l.isEnabled()
         for field,value in zip((widget.le_box_l,widget.le_box_w,widget.le_box_h),('300','120','80')):

@@ -1,7 +1,8 @@
 """Compact scene review inside Step 1; the existing plot edits the range."""
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QMenu)
+    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QMenu, QGridLayout)
+from src.utils.qt_sections import CollapsibleSection
 from src.analysis.pipeline.intended_contact import feature_options, feature_label, feature_corners
 from src.analysis.pipeline.scene_trial_record import eligibility_suggestion
 
@@ -83,7 +84,7 @@ class SceneReviewWidget(QWidget):
         self.remove_button = QPushButton('Remove')
         self.include_button = QPushButton('Include')
         self.exclude_button = QPushButton('Exclude')
-        for button in (self.detect_button, self.open_review_button, self.save_review_button, self.geometry_button, self.trial_record_button, self.add_button,
+        for button in (self.detect_button, self.add_button,
                        self.remove_button, self.include_button, self.exclude_button):
             tools.addWidget(button)
         tools.addStretch()
@@ -135,7 +136,31 @@ class SceneReviewWidget(QWidget):
         identity.addStretch()
         self.save_all_button = QPushButton('Save included...')
         identity.addWidget(self.save_all_button)
-        layout.addLayout(identity)
+        details = QWidget()
+        details_layout = QVBoxLayout(details)
+        details_layout.setContentsMargins(0, 0, 0, 0)
+        files = QHBoxLayout()
+        for button in (self.open_review_button, self.save_review_button, self.geometry_button, self.trial_record_button):
+            files.addWidget(button)
+        files.addStretch()
+        details_layout.addLayout(files)
+        # Two short rows avoid making every optional trial control part of the
+        # minimum window width.
+        grid = QGridLayout()
+        optional = []
+        while identity.count():
+            item = identity.takeAt(0)
+            if item.widget():
+                optional.append(item.widget())
+        for index, widget in enumerate(optional):
+            grid.addWidget(widget, index // 5, index % 5)
+        details_layout.addLayout(grid)
+        self.details_section = CollapsibleSection('Details', details)
+        layout.addWidget(self.details_section)
+        for column in (4, 6, 7, 8):
+            self.table.setColumnHidden(column, True)
+        self.details_section.button.toggled.connect(
+            lambda expanded: [self.table.setColumnHidden(column, not expanded) for column in (4, 6, 7, 8)])
         self.table.itemSelectionChanged.connect(self._selection_changed)
         self.include_button.clicked.connect(lambda: self._decide('include'))
         self.exclude_button.clicked.connect(lambda: self._decide('exclude'))
@@ -161,6 +186,7 @@ class SceneReviewWidget(QWidget):
         return [self.table.item(i.row(), 0).text() for i in self.table.selectionModel().selectedRows()]
 
     def refresh(self, select_id=None):
+        reveal_selection = select_id is not None
         select_id = select_id or self.selected_id()
         self.table.blockSignals(True)
         rows = self.session.rows if self.session else []
@@ -214,6 +240,8 @@ class SceneReviewWidget(QWidget):
             for i, row in enumerate(rows):
                 if row['id'] == select_id:
                     self.table.selectRow(i)
+                    if reveal_selection:
+                        self.table.scrollToItem(self.table.item(i, 0), QAbstractItemView.EnsureVisible)
                     break
         self._selection_changed()
 

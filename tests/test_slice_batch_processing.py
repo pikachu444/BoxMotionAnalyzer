@@ -123,9 +123,9 @@ class TestSliceBatchProcessing(unittest.TestCase):
                 os.path.join(temp_dir, "scene_b.proc"),
                 unittest.mock.ANY,
             )
-            self.assertIn("processed=1", self.widget.batch_summary_label.text())
-            self.assertIn("skipped=1", self.widget.batch_summary_label.text())
-            self.assertIn("failed=0", self.widget.batch_summary_label.text())
+            self.assertIn("1 saved", self.widget.batch_summary_label.text())
+            self.assertIn("1 skipped", self.widget.batch_summary_label.text())
+            self.assertIn("0 failed", self.widget.batch_summary_label.text())
 
     def test_processing_config_includes_range_limited_resampling_settings(self):
         self.widget.slice_metadata = self._metadata()
@@ -198,7 +198,7 @@ class TestSliceBatchProcessing(unittest.TestCase):
         ) as mock_update:
             self.widget.apply_manual_box_dimensions()
 
-        mock_update.assert_called_once_with("missing.slice", (10.0, 20.0, 30.0))
+        mock_update.assert_called_once_with(os.path.abspath("missing.slice"), (10.0, 20.0, 30.0))
         self.assertEqual(self.widget.slice_metadata, updated_metadata)
         self.assertIsNone(self.widget.manual_box_dimensions)
         self.assertTrue(self.widget.run_button.isEnabled())
@@ -245,8 +245,8 @@ class TestSliceBatchProcessing(unittest.TestCase):
                 [config["box_dimensions"] for config in fake_controller.configs],
                 [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)],
             )
-            self.assertIn("processed=2", self.widget.batch_summary_label.text())
-            self.assertIn("failed=0", self.widget.batch_summary_label.text())
+            self.assertIn("2 saved", self.widget.batch_summary_label.text())
+            self.assertIn("0 failed", self.widget.batch_summary_label.text())
 
     def test_batch_processing_fails_missing_dimensions_per_file_and_continues(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -271,8 +271,8 @@ class TestSliceBatchProcessing(unittest.TestCase):
 
             self.assertEqual([config["box_dimensions"] for config in fake_controller.configs], [(1.0, 2.0, 3.0)])
             mock_save_proc.assert_called_once()
-            self.assertIn("processed=1", self.widget.batch_summary_label.text())
-            self.assertIn("failed=1", self.widget.batch_summary_label.text())
+            self.assertIn("1 saved", self.widget.batch_summary_label.text())
+            self.assertIn("1 failed", self.widget.batch_summary_label.text())
 
 
 if __name__ == "__main__":

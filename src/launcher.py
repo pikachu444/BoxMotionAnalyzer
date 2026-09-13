@@ -128,15 +128,18 @@ class LauncherWindow(QMainWindow):
 
     def open_data_processing(self):
         """Opens the data processing window (MainApp)."""
-        self._open_work_window('data_processing_window', MainApp)
+        window = self._open_work_window('data_processing_window', MainApp)
+        window.comparison_opener = self.open_comparison
 
     def open_simulation(self):
         """Opens the simulation window."""
         self._open_work_window('simulation_window', SimulationUI)
 
-    def open_comparison(self):
+    def open_comparison(self, paths=None):
         """Opens the experiment comparison window."""
-        self._open_work_window('comparison_window', CompareMainWindow)
+        window = self._open_work_window('comparison_window', CompareMainWindow)
+        if paths:
+            window.load_result_files(paths, deduplicate=True)
 
     def _open_work_window(self, attribute, factory):
         window = getattr(self, attribute)
@@ -156,6 +159,7 @@ class LauncherWindow(QMainWindow):
             window.show()
         window.raise_()
         window.activateWindow()
+        return window
 
     def _forget_work_window(self, attribute, closed):
         # A new window may already have replaced a closed one while Qt was

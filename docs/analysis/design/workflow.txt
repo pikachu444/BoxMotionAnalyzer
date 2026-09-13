@@ -1,118 +1,23 @@
-=========================================
-|   현재 분석 GUI 작업 흐름도            |
-=========================================
+현재 분석 GUI 작업 흐름
 
-Last Reviewed: 2026-09-08
+Last Reviewed: 2026-09-14
 
-(시작)
-   |
-   V
-[1. 사용자가 src/main.py 실행]
-   |
-   V
-[2. LauncherWindow 표시]
-   |
-   +-----> [Data Processing 선택] -> MainApp 열기
-   |
-   V
-[3. Step 1에서 "Load CSV File..." 클릭]
-   |
-   +-----> [DataLoader가 header_info / raw_data 생성]
-   +-----> [Parser가 parsed_data 생성]
-   +-----> [corrected CSV이면 원본 관측 스트림과 전체 검토 이력 복원]
-   +-----> [Step 1 미리보기 플롯 갱신]
-   |
-   V
-[4. 필요하면 "Review Candidates..." 실행]
-   |
-   +-----> [gap / freeze / marker-label discontinuity / pose jump 후보 탐색]
-   +-----> [None / Local X / Local Y / Local Z 가설 비교]
-   +-----> [추천 축과 전후 안정 구간 그래프 확인]
-   +-----> [이벤트별 Apply OFF/ON 및 작업자 축 선택]
-   |
-   +-----> [Cancel] -> 기존 검토 상태 유지
-   |
-   +-----> [결정 변경]
-             |
-             +-----> [원본 Rigid Body Marker XYZ/ID 유지, 원래 면 할당에서 누적 FaceInfo 계산]
-             +-----> ["Save Corrected Source..."로 별도 CSV 원자적 저장]
-             +-----> [저장 성공 후에만 corrected CSV 활성화]
-             +-----> [저장 실패 시 기존 활성 입력 유지]
-   |
-   V
-[5. 사용자가 Step 1 설정 조정]
-   |
-   +-----> ["Select Data..."로 미리보기 대상 선택]
-   +-----> [Axis 콤보박스 변경]
-   +-----> [Slice Range 체크 및 Start/End 입력]
-   +-----> [그래프 구간 선택기로 슬라이스 범위 조정]
-   |
-   V
-[6. 사용자가 "Save Scene Slice" 클릭]
-   |
-   +-----> [미저장 marker review 결정이 있으면 저장 차단]
-   +-----> [현재 Box Dimensions 반영]
-   +-----> [선택 구간 + 좌우 50 rows padding 계산]
-   +-----> [.slice 파일 저장]
-   +-----> [line 0~1에 scene/box/timeline 및 marker-correction provenance 기록]
-   |
-   V
-[7. Step 1.5에서 ".slice" 로드]
-   |
-   +-----> [DataLoader가 .slice를 raw CSV처럼 다시 읽음]
-   +-----> [Parser가 parsed slice 생성]
-   +-----> [slice metadata에서 Box Dimensions 복원]
-   +-----> [Step 1.5 미리보기 플롯 갱신]
-   |
-   V
-[8. 사용자가 Step 1.5 설정 조정]
-   |
-   +-----> [Processing Mode 선택]
-   +-----> [Advanced Settings 조정]
-   +-----> [Result Resampling factor / range 선택]
-   |
-   V
-[9. 사용자가 "Run Processing" 클릭]
-   |
-   +-----> [PipelineController를 worker thread에서 실행]
-   +-----> [parsed slice 기준 processing 수행]
-   +-----> [timeline metadata를 결과 DataFrame에 추가]
-   |
-   V
-[10. 사용자가 "Save Processed Result" 클릭]
-   |
-   +-----> [convert_to_multi_header() 실행]
-   +-----> [.proc 저장]
-   |
-   V
-[11. Step 2에서 결과 폴더 선택 후 저장된 ".proc" 열기]
-   |
-   +-----> ["Select Result Folder..."로 폴더 선택]
-   +-----> [결과 파일 목록에서 ".proc" 선택]
-   |
-   V
-[12. Step 2에서 결과 분석]
-   |
-   +-----> [Time Window 영역에 active file / samples / full/slice 범위 표시]
-   +-----> [결과 트리에서 컬럼 체크]
-   +-----> ["Plot Selected Results"로 메인 플롯 갱신]
-   +-----> ["Open Popup (Current Selection)"로 팝업 플롯 생성]
-   |
-   V
-[13. 특정 시점 선택]
-   |
-   +-----> [메인 플롯 클릭]
-   |         또는
-   +-----> ["Find Abs. Max" 클릭]
-   |
-   +-----> [선택 시간 커서 표시]
-   +-----> [팝업 플롯 커서 동기화]
-   |
-   V
-[14. 결과 내보내기]
-   |
-   +-----> ["Export Point Data..."] -> 단일 시점 row 저장
-   +-----> ["Export Scenario CSV"] -> 외부 해석용 7줄 포맷 저장
-   |
-   V
-(반복 또는 종료)
+Launcher → Step 1: Scenes → Step 1.5: Process → Step 2: Results → Compare
+
+Step 1: CSV 열기 → Detect scenes → 범위/Include/Exclude 검토 → Save and Process
+- 보정은 필요할 때 검토하며 Apply는 명시적 승인이다. 변경한 보정은 별도 corrected CSV에 저장한다.
+- 수동 범위 slice 저장과 검토 작업의 중간 저장/재열기도 가능하다.
+- 포함 장면을 모두 저장한 뒤 정확한 파일 목록을 한 번 전달한다. 취소/부분 실패는 이동하지 않는다.
+
+Step 1.5: Single 또는 Batch 입력 확인 → 방법 확인 → Run
+- 하나의 slice는 Single, 여러 slice는 Batch로 준비한다. 자동 Run은 없다.
+- 두 모드의 입력과 결과는 별도로 유지한다. 기본은 Raw, 재샘플링 OFF다.
+- Single: Save and View → 저장 성공한 결과 열기.
+- Batch: View Results → 이번에 저장 성공한 결과 목록 열기. 실패/건너뛴 파일은 별도 상태다.
+
+Step 2: 현재 결과 확인 → 측정값/Plot → Point/Save point CSV 또는 Compare
+- Open/Folder로 기존 결과를 바로 열 수 있다.
+- Compare는 현재/선택 결과를 기존 비교 창에 추가하며 같은 경로를 중복 추가하지 않는다.
+- 시간, 치수, 원본 식별과 보정/장면 이력, 미확정 항목과 비교 제외 의미를 보존한다.
+
+현재 화면과 상세 동작: gui_overview.md

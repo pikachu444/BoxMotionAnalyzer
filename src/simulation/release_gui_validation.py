@@ -162,6 +162,7 @@ def run(trial_report, output):
 
     def click(button):
         assert button.isEnabled(), button.text()
+        assert button.isVisible() and button.visibleRegion().contains(button.rect()), button.text()
         QTest.mouseClick(button, Qt.LeftButton)
         events()
         assert not errors, errors
@@ -185,7 +186,8 @@ def run(trial_report, output):
         stage('MainApp empty and saved review')
         main = show(MainApp())
         raw = main.original_widget
-        capture('01_empty', 'Actual empty Step 1 at 125%; initial controls.', [raw.load_csv_button, raw.scene_panel.open_review_button])
+        capture('01_empty', 'Actual empty Step 1 at 125%; initial controls.', [raw.load_csv_button, raw.scene_panel.details_section.button])
+        click(raw.scene_panel.details_section.button)
         choose(review_path)
         click(raw.scene_panel.open_review_button)
         wait_until(lambda: raw.scene_session is not None and not raw.scene_busy)
@@ -271,6 +273,11 @@ def run(trial_report, output):
                 break
             iterator += 1
         assert leaf is not None
+        for parent in (leaf.parent().parent(), leaf.parent()):
+            tree.setCurrentItem(parent)
+            tree.scrollToItem(parent)
+            tree.setFocus()
+            QTest.keyClick(tree, Qt.Key_Right)
         tree.setCurrentItem(leaf)
         tree.scrollToItem(leaf)
         tree.setFocus()
@@ -281,7 +288,7 @@ def run(trial_report, output):
         np.testing.assert_allclose(line.get_xdata(), result.result_data.index.to_numpy(float), atol=1e-10, rtol=0)
         np.testing.assert_allclose(line.get_ydata(), result.result_data[('Position', 'CoM', 'P_TY')], atol=0, rtol=0)
         capture('05_results', 'Step 2 selected geometric-centre Y through the real result tree; plotted all 27 saved timestamps and positions.',
-                [result.select_result_folder_button, result.plot_results_button, result.metric_guide_button])
+                [result.open_result_button, result.plot_results_button, result.compare_button])
         report['checks']['step2_saved_times_and_positions'] = True
         main.close()
         stage('Comparison loading and duplicated observations')
@@ -300,7 +307,16 @@ def run(trial_report, output):
         assert len(comparison.model.datasets) == 9 and all(loads) and len(loads) == 9
         QToolTip.hideText()
         first_rect = control.file_list.visualItemRect(control.file_list.item(0))
-        QTest.mouseMove(control.file_list.viewport(), first_rect.center())
+        # A long list item can extend horizontally beyond the viewport.
+        # Hover its visible portion, not the off-screen centre of its text.
+        visible_rect = first_rect.intersected(control.file_list.viewport().rect())
+        assert not visible_rect.isEmpty()
+        report['checks']['tooltip_hover_inside_viewport'] = {
+            'item': list(first_rect.getRect()),
+            'viewport': list(control.file_list.viewport().rect().getRect()),
+            'position': list(visible_rect.center().toTuple()),
+        }
+        QTest.mouseMove(control.file_list.viewport(), visible_rect.center())
         tips = lambda: [w for w in app.topLevelWidgets() if w.isVisible() and w.windowType() == Qt.ToolTip]
         wait_until(lambda: bool(tips()) and paths[0].name in QToolTip.text(), timeout=5)
         report['checks']['hover_tooltip_text'] = QToolTip.text()

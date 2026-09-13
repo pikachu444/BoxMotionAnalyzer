@@ -74,6 +74,7 @@ def test_mainapp_record_import_reopen_and_raw_process(monkeypatch):
 
     def click(button):
         assert button.isEnabled(), button.text()
+        assert button.isVisible() and button.visibleRegion().contains(button.rect()), button.text()
         QTest.mouseClick(button, Qt.MouseButton.LeftButton)
         app.processEvents()
 
@@ -103,6 +104,7 @@ def test_mainapp_record_import_reopen_and_raw_process(monkeypatch):
         widget = active.original_widget
         choose(folder / 'observed.csv')
         click(widget.load_csv_button)
+        click(widget.scene_panel.details_section.button)
         choose(folder / 'registration.json')
         click(widget.scene_panel.geometry_button)
         click(widget.scene_panel.detect_button)
@@ -140,6 +142,7 @@ def test_mainapp_record_import_reopen_and_raw_process(monkeypatch):
 
         active = create()
         widget = active.original_widget
+        click(widget.scene_panel.details_section.button)
         choose(workspace)
         click(widget.scene_panel.open_review_button)
         wait_detection(widget)
