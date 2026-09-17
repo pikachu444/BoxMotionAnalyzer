@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import threading
 import time
 
 import pytest
@@ -39,11 +40,66 @@ def test_actual_review_cancel_save_and_close_at_125_percent(monkeypatch):
     monkeypatch.setattr(QMessageBox, 'warning', lambda *a: errors.append(str(a[-1])))
     monkeypatch.setattr(QMessageBox, 'information', lambda *a: None)
 
+    # Hold only the first real SciPy objective evaluation for each cancellation
+    # trial. Otherwise a fast worker can open its modal between the progress
+    # check and the Cancel click, turning a timing race into an infinite wait.
+    from src.analysis.pipeline import pose_optimizer
+    real_objective = pose_optimizer._objective_function
+    active_gate, gates, expired = [None], [], []
+    def gated_objective(*args, **kwargs):
+        value = real_objective(*args, **kwargs)
+        gate = active_gate[0]
+        if gate is not None:
+            active_gate[0] = None
+            entered, release = gate
+            entered.set()
+            if not release.wait(15):
+                raise AssertionError('GUI did not release the real objective evaluation')
+        return value
+    monkeypatch.setattr(pose_optimizer, '_objective_function', gated_objective)
+    def hold_real_fit():
+        entered, release = threading.Event(), threading.Event()
+        gates.append(release)
+        active_gate[0] = (entered, release)
+        return entered, release
+
+    def expire():
+        modal = app.activeModalWidget()
+        detail = {'status': 'timeout', 'modal': type(modal).__name__ if modal else None,
+                  'review_state': w.marker_review_summary_label.text(),
+                  'log': w.log_output.toPlainText()}
+        expired.append(detail)
+        try:
+            (root / 'timeout.json').write_text(json.dumps(detail, indent=2), encoding='utf-8')
+            window.grab().save(str(root / 'timeout.png'))
+        finally:
+            w.cancel_marker_review()
+            for release in gates:
+                release.set()
+            if modal is not None:
+                modal.reject()
+
+    # Keep a guard alive outside wait(), too: any processEvents/QTest call may
+    # enter a nested modal event loop. A timeout always fails this test.
+    whole_test_guard = QTimer(window)
+    whole_test_guard.setSingleShot(True)
+    whole_test_guard.timeout.connect(expire)
+    whole_test_guard.start(90000)
+
     def wait(predicate, timeout=40):
         deadline = time.monotonic() + timeout
-        while not predicate() and time.monotonic() < deadline:
-            app.processEvents()
-            time.sleep(.002)
+        watchdog = QTimer(window)
+        watchdog.setSingleShot(True)
+        watchdog.timeout.connect(expire)
+        watchdog.start(int(timeout * 1000))
+        try:
+            while not predicate() and not expired and time.monotonic() < deadline:
+                app.processEvents()
+                time.sleep(.002)
+        finally:
+            watchdog.stop()
+            watchdog.deleteLater()
+        assert not expired, expired
         assert predicate(), w.log_output.toPlainText()
 
     def reachable(button, host):
@@ -73,13 +129,16 @@ def test_actual_review_cancel_save_and_close_at_125_percent(monkeypatch):
         window.grab().save(str(root / 'dimensions.png'))
 
         for trial in range(3):
+            entered, release = hold_real_fit()
             QTest.mouseClick(w.review_marker_flips_button, Qt.MouseButton.LeftButton)
-            wait(lambda: w.marker_review_summary_label.text().startswith('Event'))
+            wait(entered.is_set)
+            assert w.review_worker.isRunning()
             reachable(w.cancel_marker_review_button, window)
             if trial == 0:
                 window.grab().save(str(root / 'calculating.png'))
             start = time.perf_counter()
             QTest.mouseClick(w.cancel_marker_review_button, Qt.MouseButton.LeftButton)
+            release.set()
             wait(lambda: w.review_worker is None)
             measurements.append(time.perf_counter() - start)
             assert w.review_marker_flips_button.isEnabled()
@@ -163,12 +222,15 @@ def test_actual_review_cancel_save_and_close_at_125_percent(monkeypatch):
         window.grab().save(str(root / 'saved-reopened.png'))
 
         w.confirm_review_dimensions.setChecked(True)
+        entered, release = hold_real_fit()
         QTest.mouseClick(w.review_marker_flips_button, Qt.MouseButton.LeftButton)
-        wait(lambda: w.marker_review_summary_label.text().startswith('Event'))
+        wait(entered.is_set)
         assert not window.close()
+        release.set()
         wait(lambda: w.review_worker is None and not window.isVisible())
         assert source.read_bytes() == original
-        report = {'status': 'pass', 'scope': 'actual Qt controls / real SciPy cancellation; synthetic only',
+        assert not expired, expired
+        report = {'status': 'pass', 'scope': 'actual Qt controls / real SciPy cancellation with a held objective evaluation; synthetic only',
             'logical_size': [1510, 800], 'measured_dpr': 1.25,
             'source_sha256': hashlib.sha256(original).hexdigest(),
             'cancellation_seconds': measurements, 'maximum_cancellation_seconds': max(measurements),
@@ -181,11 +243,14 @@ def test_actual_review_cancel_save_and_close_at_125_percent(monkeypatch):
             'review_statistics': w.last_review_statistics}
         (root / 'execution.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     finally:
+        for release in gates:
+            release.set()
         for timer in timers:
             timer.stop()
         if w.review_worker is not None:
             w.cancel_marker_review()
             wait(lambda: w.review_worker is None)
         window.close()
+        whole_test_guard.stop()
         window.deleteLater()
         app.processEvents()

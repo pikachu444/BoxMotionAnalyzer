@@ -137,7 +137,7 @@ jobs:
       - name: Verify bounded marker review and real cancellation at 125 percent
         env:
           QT_SCALE_FACTOR: '1.25'
-        run: python -m pytest -q tests/test_marker_review_gui.py --junitxml=tmp/issue112/gui-125.xml
+        run: python -m pytest -q tests/test_marker_review_gui.py --junitxml=tmp/issue112/gui-125.xml -o faulthandler_timeout=90
       - name: Replay retained public results in the release GUI at 125 percent
         env:
           QT_SCALE_FACTOR: '1.25'
