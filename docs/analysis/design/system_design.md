@@ -23,6 +23,7 @@ Last Reviewed: 2026-09-18
 분석 GUI는 `MainApp` 하나로 묶이고, 내부는 Step 1 / Step 1.5 / Step 2 탭으로 분리된다.
 
 ### 3.1. Step 1: Raw Data Slice
+- 마커 검토의 원본 context는 `review_parsed_data`의 위치 열만 독립 복사한다. 별도 pose fitting이나 정답 파일 접근 없이 실제 시각·XYZ를 표시하며, dialog 종료 시 그래프와 복사본을 해제한다. 모달 종료 후 source/revision/dimensions 비교와 비동기 바이트 검증을 통과해야 선택을 반영한다.
 - 원본 CSV 로드
 - 파싱 기반 미리보기 플롯
 - 선택적 Marker Flip Review
