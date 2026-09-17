@@ -2,6 +2,7 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+import numpy as np
 
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import QFileDialog, QMessageBox
@@ -26,6 +27,8 @@ class SceneDetectionWorker(QThread):
         self.header, self.raw, self.parsed = deepcopy(header), raw.copy(deep=True), parsed.copy(deep=True)
         self.registration = deepcopy(registration)
         self.settings = settings
+        self.source_context = (parent._source_revision, parent.source_path, parent.active_source_sha256)
+        self.cancel_requested = False
 
     def run(self):
         try:
@@ -136,6 +139,7 @@ class SceneReviewFlow:
         if self.scene_busy:
             if self._workspace_open_context is not None:
                 self._workspace_open_context['cancelled'] = True
+            self.scene_worker.cancel_requested = True
             self.scene_worker.requestInterruption()
             return
         if self.scene_worker is not None and self.scene_worker.isRunning():
@@ -163,9 +167,15 @@ class SceneReviewFlow:
             self._scene_detection_failed(str(exc))
 
     def _finish_scene_detection(self, result):
+        if not self._scene_callback_is_current():
+            return
+        if self.scene_worker.cancel_requested or self.scene_worker.isInterruptionRequested():
+            self._scene_detection_cancelled()
+            return
         self.scene_busy = False
         try:
             self._validate_scene_source()
+            selected = self.combo_plot_axis.currentData() if self.scene_session is not None else None
             if self.scene_session is None:
                 self.scene_session = SceneReviewSession(result, self.active_source_sha256,
                     original_source_sha256=self.original_source_sha256)
@@ -174,7 +184,7 @@ class SceneReviewFlow:
             panel = self.scene_panel
             panel.session = self.scene_session
             self.scene_session.set_context(panel.type_combo.currentText(), panel.edition_combo.currentData())
-            self._populate_scene_signals(result)
+            self._populate_scene_signals(result, selected)
             active = next((r['id'] for r in self.scene_session.rows if r['motion'] != 'stationary'), None)
             panel.refresh(panel.selected_id() or active)
             self.append_log(f'[INFO] Detected {len(result.candidates)} observed intervals. Type and item remain unconfirmed.')
@@ -187,15 +197,39 @@ class SceneReviewFlow:
         try:
             while self.combo_plot_axis.count() > 3:
                 self.combo_plot_axis.removeItem(3)
-            for name in result.signals:
+            preferred = ('Vertical speed (mm/s)', 'Relative rotation (deg)')
+            names = [name for name in preferred if name in result.signals]
+            names.extend(name for name in result.signals if name not in preferred)
+            for name in names:
                 self.combo_plot_axis.addItem(name, name)
-            index = self.combo_plot_axis.findData(selected) if selected is not None else -1
-            if index < 0:
-                index = self.combo_plot_axis.findData('Relative rotation (deg)')
+            choices = [selected, *preferred, *(self.combo_plot_axis.itemData(i) for i in range(3))]
+            index = next((self.combo_plot_axis.findData(name) for name in choices
+                          if name is not None and self._scene_signal_available(result, name)), -1)
             self.combo_plot_axis.setCurrentIndex(index if index >= 0 else 0)
         finally:
             self.combo_plot_axis.blockSignals(False)
         self.update_plot()
+
+    def _scene_signal_available(self, result, name):
+        if name in result.signals:
+            return np.isfinite(result.signals[name].to_numpy(dtype=float)).any()
+        columns = self._raw_plot_columns(name)
+        return bool(columns and np.isfinite(self.parsed_data[columns].to_numpy(dtype=float)).any())
+
+    def _scene_callback_is_current(self):
+        worker = self.sender()
+        if not isinstance(worker, SceneDetectionWorker):
+            return True  # Synchronous validation failure, before a worker exists.
+        if worker is not self.scene_worker:
+            return False
+        current = (self._source_revision, self.source_path, self.active_source_sha256)
+        if worker.source_context == current:
+            return True
+        self._workspace_open_context = None
+        self.scene_busy = False
+        self.append_log('[INFO] Source changed; previous detection result discarded.')
+        self._update_scene_gates()
+        return False
 
     def save_scene_review(self):
         if self.scene_busy or self.scene_session is None:
@@ -258,10 +292,12 @@ class SceneReviewFlow:
             self._update_scene_gates()
 
     def _finish_workspace_open(self, result):
+        if not self._scene_callback_is_current():
+            return
         context = self._workspace_open_context
         if context is None:
             return
-        if context['cancelled']:
+        if context['cancelled'] or self.scene_worker.cancel_requested or self.scene_worker.isInterruptionRequested():
             self._scene_detection_cancelled()
             return
         try:
@@ -306,6 +342,8 @@ class SceneReviewFlow:
             self._update_scene_gates()
 
     def _scene_detection_failed(self, message):
+        if not self._scene_callback_is_current():
+            return
         operation = 'Open review' if self._workspace_open_context else 'Scene detection'
         self._workspace_open_context = None
         self.scene_busy = False
@@ -313,6 +351,8 @@ class SceneReviewFlow:
         self._update_scene_gates()
 
     def _scene_detection_cancelled(self):
+        if not self._scene_callback_is_current():
+            return
         self._workspace_open_context = None
         self.scene_busy = False
         self.append_log('[INFO] Detection cancelled; existing ranges were kept.')

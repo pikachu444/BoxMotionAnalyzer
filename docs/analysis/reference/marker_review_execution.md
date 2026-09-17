@@ -188,3 +188,18 @@ Existing 0.1 mm / 0.1 degree numerical
 gates are unchanged. Synthetic and GUI evidence do not validate actual tracking
 error causes, physical recovery, ISTA compliance or real calibration; #104 remains
 separate and unverified. #121 now adds context inspection without changing these gates.
+
+The #123 required CI stalled before the first cancellation screenshot. Code
+inspection found a cancellation-test scheduling race: the fixture worker could finish while the test pumped events between its progress check
+and the Cancel click, entering a modal review before the approval timer existed.
+The cancelled run retained only the dimensions screenshot; it supplied no
+passing cancellation evidence or stack trace, so its precise stall cause is
+unconfirmed. The test now synchronizes the first real SciPy
+objective evaluation with the actual Cancel/close action. The numerical
+objective and interruption checkpoints still execute; approval/save/reopen
+runs without that synchronization. Cancellation latency starts at the UI action
+and excludes the deliberate pre-action hold. A Qt watchdog covers nested modal
+event loops, records timeout evidence and fails the test; CI also prints thread
+stacks on prolonged waits. These are test-harness changes, not altered product
+cancellation or optimizer behavior. Final exact-head CI is required after this
+correction.

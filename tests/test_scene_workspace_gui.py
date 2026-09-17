@@ -133,14 +133,14 @@ def test_legacy_support_plot_selection_falls_back_without_changing_saved_review(
         widget = widgets()
         open_path(widget.open_scene_review, path)
         wait(widget)
-        assert widget.combo_plot_axis.currentData() == 'Relative rotation (deg)'
+        assert widget.combo_plot_axis.currentData() == 'Vertical speed (mm/s)'
         assert widget.scene_panel.selected_id() == selected
         assert widget.scene_session.rows == expected
         assert widget.scene_session.deleted_ids == original.scene_session.deleted_ids
         assert widget._get_slice_bounds() == (.4, 2.)
         assert path.read_bytes() == previous_bytes
-        line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == 'Relative rotation (deg)')
-        np.testing.assert_array_equal(line.get_ydata(), original.scene_session.result.signals['Relative rotation (deg)'])
+        line = next(line for line in widget.plot_manager.ax.lines if line.get_label() == 'Vertical speed (mm/s)')
+        np.testing.assert_array_equal(line.get_ydata(), original.scene_session.result.signals['Vertical speed (mm/s)'])
         assert len(line.get_xdata()) == len(widget.raw_data)
         resaved = tmp_path / f'resaved-{index}.scene-review.json'
         with patch('PySide6.QtWidgets.QFileDialog.getSaveFileName', return_value=(str(resaved), '')):
@@ -148,7 +148,7 @@ def test_legacy_support_plot_selection_falls_back_without_changing_saved_review(
         reopened = json.loads(resaved.read_text(encoding='utf-8'))
         assert reopened['rows'] == data['rows']
         assert reopened['detection_version'] == data['detection_version']
-        assert reopened['view']['signal'] == 'Relative rotation (deg)'
+        assert reopened['view']['signal'] == 'Vertical speed (mm/s)'
 
 
 def test_cached_measurement_is_rebuilt_and_requires_review(saved, widgets):

@@ -197,6 +197,19 @@ def run(trial_report, output):
         assert selected['identity']['scenario_id'] == 'G16'
         assert selected['observed_consistency']['approach'] == 'different'
         panel.refresh(selected['id'])
+        saved_signal = workspace['view']['signal']
+        assert raw.combo_plot_axis.currentData() == saved_signal
+        np.testing.assert_equal(raw.plot_manager.ax.lines[0].get_ydata(), session.result.signals[saved_signal])
+        report['checks']['saved_scene_signal_restored'] = True
+        # The saved review may now use vertical speed. Select rotation explicitly
+        # before checking its existing tiny-angle display and zoom behavior.
+        combo = raw.combo_plot_axis
+        combo.setFocus()
+        QTest.keyClick(combo, Qt.Key_Home)
+        for _ in range(combo.findData('Relative rotation (deg)')):
+            QTest.keyClick(combo, Qt.Key_Down)
+        events()
+        assert combo.currentData() == 'Relative rotation (deg)'
         curve = raw.plot_manager.ax.lines[0]
         np.testing.assert_equal(curve.get_ydata(), session.result.signals['Relative rotation (deg)'])
         assert raw.plot_manager.ax.get_ylim() == (0., 1.)

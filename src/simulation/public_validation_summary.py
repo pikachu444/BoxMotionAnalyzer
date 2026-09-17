@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 # Explicitly inspected engine/observation-to-consumer paths. Pure array, schema,
 # policy and GUI-only checks remain Level 1 even when their fixture is public.
 SYNTHETIC_TESTS = {
+    'test_scene_signal_gui': {'test_actual_vertical_and_rotation_selection_edit_save_reopen'},
     'test_marker_review_context': {'test_actual_review_context_pan_cancel_save_reopen_and_source_switch'},
     'test_simulation_marker_export': {'test_actual_engine_capture_uses_public_api_and_reopens'},
     'test_simulation_marker_export_gui': {'test_generate_preview_and_open_observations_only'},

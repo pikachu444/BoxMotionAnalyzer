@@ -1,6 +1,7 @@
 import os
 import json
 import math
+import numpy as np
 from dataclasses import asdict
 from copy import deepcopy
 from pathlib import Path
@@ -944,6 +945,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         set_path_label(self.file_path_label, filepath)
 
     def update_plot(self):
+        self.combo_plot_axis.setToolTip('')
         df = self.parsed_data
         if df is None or df.empty:
             self.plot_manager.draw_plot(None, [])
@@ -954,6 +956,14 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             row = self.scene_panel.selected_row()
             plot_data = self.scene_session.result.signals
             self.plot_manager.draw_plot(plot_data, [selected_axis_generic])
+            self.plot_manager.ax.set_ylabel(selected_axis_generic)
+            if not np.isfinite(plot_data[selected_axis_generic].to_numpy(dtype=float)).any():
+                self.plot_manager.ax.set_title('Signal unavailable')
+            if selected_axis_generic == 'Vertical speed (mm/s)':
+                registration = self.scene_session.result.registration
+                point = ('marker-layout reference point (box center and COM unverified)' if registration is None
+                         else 'center of mass' if registration.com_offset_mm is not None else 'box center')
+                self.combo_plot_axis.setToolTip(f'World Y velocity of the {point}; positive is upward.')
             self.plot_manager.enable_interactions(df)
             if row:
                 self.plot_manager.set_selector_active(True)
@@ -962,39 +972,12 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 self.plot_manager.set_selector_active(False)
             self.canvas.draw_idle()
             return
-        columns_to_plot = []
-        targets_to_process = self.current_selected_targets
-        
-        if not targets_to_process:
-            all_targets = self.data_loader.get_plottable_targets(df)
-            if DisplayNames.RB_CENTER in all_targets:
-                targets_to_process = [DisplayNames.RB_CENTER]
-                
-        axis_map = {
-            PoseCols.POS_X: RawMarkerCols.X_SUFFIX,
-            PoseCols.POS_Y: RawMarkerCols.Y_SUFFIX,
-            PoseCols.POS_Z: RawMarkerCols.Z_SUFFIX,
-        }
-        axis_suffix = axis_map.get(selected_axis_generic)
-        
-        if axis_suffix:
-            for target in targets_to_process:
-                base_name = None
-                if target == DisplayNames.RB_CENTER:
-                    base_name = RigidBodyCols.BASE_NAME
-                elif target.startswith(DisplayNames.MARKER_PREFIX):
-                    base_name = target.replace(DisplayNames.MARKER_PREFIX, '')
-                else:
-                    base_name = target
-                    
-                col_name = f"{base_name}{axis_suffix}"                
-                if col_name in df.columns:
-                    columns_to_plot.append(col_name)
+        columns_to_plot = self._raw_plot_columns(selected_axis_generic)
                     
         previous_region = (self.plot_manager.span_selector.extents
                            if self.plot_manager.span_selector is not None else None)
         self.plot_manager.draw_plot(df, columns_to_plot)
-        if columns_to_plot and axis_suffix:
+        if columns_to_plot:
             declared_unit = (self.header_info or {}).get("export_metadata", {}).get("Length Units", "")
             unit = {"millimeters": "mm", "centimeters": "cm", "meters": "m"}.get(
                 str(declared_unit).strip().lower(), "unit unknown")
@@ -1016,6 +999,26 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 self.plot_manager.set_region(*region)
             self.plot_manager.set_selector_active(self.slice_group.isChecked())
         self.canvas.draw_idle()
+
+    def _raw_plot_columns(self, selected_axis):
+        df = self.parsed_data
+        if df is None or df.empty:
+            return []
+        suffix = {PoseCols.POS_X: RawMarkerCols.X_SUFFIX,
+                  PoseCols.POS_Y: RawMarkerCols.Y_SUFFIX,
+                  PoseCols.POS_Z: RawMarkerCols.Z_SUFFIX}.get(selected_axis)
+        if suffix is None:
+            return []
+        targets = self.current_selected_targets
+        if not targets and DisplayNames.RB_CENTER in self.data_loader.get_plottable_targets(df):
+            targets = [DisplayNames.RB_CENTER]
+        columns = []
+        for target in targets:
+            base = (RigidBodyCols.BASE_NAME if target == DisplayNames.RB_CENTER
+                    else target.removeprefix(DisplayNames.MARKER_PREFIX))
+            if base + suffix in df.columns:
+                columns.append(base + suffix)
+        return columns
 
     def open_data_selection_dialog(self):
         if self.parsed_data is None:
