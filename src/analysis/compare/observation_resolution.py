@@ -28,12 +28,14 @@ def canonical_value(value, kind):
     return value
 
 
-def resolve_observations(variants, kinds, *, group_conflicts=None):
+def resolve_observations(variants, kinds, *, group_conflicts=None, metric_conflicts=None):
     """Return per-metric evidence and stable observation order, with no I/O.
 
 Each variant has name/sha256/path/observation_key/reasons/metrics. Metrics are
 objects with value and reason attributes. A reason always vetoes its value.
 group_conflicts is used for conflicting independent Contact intentions only.
+metric_conflicts carries independently validated, per-observation metric context
+conflicts (for example incompatible whole-window definitions of reprocessings).
 """
     groups, files = {}, {}
     for variant in variants:
@@ -64,7 +66,8 @@ group_conflicts is used for conflicting independent Contact intentions only.
             entries = [dict(file=v['name'], **files[v['name']]['metric_resolution'][metric]) for v in members]
             valid = [entry for entry in entries if not entry['reason']]
             values = {entry['value'] for entry in valid}
-            forced = (group_conflicts or {}).get(key, '')
+            metric_conflict = (metric_conflicts or {}).get(key, {}).get(metric, '')
+            forced = (group_conflicts or {}).get(key, '') or metric_conflict
             conflict = bool(forced) or len(values) > 1
             status = 'conflict' if conflict else 'invalid' if not valid else 'equivalent' if len(valid) > 1 else 'contributing'
             reason = (forced or 'Conflicting valid variants disagree (canonical exact equality)') if conflict else ''
@@ -76,7 +79,8 @@ group_conflicts is used for conflicting independent Contact intentions only.
                 files[entry['file']]['metric_resolution'][metric].update(
                     status=entry['status'], reason=entry['reason'])
             resolved[metric] = dict(status=status, value=value, reason=reason,
-                                    reason_code='conflicting_valid_variants' if conflict and not forced else
+                                    reason_code='conflicting_metric_context' if metric_conflict else
+                                    'conflicting_valid_variants' if conflict and not forced else
                                     'conflicting_intended_contacts' if forced else
                                     'no_valid_variant' if not valid else '',
                                     sources=[entry['file'] for entry in valid] if not conflict else [],
