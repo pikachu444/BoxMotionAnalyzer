@@ -34,7 +34,12 @@ def _input_digest(value):
     return hashlib.sha256(encoded.encode('utf-8')).hexdigest()
 
 
-def _write_observed(path, result, profile, *, include_physical=True):
+def _checkpoint(cancelled):
+    if cancelled is not None and cancelled():
+        raise InterruptedError('Marker export cancelled.')
+
+
+def _write_observed(path, result, profile, *, include_physical=True, cancelled=None):
     source = result['manifest']['source_kind']
     version = str(result['manifest']['generator_version'])
     artifact = {
@@ -69,6 +74,8 @@ def _write_observed(path, result, profile, *, include_physical=True):
                 headers['component'].extend(['X', 'Y', 'Z'])
         writer.writerows(headers.values())
         for i, time in enumerate(result['time_s']):
+            if i % 128 == 0:
+                _checkpoint(cancelled)
             coordinates = result['rigid_body_markers'][i].ravel()
             if include_physical:
                 coordinates = np.concatenate((coordinates, result['physical_markers'][i].ravel()))
@@ -78,7 +85,7 @@ def _write_observed(path, result, profile, *, include_physical=True):
                              *['' if np.isnan(v) else float(v) for v in coordinates]])
 
 
-def _write_truth(root, result, profile):
+def _write_truth(root, result, profile, cancelled=None):
     quaternions = Rotation.from_matrix(result['rotation_matrix']).as_quat()[:, [3, 0, 1, 2]]
     for i in range(1, len(quaternions)):
         if quaternions[i] @ quaternions[i - 1] < 0:
@@ -89,6 +96,8 @@ def _write_truth(root, result, profile):
                          *[f'com_{a}_mm' for a in 'xyz'], *[f'q_{a}' for a in 'wxyz'],
                          *[f'r{i}{j}' for i in range(3) for j in range(3)]])
         for i, time in enumerate(result['time_s']):
+            if i % 128 == 0:
+                _checkpoint(cancelled)
             com = ['', '', ''] if result['com_mm'] is None else result['com_mm'][i]
             writer.writerow([int(result['frame'][i]), float(time), *result['body_origin_mm'][i],
                              *com, *quaternions[i], *result['rotation_matrix'][i].ravel()])
@@ -96,25 +105,30 @@ def _write_truth(root, result, profile):
         writer = csv.writer(stream)
         writer.writerow(['frame', 'time_s', 'marker_id', 'x_mm', 'y_mm', 'z_mm'])
         for i, time in enumerate(result['time_s']):
+            if i % 128 == 0:
+                _checkpoint(cancelled)
             for marker, point in zip(profile['markers'], result['truth_markers'][i]):
                 writer.writerow([int(result['frame'][i]), float(time), marker['id'], *point])
 
 
-def write_observations(directory, truth_trajectory, marker_profile, corruption_spec, seed=74082):
+def write_observations(directory, truth_trajectory, marker_profile, corruption_spec, seed=74082, *, cancelled=None):
     """Validate first; create a new output directory without replacing any file.
 
     A complete export has its manifest written last. An I/O failure may leave a
     partial new directory for inspection, but never replaces a previous export.
     """
+    _checkpoint(cancelled)
     result = apply_corruption(truth_trajectory, marker_profile, corruption_spec, seed)
+    _checkpoint(cancelled)
     # Hash only validated input values. No input path or event oracle is embedded
     # in the production CSV, and no real-data class is manufactured by this API.
     input_hashes = {'trajectory': _input_digest(truth_trajectory),
                     'profile': _input_digest(marker_profile), 'spec': _input_digest(corruption_spec)}
     root = Path(directory).resolve()
     root.mkdir(parents=True, exist_ok=False)
-    _write_observed(root / 'observed.csv', result, marker_profile)
-    _write_truth(root, result, marker_profile)
+    _write_observed(root / 'observed.csv', result, marker_profile, cancelled=cancelled)
+    _write_truth(root, result, marker_profile, cancelled)
+    _checkpoint(cancelled)
     manifest = dict(result['manifest'])
     manifest.update(input_sha256=input_hashes, com_available=result['com_mm'] is not None,
         files={name: _digest(root / name) for name in ('observed.csv', 'truth_pose.csv', 'truth_markers.csv')},

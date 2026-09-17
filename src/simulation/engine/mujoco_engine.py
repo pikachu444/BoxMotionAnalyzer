@@ -117,7 +117,8 @@ class MuJoCoEngine:
         self.data = mujoco.MjData(self.model)
         mujoco.mj_forward(self.model, self.data)
 
-    def run_simulation(self, target_fps=120, stop_condition_time=3.0, velocity_threshold=0.01, show_viewer=False):
+    def run_simulation(self, target_fps=120, stop_condition_time=3.0, velocity_threshold=0.01, show_viewer=False,
+                       *, cancelled=None, progress=None):
         """
         Runs the simulation and collects corner positions over time.
         Returns a list of dicts with time and corner positions (in mm).
@@ -125,6 +126,14 @@ class MuJoCoEngine:
         """
         if self.model is None or self.data is None:
             self.build()
+
+        def checkpoint(current_time):
+            if cancelled is not None and cancelled():
+                raise InterruptedError('Simulation cancelled.')
+            if progress is not None:
+                progress(current_time, stop_condition_time)
+
+        checkpoint(float(self.data.time))
 
         if not np.isfinite(target_fps) or target_fps <= 0:
             raise ValueError('target_fps must be positive and finite.')
@@ -148,6 +157,7 @@ class MuJoCoEngine:
 
                 # Main viewer loop
                 while viewer.is_running():
+                    checkpoint(current_time)
                     step_start = time.time()
 
                     if simulation_active and current_time < stop_condition_time:
@@ -176,6 +186,7 @@ class MuJoCoEngine:
         else:
             # Run headless
             while current_time < stop_condition_time:
+                checkpoint(current_time)
                 self._record_frame(history, current_time)
 
                 # Step simulation
@@ -192,6 +203,7 @@ class MuJoCoEngine:
                 if consecutive_rest_frames > target_fps * 0.5:
                     break
 
+        checkpoint(current_time)
         return history
 
     def record_samples(self, samples=100, substeps=4):

@@ -128,15 +128,12 @@ def load_profile(path=None, *, example='18'):
     return profile
 
 
-def preview_profile(profile, path):
-    """Save a local geometry check; this does not attest physical calibration."""
+def draw_profile(profile, ax):
+    """Draw the same absolute-mm layout in CLI and GUI previews."""
     from itertools import product
-    import matplotlib.pyplot as plt
     validate_profile(profile)
     dims = np.asarray(profile['box_dims_mm'])
     corners = np.asarray(list(product((-1, 1), repeat=3))) * dims / 2
-    fig = plt.figure(figsize=(11, 8))
-    ax = fig.add_subplot(111, projection='3d')
     for i, p in enumerate(corners):
         for q in corners[i+1:]:
             if np.count_nonzero(p != q) == 1:
@@ -157,6 +154,14 @@ def preview_profile(profile, path):
            title=f'{profile["profile_id"]}\n{profile["publication"]}; origin = geometric center')
     ax.set_box_aspect(dims)
     ax.legend(loc='upper left')
+
+
+def preview_profile(profile, path):
+    """Save a local geometry check; this does not attest physical calibration."""
+    import matplotlib.pyplot as plt
+    fig = plt.figure(figsize=(11, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    draw_profile(profile, ax)
     fig.tight_layout()
     fig.savefig(path, dpi=140)
     plt.close(fig)

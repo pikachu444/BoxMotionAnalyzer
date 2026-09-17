@@ -3,6 +3,8 @@
 Last Reviewed: 2026-09-18
 
 ## 개요
+Simulation의 `Marker CSV…`에서 공개 예제/JSON 배치를 미리 보고 관측을 생성할 수 있다. `Open in Step 1`은 새 분석 창에 완성된 `observed.csv`만 열고 해당 파일의 치수를 표시한다. 치수 확인·면 검토·보정 승인은 자동으로 선택하지 않는다. 기존 분석 창은 보존한다. 생성·취소·저장 흐름은 [Simulation 안내](../../simulation.md)를 참고한다.
+
 일반 합성 CSV의 검토·보정·저장·재열기·Raw 처리 연결은 [일반 생성 경로 검증](../reference/general_export_recovery.md)을 참고한다. 자세를 계산할 수 없는 행은 그대로 남기며, 전체 구간의 접촉 근거가 불완전하면 `Unavailable`로 표시한다. 이는 접촉이 없었다는 뜻이 아니다.
 
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.

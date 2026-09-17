@@ -510,11 +510,17 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", raw_csv_file_filter())
         if filepath:
             try:
-                preview = self._prepare_csv_preview(filepath)
-                self._apply_csv_preview(filepath, preview)
+                self.load_csv_path(filepath)
             except Exception as exc:
                 self.append_log(f"[ERROR] Failed to load or parse file: {exc}")
                 self.log_message.emit(f"[ERROR] Failed to load or parse file: {exc}")
+
+    def load_csv_path(self, filepath):
+        """Load a selected observation file through the normal preview path."""
+        if self.scene_busy or self.marker_review_busy:
+            raise RuntimeError('Wait for the current review before opening another capture.')
+        preview = self._prepare_csv_preview(filepath)
+        self._apply_csv_preview(filepath, preview)
 
     def _prepare_csv_preview(self, filepath):
         """Read without replacing the active source or its operator review."""

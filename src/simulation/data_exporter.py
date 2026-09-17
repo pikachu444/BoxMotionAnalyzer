@@ -9,8 +9,8 @@ import pandas as pd
 from scipy.spatial.transform import Rotation
 from src.config.data_columns import HeaderL1 as L1, HeaderL2 as L2, HeaderL3 as L3
 from src.utils.artifact_metadata import normalize_metadata
+from .history_trajectory import WORLD_TRANSFORM, history_to_trajectory, world_vectors
 
-WORLD_TRANSFORM = np.array([[1., 0., 0.], [0., 0., 1.], [0., -1., 0.]])
 EXPORT_VERSION = 'simulation-pose-actual-time-v1'
 
 
@@ -56,29 +56,9 @@ class DataExporter:
 
     def calculate_derivatives(self):
         """Return new arrays; neither history nor nested arrays are modified."""
-        if not self.history:
-            raise ValueError('Simulation history is empty.')
-        times = np.asarray([frame['time'] for frame in self.history], dtype=float)
-        with np.errstate(over='ignore', invalid='ignore'):
-            intervals = np.diff(times)
-        if not np.isfinite(times).all() or not np.isfinite(intervals).all() or np.any(intervals <= 0):
-            raise ValueError('Simulation times must be finite and strictly increasing.')
-
-        def vectors(key):
-            value = np.asarray([frame[key] for frame in self.history], dtype=float)
-            if value.shape != (len(times), 3) or not np.isfinite(value).all():
-                raise ValueError(f'Simulation {key} must contain finite XYZ vectors.')
-            return value @ WORLD_TRANSFORM.T
-
-        quaternion = np.asarray([frame['QuaternionWXYZ'] for frame in self.history], dtype=float)
-        if quaternion.shape != (len(times), 4) or not np.isfinite(quaternion).all():
-            raise ValueError('Simulation quaternion must contain finite WXYZ values.')
-        norms = np.linalg.norm(quaternion, axis=1)
-        if np.any(norms == 0) or not np.isfinite(norms).all():
-            raise ValueError('Simulation quaternion must have a finite nonzero norm.')
-        quaternion = quaternion / norms[:, None]
-        # Change only the world basis: local box/corner axes remain unchanged.
-        rotation = Rotation.from_matrix(WORLD_TRANSFORM) * Rotation.from_quat(quaternion[:, [1, 2, 3, 0]])
+        trajectory = history_to_trajectory(self.history)
+        times = trajectory['time_s']
+        rotation = Rotation.from_matrix(trajectory['rotation_matrix'])
         quaternion = rotation.as_quat()[:, [3, 0, 1, 2]]
         for i in range(1, len(quaternion)):
             if np.dot(quaternion[i - 1], quaternion[i]) < 0:
@@ -90,10 +70,10 @@ class DataExporter:
             omega[1:] = (rotation[1:] * rotation[:-1].inv()).as_rotvec() / dt[:, None]
             alpha[2:] = np.diff(omega[1:], axis=0) / ((dt[:-1] + dt[1:]) / 2)[:, None]
         result = {'time': times, 'quaternion': quaternion, 'rotation': rotation.as_rotvec(),
-                  'omega': omega, 'alpha': alpha, 'COM': vectors('COM')}
+                  'omega': omega, 'alpha': alpha, 'COM': trajectory['com_mm']}
         rng = np.random.default_rng(self.seed)
         for entity in ['Center'] + [f'C{i}' for i in range(1, 9)]:
-            position = vectors('BodyOrigin' if entity == 'Center' else entity)
+            position = trajectory['body_origin_mm'] if entity == 'Center' else world_vectors(self.history, entity)
             if self.add_noise and entity != 'Center':
                 position = position + rng.normal(0., self.noise_std, position.shape)
             velocity, acceleration = interval_derivatives(position, times)
