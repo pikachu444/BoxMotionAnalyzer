@@ -1,9 +1,14 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-09-17
+Last Reviewed: 2026-09-18
 
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
+
+#115부터 자세/코너가 불완전한 구간은 기존 ContactState 컬럼에 `Unavailable`,
+ContactDetectionMethod에 `insufficient_pose`를 기록한다. confidence와 t1/최초 접촉
+시간은 NaN이며 감지 플래그는 false다. 원래 행과 프레임 지표의 NaN을 보존하며,
+이를 NoContact로 해석하지 않는다. 새 컬럼이나 저장 버전은 추가하지 않는다.
 
 Marker Review #112는 v3 face context에 `review_policy`, 실제 face `geometry`,
 `optimizer` 설정을 추가한다. 이벤트 evidence의 `review_execution`은 snapshot key,

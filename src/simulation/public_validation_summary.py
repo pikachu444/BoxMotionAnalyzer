@@ -8,6 +8,10 @@ import xml.etree.ElementTree as ET
 # Explicitly inspected engine/observation-to-consumer paths. Pure array, schema,
 # policy and GUI-only checks remain Level 1 even when their fixture is public.
 SYNTHETIC_TESTS = {
+    'test_general_export_recovery': {
+        'test_general_export_review_roundtrip_and_actual_reprocessing',
+        'test_identical_solved_observations_do_not_identify_the_physical_cause',
+    },
     'test_mujoco_marker_fixtures': {
         'test_actual_time_and_fresh_origin_com_rotation_sites',
         'test_public_32_collision_truth_is_independent_of_injected_flip',

@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
+import pytest
 from scipy.spatial.transform import Rotation as R
 
 from src.analysis.pipeline.drop_posture_post_processor import DropPosturePostProcessor
@@ -71,6 +72,32 @@ def _processor() -> DropPosturePostProcessor:
         vertical_axis_idx=config_app.WORLD_VERTICAL_AXIS_INDEX,
         floor_level=config_app.FLOOR_LEVEL,
     )
+
+
+@pytest.mark.parametrize('missing', ['first', 'middle', 'all', 'single_corner', 'before_contact'])
+def test_incomplete_pose_preserves_rows_and_does_not_claim_contact(missing):
+    heights = [10., 9., 8., 7., 6., 5., 4., 3., 2., 1., 0., 0.]
+    frame = _make_result_frame(R.identity(), heights)
+    rows = {'first': [0], 'middle': [4], 'all': list(range(12)),
+            'single_corner': [4], 'before_contact': [8]}[missing]
+    columns = [f'C1{CornerCoordCols.Y_SUFFIX}'] if missing == 'single_corner' else list(frame.columns)
+    frame.loc[frame.index[rows], columns] = np.nan
+    original = frame.copy(deep=True)
+    result = _processor().process(frame)
+    pd.testing.assert_frame_equal(result[frame.columns], original)
+    assert result[DropPostureCols.CMIN_INDEX].iloc[rows].isna().all()
+    assert result[DropPostureSummaryCols.CONTACT_STATE].eq('Unavailable').all()
+    assert not result[DropPostureSummaryCols.T1_DETECTED].any()
+    assert not result[DropPostureSummaryCols.IMPACT_DETECTED].any()
+    assert result[DropPostureSummaryCols.FIRST_IMPACT_TIME_SEC].isna().all()
+    assert result[DropPostureSummaryCols.CONTACT_CONFIDENCE].isna().all()
+    remaining = np.ones(12, dtype=bool)
+    remaining[rows] = False
+    # Identity rotation gives the literal lowest corner C1 and zero tilt.
+    assert result.loc[remaining, DropPostureCols.CMIN_INDEX].eq(1).all()
+    assert result.loc[remaining, DropPostureCols.BETA_DEG].eq(0).all()
+    if missing == 'all':
+        assert result[DropPostureSummaryCols.REFERENCE_FACE].eq('').all()
 
 
 class TestDropPosturePostProcessor(unittest.TestCase):

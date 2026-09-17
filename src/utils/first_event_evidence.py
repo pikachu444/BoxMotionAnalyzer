@@ -86,6 +86,9 @@ so. An available scene gap policy also checks the prefix for hidden events.
     state, policy = '', ''
     try:
         state = str(_constant(df, 'ContactState')).strip()
+        if state == 'Unavailable':
+            return FirstEventEvidence(state=state, status='unavailable',
+                                      reasons=('Pose or corner observations are incomplete',))
         if state not in ('NoContact', 'Approach', 'SustainedContact', 'ImpactEvent'):
             raise ValueError('ContactState: unknown state')
         flags, errors = {}, []

@@ -1,8 +1,10 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-09-17
+Last Reviewed: 2026-09-18
 
 ## 개요
+일반 합성 CSV의 검토·보정·저장·재열기·Raw 처리 연결은 [일반 생성 경로 검증](../reference/general_export_recovery.md)을 참고한다. 자세를 계산할 수 없는 행은 그대로 남기며, 전체 구간의 접촉 근거가 불완전하면 `Unavailable`로 표시한다. 이는 접촉이 없었다는 뜻이 아니다.
+
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
 
 ## 1. 전체 구조
