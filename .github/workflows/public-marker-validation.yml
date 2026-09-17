@@ -154,6 +154,7 @@ jobs:
             tmp/issue84_public_metrics/**/public_impact_metrics.json
             tmp/issue75_trial_gui/**
             tmp/issue78_release_gui/**
+            tmp/issue118/qt_*/**
             tmp/issue81_gui/**
             tmp/issue74_gui/**
           if-no-files-found: warn

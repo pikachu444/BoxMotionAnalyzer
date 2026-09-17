@@ -1,6 +1,6 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-09-14
+Last Reviewed: 2026-09-17
 
 ## 개요
 이 문서는 현재 구현된 분석 GUI의 구조를 설명한다. 기준 코드는 `src/analysis/app/main_window.py`, `src/analysis/ui/widget_raw_data_processing.py`, `src/analysis/ui/widget_slice_processing.py`, `src/analysis/ui/widget_results_analyzer.py`이다.
@@ -226,6 +226,8 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 ### 6.2. 표와 그래프
 - Summary의 Pre-contact는 접촉 전 수직 속도·수평 속력·각속력과 조건부 속도 환산 높이를 보여 준다. Repeats는 호환되는 서로 다른 관측만 집계하며 복사본을 반복 실험으로 세지 않는다.
 - Details는 저장된 요약값과 가능한 기준 차이를 표시한다. 꼭짓점 ID는 C1~C8로 표시하고 수치 차를 계산하지 않는다. 다른 범주값도 실제 기준값과 비교한다. 미확정·호환 불가 값은 차이를 만들지 않는다.
+- #118: 첫 접촉 또는 confidence의 사건 선언·시간 연결·출처가 불충분하면 Details에 `Unavailable`과 사유를 표시한다. 원래 저장값과 검증 수준은 tooltip으로 확인하며 무효한 값의 기준 차이는 만들지 않는다. Repeats의 n tooltip에는 파일별 제외 사유가 남는다.
+- Confidence 반복 통계는 `ImpactEvent` 상태만 포함한다. 정상 지속 접촉 등의 점수는 Details에서 상태와 `not pooled`를 함께 표시한다. 이 점수에는 plateau 근거도 포함될 수 있으며 첫 충격 확률이 아니다. 저장 사건 일관성과 Contact의 기하 재검증은 별도다.
 - Contact는 별도로 지정한 의도와 추정 첫 접촉을 Match/Different/Unclear로 비교한다. Different를 ISTA 실패로 해석하지 않는다. 적용 조건은 `drop_result_comparison_plan.md`를 따른다.
 - Summary 옆의 Experimental 또는 Diagnostic 표시는 독립 실측 보정이 완료되지 않은 지표임을 구분한다.
 - 그래프 선택은 Face tilt, Long axis tilt, Short axis tilt, Lowest corner, Face height difference로 표시한다. 저장 열 이름은 그대로 유지한다.

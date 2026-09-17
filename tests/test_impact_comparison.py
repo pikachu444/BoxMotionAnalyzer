@@ -168,3 +168,61 @@ def test_empty_after_last_removal(tmp_path):
         model.remove_file(name)
     assert model.get_impact_comparison() == dict(files={}, statistics={}, source=None)
     assert not model.impact_results
+
+
+@pytest.mark.parametrize('fault', ['no_impact', 'missing_time', 'nonfinite_time', 'off_timeline',
+                                 'row_conflict', 'duplicate_column', 'resampled', 'tracking_jump'])
+def test_stale_event_reopens_with_zero_diagnostic_counts_and_reasons(tmp_path, fault):
+    frame = make_frame(result_resampling=fault == 'resampled')
+    column = (*SUMMARY, 'FirstImpactTimeSec')
+    if fault == 'no_impact':
+        frame[(*SUMMARY, 'ImpactDetected')] = False
+        frame[(*SUMMARY, 'ContactState')] = 'NoContact'
+    elif fault == 'missing_time':
+        frame = frame.drop(columns=[column])
+    elif fault == 'nonfinite_time':
+        frame[column] = float('inf')
+    elif fault == 'off_timeline':
+        frame[column] = .049
+    elif fault == 'row_conflict':
+        frame.loc[2, column] = .040
+    elif fault == 'duplicate_column':
+        frame = pd.concat([frame, frame[[column]]], axis=1)
+    elif fault == 'tracking_jump':
+        review = json.loads(frame[REVIEW].iloc[0])
+        review['candidate'].update(motion='tracking_jump', evidence_class='tracking_jump')
+        frame[REVIEW] = json.dumps(review)
+    from src.analysis.compare.impact_metrics import calculate_impact_metrics
+    direct = calculate_impact_metrics(frame)
+    path = tmp_path / 'stale.proc'
+    frame.to_csv(path, index=False)
+    before = path.read_bytes()
+    for _ in range(2):
+        model = ComparisonModel()
+        name = model.load_file(str(path))
+        result = model.get_impact_comparison()
+        for key in ('first_contact', 'contact_confidence'):
+            assert result['statistics'][key]['n'] == 0
+            assert result['files'][name]['result'].metrics[key] == direct.metrics[key]
+            assert direct.metrics[key].value is None and direct.metrics[key].reason
+        details = model.get_summary_differences()[name]
+        assert details['summary']['FirstImpactContact'] == '{C1,C2}'
+        assert details['summary']['ContactConfidence'] == .75
+        assert details['diffs']['FirstImpactContact'] is None
+        assert details['diffs']['ContactConfidence'] is None
+        assert details['metric_reasons']['FirstImpactContact']
+        assert path.read_bytes() == before
+
+
+def test_invalid_baseline_diagnostic_cannot_produce_raw_summary_agreement(tmp_path):
+    model = ComparisonModel()
+    invalid = make_frame()
+    invalid[(*SUMMARY, 'ImpactDetected')] = False
+    load_frame(model, tmp_path / 'invalid.proc', invalid)
+    valid = load_frame(model, tmp_path / 'valid.proc', make_frame(source_sha256='b' * 64))
+    details = model.get_summary_differences()
+    assert details[valid]['diffs']['FirstImpactContact'] is None
+    assert details[valid]['diffs']['ContactConfidence'] is None
+    stats = model.get_impact_comparison()['statistics']
+    assert stats['first_contact'] == dict(n=1, counts={'{C1,C2}': 1}, reference=None, matching=None)
+    assert stats['contact_confidence'] == dict(n=1, mean=.75, min=.75, max=.75, range=0.)

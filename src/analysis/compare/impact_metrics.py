@@ -21,6 +21,7 @@ from src.config.config_app import FACE_DEFINITIONS, calculate_local_box_corners
 from src.utils.artifact_metadata import DIMENSIONS, read_identity
 from src.utils.processing_settings import validate_processing_record
 from src.utils.result_time import exceeds_gap_limit, timeline_from_frame
+from src.utils.first_event_evidence import FirstEventEvidence, validate_first_event
 
 
 METRICS = {
@@ -36,8 +37,8 @@ METRICS = {
         tooltip='Recorded corner contact set; inferred by the contact algorithm.'),
     'final_face': dict(label='Final face', unit='', kind='categorical', role='diagnostic',
         tooltip='Explicit recorded final face only; reference face is not substituted.'),
-    'contact_confidence': dict(label='Contact confidence', unit='', kind='numeric', role='diagnostic',
-        tooltip='Uncalibrated contact-algorithm score; not a physical probability.'),
+    'contact_confidence': dict(label='Contact confidence (ImpactEvent)', unit='', kind='numeric', role='diagnostic',
+        tooltip='Recorded algorithm score for a consistent ImpactEvent; may include plateau evidence. Not a first-impact probability.'),
 }
 FIT_SETTINGS = {
     'window_s': .040, 'minimum_span_s': .020, 'minimum_samples': 5,
@@ -289,13 +290,26 @@ def _pose_component(df, rows, name):
 
 def calculate_impact_metrics(df):
     metrics = _diagnostics(df)
+    diagnostic_field_errors = {key: metrics[key].reason for key in
+                               ('first_contact', 'contact_confidence', 'final_face')}
+    observation_key, review, review_error = None, None, ''
+    try:
+        review, observation_key = _observation_context(df)
+    except (ValueError, TypeError, KeyError, OverflowError) as error:
+        review_error = str(error)
+    event = (FirstEventEvidence(reasons=(review_error,)) if review_error
+             else validate_first_event(df, review))
+    if not event.valid:
+        for key in ('first_contact', 'contact_confidence'):
+            metrics[key] = MetricValue(None, event.reason)
     evidence = {'method': 'one-sided-quadratic-observed-pose-v1', 'settings': dict(FIT_SETTINGS),
                 'support_policy': 'uncalibrated software limits; not ISTA limits or measured accuracy',
                 'origin': 'box geometric centre; historical CoM column name',
-                'vertical_sign': 'world Y upward positive', 'fit_residuals': {}}
-    observation_key = None
+                'vertical_sign': 'world Y upward positive', 'fit_residuals': {},
+                'first_event': event.as_dict(), 'diagnostic_field_errors': diagnostic_field_errors}
     try:
-        review, observation_key = _observation_context(df)
+        if review_error:
+            raise ValueError(review_error)
         artifact, dims, floor = _processing_context(df)
         registration = _review_context(review, dims, floor)
         rows, times, time, impact = _window(df, review)

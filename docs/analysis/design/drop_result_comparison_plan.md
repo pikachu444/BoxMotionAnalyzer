@@ -1,6 +1,6 @@
 # Drop Result Comparison Plan
 
-Last Reviewed: 2026-09-14
+Last Reviewed: 2026-09-17
 
 ## 1. 목적
 여러 낙하 실험 결과 `.proc`를 같은 기준으로 비교해, 반복 실험 간 자세 편차와 충격 경로 차이를 설명할 수 있게 한다.
@@ -145,7 +145,7 @@ JSON/hash 불일치·상수 아님·누락을 기본값으로 복구하지 않�
 
 통계는 기존 출처·모델·치수·타입·항목·마커 배치·실행 설정·시간 호환성 검사를 통과한 파일에서만 계산한다. 원 촬영 해시, 검토 구간, 항목이 같은 복사본·보정본은 한 관측으로 센다. 같은 촬영의 별도 구간도 통계적 독립성이 입증된 것은 아니다. 각 지표의 유효한 n, 평균, 최솟값, 최댓값, 범위를 따로 계산하며 n<3은 부족 표시를 한다. 각 낙하의 등가높이를 먼저 구한 뒤 평균한다.
 
-첫 접촉·명시적으로 기록된 최종 면·접촉 confidence는 진단값이다. 접촉 범주의 기준 파일 일치는 의도한 목표 접촉 일치가 아니다. 현재 pipeline이 최종 면을 기록하지 않으면 해당 n은 0이며 ReferenceFace로 채우지 않는다. 각운동 추정이 지원되지 않아도 유효한 기존 진단값의 집계는 따로 유지한다. 저장 파일은 수정하지 않으며 다시 열 때 동일 근거에서 계산한다.
+첫 접촉·명시적으로 기록된 최종 면·접촉 confidence는 진단값이다. 접촉 범주의 기준 파일 일치는 의도한 목표 접촉 일치가 아니다. 현재 pipeline이 최종 면을 기록하지 않으면 해당 n은 0이며 ReferenceFace로 채우지 않는다. 각운동 추정이 지원되지 않아도 자체 사건 계약을 통과한 진단값의 집계는 따로 유지한다. #118의 저장 사건 일관성 계약과 상태별 confidence 집계는 `../reference/result_schema_notes.md`를 따른다. 저장 파일은 수정하지 않으며 다시 열 때 동일 근거에서 계산한다.
 
 2026-09-12 사용자는 이 실험에 목표각도가 없음을 명확히 했다. 목표각도 오차는 #77 요구사항에서 제거한다. 각도 기준 자료를 요구하거나 해당 지표를 자료 부족으로 표시하지 않는다. 실제 접촉 전 자세, 접촉 부위·순서, 반복 관측 사이의 차이가 분석 대상이다. 기존 자세·접촉 진단값과 비교 기능을 먼저 재사용하고, 시뮬레이터의 대표 자세를 실험의 정답 자세로 사용하지 않는다.
 
@@ -224,3 +224,38 @@ Windows 125% 배율에서 실제 CompareMainWindow/VTK를 실행했다. 창은 1
 PR #93의 첫 CI 34669654729는 원본·보정본 중복 제외 사유 검사에서 실패했다. pandas 3.0.5가 숫자로만 된 `OriginalSourceSha256`를 Python int로 읽어 유효한 관측 키를 만들지 못했다. 기존 pandas 2.3.3에서는 문자열로 읽혀 로컬 검사를 통과했던 차이다. 원본 해시 열에도 문자열 converter를 명시했고, 정수에서 해시를 추측해 복원하지 않는다. 선행 0을 포함한 해시도 정확한 문자열로 재열린다.
 
 격리한 pandas 3.0.5에서 실제 직렬화·로더·호환성·집계 경로를 확인하고, 기존 2.3.3에서는 원 실패 사례와 새 해시 보존 사례만 다시 확인했다. 기대 n이나 허용 오차는 바꾸지 않았다. 수치 추정과 GUI 코드는 그대로이며 해당 독립 승인은 유지된다. 기록은 `tmp/issue77_pandas3_fix.xml`과 `tmp/issue77_pandas2_fix.xml`이다. 최종 원격 CI 결과는 PR에 기록한다.
+
+## 7. #118 저장 사건 모순 차단 (2026-09-17)
+
+기준 main은 `3ace8159f8504b0cc1c11e923f03494c5448f6f0`이다. 사용자가 계획과 기존 Details/Repeats의 최소 표시 목업을 승인했다. 저장 진단을 보존하되 선언·실제 시간 연결·출처를 입증하지 못하면 제외하는 정책을 적용했다. 정확한 계약·legacy 변경 범위는 `../reference/result_schema_notes.md`의 Recorded first-event consistency를 따른다. #119의 중복 해소나 #120의 bounded 검출/재계산은 구현하지 않았다.
+
+### 독립 기대값과 실행
+
+입력은 공개 `impact_metric_fixtures.make_frame()`의 명시적 시간·저장값과 `test_contact_comparison.contact_frame()`의 독립 코너 기하/시간이다. seed나 비공개 실자료는 사용하지 않았다. contact_frame의 바닥 코너 집합은 `{C1,C2,C5,C6}`, t1/사건/다음 표본은 0.072/0.080/0.088초로 미리 정해져 있다. 저장 confidence 0.75는 스키마 검증용 literal이며 검출기의 물리 정답이나 기하 재계산 점수가 아니다.
+
+| 입력/조작 | 독립 기대값 | 결과 |
+| --- | --- | --- |
+| ImpactDetected=False, NoContact인데 stale 접촉값 유지 | 접촉/confidence unavailable, 각각 n=0 | 직접 계산과 저장·재열기 일치 |
+| flag/state 한 필드 변경, 누락·중복 열·행 충돌, NaN/Inf/off-timeline/중복·역행 시간 | 해당 사건 제외 및 원인 | 회귀 통과 |
+| smoothing, 3표본 사건, raw pose 성분 부재 | 속도 unavailable; 접촉 `{C1,C2}`, confidence .75 유지 | 통과; 사건과 미분 적합 지원 분리 |
+| 정상 비충격, 잘못된 confidence, tracking_jump 선언 | 첫 접촉 n=0; 상태/오류 구분 | 직접 계산·재열기·Qt 통과 |
+| 공개 정상/모순 파일 한 쌍 | first_contact n=1, confidence n=1/mean=.75; Contact Match=1/Unclear=1 | Qt 조작과 새 모델 재열기 일치; 입력 bytes 불변 |
+| legacy Contact의 사건 뒤 C8 NaN | 기존 Unclear 유지 | #120 경계 회귀 통과 |
+
+Windows Python 3.13.5, NumPy 2.2.4, pandas 2.2.3, SciPy 1.15.2의 초기 계산/모델 검사 225개가 통과했다. 기존 프로젝트 가상환경(Python 3.13.5, Qt/PySide6 6.10.1, MuJoCo 3.6.0)에서는 `QT_SCALE_FACTOR=1.25`로 다음 검사를 실행해 **244 passed**를 얻었다:
+
+```text
+python -m pytest -q tests/test_impact_metrics.py tests/test_impact_comparison.py tests/test_contact_comparison.py tests/test_compare_model.py tests/test_impact_comparison_gui.py tests/test_contact_comparison_gui.py tests/test_comparison_gui.py tests/test_comparison_layout.py --basetemp tmp/issue118/pytest_final1 --disable-warnings --tb=short --junitxml=tmp/issue118/all.xml
+```
+
+화면 검토 후 짧은 사유 표시를 수정한 최종 GUI 재실행은 `tests/test_impact_comparison_gui.py` **5 passed**이며 `tmp/issue118/gui_final.xml`에 남았다. 독립 리뷰의 최초 관련 검사 **169 passed**, tracking-jump 수정 재검사 **9 passed**도 별도로 확인했다. 로컬 필수 범위에 skip은 없었다. 초기 sandbox 임시 폴더 접근 실패, 기본 Python의 MuJoCo 부재로 인한 GUI 수집 실패, 새 테스트의 표시명 대소문자 불일치는 성공으로 세지 않았다. 각각 실행 환경·기존 환경 선택·테스트 표시명을 바로잡았으며 수치 기대값은 완화하지 않았다.
+
+### 실제 화면과 독립 수정
+
+실제 CompareMainWindow/Qt 위젯에서 Open, 모드 전환, 스크롤 및 값/사유를 검사했다. 파일 선택 반환값은 주입하고 QTest 입력을 사용했다. 측정 크기는 **1510×800 logical, DPR 1.25**다. 외부 Windows 조작 도구에는 이 실행 창이 노출되지 않아 OS 네이티브 마우스 검증 완료로 보고하지 않는다. Qt 캡처의 검은 OpenGL 자식 영역은 별도 VTK 원본 렌더로 확인했고 합성하지 않았다. 레이아웃 단위 검사의 mock VTK와 이 실제 렌더 검증을 구분한다.
+
+- `tmp/issue118/qt_b744b474`: 초기 Details의 전체 필드 사유가 셀 높이를 넘는 것을 발견한 화면.
+- `tmp/issue118/qt_51b46040`: 최종 Details/Repeats, 별도 `vtk.png`, 입력 hash와 literal n을 담은 `execution.json`. 첫 접촉 행 24 logical px, 표 viewport 49 px로 사유가 읽힌다. 이후 재실행은 고유 `qt_*` 폴더에 보존하며 CI도 공개 결과를 artifact로 보관한다.
+- 공개 GUI `valid.proc` SHA-256: `0aa2bee8c4cc16aef5b2f3de1c3a64a3d9ffb4f4f31a9b0372c09c491c4b3059`; `stale.proc`: `ff49f8d69e35cdd0ce91a9651254ba8225683adcaef2a2d89426523d385fa138`.
+
+독립 리뷰는 tracking_jump 선언이 저장 접촉 진단에 남는 누락을 찾아 공통 검사와 직렬화 회귀를 추가하도록 했다. 자가검토에서는 비충격 상태의 잘못된 confidence 표시와 긴 셀 사유를 수정했다. 리뷰어가 수정 코드·문서·최종 화면을 다시 대조해 남은 actionable 지적이 없음을 확인했다. 실측 물리 정확도·보정 확률·ISTA 합격 판정은 이 검증으로 주장하지 않는다. 최종 commit/PR/필수 CI는 연결 PR에서 추적하며, 사용자 검토 전 병합·자동 병합·이슈 종료를 하지 않는다.

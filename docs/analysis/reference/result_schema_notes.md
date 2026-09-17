@@ -1,6 +1,6 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-09-13
+Last Reviewed: 2026-09-17
 
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
@@ -479,6 +479,55 @@ variants of the same observation count once. Valid source
 and interval identity is independent of whether a raw-pose derivative is
 supported, so existing diagnostic values remain eligible for their own counts.
 Unknown optional review context does not prevent individual artifact loading.
+
+### Recorded first-event consistency (#118)
+
+`utils/first_event_evidence.py` supplies the read-only
+`recorded-first-event-consistency-v1` contract to impact diagnostics and intended
+contact comparison. It does not change `.proc` columns, producer settings, or the
+legacy `drop-posture-evidence-v1` detector. Results expose `evidence.first_event`
+with status, reasons, state, row indices/times, contact policy, gap policy and
+`geometry_verified=False`. `recorded-consistent` means a supported **stored
+declaration**, not replayed geometry, calibrated accuracy or a bounded detector.
+
+- Require constant single event columns, valid boolean declarations,
+  `T1Detected=True`, `ImpactDetected=True`, and `ContactState=ImpactEvent`.
+- Canonical seconds must be finite and strictly increasing. The first impact
+  must equal one actual row; t1 must equal its immediately preceding row and a
+  following event row must exist. No snapping, interpolation, index substitution,
+  five-sample velocity window or velocity-fit gap threshold is used.
+- Require known artifact source/schema, coordinate/units policy, a valid executed
+  processing record and the supported legacy contact policy. Legacy resampled
+  output does not identify original observed rows; its event diagnostics are
+  unavailable with a reason. Unknown provenance remains individual-view only.
+- Present scene review must parse correctly. Changed evidence, tracking-jump
+  declarations, a left-censored event or a bracket outside the reviewed interval
+  exclude the event. A recorded scene `gap_factor` checks the prefix through the
+  following event row using the existing median-dt policy. If no gap factor was
+  recorded, report temporal adjacency only; do not invent a numeric gap rule or
+  claim an earlier unobserved event has been geometrically ruled out.
+- A non-impact state with false flags and absent event fields is `no-impact`,
+  not a malformed impact and not a contact match. Stale event fields are a
+  contradiction. `NoContact` has the producer's zero score; a nonzero score is
+  contradictory. Other confidence values still require the existing finite
+  0–1 field check.
+
+First contact and confidence have metric-specific value/reason gates. Confidence
+repeat statistics contain only valid ImpactEvent scores; the score can include
+plateau evidence and is not a first-impact probability. SustainedContact and
+Approach scores remain separately labeled stored values in Details and do not
+enter that mean. A missing velocity component, smoothing, or absent raw-pose fit
+support alone does not erase a consistent recorded diagnostic. FinalFace remains
+an independent explicit stored category; neither reference face nor this event
+contract verifies final-face geometry or settling.
+
+The approved compatibility change removes diagnostic eligibility previously
+given to contradictory event declarations, invalid execution/review provenance
+and legacy resampled results with unproven observed rows. It does not rewrite old
+artifacts. Existing compatible observation grouping still applies. Metric-wise
+duplicate resolution is #119. The bounded producer/replay policy, local numerical
+evidence, and distinct processing identity for old/new policies belong to #120;
+until then Contact retains its full legacy geometric replay and tail limitations.
 
 Conditional equivalent height additionally requires current included SceneReview,
 confirmed Type G/free_fall at applied/reference edition 2018-03, matching executed

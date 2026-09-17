@@ -243,8 +243,15 @@ def test_diagnostic_observation_identity_survives_unsupported_pose_estimation(fa
         frame[('Info', 'Artifact', 'ProcessingSettingsJson')] = '{invalid'
     result = calculate_impact_metrics(frame)
     assert result.observation_key == ('a' * 64, 0., .056, 'G01')
-    assert result.metrics['first_contact'].value == '{C1,C2}'
-    assert result.metrics['contact_confidence'].value == .75
+    # #118: identity survives, but unproven original samples or execution
+    # provenance no longer qualify as supported recorded event diagnostics.
+    if fault in ('resampling', 'settings'):
+        assert result.metrics['first_contact'].value is None
+        assert result.metrics['contact_confidence'].value is None
+        assert result.metrics['first_contact'].reason
+    else:
+        assert result.metrics['first_contact'].value == '{C1,C2}'
+        assert result.metrics['contact_confidence'].value == .75
     assert all(result.metrics[key].value is None for key in NUMERIC)
 
 
@@ -254,8 +261,9 @@ def test_malformed_optional_scene_context_returns_unavailable_metrics_not_an_exc
     _edit_review(frame, lambda r: r.update({field: None}))
     result = calculate_impact_metrics(frame)
     assert all(result.metrics[key].value is None and result.metrics[key].reason for key in NUMERIC)
-    assert result.metrics['first_contact'].value == '{C1,C2}'
-    assert result.metrics['contact_confidence'].value == .75
+    assert result.metrics['first_contact'].value is None
+    assert result.metrics['contact_confidence'].value is None
+    assert result.metrics['first_contact'].reason
     assert (result.observation_key is not None) == (field == 'detection')
 
 
@@ -321,3 +329,136 @@ def test_large_variable_axis_rotation_is_outside_the_supported_fit_range():
     assert result.metrics['angular_speed'].value is None
     assert result.metrics['equivalent_height'].value is None
     assert result.metrics['vertical_velocity'].value == pytest.approx(-4.)
+
+
+@pytest.mark.parametrize(('field', 'value', 'reason'), [
+    ('T1Detected', False, 'T1Detected'), ('T1Detected', 'invalid', 'invalid boolean'),
+    ('ImpactDetected', False, 'ImpactDetected'), ('ImpactDetected', 'invalid', 'invalid boolean'),
+    ('ContactState', 'NoContact', 'conflicts'), ('ContactState', 'SustainedContact', 'conflicts'),
+    ('ContactState', 'Approach', 'conflicts'), ('ContactState', 'unknown', 'unknown state'),
+    ('FirstImpactTimeSec', np.nan, 'finite time'), ('FirstImpactTimeSec', np.inf, 'finite time'),
+    ('FirstImpactTimeSec', .049, 'actual timeline sample'), ('FirstImpactTimeSec', 100., 'actual timeline sample'),
+    ('FirstImpactTimeSec', .056, 'following event sample'),
+    ('T1MinusTimeSec', .039, 'immediately before'), ('T1MinusTimeSec', True, 'finite time'),
+])
+def test_stale_contact_is_excluded_for_each_event_contradiction(field, value, reason):
+    frame = make_frame()
+    frame[(*SUMMARY, field)] = value
+    before = frame.copy(deep=True)
+    result = calculate_impact_metrics(frame)
+    for key in ('first_contact', 'contact_confidence'):
+        assert result.metrics[key].value is None
+        assert reason in result.metrics[key].reason
+    pd.testing.assert_frame_equal(frame, before)
+
+
+@pytest.mark.parametrize('field', ['T1Detected', 'ImpactDetected', 'ContactState',
+                                  'T1MinusTimeSec', 'FirstImpactTimeSec'])
+@pytest.mark.parametrize('fault', ['missing', 'duplicate', 'row_conflict'])
+def test_event_columns_are_single_constants(field, fault):
+    frame = make_frame()
+    column = (*SUMMARY, field)
+    if fault == 'missing':
+        frame = frame.drop(columns=[column])
+    elif fault == 'duplicate':
+        frame = pd.concat([frame, frame[[column]]], axis=1)
+    else:
+        frame[column] = frame[column].astype(object)
+        frame.loc[2, column] = 'different row'
+    result = calculate_impact_metrics(frame)
+    assert result.metrics['first_contact'].value is None
+    assert result.metrics['contact_confidence'].value is None
+    assert field in result.metrics['first_contact'].reason
+
+
+@pytest.mark.parametrize('fault', ['duplicate', 'decreasing', 'nan', 'conflicting_column'])
+def test_event_requires_unambiguous_actual_timeline(fault):
+    frame = make_frame()
+    column = ('Info', 'Time', 'Time')
+    if fault == 'conflicting_column':
+        extra = frame[[column]].copy()
+        extra[column] += .001
+        frame = pd.concat([frame, extra], axis=1)
+    else:
+        frame.loc[6, column] = {'duplicate': .040, 'decreasing': .039, 'nan': np.nan}[fault]
+    result = calculate_impact_metrics(frame)
+    assert result.metrics['first_contact'].value is None
+    assert 'Time unavailable' in result.metrics['first_contact'].reason
+
+
+@pytest.mark.parametrize('state', ['NoContact', 'Approach', 'SustainedContact'])
+def test_no_impact_state_is_not_a_first_contact_or_zero_confidence_observation(state):
+    frame = make_frame()
+    for name in ('T1Detected', 'ImpactDetected'):
+        frame[(*SUMMARY, name)] = False
+    for name in ('T1MinusTimeSec', 'FirstImpactTimeSec', 'FirstImpactContact'):
+        frame[(*SUMMARY, name)] = np.nan
+    frame[(*SUMMARY, 'ContactState')] = state
+    frame[(*SUMMARY, 'ContactConfidence')] = 0. if state == 'NoContact' else .2
+    frame[(*SUMMARY, 'FinalFace')] = 'BOTTOM'
+    result = calculate_impact_metrics(frame)
+    assert result.evidence['first_event']['status'] == 'no-impact'
+    assert result.metrics['first_contact'].value is None
+    assert result.metrics['contact_confidence'].value is None
+    assert result.metrics['final_face'].value == 'BOTTOM'
+    assert 'No impact declared' in result.metrics['first_contact'].reason
+
+
+def test_minimal_recorded_event_survives_absent_pose_and_velocity_fit_support():
+    frame = make_frame(times=[.040, .048, .056], marker_smoothing=True)
+    frame = frame.drop(columns=[c for c in frame.columns if c[:2] == ('Position', 'CoM')])
+    result = calculate_impact_metrics(frame)
+    assert all(result.metrics[key].value is None for key in NUMERIC)
+    assert result.metrics['first_contact'].value == '{C1,C2}'
+    assert result.metrics['contact_confidence'].value == .75
+    event = result.evidence['first_event']
+    assert event['times_s'] == (.040, .048, .056)
+    assert event['indices'] == (0, 1, 2)
+    assert event['status'] == 'recorded-consistent'
+    assert event['contract_version'] == 'recorded-first-event-consistency-v1'
+    assert event['contact_policy'] == 'drop-posture-evidence-v1'
+    assert event['geometry_verified'] is False
+
+
+@pytest.mark.parametrize('gap_index', [2, 6, 7])
+def test_recorded_gap_policy_rejects_earlier_or_bracketing_gaps(gap_index):
+    times = np.arange(8) * .008
+    times[gap_index:] += .1
+    frame = make_frame(times=times, t1=times[5], impact=times[6])
+    _edit_review(frame, lambda r: r['detection']['settings'].update(gap_factor=3.5))
+    result = calculate_impact_metrics(frame)
+    assert result.metrics['first_contact'].value is None
+    assert 'tracking gap' in result.metrics['first_contact'].reason
+
+
+@pytest.mark.parametrize('fault', ['legacy_source', 'missing_provenance', 'unknown_policy', 'right_bracket', 'left_censored', 'tracking_jump'])
+def test_unsupported_event_provenance_and_review_are_explicit(fault):
+    frame = make_frame()
+    if fault == 'legacy_source':
+        frame[('Info', 'Artifact', 'SourceKind')] = 'unknown_legacy'
+    elif fault == 'missing_provenance':
+        frame = frame.drop(columns=[('Info', 'Artifact', 'ProcessingSettingsJson')])
+    elif fault == 'unknown_policy':
+        update_processing(frame, lambda s: s['postprocess'].update(contact_policy='future-policy'))
+    elif fault == 'left_censored':
+        _edit_review(frame, lambda r: r['candidate'].update(left_censored=True))
+    elif fault == 'tracking_jump':
+        _edit_review(frame, lambda r: r['candidate'].update(motion='tracking_jump', evidence_class='tracking_jump'))
+    else:
+        _edit_review(frame, lambda r: r['candidate'].update(end=.048))
+    result = calculate_impact_metrics(frame)
+    assert result.metrics['first_contact'].value is None
+    assert result.metrics['contact_confidence'].value is None
+    assert result.metrics['first_contact'].reason
+
+
+def test_no_contact_with_nonzero_score_is_a_contradiction_not_valid_no_contact():
+    frame = make_frame()
+    for field in ('T1Detected', 'ImpactDetected'):
+        frame[(*SUMMARY, field)] = False
+    for field in ('T1MinusTimeSec', 'FirstImpactTimeSec', 'FirstImpactContact'):
+        frame[(*SUMMARY, field)] = np.nan
+    frame[(*SUMMARY, 'ContactState')] = 'NoContact'
+    result = calculate_impact_metrics(frame)
+    assert result.evidence['first_event']['status'] == 'unavailable'
+    assert 'zero score' in result.metrics['contact_confidence'].reason
