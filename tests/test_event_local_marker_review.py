@@ -165,6 +165,26 @@ def test_cancel_inside_real_scipy_objective(monkeypatch):
     assert count == 3
 
 
+@pytest.mark.parametrize('cancel_at', [256, 1000])
+def test_cancel_mid_scan_or_at_scan_end_starts_no_fit(cancel_at):
+    cancelled = threading.Event()
+    RecordingOptimizer.calls = []
+    worker = MarkerReviewWorker(observations(1000, ((800, 'X'),)), DIMS,
+                                 RecordingOptimizer, FaceAssignmentAnalyzer)
+    worker.isInterruptionRequested = cancelled.is_set
+    seen = []
+    def progress(phase, done, total):
+        if phase == 'Scanning observations':
+            seen.append(done)
+            if done >= cancel_at:
+                cancelled.set()
+    worker.progress.connect(progress)
+    worker.run()
+    assert seen and cancelled.is_set()
+    assert worker.result is None and worker.error is None
+    assert RecordingOptimizer.calls == []
+
+
 def test_low_coverage_pose_jump_parity_keeps_candidate_but_abstains():
     frame = observations(stationary=False)
     for mid in ('F1', 'B1', 'R1', 'L1'):
@@ -228,7 +248,7 @@ def test_actual_event_local_control_meanings(kind):
         points = frame[xyz].to_numpy().reshape(-1, len(LAYOUT), 3)
         centers = points.mean(axis=1, keepdims=True)
         angles = np.linspace(0, 180, 40) if kind == 'genuine' else np.r_[np.zeros(12), np.full(28, 90)]
-        rotations = Rotation.from_euler('x', angles, degrees=True).as_matrix()
+        rotations = Rotation.from_euler('x', angles[:, None], degrees=True).as_matrix()
         frame[xyz] = (np.einsum('nij,nmj->nmi', rotations, points - centers) + centers).reshape(40, -1)
     result = review_observations(frame, DIMS)
     recommended = [(c.boundary_time_sec, c.recommendation_axis) for c in result['candidates'] if c.recommendation_axis]

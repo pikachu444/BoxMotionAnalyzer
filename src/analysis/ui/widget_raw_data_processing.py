@@ -682,7 +682,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             self.marker_review_summary_label.setText('Cancelling review...')
 
     def _review_progress(self, worker, phase, done, total):
-        if worker is not self.review_worker or worker.isInterruptionRequested():
+        if worker is not self.review_worker or worker.cancel_requested or worker.isInterruptionRequested():
             return
         self.marker_review_summary_label.setText(phase)
         self.marker_review_progress.setRange(0, total if total else 0)
