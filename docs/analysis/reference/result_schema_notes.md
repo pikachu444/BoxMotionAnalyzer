@@ -5,6 +5,12 @@ Last Reviewed: 2026-09-17
 ## 1. 목적
 결과 컬럼 스키마를 Analysis/UI/Export 전 구간에서 일관되게 유지하기 위한 현재 구조를 요약한다.
 
+Marker Review #112는 v3 face context에 `review_policy`, 실제 face `geometry`,
+`optimizer` 설정을 추가한다. 이벤트 evidence의 `review_execution`은 snapshot key,
+계산 창/budget/seed 정책을 기록한다. 기존 v3 읽기·누적 annotation 검증은 유지하며
+과거 파일에 새 실행 근거를 임의로 채우지 않는다. 승인 0건도 context가 있으면 v3로
+저장한다. [실행 및 호환 계약](marker_review_execution.md)을 참고한다.
+
 ## 2. 데이터 흐름
 1. `PoseOptimizer`가 포즈 컬럼(`P_TX`~`P_RZ`)과 코너 좌표를 생성
 2. `VelocityCalculator`가 Global 속도/가속도 및 코너 속도(`Global_V_*`)를 계산

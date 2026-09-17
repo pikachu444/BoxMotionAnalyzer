@@ -253,6 +253,8 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     assert raw_widget.raw_data is not None
     for edit, value in zip((raw_widget.le_box_l, raw_widget.le_box_w, raw_widget.le_box_h), dims):
         edit.setText(str(value))
+    raw_widget.marker_review_section.setExpanded(True)
+    QTest.mouseClick(raw_widget.confirm_review_dimensions, Qt.MouseButton.LeftButton)
     window.grab().save(str(evidence / 'before.png'))
 
     # Timer operates the real modal when the real background review completes.
@@ -283,7 +285,7 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     timer.start(100)
     QTest.mouseClick(raw_widget.review_marker_flips_button, Qt.MouseButton.LeftButton)
     assert not raw_widget.load_csv_button.isEnabled()
-    wait_until(lambda: bool(reviewed) or bool(errors))
+    wait_until(lambda: (bool(reviewed) and raw_widget.review_worker is None) or bool(errors))
     assert raw_widget.marker_review_dirty
     assert not raw_widget.save_slice_button.isEnabled()
     choose(corrected)
@@ -560,8 +562,11 @@ def test_reordered_annotations_rereview_off_on_and_suffix_pose(tmp_path, monkeyp
                 dialog.reject()
         timer.timeout.connect(handle)
         timer.start(100)
+        widget.marker_review_section.setExpanded(True)
+        if not widget.confirm_review_dimensions.isChecked():
+            QTest.mouseClick(widget.confirm_review_dimensions, Qt.MouseButton.LeftButton)
         QTest.mouseClick(widget.review_marker_flips_button, Qt.MouseButton.LeftButton)
-        wait_until(lambda: bool(finished))
+        wait_until(lambda: bool(finished) and widget.review_worker is None)
         timer.stop()
     try:
         reload(source)

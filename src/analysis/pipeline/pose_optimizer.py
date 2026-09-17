@@ -196,7 +196,16 @@ class PoseOptimizer:
         df: pd.DataFrame,
         box_dims: np.ndarray | list[float] | tuple[float, float, float] | None = None,
         initial_pose: np.ndarray | None = None,
+        *,
+        cancelled=None,
+        max_iterations: int | None = None,
+        fit_observer=None,
     ) -> pd.DataFrame:
+        def checkpoint():
+            if cancelled is not None and cancelled():
+                raise InterruptedError('Marker review cancelled.')
+
+        checkpoint()
         if df.empty:
             return df
 
@@ -219,6 +228,7 @@ class PoseOptimizer:
             raise ValueError("Initial pose must contain six finite values.")
 
         for frame_index, frame_row in df.iterrows():
+            checkpoint()
             # 1. 현재 프레임의 유효한 마커 데이터 추출
             markers = []
             marker_ids = self._marker_ids(frame_row)
@@ -285,12 +295,26 @@ class PoseOptimizer:
             simplex = np.vstack([initial_params, initial_params + np.diag(steps)])
 
             # 3. SciPy를 사용한 최적화 실행
+            def objective(params, *args):
+                checkpoint()
+                return _objective_function(params, *args)
+
+            options = {**self.optimizer_options, 'initial_simplex': simplex}
+            if max_iterations is not None:
+                options['maxiter'] = int(max_iterations)
+            if fit_observer is not None:
+                fit_observer('start', frame_index, None)
             result = minimize(
-                _objective_function, initial_params,
+                objective, initial_params,
                 args=(markers, box_dims, self.face_definitions),
                 method='Nelder-Mead',
-                options={**self.optimizer_options, 'initial_simplex': simplex}
+                options=options,
+                callback=lambda _params: checkpoint(),
             )
+            checkpoint()
+            if fit_observer is not None:
+                fit_observer('finished', frame_index,
+                             {'iterations': int(result.nit), 'evaluations': int(result.nfev)})
 
             # 4. 결과 저장 및 다음 프레임을 위한 값 업데이트
             optimized_params = result.x
@@ -316,6 +340,8 @@ class PoseOptimizer:
 
         if not results:
             return df
+
+        checkpoint()
 
         # 5. 최종 결과를 원본 DataFrame에 통합
         pose_df = pd.DataFrame(results).set_index(TimeCols.TIME)

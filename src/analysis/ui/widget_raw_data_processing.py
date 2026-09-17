@@ -1,12 +1,14 @@
 import os
 import json
 import math
+from dataclasses import asdict
+from copy import deepcopy
 from pathlib import Path
-from PySide6.QtCore import Signal, Qt, QThread
+from PySide6.QtCore import Signal, Qt, QThread, QTimer
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog,
-    QDialog, QMessageBox, QSizePolicy, QSplitter, QScrollArea
+    QDialog, QMessageBox, QSizePolicy, QSplitter, QScrollArea, QCheckBox, QProgressBar
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -45,24 +47,80 @@ from src.analysis.pipeline.pose_optimizer import PoseOptimizer
 from src.analysis.pipeline.face_assignment import (
     FaceAssignmentAnalyzer, materialize_face_assignments, marker_face, FACE_ASSIGNMENT_ALGORITHM_VERSION,
 )
+from src.analysis.pipeline.marker_review import (
+    REVIEW_VERSION, canonical_key, copy_observations, file_digest, review_observations, analyzer_configuration,
+)
 
 
 class MarkerReviewWorker(QThread):
     completed = Signal(object)
     failed = Signal(str)
+    progress = Signal(str, int, int)
+    cancelled = Signal()
 
-    def __init__(self, data, dims, optimizer_factory, analyzer_factory, parent=None):
+    def __init__(self, data, dims, optimizer_factory, analyzer_factory, parent=None, *, identity=None,
+                 source_path=None, source_sha256=None):
         super().__init__(parent)
-        self.data, self.dims = data.copy(deep=True), dims
+        # Pin the loaded stream; UI mutations replace it and invalidate the run.
+        # The cancellable owned copy is prepared off the GUI thread in run().
+        self.data, self.dims = data, tuple(dims)
         self.optimizer_factory, self.analyzer_factory = optimizer_factory, analyzer_factory
+        self.identity = identity
+        self.source_path, self.source_sha256 = source_path, source_sha256
+        self.result, self.error = None, None
+        self.cache = None
+        self.cancel_requested = False
+        self.pending_confirmation = None
+        self.verified_signature = None
+
+    @staticmethod
+    def source_signature(path):
+        stat = os.stat(path)
+        return stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns, stat.st_ino
+
+    def verify_source(self):
+        if not self.source_path:
+            return
+        self.progress.emit('Validating source', 0, 0)
+        before = self.source_signature(self.source_path)
+        digest = file_digest(self.source_path, self.isInterruptionRequested)
+        after = self.source_signature(self.source_path)
+        if digest != self.source_sha256 or before != after:
+            raise ValueError('Capture changed since loading. Reload it before review.')
+        self.verified_signature = after
 
     def run(self):
         try:
-            optimizer = self.optimizer_factory(face_definitions=config_app.FACE_DEFINITIONS,
-                local_box_corners=config_app.calculate_local_box_corners(self.dims))
-            pose = optimizer.process(self.data, box_dims=self.dims)
-            self.completed.emit(self.analyzer_factory().detect(self.data, pose, self.dims))
+            check = self.isInterruptionRequested
+            self.verify_source()
+            if self.pending_confirmation is not None:
+                if check():
+                    raise InterruptedError('Marker review cancelled.')
+                self.result = self.pending_confirmation
+                return
+            data, digest = copy_observations(self.data, check, self.progress.emit)
+            analyzer = self.analyzer_factory()
+            cache_key = canonical_key({'identity': self.identity, 'observations': digest,
+                                       'dims': self.dims, 'configuration': analyzer_configuration(analyzer)})
+            if self.optimizer_factory is PoseOptimizer and self.cache and self.cache.get('key') == cache_key:
+                result = deepcopy(self.cache['result'])
+                result['statistics'] = {'cache_hit': True, 'whole_input_pose_passes': 0,
+                    'process_calls': [], 'nonlinear_fits': 0, 'iterations': 0, 'evaluations': 0,
+                    'frame_fit_budget': 0}
+            else:
+                result = review_observations(data, self.dims, optimizer_factory=self.optimizer_factory,
+                    analyzer_factory=lambda: analyzer, cancelled=check, progress=self.progress.emit,
+                    identity={'request': self.identity, 'observations': digest})
+            result['cache_key'] = cache_key
+            self.verify_source()
+            if check():
+                raise InterruptedError('Marker review cancelled.')
+            self.result = result
+            self.completed.emit(result)
+        except InterruptedError:
+            self.cancelled.emit()
         except Exception as exc:
+            self.error = str(exc)
             self.failed.emit(str(exc))
 
 
@@ -98,6 +156,13 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.active_source_sha256 = ""
         self.review_worker = None
         self.marker_review_busy = False
+        self._source_revision = 0
+        self._review_invalidated = False
+        self._confirmed_dimensions = None
+        self._last_review_dimensions = None
+        self._close_after_review = False
+        self.last_review_statistics = None
+        self._review_cache = None
         self.marker_flip_dialog_factory = MarkerFlipReviewDialog
         self.pose_optimizer_factory = PoseOptimizer
         self._init_scene_state()
@@ -175,6 +240,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
         marker_review_layout.addWidget(self.marker_review_source_label)
+        self.confirm_review_dimensions = QCheckBox('Confirm dimensions for this capture')
+        marker_review_layout.addWidget(self.confirm_review_dimensions)
         marker_review_button_row = QHBoxLayout()
         self.review_marker_flips_button = QPushButton("Review")
         self.review_marker_flips_button.setEnabled(False)
@@ -183,6 +250,14 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         marker_review_button_row.addWidget(self.review_marker_flips_button)
         marker_review_button_row.addWidget(self.save_corrected_source_button)
         marker_review_layout.addLayout(marker_review_button_row)
+        progress_row = QHBoxLayout()
+        self.marker_review_progress = QProgressBar()
+        self.cancel_marker_review_button = QPushButton('Cancel')
+        progress_row.addWidget(self.marker_review_progress, 1)
+        progress_row.addWidget(self.cancel_marker_review_button)
+        marker_review_layout.addLayout(progress_row)
+        self.marker_review_progress.hide()
+        self.cancel_marker_review_button.hide()
         self.marker_review_section = CollapsibleSection('Marker correction', self.marker_review_group)
 
         # Log Output (Local to this widget for immediate feedback, or shared?)
@@ -325,6 +400,10 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.save_slice_button.clicked.connect(self.save_scene_slice)
         self.save_process_button.clicked.connect(self.process_requested)
         self.review_marker_flips_button.clicked.connect(self.open_marker_flip_review)
+        self.cancel_marker_review_button.clicked.connect(self.cancel_marker_review)
+        self.confirm_review_dimensions.toggled.connect(self._confirm_dimensions)
+        for edit in (self.le_box_l, self.le_box_w, self.le_box_h):
+            edit.textChanged.connect(self._review_dimensions_changed)
         self.save_corrected_source_button.clicked.connect(self.save_corrected_source)
         self.combo_plot_axis.currentIndexChanged.connect(self.update_plot)
         self.plot_manager.region_changed_signal.connect(self.on_region_changed)
@@ -332,6 +411,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.le_slice_start.editingFinished.connect(self.update_span_selector_from_inputs)
         self.le_slice_end.editingFinished.connect(self.update_span_selector_from_inputs)
         self._connect_scene_signals()
+        self._review_dimensions_changed()
 
     def append_log(self, message):
         self.log_output.append(message)
@@ -383,7 +463,9 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
     def _update_marker_review_summary(self) -> None:
         reviewed_count = len(normalize_marker_corrections(self.marker_correction_decisions))
         approved_count = len(self._approved_marker_corrections())
-        if self.marker_review_dirty:
+        if self._review_invalidated:
+            self.marker_review_summary_label.setText('Source or geometry changed; review again')
+        elif self.marker_review_dirty:
             self.marker_review_section.setExpanded(True)
             self.marker_review_summary_label.setText(
                 f"{reviewed_count} reviewed, {approved_count} approved; unsaved"
@@ -423,7 +505,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self._update_scene_gates()
 
     def open_csv_file(self):
-        if self.scene_busy:
+        if self.scene_busy or self.marker_review_busy:
             return
         filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", raw_csv_file_filter())
         if filepath:
@@ -436,6 +518,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
     def _prepare_csv_preview(self, filepath):
         """Read without replacing the active source or its operator review."""
+        signature = MarkerReviewWorker.source_signature(filepath)
         header_info, raw_data = self.data_loader.load_csv(filepath)
         parsed_data = self.parser.process(header_info, raw_data)
         (
@@ -452,13 +535,19 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             raw_data,
             parsed_data,
         )
+        source_sha256 = _sha256_file(filepath)
+        if signature != MarkerReviewWorker.source_signature(filepath):
+            raise ValueError('Capture changed while loading. Reload it before review.')
         return dict(header_info=header_info, raw_data=raw_data, parsed_data=parsed_data,
-                    source_sha256=_sha256_file(filepath), marker_state=(
+                    source_sha256=source_sha256, marker_state=(
                         correction_source_metadata, review_raw_data, review_parsed_data,
                         original_source_reference, original_source_sha256,
                         marker_correction_decisions, review_header_info))
 
     def _apply_csv_preview(self, filepath, preview, *, emit=True):
+        self._source_revision += 1
+        self.cancel_marker_review()
+        self.confirm_review_dimensions.setChecked(False)
         header_info, raw_data, parsed_data = (preview[key] for key in
                                               ('header_info', 'raw_data', 'parsed_data'))
         (correction_source_metadata, review_raw_data, review_parsed_data,
@@ -484,6 +573,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.marker_flip_candidates = []
         self.marker_correction_decisions = marker_correction_decisions
         self.marker_review_dirty = False
+        self._review_invalidated = False
         self._reset_scenes()
         self._set_file_path_display(filepath)
         self.append_log("[INFO] Preview parsing complete.")
@@ -533,7 +623,107 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             "export_metadata": self.header_info.get("export_metadata", {}),
             "original_source_rows": original.get("original_source_rows", self.header_info.get("source_rows", [])),
             "source_sha256": self.original_source_sha256, "algorithm_version": FACE_ASSIGNMENT_ALGORITHM_VERSION,
+            "review_policy": REVIEW_VERSION,
+            "geometry": config_app.FACE_DEFINITIONS,
+            "optimizer": {"method": "Nelder-Mead", "maxiter": 1500,
+                          "xatol": self._optimizer_settings()['xatol'],
+                          "fatol": self._optimizer_settings()['fatol']},
         }, sort_keys=True, separators=(",", ":"))
+
+    @staticmethod
+    def _optimizer_settings():
+        from src.config import config_analysis
+        return {'xatol': config_analysis.OPTIMIZER_XTOL, 'fatol': config_analysis.OPTIMIZER_FATOL}
+
+    def _review_identity(self):
+        return canonical_key({'revision': self._source_revision, 'active_source': self.active_source_sha256,
+            'context': self._face_context(), 'history': [asdict(d) for d in self.marker_correction_decisions],
+            'configuration': analyzer_configuration(self.marker_flip_analyzer_factory()),
+            'registration': self.scene_registration.profile if self.scene_registration else None})
+
+    def _confirm_dimensions(self, checked):
+        try:
+            self._confirmed_dimensions = self._read_box_dimensions() if checked else None
+            if checked:
+                self._last_review_dimensions = self._confirmed_dimensions
+        except ValueError:
+            self._confirmed_dimensions = None
+            self.confirm_review_dimensions.setChecked(False)
+        self._update_scene_gates()
+
+    def _review_dimensions_changed(self):
+        try:
+            dimensions = self._read_box_dimensions()
+        except ValueError:
+            dimensions = None
+        if dimensions is not None and dimensions == self._last_review_dimensions:
+            return
+        self._last_review_dimensions = dimensions
+        self._review_cache = None
+        self.confirm_review_dimensions.setChecked(False)
+        self._confirmed_dimensions = None
+        try:
+            label = ' × '.join(f'{v:g}' for v in self._read_box_dimensions())
+            self.confirm_review_dimensions.setText(f'Use {label} mm for review')
+        except ValueError:
+            self.confirm_review_dimensions.setText('Enter valid dimensions for review')
+        self.cancel_marker_review()
+        if self.marker_correction_decisions or self.marker_flip_candidates:
+            self._review_invalidated = True
+            self.marker_review_summary_label.setText('Dimensions changed; review again')
+        self._update_scene_gates()
+
+    def cancel_marker_review(self):
+        worker = self.review_worker
+        if worker is not None:
+            worker.cancel_requested = True
+            worker.requestInterruption()
+            self.cancel_marker_review_button.setEnabled(False)
+            self.marker_review_summary_label.setText('Cancelling review...')
+
+    def _review_progress(self, worker, phase, done, total):
+        if worker is not self.review_worker or worker.cancel_requested or worker.isInterruptionRequested():
+            return
+        self.marker_review_summary_label.setText(phase)
+        self.marker_review_progress.setRange(0, total if total else 0)
+        self.marker_review_progress.setValue(done)
+
+    def _review_finished(self, worker):
+        if worker is not self.review_worker:
+            worker.deleteLater()
+            return
+        self.review_worker = None
+        self._set_review_busy(False)
+        interrupted = worker.cancel_requested or worker.isInterruptionRequested()
+        identity_matches = False
+        try:
+            identity_matches = worker.identity == self._review_identity()
+            current = (identity_matches
+                       and worker.verified_signature == worker.source_signature(self.source_path))
+        except (ValueError, TypeError, OSError):
+            current = False
+        if identity_matches and not current and not interrupted:
+            self._review_invalidated = True
+            self._review_cache = None
+            self._update_marker_review_summary()
+        if interrupted or not identity_matches or self._close_after_review:
+            self.append_log('[INFO] Review cancelled or source changed; existing decisions were kept.')
+        elif worker.error:
+            self._marker_review_failed(worker.error)
+        elif not current:
+            self._marker_review_failed('Capture changed after validation. Reload before review.')
+        elif worker.pending_confirmation is not None and worker.result is not None:
+            result = worker.result
+            self._commit_marker_review(result['candidates'], result['decisions'], result['context'])
+        elif worker.result is not None:
+            self._review_cache = {'key': worker.result['cache_key'], 'result': deepcopy(worker.result)}
+            self.last_review_statistics = worker.result['statistics']
+            self._pending_review_identity = worker.identity
+            self._finish_marker_review(worker.result['candidates'])
+        worker.deleteLater()
+        if self._close_after_review:
+            self._close_after_review = False
+            QTimer.singleShot(0, self.window().close)
 
     def _set_review_busy(self, busy):
         self.marker_review_busy = bool(busy)
@@ -541,8 +731,13 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.review_marker_flips_button.setEnabled(not busy)
         self.review_marker_flips_button.setText('Reviewing...' if busy else 'Review')
         self.box_dims_group.setEnabled(not busy)
+        self.confirm_review_dimensions.setEnabled(not busy)
+        self.marker_review_progress.setVisible(busy)
+        self.cancel_marker_review_button.setVisible(busy)
+        self.cancel_marker_review_button.setEnabled(busy)
         if busy:
-            self.marker_review_summary_label.setText('Estimating box motion')
+            self.marker_review_section.setExpanded(True)
+            self.marker_review_summary_label.setText('Preparing review')
             self.save_slice_button.setEnabled(False)
             self.save_corrected_source_button.setEnabled(False)
         else:
@@ -557,22 +752,28 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         if self.review_worker is not None and self.review_worker.isRunning():
             return
         try:
+            if self._confirmed_dimensions != self._read_box_dimensions():
+                raise ValueError('Confirm the box dimensions for this capture before Review.')
             if self.correction_source_metadata is not None and self.correction_source_metadata.schema_version == "2":
                 raise ValueError("Legacy XYZ-corrected files remain readable. Load the original CSV for a new face review.")
             metadata = self.header_info.get("export_metadata", {})
             if metadata.get("Length Units") != "Millimeters" or metadata.get("Coordinate Space") != "Global":
                 raise ValueError("Face review requires documented Global / Millimeters input.")
             context = self._face_context()
-            # Validate all base faces without changing the active stream.
-            materialize_face_assignments(self.review_header_info or self.header_info, self.review_raw_data, [], json.loads(context)["base_faces"])
+            base = json.loads(context)['base_faces']
+            from src.analysis.pipeline.face_assignment import FACES
+            if not base or any(face not in FACES for face in base.values()):
+                raise ValueError('Every marker requires a known original analysis face.')
             self._pending_review_context = context
-            self.append_log("[INFO] Estimating pose and refitting local-axis face hypotheses...")
+            self.append_log('[INFO] Scanning observations before bounded local-axis review...')
             self._set_review_busy(True)
             self.review_worker = MarkerReviewWorker(self.review_parsed_data, self._read_box_dimensions(),
-                self.pose_optimizer_factory, self.marker_flip_analyzer_factory, self)
-            self.review_worker.completed.connect(self._finish_marker_review)
-            self.review_worker.failed.connect(self._marker_review_failed)
-            self.review_worker.finished.connect(self._update_scene_gates)
+                self.pose_optimizer_factory, self.marker_flip_analyzer_factory, self,
+                identity=self._review_identity(), source_path=self.source_path, source_sha256=self.active_source_sha256)
+            worker = self.review_worker
+            worker.cache = self._review_cache
+            worker.progress.connect(lambda phase, done, total: self._review_progress(worker, phase, done, total))
+            worker.finished.connect(lambda: self._review_finished(worker))
             self.review_worker.start()
         except Exception as exc:
             self._marker_review_failed(str(exc))
@@ -584,22 +785,53 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
     def _finish_marker_review(self, candidates):
         self._set_review_busy(False)
-        if not candidates:
+        if not candidates and not (self._review_invalidated or self.marker_correction_decisions or self.marker_flip_candidates):
+            self.marker_review_summary_label.setText('No review candidates')
             QMessageBox.information(self, "Marker Flip Review", "No reviewable candidate discontinuities were found.")
             return
         context = self._pending_review_context
-        existing = self.marker_correction_decisions if context == self.review_context_json else []
+        identity = getattr(self, '_pending_review_identity', None)
+        existing = self.marker_correction_decisions if context == self.review_context_json and not self._review_invalidated else []
         # Only retain approvals for unchanged evidence, kind, and operator action.
         existing = [d for d in existing if any(c.event_id == d.event_id
             and c.evidence_json() == d.evidence_json and c.correction_kind == d.correction_kind
             and c.boundary_time_sec == d.boundary_time_sec for c in candidates)]
         dialog = self.marker_flip_dialog_factory(candidates, existing_decisions=existing, parent=self)
+        if identity is not None:
+            dialog.setWindowTitle('Marker Review — ' + Path(self.source_path).name + ' — '
+                                  + ' × '.join(map(str, self._read_box_dimensions())) + ' mm')
         if dialog.exec() != QDialog.DialogCode.Accepted:
             self.append_log("[INFO] Marker flip review cancelled; no decisions changed.")
             return
+        try:
+            valid_identity = identity is None or identity == self._review_identity()
+        except (ValueError, TypeError, OSError):
+            valid_identity = False
+        if not valid_identity:
+            self._review_invalidated = True
+            self._marker_review_failed('Source or dimensions changed; review again. No decisions were applied.')
+            return
+        decisions = normalize_marker_corrections(dialog.get_decisions())
+        if identity is not None:
+            # Validate the bytes asynchronously before committing operator choices.
+            # The old approvals remain active until this cancellable phase finishes.
+            self._set_review_busy(True)
+            worker = MarkerReviewWorker(None, self._read_box_dimensions(), self.pose_optimizer_factory,
+                self.marker_flip_analyzer_factory, self, identity=identity,
+                source_path=self.source_path, source_sha256=self.active_source_sha256)
+            worker.pending_confirmation = {'candidates': candidates, 'decisions': decisions, 'context': context}
+            self.review_worker = worker
+            worker.progress.connect(lambda phase, done, total: self._review_progress(worker, phase, done, total))
+            worker.finished.connect(lambda: self._review_finished(worker))
+            worker.start()
+            return
+        self._commit_marker_review(candidates, decisions, context)
+
+    def _commit_marker_review(self, candidates, decisions, context):
         self.marker_flip_candidates = candidates
-        self.marker_correction_decisions = normalize_marker_corrections(dialog.get_decisions())
+        self.marker_correction_decisions = decisions
         self.review_context_json = context
+        self._review_invalidated = False
         active = list(self.correction_source_metadata.decisions) if self.correction_source_metadata else []
         self.marker_review_dirty = self.marker_correction_decisions != active or (
             self.correction_source_metadata is None or self.correction_source_metadata.context_json != context)
@@ -612,13 +844,16 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             self.scene_worker.requestInterruption()
             event.ignore()
             return
-        if self.review_worker is not None and self.review_worker.isRunning():
+        if self.review_worker is not None:
+            self._close_after_review = True
+            self.cancel_marker_review()
             event.ignore()
-            self.append_log("[INFO] Wait for the active review calculation before closing.")
             return
         super().closeEvent(event)
 
     def save_corrected_source(self):
+        if self.marker_review_busy or self._review_invalidated:
+            return
         if (
             self.raw_data is None
             or self.review_raw_data is None
@@ -641,7 +876,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         try:
             if self.active_source_sha256 and _sha256_file(self.source_path) != self.active_source_sha256:
                 raise ValueError("Active source changed since loading; reload before saving.")
-            is_face = any(d.correction_kind == "face_assignment" for d in self.marker_correction_decisions)
+            is_face = bool(self.review_context_json) or any(d.correction_kind == "face_assignment" for d in self.marker_correction_decisions)
             corrected_header = self.header_info
             if is_face:
                 if not self.review_context_json or self._face_context() != self.review_context_json:
@@ -825,6 +1060,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         config_app.BOX_DIMS = [length, width, height]
 
     def _save_slice(self) -> bool:
+        if self.marker_review_busy or self._review_invalidated:
+            return False
         if self.raw_data is None or self.parsed_data is None:
             return False
 

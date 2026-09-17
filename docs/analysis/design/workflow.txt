@@ -1,11 +1,12 @@
 현재 분석 GUI 작업 흐름
 
-Last Reviewed: 2026-09-14
+Last Reviewed: 2026-09-17
 
 Launcher → Step 1: Scenes → Step 1.5: Process → Step 2: Results → Compare
 
 Step 1: CSV 열기 → Detect scenes → 범위/Include/Exclude 검토 → Save and Process
 - 보정은 필요할 때 검토하며 Apply는 명시적 승인이다. 변경한 보정은 별도 corrected CSV에 저장한다.
+- Marker Review: 현재 치수 확인 → 전체 관측 scan → 이벤트별 국소 계산 → 승인 → Save corrected. 계산과 Done 검증은 Cancel/close로 안전하게 취소할 수 있다.
 - 수동 범위 slice 저장과 검토 작업의 중간 저장/재열기도 가능하다.
 - 포함 장면을 모두 저장한 뒤 정확한 파일 목록을 한 번 전달한다. 취소/부분 실패는 이동하지 않는다.
 

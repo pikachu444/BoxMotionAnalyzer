@@ -233,7 +233,10 @@ def _validate_run(root, *, profile=None, invocation=None, failure_reports=None):
         # dimensions. Fixture events and truth are read after candidate creation.
         parsed = Parser(FACE_PREFIX_TO_INFO).process(header, raw)
         pose = _optimizer(dims).process(parsed, dims)
-        candidates = FaceAssignmentAnalyzer().detect(parsed, pose, dims)
+        # Review sees observations only. The full pose above belongs to the
+        # independent recovery evaluator and is never a detector input.
+        from src.analysis.pipeline.marker_review import review_observations
+        candidates = review_observations(parsed, dims)['candidates']
         manifest = _read_manifest(root)
         for key in ('case_id', 'source_kind', 'evidence_level', 'seed', 'generator_version', 'profile', 'layout_hash', 'events'):
             report[key] = deepcopy(manifest.get(key))

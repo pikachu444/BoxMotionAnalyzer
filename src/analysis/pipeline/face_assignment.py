@@ -6,10 +6,11 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from copy import deepcopy
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.distance import pdist
 
-from src.config import config_app
+from src.config import config_app, config_analysis
 from src.config.data_columns import FACE_PREFIX_TO_INFO, PoseCols
 from .marker_flip import (
     MarkerFlipAnalyzer, MarkerFlipHypothesis, MarkerFlipCandidate, local_axis_half_turn,
@@ -123,6 +124,45 @@ def face_segments(df):
 
 class FaceAssignmentAnalyzer(MarkerFlipAnalyzer):
     """Conditional continuity ranking; an axis does not diagnose the cause."""
+
+    def __init__(self, *, optimizer_factory=None, cancelled=None, fit_observer=None,
+                 process_observer=None, **settings):
+        super().__init__(**settings)
+        self.optimizer_factory = optimizer_factory
+        self.cancelled = cancelled
+        self.fit_observer = fit_observer
+        self.process_observer = process_observer
+        self.face_definitions = deepcopy(config_app.FACE_DEFINITIONS)
+        self.optimizer_options = {'maxiter': 1500, 'xatol': config_analysis.OPTIMIZER_XTOL,
+                                  'fatol': config_analysis.OPTIMIZER_FATOL}
+        self.gap_limit = None
+
+    def checkpoint(self):
+        if self.cancelled is not None and self.cancelled():
+            raise InterruptedError('Marker review cancelled.')
+
+    def fit_frames(self, frame, box_dims, *, initial_pose=None, role='baseline'):
+        from .pose_optimizer import PoseOptimizer
+        self.checkpoint()
+        factory = self.optimizer_factory or PoseOptimizer
+        if self.gap_limit is not None and len(frame) > 1:
+            cuts = np.flatnonzero(np.diff(np.asarray(frame.index, float)) > self.gap_limit) + 1
+            if len(cuts):
+                pieces = []
+                for start, end in zip([0, *cuts], [*cuts, len(frame)]):
+                    pieces.append(self.fit_frames(frame.iloc[start:end], box_dims,
+                        initial_pose=initial_pose if start == 0 else None, role=role))
+                return pd.concat(pieces)
+        if self.process_observer is not None:
+            self.process_observer(role, frame)
+        optimizer = factory(face_definitions=self.face_definitions,
+                            local_box_corners=config_app.calculate_local_box_corners(box_dims))
+        optimizer.optimizer_options = dict(self.optimizer_options)
+        fitted = optimizer.process(
+            frame, box_dims=box_dims, initial_pose=initial_pose,
+            cancelled=self.cancelled, max_iterations=1500, fit_observer=self.fit_observer)
+        self.checkpoint()
+        return fitted
 
     def _window_stability(self, pose_df, positions):
         """Maximum pairwise SO(3) angle over the entire requested valid window."""
@@ -246,7 +286,6 @@ class FaceAssignmentAnalyzer(MarkerFlipAnalyzer):
         return count / possible
 
     def _refit_hypothesis(self, label, marker_df, pose_df, post_positions, marker_ids, box_dims):
-        from .pose_optimizer import PoseOptimizer
         post = marker_df.iloc[list(post_positions)].copy()
         face_cols = [f"{mid}_FaceInfo" for mid in marker_ids]
         applicable = bool(face_cols) and all(
@@ -265,16 +304,16 @@ class FaceAssignmentAnalyzer(MarkerFlipAnalyzer):
         if label != "NONE":
             seed[3:] = (R.from_rotvec(seed[3:]) * local_axis_half_turn(label)).as_rotvec()
         try:
-            fitted = PoseOptimizer(config_app.FACE_DEFINITIONS,
-                config_app.calculate_local_box_corners(box_dims)).process(post, box_dims=box_dims, initial_pose=seed)
+            fitted = self.fit_frames(post, box_dims, initial_pose=seed, role=label)
             if not fitted.index.equals(post.index):
                 return None, True, "Refit sample times do not match the requested window."
             self._valid_pose_positions(fitted)
             return fitted, True, ""
-        except (ValueError, RuntimeError, FloatingPointError, np.linalg.LinAlgError) as error:
+        except (FloatingPointError, np.linalg.LinAlgError) as error:
             return None, True, f"Pose refit unavailable: {error}"
 
-    def _review_boundary(self, marker_df, pose_df, box_dims, pre_anchor, post_anchor, trigger):
+    def _review_boundary(self, marker_df, pose_df, box_dims, pre_anchor, post_anchor, trigger,
+                         *, gap_limit=None, crosses_observation_gap=False, crosses_held_boundary=False):
         from .pose_optimizer import _objective_function
         requested_pre = list(range(max(0, pre_anchor - self.window_size + 1), pre_anchor + 1))
         requested_post = list(range(post_anchor, min(len(pose_df), post_anchor + self.window_size)))
@@ -294,9 +333,10 @@ class FaceAssignmentAnalyzer(MarkerFlipAnalyzer):
         times = np.asarray(pose_df.index, float)
         boundary_time = float(times[post_anchor])
         requested = requested_pre + requested_post
-        gap_limit = self.gap_factor * np.median(np.diff(times)) if len(times) > 1 else 0.
+        if gap_limit is None:
+            gap_limit = self.gap_factor * np.median(np.diff(times)) if len(times) > 1 else 0.
         available_markers = np.isfinite(self._marker_points(marker_df.iloc[requested], marker_ids)).all(axis=2).sum(axis=1)
-        crosses_gap = (post_anchor != pre_anchor + 1 or bool(np.any(np.diff(times[requested]) > gap_limit))
+        crosses_gap = (crosses_observation_gap or post_anchor != pre_anchor + 1 or bool(np.any(np.diff(times[requested]) > gap_limit))
                        or bool(np.any(available_markers < self.minimum_common_markers)))
         face_cols = [f'{mid}_FaceInfo' for mid in marker_ids if f'{mid}_FaceInfo' in marker_df]
         crosses_face_boundary = any(marker_df.iloc[requested][col].fillna('').astype(str).str.upper().nunique() > 1
@@ -305,6 +345,7 @@ class FaceAssignmentAnalyzer(MarkerFlipAnalyzer):
         rigid_fit = self._rigid_pair_evidence(*boundary_points, box_dims)
         fitted, applicable, failures, valid_refits = {}, {}, {}, {}
         for label in ('NONE', 'X', 'Y', 'Z'):
+            self.checkpoint()
             frame, can_apply, failure = self._refit_hypothesis(
                 label, marker_df, pose_df, requested_post, marker_ids, box_dims)
             fitted[label], applicable[label], failures[label] = frame, can_apply, failure
@@ -332,7 +373,7 @@ class FaceAssignmentAnalyzer(MarkerFlipAnalyzer):
                            if np.isfinite(row[[f'{mid}_{axis}' for axis in 'XYZ']].to_numpy(dtype=float)).all()]
                 if markers:
                     errors.append(_objective_function(row[list(POSE_COLUMNS)].to_numpy(dtype=float),
-                        markers, np.asarray(box_dims), config_app.FACE_DEFINITIONS) / len(markers))
+                        markers, np.asarray(box_dims), self.face_definitions) / len(markers))
             rmse[label] = float(np.sqrt(np.mean(errors))) if errors else None
         hypotheses = tuple(MarkerFlipHypothesis(label, residuals[label],
             residuals['NONE'] - residuals[label] if supported_comparison else 0.,
@@ -349,6 +390,8 @@ class FaceAssignmentAnalyzer(MarkerFlipAnalyzer):
             reason = 'Insufficient common valid samples for four-axis comparison.'
         elif crosses_gap or crosses_face_boundary:
             reason = 'A tracking gap or approved face boundary crosses the comparison.'
+        elif crosses_held_boundary:
+            reason = 'Held observations cross the comparison; physical motion is unconfirmed.'
         elif rigid_fit['status'] != 'supported_within_tolerance':
             reason = 'Stable-ID marker geometry does not support a rigid boundary comparison.'
         elif coverage < self.minimum_coverage_ratio:
@@ -385,6 +428,7 @@ class FaceAssignmentAnalyzer(MarkerFlipAnalyzer):
             'refit_post_stability_deg': stability, 'raw_no_correction_residual_deg': raw_residual,
             'window_stability_definition': 'Maximum pairwise SO(3) angle among all valid window samples; not adjacent increments.',
             'crosses_tracking_gap': crosses_gap, 'crosses_face_assignment_boundary': crosses_face_boundary,
+            'crosses_held_boundary': crosses_held_boundary,
             'boundary_rigid_fit': rigid_fit,
             'thresholds': {'minimum_samples': minimum_samples, 'minimum_coverage': self.minimum_coverage_ratio,
                 'maximum_window_motion_deg': self.maximum_window_motion_deg,
