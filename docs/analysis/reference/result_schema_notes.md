@@ -536,3 +536,60 @@ explicit data, not a default. `FinalFace` is read only if present and valid;
 `ReferenceFace` never stands in for it. The current pipeline does not produce
 FinalFace. Physical definitions, software support limits and remaining validation
 are in [the comparison plan](../design/drop_result_comparison_plan.md#6-77-접촉-전-운동과-반복-관측-비교).
+
+
+### Metric-wise observation resolution (#119)
+
+`canonical-exact-v1` is a read-time comparison policy. It introduces no `.proc`
+columns, producer change, processing fingerprint change or migration rewrite.
+Existing files are re-evaluated when opened. Compared with first-wins, invalid
+copies can no longer suppress valid evidence and conflicting valid copies no
+longer silently supply whichever file is the baseline.
+
+- Impact retains `(original capture SHA-256, exact SliceStartSec, exact
+  SliceEndSec, scenario_id)`, with existing source/model/dimensions/layout/scenario/
+  processing/schema/units/time eligibility. OriginalSourceSha256 links corrected
+  derivatives; a result hash, path, filename or load index never creates a trial.
+- Contact retains its local capture/start/end key and existing optional trial
+  identity rules. Check local compatibility and registration before examining
+  conflicting intended targets; then apply the baseline target population.
+  Other source/registration populations cannot poison that conflict check.
+- Use each variant's existing metric reason as an unconditional veto. Never
+  assemble raw components from different variants. No valid value contributes
+  zero; one or several equivalent values contribute once; disagreeing valid
+  values contribute zero for that metric only.
+- Numeric values normalize to finite Python floats, with signed zero normalized
+  to zero. Booleans, NaN, infinities and numeric strings are not numeric values.
+  Equality is exact, including a conflict for a one-ULP difference. Categorical
+  values use existing validated canonical corner sets/face names. Contact compares
+  canonical observed feature and Match/Different together, so different observed
+  features do not become equivalent just because both outcomes are Different.
+- Aggregate resolved values in stable observation-key order. Numeric mean/min/
+  max/range and categorical counts are invariant within the population. Baseline
+  individual differences and categorical reference/matching are computed
+  separately from the baseline's own valid diagnostic, not a resolved substitute.
+- #118 first-event validity, confidence state labels, independent FinalFace and
+  legacy-resampling exclusions are unchanged. Contact still uses legacy whole-
+  interval geometry replay; #120 remains separate.
+
+Both comparison APIs add `observations`, `resolution_policy`, and per-file
+`metric_resolution`. Each metric resolution retains status, canonical value,
+reason, observation key, file SHA-256 and path. Observation entries retain all
+variants and all equivalent supplying file names in `sources`, with no elected
+representative. Status is contributing/equivalent/invalid/conflict/ineligible;
+observation reasons include no_valid_variant, conflicting_valid_variants and
+conflicting_intended_contacts. File-level reasons now describe compatibility or
+identity eligibility, not metric-wide duplicate rejection. Empty Impact results
+retain their historical empty-return shape.
+
+Contact `n = Match + Different`. All-invalid eligible observations contribute
+one Unclear; conflicting observations contribute one `conflicts` and no n or
+Unclear. Historical `excluded` remains a file count, computed as loaded files
+minus (n + Unclear); it includes incompatible files and redundant variants, and
+must not be read as a trial count. Per-file Contact outcomes remain individually
+visible even when the observation is excluded from repeat evidence.
+
+No operator-authoritative revision selection is implemented. The corresponding
+branch of issue #119's combined acceptance item is explicitly out of scope; it
+is not claimed as passed. Future selection would require persistence tied to
+source/variant identity and invalidation when those inputs change.

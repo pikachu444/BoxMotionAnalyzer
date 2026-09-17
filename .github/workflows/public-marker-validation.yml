@@ -73,6 +73,8 @@ jobs:
           tests/test_marker_flip_raw_widget.py
           tests/test_compare_model.py
           tests/test_impact_metrics.py
+          tests/test_observation_resolution.py
+          tests/test_metric_variant_comparison.py
           tests/test_impact_comparison.py
           tests/test_impact_comparison_gui.py
           tests/test_intended_contact.py
@@ -110,6 +112,10 @@ jobs:
           tests/test_scenario_6.py
           tests/test_raw_data_processing.py
           --junitxml=tmp/public-marker-results.xml
+      - name: Verify metric variants in the real comparison GUI at 125 percent
+        env:
+          QT_SCALE_FACTOR: '1.25'
+        run: python -m pytest -q tests/test_metric_variants_gui.py --junitxml=tmp/issue119/gui-125.xml
       - name: Replay retained public results in the release GUI at 125 percent
         env:
           QT_SCALE_FACTOR: '1.25'
@@ -155,6 +161,7 @@ jobs:
             tmp/issue75_trial_gui/**
             tmp/issue78_release_gui/**
             tmp/issue118/qt_*/**
+            tmp/issue119/**
             tmp/issue81_gui/**
             tmp/issue74_gui/**
           if-no-files-found: warn

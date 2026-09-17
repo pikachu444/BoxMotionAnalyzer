@@ -69,6 +69,7 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.add_files_requested.connect(self._on_add_files)
         self.control_panel.remove_file_requested.connect(self._on_remove_file)
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
+        self.table_panel.resolution_details_changed.connect(self._on_resolution_details)
         self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
         self.control_panel.view_changed.connect(self._on_view_changed)
         self.control_panel.labels_changed.connect(self.playback_panel.set_labels_visible)
@@ -175,6 +176,11 @@ class CompareMainWindow(QMainWindow):
         self.playback_panel.set_view(self.control_panel.cb_view.currentData(), self.control_panel.selected_file)
         self._on_plot_target_changed(self.graph_panel.cb_plot_target.currentData())
         self._update_view_status()
+        self.table_panel._show_resolution()
+
+    def _on_resolution_details(self, text):
+        current = self.control_panel.file_list.currentItem()
+        self.control_panel.details.setPlainText(text or (current.toolTip() if current else ''))
 
     def _update_view_status(self):
         aligned_sources = {self.model.identities[name].source_kind
@@ -196,9 +202,9 @@ class CompareMainWindow(QMainWindow):
         baseline = self.model.baseline_name
         impact = self.model.get_impact_comparison()
         self.control_panel.update_files(files, baseline, self.model, impact)
-        excluded = [name for name in files if impact['files'][name]['reasons']]
+        observations = len(impact.get('observations', {}))
         self._summary_status = ('No results loaded.' if not files else
-                                f'{len(files)} files   Repeats: {len(files) - len(excluded)} included, {len(excluded)} excluded')
+                                f'{len(files)} files   {observations} compatible observations')
         self.warning_label.setToolTip('Overlaid curves do not establish compatible repeat trials. See file Details for exclusions.')
         
         # Update Table

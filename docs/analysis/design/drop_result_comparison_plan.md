@@ -259,3 +259,64 @@ python -m pytest -q tests/test_impact_metrics.py tests/test_impact_comparison.py
 - 공개 GUI `valid.proc` SHA-256: `0aa2bee8c4cc16aef5b2f3de1c3a64a3d9ffb4f4f31a9b0372c09c491c4b3059`; `stale.proc`: `ff49f8d69e35cdd0ce91a9651254ba8225683adcaef2a2d89426523d385fa138`.
 
 독립 리뷰는 tracking_jump 선언이 저장 접촉 진단에 남는 누락을 찾아 공통 검사와 직렬화 회귀를 추가하도록 했다. 자가검토에서는 비충격 상태의 잘못된 confidence 표시와 긴 셀 사유를 수정했다. 리뷰어가 수정 코드·문서·최종 화면을 다시 대조해 남은 actionable 지적이 없음을 확인했다. 실측 물리 정확도·보정 확률·ISTA 합격 판정은 이 검증으로 주장하지 않는다. 최종 commit/PR/필수 CI는 연결 PR에서 추적하며, 사용자 검토 전 병합·자동 병합·이슈 종료를 하지 않는다.
+
+
+## 8. #119 지표별 중복 관측 해소 (2026-09-17)
+
+기준 main은 `99b1f1e4f1ecb774a6be2469e406106c20da20af`이며 #118/PR #124의 병합 결과다. 구현 시작 시 열린 PR은 없었다. 승인한 범위는 구현·검증·독립 리뷰·수정·커밋/push·PR·CI 확인까지이며 병합·자동 병합·이슈 종료·다음 작업은 하지 않는다.
+
+### 정책과 최소 화면
+
+기존 호환성 → 원본 capture/정확한 검토 구간 → 지표별 variants → 관측당 최대 한 값 순서로 집계한다. `canonical-exact-v1`은 finite float의 exact equality와 기존 canonical category를 사용한다. signed zero만 하나의 0으로 정규화하며 표시 반올림이나 수치 허용오차를 도입하지 않는다. 유효 값 없음은 제외, 하나/동등한 여러 개는 한 번, 서로 다른 유효 값은 해당 관측의 해당 지표만 conflict다. 모든 공급 파일과 원래 무효 사유를 보존하며 대표 revision을 선출하지 않는다.
+
+Impact의 사건 진단과 Contact의 intended target/기하 검증은 별개다. Contact는 local 호환성/registration 검사 후 intended 충돌을 판정해 비호환 source가 다른 집단을 제외하던 경로도 제거했다. #118의 사건·confidence·FinalFace·legacy 의미와 #120의 현재 전체 구간 기하 정책은 그대로다. API·identity·카운트 단위는 `../reference/result_schema_notes.md`를 따른다.
+
+기존 Summary 네 모드와 Files/Baseline/Details/3D/Graph를 유지한다. Repeats 선택 행 아래에는 `Duplicate 1   Invalid 1   Conflict 0   Details at left`와 같이 표시하고, 좌측 Details에는 채택값·상태·공급 파일을 먼저 보여 준다. 정확한 값/구간/hash와 각 variant 사유는 같은 스크롤 영역에서 확인한다. Contact는 개별 outcome과 집계 상태를 함께 표시한다. 기준 변경은 선택 파일·지표·모드·표 스크롤을 보존한다. 상단 compatible observations는 유효 n이 아닌 호환 관측 수다.
+
+Authoritative revision 선택 UI/영속화는 구현하지 않았다. #119의 복합 acceptance 중 해당 분기는 범위 제외이며 통과로 표기하지 않는다. 향후 선택 기능은 identity에 묶인 영속화와 입력 변경 시 무효화가 필요하다.
+
+### 독립 기대값과 재실행 자산
+
+`test_observation_resolution.py`는 production 계산 없이 literal 값으로 정책을 검사한다. `test_metric_variant_comparison.py`는 공개 analytic frame을 직렬화하고 모든 순열/호환 baseline에서 아래 기대값을 검사한다. 무작위 입력/seed나 비공개 capture는 사용하지 않는다.
+
+| 공개 입력 | 독립 기대값 |
+| --- | --- |
+| A: invalid / -4 | n=1, mean=min=max=-4, range=0 |
+| A: -4 / -4 | n=1, mean=min=max=-4, range=0 |
+| A: -4 / -2 | n=0, numeric 통계 없음, conflict |
+| A:-4 / B:-2 | n=2, mean=-3, min=-4, max=-2, range=2 |
+| A:C1/C1 / B:C3 | n=2, C1:1/C3:1 |
+| A:C1/C3 | categorical n=0; 다른 유효 numeric은 n=1 |
+| Contact invalid/Match 또는 Match/Match | n=1, Match=1 |
+| Contact Match/Different 또는 다른 접촉 부위의 Different/Different | n=0, conflicts=1 |
+| 다른 관측 Contact Match/Different | n=2, Match=1, Different=1 |
+
+velocity 기대값은 처방 위치의 미분, 높이는 각 `1000*v_i^2/(2*9.80665)`의 평균으로 정한다. 기존 analytic velocity 절대 오차 1e-9를 유지하며 이는 추정기의 검증 기준이지 사본 동등성 tolerance가 아니다. bool/NaN/Inf·1 ULP·signed zero, 지표별 X/Y/rotation/COM 결측, event 무효, source/geometry/layout/scenario/settings 분리, 같은 outcome의 다른 접촉 부위, registration 분리, 파일 교체/삭제/재열기, corrected→slice→proc가 실제 출력한 원본 hash의 비교 identity 전달을 검사한다. 메타데이터 전달 테스트를 pose 재최적화나 물리 정확도 검증으로 부르지 않는다.
+
+### 로컬 실행과 한계
+
+Windows, Python 3.13.5, NumPy 2.3.5, pandas 2.3.3, SciPy 1.16.3, PySide6 6.10.1, VTK 9.5.2, MuJoCo 3.6.0. 저장소 기존 `.venv`를 사용했다.
+
+```text
+python -m pytest -q tests/test_observation_resolution.py tests/test_metric_variant_comparison.py tests/test_impact_metrics.py tests/test_impact_comparison.py tests/test_contact_comparison.py tests/test_compare_model.py tests/test_impact_comparison_gui.py tests/test_contact_comparison_gui.py tests/test_comparison_gui.py tests/test_comparison_layout.py tests/test_marker_flip_artifact_io.py tests/test_scene_artifact_io.py tests/test_artifact_provenance.py --disable-warnings --tb=short --junitxml=tmp/issue119/related-final.xml
+```
+
+위 관련 검사 **314 passed**, 기존 malformed-input warnings 39건, skip 없음. UI 리뷰 뒤 수정한 최종 GUI 검사 **18 passed**, skip 없음은 별도 `gui-review-final.xml`에 남겼다. 별도 실제 화면 검사는 `QT_SCALE_FACTOR=1.25`에서 `tests/test_metric_variants_gui.py`를 실행하며 크기/DPR를 실제 측정해 assert한다. CI에도 같은 별도 실행과 `tmp/issue119/**` evidence 보관을 추가했다.
+
+공개 GUI 입력은 `contact_frame`의 명시된 기하/시간으로 구성한 비교 계약 입력이다. production GUI에 독립 evaluator truth를 전달하지 않는다. 최초 화면 `qt_efa5d75a`에서 숨겨진 valid viewer의 작은 VTK 캡처는 충분한 렌더 증거가 아니어서 active viewer 선택과 캡처 최소 크기 검사를 추가했다. `qt_e33c6f05`의 원본 Qt 화면과 별도 VTK 렌더에서 실제 박스를 확인했다. Qt grab의 검은 OpenGL 자식 영역을 렌더 증거로 사용하거나 합성하지 않는다. 이 실행과 후속 실행은 모두 고유 `qt_*` 폴더에 보존한다.
+
+측정 창은 **1510×800 logical / DPR 1.25**다. QTest가 실제 위젯에서 Open/모드/기준 선택/Details를 조작하며 파일 선택 반환 경로만 주입한다. 네이티브 OS 마우스 검증이나 실측 교정 완료 주장이 아니다. 모든 파일의 SHA-256, baseline별 n과 Details, 원본 화면은 각 execution.json에 남긴다. 대표 공개 입력 hash는 다음과 같다.
+
+- valid/copy: `0aa2bee8c4cc16aef5b2f3de1c3a64a3d9ffb4f4f31a9b0372c09c491c4b3059`
+- invalid: `165466cb38edd5c9c216cb15a7c5bf4ab4ac15718673b9c5be511a296172059d`
+- conflict: `f4bca5b1ea8b19a652d24531e85718d44604eff396e9457e68bb9a714921d574`
+
+### 독립 리뷰와 수정 이력
+
+핵심 리뷰는 차단할 계산 결함을 발견하지 않았다. same-outcome/different-feature Contact, categorical 충돌, registration 분리, 성분별 결측, 실제 emitted lineage의 다섯 회귀를 보강했고 재리뷰 **111 passed**, 남은 actionable 지적 없음으로 확인했다.
+
+독립 UI 리뷰는 Repeats에서 파일 선택 후 Details가 파일 정보로 덮이고 같은 지표를 다시 눌러도 복구되지 않는 문제, Contact 전환 후 옛 지표 설명이 남는 문제, 파일 상세 값에 지표 이름이 없는 문제를 재현했다. 모드/선택에 따라 Details를 갱신하고 지표 이름을 추가했으며 해당 조작 회귀를 넣었다. 초기 GUI 테스트의 first-wins/파일 전체 제외 문자열 기대는 새 지표별 계약으로 바꿨고 수치·물리 기대값은 완화하지 않았다. 실패와 수정 결과는 gui-first/second/third/review-final 기록으로 구분한다.
+
+수정 후 독립 UI 재검증도 실제 Qt/DPR 1.25에서 파일 선택·같은 행 클릭·모드 전환·Contact 행/baseline 보존을 확인했고 남은 actionable 지적은 없었다. 최종 화면은 `qt_b08be8de`에 보존했다.
+
+최종 PR과 해당 head의 CI 결과는 연결 PR에서 확인한다. 실측 정확도 #104, bounded contact #120, authoritative revision 선택은 완료로 처리하지 않는다.

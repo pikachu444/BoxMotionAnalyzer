@@ -234,6 +234,16 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 - 범례는 실제 파일명과 고정 색을 사용한다. 긴 목록은 한 줄에서 가로로 이동하며 곡선을 가리지 않는다. 같은 값이 겹치면 Individual에서 파일별로 확인할 수 있다.
 - 각도의 자동 축 폭은 최소 1도이고 실제 표본이나 확대 결과는 바꾸지 않는다. Lowest corner는 C1~C8 점으로 표시한다. 번호의 변화는 연속 운동량이나 전체 접촉부위가 아니다.
 
+### 6.3. 지표별 중복 관측 해소 (#119)
+
+동일 호환성 집단에서는 기준 파일과 로드 순서를 바꿔도 관측 집단과 지표별 n, numeric 통계, categorical counts가 같다. 원본 capture와 정확한 검토 구간이 같은 사본·보정본·재처리본은 한 관측의 variant다. 실제로 다른 capture/구간은 구분하며 설정이 다른 결과는 기존 호환성 gate로 분리한다.
+
+각 지표는 유효한 값이 없으면 제외하고, 하나 또는 정확히 동등한 값 여러 개면 한 번 집계한다. 서로 다른 유효 값은 그 관측의 해당 지표만 conflict로 제외한다. 기준 파일은 revision 권한을 갖지 않는다. 개별 기준 차이와 범주 reference agreement는 기준 변경에 따라 달라질 수 있다.
+
+Repeats에서 행을 선택하면 Duplicate/Invalid/Conflict 수를 짧게 표시한다. 기존 좌측 Details를 열어 observation, 공급 파일, 정확한 값, SHA-256, 다른 variant의 원래 제외 사유를 확인한다. Duplicate와 Invalid는 variant 기준, Conflict는 observation 기준이다. 상단 compatible observations는 지표 유효성 평가 전 호환 관측 수이며 유효 n은 표의 지표별 값을 따른다. Contact는 개별 Match/Different/Unclear 옆에 반복 집계 상태를 표시한다. Contact의 n/Unclear/Conflict는 관측 기준이며 excluded는 중복을 포함한 비기여 파일 수다.
+
+새 revision 선택 UI나 저장 형식 변경은 없다. #118의 진단별 유효성/legacy와 #120의 아직 변경되지 않은 전체 구간 Contact 검증을 유지한다.
+
 ## 7. 공개 결과를 이용한 최종 화면 확인 (#78)
 
 #106 마지막 UI 단위는 실제 Windows Qt 6.11.2·125%에서 Simulation 500×600/760×780의 위·아래 스크롤과 펼친 상세 설정을 확인했다. Run과 Run all presets는 화면 안에 남는다. 옮긴 입력으로 200×120×80 mm, COM (3,−4,2) mm, 초기 회전 (20,35,−15)°, 거리 100 mm, 0.5초를 실제 실행·저장·재열기했으며 기존 63표본·0.008초 간격과 코너 재구성 오차 2.274e−13 mm가 유지됐다. 이 실행의 저장 취소·실패·재시도와 일괄 처리 중단도 관련 기존 검사로 확인했다. 런처의 불필요한 설명 문단은 제거하고 Experimental 상태만 남겼다.

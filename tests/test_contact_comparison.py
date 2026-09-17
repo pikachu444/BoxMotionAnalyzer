@@ -187,11 +187,11 @@ def test_saved_reopened_values_and_statistical_exclusions(tmp_path):
         paths.append(path)
         model.load_file(str(path))
     result = model.get_contact_comparison()
-    assert result['statistics'] == {'n':2, 'Match':1, 'Different':1, 'Unclear':1, 'excluded':0}
+    assert result['statistics'] == {'n':2, 'Match':1, 'Different':1, 'Unclear':1, 'excluded':0, 'conflicts':0}
     before = paths[0].read_bytes()
     copied = model.load_file(str(paths[0]))
     assert model.get_contact_comparison()['statistics']['n'] == 2
-    assert 'already counted' in ' '.join(model.get_contact_comparison()['files'][copied]['reasons'])
+    assert model.get_contact_comparison()['files'][copied]['metric_resolution']['contact']['status'] == 'equivalent'
     assert paths[0].read_bytes() == before
     fresh = ComparisonModel()
     for path in paths:
@@ -208,7 +208,7 @@ def test_saved_reopened_values_and_statistical_exclusions(tmp_path):
     model.load_file(str(path))
     result = model.get_contact_comparison()
     assert result['statistics']['n'] == 1
-    assert 'Conflicting intended contacts' in ' '.join(result['files'][paths[0].name]['reasons'])
+    assert 'Conflicting intended contacts' in result['files'][paths[0].name]['metric_resolution']['contact']['reason']
 
 
 def test_mixed_source_cannot_enter_contact_statistics(tmp_path):

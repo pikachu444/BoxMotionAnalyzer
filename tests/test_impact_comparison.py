@@ -86,11 +86,11 @@ def test_copies_and_corrected_variants_do_not_inflate_repeat_count(tmp_path):
     result = model.get_impact_comparison()
     assert result['statistics']['vertical_velocity']['n'] == 3
     for name in (duplicate, corrected):
-        assert any('already counted' in reason for reason in result['files'][name]['reasons']), result['files'][name]['reasons']
+        assert result['files'][name]['metric_resolution']['vertical_velocity']['status'] == 'equivalent'
     model.set_baseline(duplicate)
     result = model.get_impact_comparison()
     assert result['files'][duplicate]['reasons'] == []
-    assert result['files'][names[0]]['reasons']
+    assert result['files'][names[0]]['metric_resolution']['vertical_velocity']['status'] == 'equivalent'
     assert result['statistics']['vertical_velocity']['n'] == 3
 
 
