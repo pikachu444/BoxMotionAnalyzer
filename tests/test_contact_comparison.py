@@ -135,6 +135,28 @@ def test_contact_does_not_require_a_velocity_fit_window():
     assert result.outcome == 'Match', result.reason
 
 
+def test_legacy_tail_missingness_remains_unclear_until_bounded_policy_is_versioned():
+    frame = contact_frame()
+    assert calculate_contact_comparison(frame).outcome == 'Match'
+    frame.loc[12, ('Position', 'C8', 'P_TY')] = np.nan
+    result = calculate_contact_comparison(frame)
+    assert result.outcome == 'Unclear'
+    assert 'recorded contact policy' in result.reason
+
+
+@pytest.mark.parametrize(('field', 'value'), [('T1Detected', False), ('ImpactDetected', False),
+    ('ContactState', 'NoContact'), ('FirstImpactTimeSec', .079)])
+def test_contact_comparison_uses_shared_event_exclusion(field, value):
+    from src.analysis.compare.impact_metrics import calculate_impact_metrics
+    frame = contact_frame()
+    frame[(*SUMMARY, field)] = value
+    comparison = calculate_contact_comparison(frame)
+    diagnostic = calculate_impact_metrics(frame).metrics['first_contact']
+    assert comparison.outcome == 'Unclear'
+    assert diagnostic.value is None
+    assert comparison.reason == diagnostic.reason
+
+
 @pytest.mark.parametrize('failure', ['wrong_saved_feature', 'changes_after_one_frame', 'deep_penetration'])
 def test_independent_review_rejects_inconsistent_contact_geometry(failure):
     frame = contact_frame()

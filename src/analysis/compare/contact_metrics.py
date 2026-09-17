@@ -13,7 +13,7 @@ import pandas as pd
 from scipy.spatial.transform import Rotation
 
 from src.analysis.compare.impact_metrics import (
-    SUMMARY, _column, _constant, _number, _true, _observation_context,
+    SUMMARY, _column, _constant, _number, _observation_context,
     _processing_context, _review_context,
 )
 from src.analysis.pipeline.face_assignment import face_segments
@@ -23,6 +23,7 @@ from src.analysis.pipeline.intended_contact import (
 )
 from src.config.config_app import FACE_DEFINITIONS, calculate_local_box_corners
 from src.utils.result_time import timeline_from_frame, exceeds_gap_limit
+from src.utils.first_event_evidence import validate_first_event
 
 
 @dataclass(frozen=True)
@@ -67,6 +68,9 @@ def calculate_contact_comparison(df):
         target = tuple(record['faces'])
         fingerprint = record['registration_sha256']
         intended = feature_label(target)
+        event = validate_first_event(df, review)
+        if not event.valid:
+            raise ValueError(event.reason)
         artifact, dims, floor = _processing_context(df, raw_pose=False)
         registration = _review_context(review, dims, floor)
         if registration is None:
@@ -84,16 +88,9 @@ def calculate_contact_comparison(df):
         timeline = timeline_from_frame(df)
         if not timeline.aligned:
             raise ValueError(timeline.reason)
-        if not _true(_constant(df, (*SUMMARY, 'ImpactDetected'))) or _constant(df, (*SUMMARY, 'ContactState')) != 'ImpactEvent':
-            raise ValueError('The saved result does not identify an impact event')
-        time = _number(_constant(df, (*SUMMARY, 'FirstImpactTimeSec')))
-        matches = np.flatnonzero(timeline.times == time)
-        if len(matches) != 1:
-            raise ValueError('First contact time must be an actual sample')
-        index = int(matches[0])
-        if index == 0 or index + 1 >= len(df) or timeline.t1 != timeline.times[index - 1]:
-            raise ValueError('First contact needs its preceding sample and two observed event samples')
-        indices = np.array([index - 1, index, index + 1])
+        time = event.times_s[1]
+        index = event.indices[1]
+        indices = np.array(event.indices)
         times = timeline.times[indices]
         if not row['start'] <= times[0] < times[-1] <= row['end']:
             raise ValueError('Contact evidence extends outside the reviewed interval')

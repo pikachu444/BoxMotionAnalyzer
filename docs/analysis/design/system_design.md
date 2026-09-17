@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-09-14
+Last Reviewed: 2026-09-17
 
 ## 1. 개요
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.
@@ -124,6 +124,7 @@ Last Reviewed: 2026-09-14
   - 비교 윈도우에서 사용할 파일 목록, 파싱된 결과, 기준(baseline) 실험 설정 등을 관리한다.
   - `utils/artifact_metadata.py`에서 출처/호환성 전체 사유를, `utils/result_time.py`에서 canonical timestamp와 t1 계약을 공유한다. 미호환 파일은 개별 열람을 유지하고 기준 차이/집계 대상에서 제외한다.
   - 그래프는 파일별 실제 elapsed 시각을 유지한다. 3D row ID는 원본 frame 번호와 분리하며 가장 가까운 실제 샘플 시각을 명시한다. 긴 gap/범위 밖은 보간·끝점 고정 없이 unavailable로 표시한다.
+  - `utils/first_event_evidence.py`의 버전 있는 저장 사건 일관성 검증을 Impact/Contact가 공유한다. 진단의 사건 지원, 속도 적합 지원, 의도 접촉의 기하 검증을 분리하며 지표별 제외 사유를 Details/Repeats까지 전달한다. 기존 파일과 producer 정책은 수정하지 않는다. bounded 검출·저장 정책은 #120의 별도 범위다.
 - `PlotPopupDialog`
 - `DataSelectionDialog`
 - `PlotManager`

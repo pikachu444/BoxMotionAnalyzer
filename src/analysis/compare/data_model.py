@@ -122,14 +122,20 @@ class ComparisonModel:
             return result
 
         baseline = summary(self.datasets[self.baseline_name])
+        diagnostic_keys = {'FirstImpactContact': 'first_contact', 'ContactConfidence': 'contact_confidence',
+                           'FinalFace': 'final_face'}
         results = {}
         for name, df in self.datasets.items():
             values = summary(df)
             reasons = self.exclusion_reasons(name)
+            metric_reasons = {column: self.impact_results[name].metrics[key].reason
+                              for column, key in diagnostic_keys.items()}
             diffs = {}
             for key, value in values.items():
                 reference = baseline.get(key)
-                if reasons or pd.isna(value) or pd.isna(reference):
+                reference_invalid = (key in diagnostic_keys and
+                    self.impact_results[self.baseline_name].metrics[diagnostic_keys[key]].reason)
+                if reasons or metric_reasons.get(key) or reference_invalid or pd.isna(value) or pd.isna(reference):
                     diffs[key] = None
                 elif is_corner_id_column(('Analysis', 'DropPostureSummary', key)):
                     column = ('Analysis', 'DropPostureSummary', key)
@@ -146,7 +152,10 @@ class ComparisonModel:
                     except TypeError:
                         diffs[key] = 'Match' if value == reference else str(reference)
             results[name] = {'summary': values, 'diffs': diffs, 'reasons': reasons,
-                             'source': self.identities[name].source_kind}
+                             'source': self.identities[name].source_kind,
+                             'metric_reasons': metric_reasons,
+                             'diagnostic_field_errors': self.impact_results[name].evidence['diagnostic_field_errors'],
+                             'first_event': self.impact_results[name].evidence['first_event']}
         return results
 
     def get_impact_comparison(self):

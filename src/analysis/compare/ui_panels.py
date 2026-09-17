@@ -137,6 +137,23 @@ class CompareTablePanel(QGroupBox):
         item.setToolTip(descriptor['tooltip'])
         return item
 
+    @staticmethod
+    def _unavailable_text(reason):
+        """Keep the cell readable; the tooltip retains the exact field reasons."""
+        if 'conflict' in reason:
+            short = 'event conflicts'
+        elif 'No impact declared' in reason:
+            short = 'no impact'
+        elif 'gap' in reason or 'tracking jump' in reason:
+            short = 'tracking evidence'
+        elif 'Time' in reason or 'sample' in reason or 'bracket' in reason:
+            short = 'event timing'
+        elif 'ContactConfidence' in reason or 'FirstImpactContact' in reason:
+            short = 'invalid saved value'
+        else:
+            short = 'event evidence'
+        return 'Unavailable — ' + short
+
     def _render_motion(self, impact, diff_data):
         keys = [key for key, descriptor in METRICS.items() if descriptor['role'] == 'experimental']
         names = list(impact['files'])
@@ -176,12 +193,21 @@ class CompareTablePanel(QGroupBox):
             stats = impact['statistics'][key]
             n = stats['n']
             count = QTableWidgetItem(str(n) if n >= 3 else f'{n} (low)')
-            count.setToolTip('Valid distinct observations. Fewer than 3 provide insufficient repeat evidence.')
+            exclusions = []
+            for name, data in impact['files'].items():
+                reasons = data['reasons'] + ([data['result'].metrics[key].reason]
+                           if data['result'].metrics[key].reason else [])
+                if reasons:
+                    exclusions.append(name + ': ' + '; '.join(reasons))
+            count.setToolTip('Valid distinct observations. Fewer than 3 provide insufficient repeat evidence.'
+                             + ('\n' + '\n'.join(exclusions) if exclusions else ''))
             self.table.setItem(r, 1, count)
             for c, field in enumerate(('mean', 'min', 'max', 'range'), 2):
                 self.table.setItem(r, c, QTableWidgetItem(self._number(stats.get(field))))
             counts = ', '.join(f'{value}: {total}' for value, total in sorted(stats.get('counts', {}).items()))
-            self.table.setItem(r, 6, QTableWidgetItem(counts or '\u2014'))
+            counts_item = QTableWidgetItem(counts or ('Unavailable' if not n else '\u2014'))
+            counts_item.setToolTip('\n'.join(exclusions))
+            self.table.setItem(r, 6, counts_item)
             matches = stats.get('matching')
             item = QTableWidgetItem(f'{matches}/{n}' if matches is not None and n else '\u2014')
             item.setToolTip('Diagnostic agreement with the baseline category; not agreement with an intended trial target.')
@@ -240,8 +266,34 @@ class CompareTablePanel(QGroupBox):
                         display_text = f"{val} (vs {diff})" if diff != "Match" else f"{val}"
                         
                 item = QTableWidgetItem(display_text)
+                details = []
                 if ds_info['reasons']:
-                    item.setToolTip('Individual value only; baseline difference unavailable.\n' + '\n'.join(ds_info['reasons']))
+                    details.append('Individual value only; baseline difference unavailable.\n' + '\n'.join(ds_info['reasons']))
+                reason = ds_info.get('metric_reasons', {}).get(metric, '')
+                event = ds_info.get('first_event', {})
+                if metric in ('FirstImpactContact', 'ContactConfidence'):
+                    details.append('Saved value: ' + str(val))
+                    details.append('Recorded event consistency only; geometry is not verified here.')
+                    if metric == 'ContactConfidence':
+                        details.append('State: ' + event.get('state', 'unavailable'))
+                        details.append('Algorithm score, including possible plateau evidence; not a calibrated probability.')
+                    if reason:
+                        confidence_error = ds_info.get('diagnostic_field_errors', {}).get('contact_confidence', '')
+                        if metric == 'ContactConfidence' and event.get('status') == 'no-impact' and not confidence_error:
+                            item.setText(f'{val} ({event["state"]}; not pooled)')
+                        else:
+                            item.setText(self._unavailable_text(confidence_error if metric == 'ContactConfidence' and confidence_error else reason))
+                            if confidence_error and metric == 'ContactConfidence':
+                                details.append(confidence_error)
+                    elif metric == 'ContactConfidence':
+                        item.setText(display_text + ' (ImpactEvent)')
+                    if event.get('times_s'):
+                        details.append('Event bracket (s): ' + ', '.join(f'{t:.6g}' for t in event['times_s']))
+                    details.append('Policy: ' + event.get('contract_version', 'unavailable'))
+                    details.append('Gap check: ' + event.get('gap_policy', 'unavailable'))
+                if reason:
+                    details.append(reason)
+                item.setToolTip('\n'.join(details))
                 item.setTextAlignment(Qt.AlignCenter)
                 self.table.setItem(r, c + 1, item)
                 
