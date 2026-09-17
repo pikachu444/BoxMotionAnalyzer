@@ -196,7 +196,8 @@ DROP_POSTURE_SUMMARY_DESCRIPTORS = (
         short_description="Overall contact classification for the analyzed slice.",
         long_description=(
             "Contact state summarizes the evidence found in the slice: NoContact, Approach, "
-            "ImpactEvent, or SustainedContact."
+            "ImpactEvent, or SustainedContact. Unavailable means pose or corner observations "
+            "are incomplete; it does not mean there was no contact."
         ),
         visual_guide=DropPostureVisualGuide.CONTACT_STATE,
     ),

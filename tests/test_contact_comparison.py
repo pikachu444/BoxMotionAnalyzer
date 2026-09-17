@@ -50,6 +50,18 @@ def change_review(frame, edit):
     frame[REVIEW] = json.dumps(data)
 
 
+def test_incomplete_pose_state_is_unavailable_not_no_contact():
+    from src.utils.first_event_evidence import validate_first_event
+    frame = contact_frame()
+    frame[(*SUMMARY, 'ContactState')] = 'Unavailable'
+    event = validate_first_event(frame)
+    assert event.status == 'unavailable'
+    assert 'incomplete' in event.reason
+    result = calculate_contact_comparison(frame)
+    assert result.outcome == 'Unclear'
+    assert 'incomplete' in result.reason
+
+
 @pytest.mark.parametrize(('target', 'observed', 'rotation', 'expected'), [
     (('BOTTOM',), '{C1,C2,C5,C6}', None, 'Match'),
     (('BOTTOM',), '{C1,C5}', Rotation.from_euler('z', 30, degrees=True), 'Different'),

@@ -436,8 +436,8 @@ class DropPosturePostProcessor:
             DropPostureSummaryCols.CMIN_AT_T1_MINUS_INDEX: cmin_at_t1,
             DropPostureSummaryCols.T1_MINUS_TIME_SEC: t1_time,
             DropPostureSummaryCols.REFERENCE_FACE: reference_face_label,
-            DropPostureSummaryCols.LONG_AXIS: f"LocalAxis{long_axis_idx}",
-            DropPostureSummaryCols.SHORT_AXIS: f"LocalAxis{short_axis_idx}",
+            DropPostureSummaryCols.LONG_AXIS: f"LocalAxis{long_axis_idx}" if long_axis_idx is not None else "",
+            DropPostureSummaryCols.SHORT_AXIS: f"LocalAxis{short_axis_idx}" if short_axis_idx is not None else "",
             DropPostureSummaryCols.T1_DETECTED: bool(t1_detected),
             DropPostureSummaryCols.CONTACT_STATE: contact_analysis["contact_state"],
             DropPostureSummaryCols.CONTACT_CONFIDENCE: contact_analysis["contact_confidence"],
@@ -459,12 +459,22 @@ class DropPosturePostProcessor:
         result = df.copy()
         corner_positions = self._corner_positions(result)
         vertical_positions = corner_positions[:, :, self.vertical_axis_idx]
-        min_heights = np.nanmin(vertical_positions, axis=1)
-        contact_analysis = self._contact_analysis(
-            min_heights=min_heights,
-            index=result.index,
-            contact_threshold_mm=contact_threshold_mm,
-        )
+        rotations = result[[PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]].to_numpy(dtype=float)
+        valid = np.isfinite(corner_positions).all(axis=(1, 2)) & np.isfinite(rotations).all(axis=1)
+        if valid.all():
+            contact_analysis = self._contact_analysis(
+                min_heights=vertical_positions.min(axis=1),
+                index=result.index,
+                contact_threshold_mm=contact_threshold_mm,
+            )
+        else:
+            # Contact uses whole-record smoothing, range and tail evidence.
+            # Do not drop missing rows or infer an event across an unknown pose.
+            contact_analysis = dict(t1_minus_pos=None, t1_detected=False,
+                impact_detected=False, sustained_contact_detected=False,
+                contact_state="Unavailable", contact_confidence=np.nan,
+                contact_detection_method="insufficient_pose",
+                active_mask=np.zeros(len(result), dtype=bool), relative_contact_band=0.)
         t1_minus_pos = contact_analysis["t1_minus_pos"]
         t1_detected = contact_analysis["t1_detected"]
         contact_sets = self._contact_sets(
@@ -475,20 +485,20 @@ class DropPosturePostProcessor:
         )
         impact_summary = self._impact_sequence_summary(contact_sets=contact_sets, index=result.index)
 
-        reference_pos = t1_minus_pos if t1_minus_pos is not None else 0
-        t1_rotation = R.from_rotvec(
-            result.iloc[reference_pos][[PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]].to_numpy(dtype=float)
-        )
-        reference_face_label = self._select_reference_face(t1_rotation)
-        long_axis_idx, short_axis_idx = self._reference_axes(reference_face_label)
-
-        metrics = self._compute_frame_metrics(
-            result,
-            corner_positions,
-            reference_face_label,
-            long_axis_idx,
-            short_axis_idx,
-        )
+        if valid.any():
+            reference_pos = t1_minus_pos if t1_minus_pos is not None else int(np.flatnonzero(valid)[0])
+            reference_face_label = self._select_reference_face(R.from_rotvec(rotations[reference_pos]))
+            long_axis_idx, short_axis_idx = self._reference_axes(reference_face_label)
+            # These are independent per-frame geometric metrics, not a shortened
+            # input to contact detection. Missing rows retain unavailable metrics.
+            metrics = self._compute_frame_metrics(result.loc[valid], corner_positions[valid],
+                reference_face_label, long_axis_idx, short_axis_idx).reindex(result.index)
+        else:
+            reference_face_label, long_axis_idx, short_axis_idx = "", None, None
+            metrics = pd.DataFrame(np.nan, index=result.index, columns=[
+                DropPostureCols.BETA_DEG, DropPostureCols.THETA_LONG_DEG,
+                DropPostureCols.THETA_SHORT_DEG, DropPostureCols.CMIN_INDEX,
+                DropPostureCols.DELTA_H_MM])
         summary = self._summary_data(
             metrics=metrics,
             t1_minus_pos=t1_minus_pos,

@@ -149,7 +149,7 @@ def _record_public_impact_metrics(reopened, truth, report):
     checks['first_contact_diagnostic'] = result.metrics['first_contact'].value == '{C5,C6,C7,C8}'
 
 
-@pytest.mark.parametrize('source_kind', ['handcrafted', 'mujoco', 'custom_mujoco', 'collision_face', 'continuity_layout'])
+@pytest.mark.parametrize('source_kind', ['handcrafted', 'general_export', 'mujoco', 'custom_mujoco', 'collision_face', 'continuity_layout'])
 def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, source_kind, request):
     # Production UI changes runtime geometry; isolate it from following tests.
     monkeypatch.setattr(config_app, 'BOX_DIMS', np.array(config_app.BOX_DIMS, copy=True))
@@ -157,6 +157,8 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     app = QApplication.instance() or QApplication([])
     app.setAttribute(Qt.ApplicationAttribute.AA_DontUseNativeDialogs, True)
     window = MainApp()
+    if source_kind == 'general_export':
+        window.resize(1510, 800)
     window.show()
     QTest.qWait(100)
     raw_widget = window.original_widget
@@ -169,6 +171,20 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     boundary_time = .3
     mujoco_truth = None
     dims = DIMS
+    if source_kind == 'general_export':
+        from src.simulation.corruption_export import write_observations
+        from src.simulation.marker_fixtures import example_profile
+        # The predeclared analytic raw_bundle truth is input to the general API;
+        # no specialized fault generator is used for these observations.
+        trajectory = dict(schema_version=1, source_kind='handcrafted_dummy',
+            coordinate_policy='world-y-up-box-local-fixed-center-v1',
+            time_s=(np.arange(100) * .01).tolist(), body_origin_mm=truth[:, :3].tolist(),
+            rotation_matrix=Rotation.from_rotvec(truth[:, 3:]).as_matrix().tolist())
+        generated = write_observations(tmp_path / 'general', trajectory, example_profile(),
+            {'schema_version': 1, 'events': [{'kind': 'flip_180_local_axis',
+              'channel': 'rigid_body_markers', 'start_index': 30, 'axis': 'X'}]})
+        source = generated / 'observed.csv'
+        h, raw = DataLoader().load_csv(str(source))
     if source_kind == 'collision_face':
         parent = Path('tmp/issue84_public_metrics')
         parent.mkdir(parents=True, exist_ok=True)
@@ -332,6 +348,13 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
         assert exported_identity.source_kind == 'mujoco_synthetic'
         assert exported_identity.exclusion_reasons() == []
         assert exported_identity.values['IstaType'] == 'not_applicable'
+    elif source_kind == 'general_export':
+        assert exported_identity.source_kind == 'handcrafted_dummy'
+        positions = output[[('Position', 'CoM', 'P_T' + a) for a in 'XYZ']].to_numpy()
+        rotations = output[[('Position', 'CoM', 'P_R' + a) for a in 'XYZ']].to_numpy()
+        assert np.linalg.norm(positions - truth[:, :3], axis=1).max() < .1
+        assert np.degrees((Rotation.from_rotvec(truth[:, 3:]).inv()
+                           * Rotation.from_rotvec(rotations)).magnitude()).max() < .1
     else:
         assert exported_identity.source_kind == 'unknown_legacy'
     if mujoco_truth is not None:
@@ -350,6 +373,14 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
                                              'max_rotation_deg': float(rotation_error)}
         print(f'MuJoCo GUI proc max error: {position_error} mm, {rotation_error} deg')
     window.grab().save(str(evidence / 'processed.png'))
+    if source_kind == 'general_export':
+        (evidence / 'execution.json').write_text(json.dumps({
+            'logical_size': [window.width(), window.height()], 'dpr': window.devicePixelRatioF(),
+            'processed_samples': len(output), 'source_kind': exported_identity.source_kind,
+            'max_position_mm': float(np.linalg.norm(positions - truth[:, :3], axis=1).max()),
+            'max_rotation_deg': float(np.degrees((Rotation.from_rotvec(truth[:, 3:]).inv()
+                                     * Rotation.from_rotvec(rotations)).magnitude()).max()),
+        }, indent=2), encoding='utf-8')
     if source_kind == 'collision_face':
         import shutil
         from src.analysis.pipeline.artifact_io import add_timeline_context_columns, save_proc_file

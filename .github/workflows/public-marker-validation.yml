@@ -67,6 +67,7 @@ jobs:
           tests/test_continuity_fixtures.py
           tests/test_marker_corruption.py
           tests/test_corruption_export.py
+          tests/test_general_export_recovery.py
           tests/test_marker_flip_artifact_io.py
           tests/test_marker_face_gui_flow.py
           tests/test_simulation_contact_gui.py
@@ -118,6 +119,8 @@ jobs:
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_metric_variants_gui.py --junitxml=tmp/issue119/gui-125.xml
+      - name: Check incomplete pose rows without inferring contact
+        run: python -m pytest -q tests/test_drop_posture_post_processor.py -k incomplete_pose --junitxml=tmp/issue115/incomplete.xml
       - name: Verify bounded marker review and real cancellation at 125 percent
         env:
           QT_SCALE_FACTOR: '1.25'
@@ -158,6 +161,7 @@ jobs:
           path: |
             tmp/ci-desktop.json
             tmp/issue112/**
+            tmp/issue115/**
             tmp/public-marker-results.xml
             tmp/public-validation-summary.json
             tmp/ci-*/**/validation*.json
