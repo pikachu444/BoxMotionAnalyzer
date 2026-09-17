@@ -262,6 +262,11 @@ class SimulationThread(QThread):
 
 class SimulationUI(QWidget):
     def closeEvent(self, event):
+        marker_dialog = getattr(self, 'marker_dialog', None)
+        if marker_dialog is not None and marker_dialog.busy:
+            marker_dialog.cancel()
+            event.ignore()
+            return
         worker = self.__dict__.get('thread')
         # Keep the worker and batch queue alive until their completion/error
         # callbacks have restored the controls, including the gap between jobs.
@@ -275,6 +280,8 @@ class SimulationUI(QWidget):
         super().__init__(parent)
         self.setWindowTitle("Simulation")
         self.resize(500, 600)
+        self.marker_dialog = None
+        self.analysis_windows = []
 
         self.layout = QVBoxLayout(self)
         self.experimental_label = QLabel("Experimental")
@@ -306,14 +313,61 @@ class SimulationUI(QWidget):
         self.batch_btn.setToolTip("Run the existing free-fall presets; this is not a complete ISTA test sequence.")
         self.batch_btn.clicked.connect(self.run_batch_simulation)
 
+        self.marker_btn = QPushButton("Marker CSV…")
+        self.marker_btn.setToolTip('Generate synthetic observations for Step 1 using the current simulation inputs.')
+        self.marker_btn.clicked.connect(self.open_marker_export)
+
         btn_layout.addWidget(self.run_btn)
         btn_layout.addWidget(self.batch_btn)
+        btn_layout.addWidget(self.marker_btn)
         self.layout.addLayout(btn_layout)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.hide()
         self.layout.addWidget(self.progress_bar)
+
+    def open_marker_export(self):
+        if not self.run_btn.isEnabled():
+            return
+        from src.simulation.ui.marker_export_dialog import MarkerExportDialog
+        simulation = dict(mass=self.mass_input.value(), friction=self.friction_input.value(),
+            elasticity=self.elasticity_input.value(),
+            com_offset=(self.com_x.value(), self.com_y.value(), self.com_z.value()),
+            height=self.custom_h_input.value(), duration=self.duration_input.value(),
+            quat=Scenarios.get_orientation_from_euler(self.custom_r_input.value(),
+                self.custom_p_input.value(), self.custom_y_input.value()))
+        self.marker_dialog = MarkerExportDialog(simulation,
+            (self.w_input.value(), self.d_input.value(), self.h_input.value()), self)
+        # Window modality preserves the captured Simulation inputs until close.
+        self.marker_dialog.setWindowModality(Qt.WindowModal)
+        self.marker_dialog.setAttribute(Qt.WA_DeleteOnClose)
+        self.marker_dialog.finished.connect(lambda _: setattr(self, 'marker_dialog', None))
+        self.marker_dialog.open_observations.connect(self._open_marker_observations)
+        self.marker_dialog.show()
+
+    def _open_marker_observations(self, filepath):
+        from src.analysis.app.main_window import MainApp
+        from src.utils.artifact_metadata import DIMENSIONS
+        window = MainApp()
+        try:
+            raw = window.original_widget
+            raw.load_csv_path(filepath)
+            # Read this exported file, never the dialog's subsequently selected
+            # layout or the separate truth/event files. Approval remains off.
+            dimensions = raw.header_info['artifact_metadata']
+            for edit, key in zip((raw.le_box_l, raw.le_box_w, raw.le_box_h), DIMENSIONS):
+                edit.setText(str(dimensions[key]))
+        except Exception as error:
+            window.close()
+            window.deleteLater()
+            QMessageBox.warning(self.marker_dialog or self, 'Cannot open observations', str(error))
+            return
+        window.setAttribute(Qt.WA_DeleteOnClose)
+        window.setWindowTitle('Synthetic observations: ' + Path(filepath).parent.name)
+        self.analysis_windows.append(window)
+        window.destroyed.connect(lambda: self.analysis_windows.remove(window))
+        window.show()
 
     def _init_box_group(self):
         group = QGroupBox("Box")
@@ -607,6 +661,7 @@ class SimulationUI(QWidget):
         # 3. Setup Engine
         self.run_btn.setEnabled(False)
         self.batch_btn.setEnabled(False)
+        self.marker_btn.setEnabled(False)
         self.progress_bar.show()
 
         engine = MuJoCoEngine(size=size, mass=mass, friction=friction, elasticity=elasticity, com_offset=com_offset)
@@ -644,6 +699,7 @@ class SimulationUI(QWidget):
 
         self.run_btn.setEnabled(False)
         self.batch_btn.setEnabled(False)
+        self.marker_btn.setEnabled(False)
         self.progress_bar.setRange(0, len(sequences))
         self.progress_bar.setValue(0)
         self.progress_bar.show()
@@ -707,18 +763,21 @@ class SimulationUI(QWidget):
     def _on_batch_completed(self):
         self.run_btn.setEnabled(True)
         self.batch_btn.setEnabled(True)
+        self.marker_btn.setEnabled(True)
         self.progress_bar.hide()
         QMessageBox.information(self, "Batch Success", f"Successfully generated {len(self._batch_success_paths)} files in:\n{self._batch_dir}")
 
     def on_sim_finished(self, output_path):
         self.run_btn.setEnabled(True)
         self.batch_btn.setEnabled(True)
+        self.marker_btn.setEnabled(True)
         self.progress_bar.hide()
         QMessageBox.information(self, "Success", f"Simulation completed and saved to:\n{output_path}\n\nYou can now load this in Data Analysis.")
 
     def on_sim_error(self, err_msg):
         self.run_btn.setEnabled(True)
         self.batch_btn.setEnabled(True)
+        self.marker_btn.setEnabled(True)
         self.progress_bar.hide()
         QMessageBox.critical(self, "Error", err_msg)
 

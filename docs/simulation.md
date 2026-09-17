@@ -1,6 +1,6 @@
 # 박스 낙하 시뮬레이션 문서
 
-Last Reviewed: 2026-09-14
+Last Reviewed: 2026-09-18
 
 현재 simulation은 WIP이다. #74용 별도 생성기 `src/simulation/marker_fixtures.py`는 실제 `data.time`, 갱신된 body origin/COM/회전을 기록하고 정상 정답과 고장 관측을 분리한다. 기존 GUI의 `data_exporter.py`도 실제 시각·회전을 비파괴적으로 저장하도록 보완했다. 이 직접 `.proc` 출력은 분석 solver를 실행한 결과가 아니며 #74의 독립 관측/정답 경로를 대체하지 않는다. 명세와 실행 방법은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md), 검증 결과와 한계는 [조사 결과](analysis/reference/marker_flip_review_findings.md)를 따른다. 아래 물리 결과 설명은 실제 실험 정확도 보장이 아니다.
 
@@ -11,7 +11,17 @@ Last Reviewed: 2026-09-14
 하지만 실제 실험 환경 구축이나 반복적인 물리적 낙하 테스트는 높은 비용과 시간이 소모됩니다.
 이를 해결하기 위해, 오픈소스 물리 엔진인 **MuJoCo**를 활용하여 박스 모델링, 중력, 충돌, 반발력 등의 물리적 요소를 가상으로 구현하여, 실제 실험과 유사한 데이터를 소프트웨어적으로 생성할 수 있는 시뮬레이션 기능을 추가하였습니다.
 
-기존 GUI는 `.proc`를 직접 내보낸다. #74 검증은 별도의 `observed.csv`를 실제 분석 파이프라인에 넣고, 독립적인 `truth_pose.csv`와 비교한다. 두 저장 경로의 완성도와 검증 범위를 구분해야 한다.
+GUI의 Run과 Run all presets는 `.proc`를 직접 내보낸다. `Marker CSV…`는 별도의 `observed.csv`를 생성해 실제 분석 파이프라인에 넣을 수 있게 한다. `truth_pose.csv`는 독립 평가용이다. 두 저장 경로의 검증 범위를 구분해야 한다.
+
+### Simulation에서 마커 관측 생성 (#114)
+
+`Marker CSV…`를 누르면 현재 거리·초기 회전·질량·COM·접촉 설정·기간을 복사한 창이 열린다. 공개 18/32마커 예제 또는 기존 형식의 JSON 배치를 선택하고 로컬 XYZ·면별 마커를 확인한다. 배치는 절대 mm 좌표이며 Simulation 치수에 맞춰 자동 확대하지 않는다. 치수가 다르면 `Use layout box`를 선택해야 생성할 수 있고, 원래 Simulation 값은 유지된다. 가져온 배치는 Imported로 구분한다. 배치 편집이나 별도 등록 절차는 없다.
+
+`Faults`의 기본값은 None이다. 누락, 로컬 XYZ 반회전, 독립 Gaussian 잡음을 기존 생성 API로 지정할 수 있다. 반회전은 시작 시각부터 끝까지 solved 채널에 적용한다. 누락과 잡음은 시작 이상·끝 미만 구간이며 실제 기록 시각으로 표본을 선택한다. 정지로 조기 종료한 기록을 벗어나는 지정은 오류로 알린다. Physical 채널의 변화는 Step 1 solved 그래프를 바꾸지 않는다. 잡음 seed로 관측을 재현할 수 있지만 실측 오차 분포를 뜻하지 않는다. 직접 `.proc`의 코너 잡음 옵션은 이 관측에 적용하지 않는다.
+
+새 폴더 이름을 입력하고 Generate에서 부모 폴더를 선택한다. 기존 이름은 거부하며, 생성이 끝나야 새 폴더를 공개한다. 취소·닫기·오류는 이번 임시 출력만 정리하고 이전 결과는 유지한다. `Open in Step 1`은 완성된 `observed.csv`만 새 분석 창에 연다. 같은 폴더의 `truth_pose.csv`, `truth_markers.csv`, `observed.synthetic.json`은 분석 입력에 포함하지 않는다. 파일에 기록된 치수가 표시되지만 치수 확인과 보정 승인은 사용자가 별도로 수행한다. 기존 방식으로 CSV를 직접 열면 여전히 치수를 입력해야 한다.
+
+공통 history adapter는 실제 `data.time`과 월드 변환 `A @ R`을 사용하고 로컬 축·body origin·COM을 구분한다. 로컬 Qt 실행은 생성 창 1000×700, Step 1 1510×800, DPR 1.25에서 정상·누락·반회전 63표본을 열고 정답 파일 접근 차단, 배치 변경 후 이전 출력 열기, 기존 창 보존, 취소·오류·덮어쓰기 거부를 확인했다. 좌표 기대값은 선언한 배치와 변환에서 독립적으로 구했다. 관련 25개 검사와 기존 직접 export 41개가 통과했다. [작은 배치안](visualization/synthetic_marker_export_layout.md)을 사전 검토한 뒤 구현했다. 독립 리뷰와 최종 CI 상태는 #114 PR에서 기록한다. 합성 검증이며 실측 교정은 #104에 남는다.
 
 ### 오류 구간을 지정한 관측 생성 (#82)
 

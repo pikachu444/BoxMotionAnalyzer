@@ -89,6 +89,7 @@ jobs:
           tests/test_slice_dimension_provenance_gui.py
           tests/test_simulation_export.py
           tests/test_simulation_export_gui.py
+          tests/test_simulation_marker_export.py
           tests/test_scene_fixtures.py
           tests/test_scene_detection.py
           tests/test_scene_face_corrections.py
@@ -115,6 +116,10 @@ jobs:
           tests/test_scenario_6.py
           tests/test_raw_data_processing.py
           --junitxml=tmp/public-marker-results.xml
+      - name: Generate marker observations and open Step 1 at 125 percent
+        env:
+          QT_SCALE_FACTOR: '1.25'
+        run: python -m pytest -q tests/test_simulation_marker_export_gui.py --junitxml=tmp/issue114/gui-125.xml
       - name: Verify metric variants in the real comparison GUI at 125 percent
         env:
           QT_SCALE_FACTOR: '1.25'
@@ -162,6 +167,7 @@ jobs:
             tmp/ci-desktop.json
             tmp/issue112/**
             tmp/issue115/**
+            tmp/issue114/**
             tmp/public-marker-results.xml
             tmp/public-validation-summary.json
             tmp/ci-*/**/validation*.json

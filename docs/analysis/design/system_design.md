@@ -14,6 +14,8 @@ Last Reviewed: 2026-09-18
   - 분석 파이프라인과 분석용 GUI
 - `src/visualization/`
   - 3D 시각화 GUI
+- `src/simulation/`
+  - 기존 직접 `.proc` 출력과 선택적 마커 관측 생성. `history_trajectory`가 실제 시각·월드 축 변환·body origin/COM을 공통 제공하고 `marker_export`가 기존 `write_observations`를 호출한다. GUI는 완성된 관측 CSV만 별도 `MainApp`에 전달한다.
 - `src/config/`
   - 설정값과 컬럼 정의
 
