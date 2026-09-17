@@ -64,3 +64,9 @@ retain the execution evidence. This is synthetic software validation, not
 independently calibrated physical accuracy. The detector and thresholds did
 not change. CI repeats the actual widgets at 125 percent; final CI and review
 results belong to the PR.
+
+The retained-result release replay also checks the workspace's saved signal
+before explicitly selecting relative rotation for its existing tiny-angle and
+zoom checks. It no longer assumes that every saved review uses rotation. This
+was corrected after required CI exposed the old default-selection assumption;
+the numerical detector and its tolerances were not changed.
