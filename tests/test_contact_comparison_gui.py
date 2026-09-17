@@ -155,18 +155,20 @@ def test_contact_view_compares_exact_feature_and_excludes_conflicting_hypotheses
         window.table_panel.view_combo.setCurrentIndex(3)
         _events(app)
         table = window.table_panel.table
-        assert [table.item(i, 3).text() for i in range(3)] == ['Match', 'Different', 'Unclear']
+        assert [table.item(i, 3).text().split(' / ')[0] for i in range(3)] == ['Match', 'Different', 'Unclear']
         assert [table.item(i, 2).text() for i in range(2)] == ['Bottom', 'Bottom']
         assert 'No independent intended contact' in table.item(2, 3).toolTip()
         summary = window.model.get_contact_comparison()
-        assert summary['statistics'] == {'n': 0, 'Match': 0, 'Different': 0, 'Unclear': 0, 'excluded': 3}
-        assert all('Conflicting intended contacts' in table.item(i, 3).toolTip() for i in range(3))
+        assert summary['statistics'] == {'n': 0, 'Match': 0, 'Different': 0, 'Unclear': 0, 'excluded': 3, 'conflicts': 1}
+        assert all('Conflicting intended contacts' in table.item(i, 3).toolTip() for i in range(2))
+        assert 'ineligible' in table.item(2, 3).text()
+        assert 'No independent intended contact' in table.item(2, 3).toolTip()
         monkeypatch.setattr(QFileDialog, 'getOpenFileNames', lambda *a, **kw: ([], ''))
         QTest.mouseClick(window.control_panel.btn_add_files, Qt.LeftButton)
         assert table.rowCount() == 3
         window.control_panel.cb_baseline.setCurrentText(paths[1].name)
         _events(app)
-        assert [table.item(i, 3).text() for i in range(3)] == ['Match', 'Different', 'Unclear']
+        assert [table.item(i, 3).text().split(' / ')[0] for i in range(3)] == ['Match', 'Different', 'Unclear']
         assert window.model.get_contact_comparison()['statistics']['n'] == 0
         assert not errors
     finally:

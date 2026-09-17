@@ -23,6 +23,8 @@ SOURCE_LABELS = {'real': 'Real', 'mujoco_synthetic': 'MuJoCo',
 
 class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
+    resolution_details_changed = Signal(str)
+
     def __init__(self):
         super().__init__("Summary")
         # Keep at least one metric row beneath the controls and table header.
@@ -51,6 +53,13 @@ class CompareTablePanel(QGroupBox):
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.verticalHeader().setVisible(False)
         layout.addWidget(self.table)
+        self.resolution_label = QLabel()
+        self.resolution_label.setTextFormat(Qt.PlainText)
+        layout.addWidget(self.resolution_label)
+        self._selected_metric = 'vertical_velocity'
+        self._selected_contact = None
+        self.table.currentCellChanged.connect(self._show_resolution)
+        self.table.cellClicked.connect(self._show_resolution)
 
     def update_table(self, diff_data: dict[str, dict], baseline_name: str, impact=None, contact=None):
         self._table_data = (diff_data, baseline_name, impact)
@@ -59,8 +68,26 @@ class CompareTablePanel(QGroupBox):
         self._render()
 
     def _render(self):
+        mode = self.view_combo.currentIndex()
+        preserve = getattr(self, '_last_mode', None) == mode
+        vertical = self.table.verticalScrollBar().value()
+        horizontal = self.table.horizontalScrollBar().value()
+        self.table.blockSignals(True)
+        try:
+            self._render_contents()
+        finally:
+            self.table.blockSignals(False)
+        if preserve:
+            self.table.verticalScrollBar().setValue(vertical)
+            self.table.horizontalScrollBar().setValue(horizontal)
+        self._last_mode = mode
+        self._show_resolution()
+
+    def _render_contents(self):
         diff_data, baseline_name, impact = self._table_data
         self.cohort_label.clear()
+        self.resolution_label.clear()
+        self.resolution_label.setVisible(self.view_combo.currentIndex() == 1)
         self.validation_badge.setText('Diagnostic' if impact is None or self.view_combo.currentIndex() == 2 else 'Experimental')
         self.validation_badge.setVisible(bool(diff_data))
         if self.view_combo.currentIndex() == 3 and self._contact_data is not None:
@@ -99,19 +126,20 @@ class CompareTablePanel(QGroupBox):
         self.table.setHorizontalHeaderLabels(['File', 'Intended', 'Observed (estimated)', 'Result', 'Contact (s)'])
         stats = contact['statistics']
         if contact['intended']:
-            self.cohort_label.setText(f"Local n={stats['n']}   Match {stats['Match']}   Different {stats['Different']}   Unclear {stats['Unclear']}")
+            self.cohort_label.setText(f"Local n={stats['n']}   Match {stats['Match']}   Different {stats['Different']}   Unclear {stats['Unclear']}   Conflict {stats['conflicts']}")
             self.cohort_label.setToolTip('Compatible, distinct observations with baseline intent: '
-                + contact['intended'] + f". {stats['excluded']} excluded."
+                + contact['intended'] + f". {stats['excluded']} non-contributing files (including duplicate variants)."
                 + (' Fewer than 3 comparable observations.' if stats['n'] < 3 else ''))
         else:
             self.cohort_label.setText('Baseline contact unspecified')
         for row, (name, data) in enumerate(files.items()):
             result = data['result']
+            resolution = data['metric_resolution']['contact']
             labels = [name + '\n' + SOURCE_LABELS.get(data['source'], 'Unknown'), result.intended or '—',
-                      result.observed or '—', result.outcome, self._number(result.time_s)]
+                      result.observed or '—', result.outcome + ' / ' + resolution['status'], self._number(result.time_s)]
             for col, label in enumerate(labels):
                 item = QTableWidgetItem(label)
-                detail = [name, result.reason] + data['reasons']
+                detail = [name, result.reason, self._variant_detail(name, resolution)] + data['reasons']
                 if col == 3:
                     detail.append('Exact contact-feature comparison. Different can include a corner or edge of the intended face; it is not an ISTA failure.')
                 item.setToolTip('\n'.join(part for part in detail if part))
@@ -121,6 +149,8 @@ class CompareTablePanel(QGroupBox):
             self.table.setColumnWidth(col, min(260, max(95, self.table.columnWidth(col))))
         self.table.resizeRowsToContents()
         self.table.horizontalHeader().setTextElideMode(Qt.ElideMiddle)
+        names = list(files)
+        self.table.setCurrentCell(names.index(self._selected_contact) if self._selected_contact in names else 0, 0)
 
     @staticmethod
     def _number(value):
@@ -134,6 +164,7 @@ class CompareTablePanel(QGroupBox):
         if descriptor['role'] == 'diagnostic':
             label += ' [diagnostic]'
         item = QTableWidgetItem(label)
+        item.setData(Qt.UserRole, key)
         item.setToolTip(descriptor['tooltip'])
         return item
 
@@ -172,6 +203,7 @@ class CompareTablePanel(QGroupBox):
                 evidence = data['result'].evidence
                 details = [metric.reason] if metric.reason else []
                 details.extend(data['reasons'])
+                details.append(self._variant_detail(name, data['metric_resolution'][key]))
                 if evidence.get('evaluation_time_s') is not None:
                     details.append(f"Evaluated at {evidence['evaluation_time_s']:.6g} s")
                 if evidence.get('sample_count'):
@@ -193,14 +225,11 @@ class CompareTablePanel(QGroupBox):
             stats = impact['statistics'][key]
             n = stats['n']
             count = QTableWidgetItem(str(n) if n >= 3 else f'{n} (low)')
-            exclusions = []
-            for name, data in impact['files'].items():
-                reasons = data['reasons'] + ([data['result'].metrics[key].reason]
-                           if data['result'].metrics[key].reason else [])
-                if reasons:
-                    exclusions.append(name + ': ' + '; '.join(reasons))
+            exclusions = [self._variant_detail(name, data['metric_resolution'][key])
+                          + ('\n' + '; '.join(data['reasons']) if data['reasons'] else '')
+                          for name, data in impact['files'].items()]
             count.setToolTip('Valid distinct observations. Fewer than 3 provide insufficient repeat evidence.'
-                             + ('\n' + '\n'.join(exclusions) if exclusions else ''))
+                             + '\n' + '\n'.join(exclusions))
             self.table.setItem(r, 1, count)
             for c, field in enumerate(('mean', 'min', 'max', 'range'), 2):
                 self.table.setItem(r, c, QTableWidgetItem(self._number(stats.get(field))))
@@ -212,6 +241,73 @@ class CompareTablePanel(QGroupBox):
             item = QTableWidgetItem(f'{matches}/{n}' if matches is not None and n else '\u2014')
             item.setToolTip('Diagnostic agreement with the baseline category; not agreement with an intended trial target.')
             self.table.setItem(r, 7, item)
+
+        keys = list(METRICS)
+        self.table.setCurrentCell(keys.index(self._selected_metric), 0)
+        self._show_resolution()
+
+    @staticmethod
+    def _variant_detail(name, entry):
+        value = repr(entry['value'])
+        text = f"{name}: {entry['status']} / {value}"
+        if entry['reason']:
+            text += '\n' + entry['reason']
+        if entry.get('group_reason') and entry['group_reason'] != entry['reason']:
+            text += '\n' + entry['group_reason']
+        return text + '\nSHA-256: ' + entry['sha256'] + '\n' + entry['path']
+
+    def _show_resolution(self, *_):
+        mode = self.view_combo.currentIndex()
+        if mode == 3 and self._contact_data:
+            names = list(self._contact_data['files'])
+            row = self.table.currentRow()
+            if not 0 <= row < len(names):
+                self.resolution_details_changed.emit('')
+                return
+            self._selected_contact = name = names[row]
+            data = self._contact_data['files'][name]
+            entry = data['metric_resolution']['contact']
+            details = ['Contact', self._variant_detail(name, entry), *data['reasons']]
+            observation = self._contact_data['observations'].get(entry['observation_key'], {}).get('contact')
+            if observation:
+                details.extend(['', 'Observation status: ' + observation['status'], observation['reason'],
+                                'Sources: ' + ', '.join(observation['sources'])])
+                details.extend(self._variant_detail(v['file'], v) for v in observation['variants'])
+            self.resolution_details_changed.emit('\n'.join(details))
+            return
+        if mode != 1:
+            self.resolution_details_changed.emit('')
+            return
+        row = self.table.currentRow()
+        item = self.table.item(row, 0) if row >= 0 else None
+        key = item.data(Qt.UserRole) if item else None
+        impact = self._table_data[2]
+        if key not in METRICS or not impact:
+            self.resolution_details_changed.emit('')
+            return
+        self._selected_metric = key
+        duplicates = invalid = conflicts = 0
+        details = [METRICS[key]['label']]
+        for observation, metrics in impact.get('observations', {}).items():
+            metric = metrics[key]
+            duplicates += max(0, len(metric['sources']) - 1)
+            invalid += sum(v['status'] == 'invalid' for v in metric['variants'])
+            conflicts += metric['status'] == 'conflict'
+            details.extend(['', 'Value: ' + repr(metric['value']), 'Status: ' + metric['status']])
+            if metric['sources']:
+                details.append('Sources: ' + ', '.join(metric['sources']))
+            if metric['reason']:
+                details.append(metric['reason'])
+            details.append(f'Capture: {observation[0][:12]}… / {observation[1]!r}–{observation[2]!r} s')
+            details.extend(self._variant_detail(v['file'], v) for v in metric['variants'])
+            details.append('Full observation identity: ' + repr(observation))
+        for name, data in impact['files'].items():
+            if data['reasons']:
+                details.extend(['', self._variant_detail(name, data['metric_resolution'][key]),
+                                '; '.join(data['reasons'])])
+        details.append('\nPolicy: ' + impact.get('resolution_policy', ''))
+        self.resolution_label.setText(f'Duplicate {duplicates}   Invalid {invalid}   Conflict {conflicts}   Details at left')
+        self.resolution_details_changed.emit('\n'.join(details))
 
     def _render_diagnostics(self, diff_data, baseline_name):
         if not diff_data:
@@ -269,6 +365,11 @@ class CompareTablePanel(QGroupBox):
                 details = []
                 if ds_info['reasons']:
                     details.append('Individual value only; baseline difference unavailable.\n' + '\n'.join(ds_info['reasons']))
+                impact = self._table_data[2]
+                key = {'FirstImpactContact': 'first_contact', 'ContactConfidence': 'contact_confidence',
+                       'FinalFace': 'final_face'}.get(metric)
+                if impact and key:
+                    details.append(self._variant_detail(ds_name, impact['files'][ds_name]['metric_resolution'][key]))
                 reason = ds_info.get('metric_reasons', {}).get(metric, '')
                 event = ds_info.get('first_event', {})
                 if metric in ('FirstImpactContact', 'ContactConfidence'):
@@ -524,6 +625,9 @@ class CompareControlPanel(QGroupBox):
                 details = model.file_paths[name] + '\n' + model.status_text(name, repeat_reasons=repeat_reasons)
                 reasons = model.exclusion_reasons(name) + (repeat_reasons or [])
                 details += '\n\n' + '\n'.join(dict.fromkeys(reasons))
+                if impact:
+                    details += '\n\n' + '\n\n'.join(METRICS[key]['label'] + '\n' + CompareTablePanel._variant_detail(name, entry)
+                        for key, entry in impact['files'][name]['metric_resolution'].items())
                 details += '\n\n' + '\n'.join(f'{key}: {value}' for key, value in model.identities[name].values.items())
             item.setToolTip(details)
             self.file_list.addItem(item)

@@ -78,6 +78,12 @@ Last Reviewed: 2026-09-17
 - 표시 이름·단위는 저장 키와 분리한다. 각도 자동 축 폭은 최소 1도이며 회전벡터에는 동일 폭의 rad를 적용한다. 미분량·길이·원본 값·사용자 확대는 바꾸지 않는다.
 - 꼭짓점 ID는 점과 범주 축을 사용하고 요약에서 번호를 빼지 않는다. Step 2의 혼합 플롯은 별도 범주 축을 사용하며 점 선택·팝업·실패 시 복원도 해당 축을 유지한다.
 
+### 지표별 관측 해소 (#119)
+
+비교 계층은 기존 loader의 metric value/reason을 그대로 받아 compatibility → observation → metric variants → statistics 순서로 처리한다. `observation_resolution.py`는 I/O와 Qt가 없는 순수 해소기다. `data_model.py`의 Impact와 Contact adapter는 서로 다른 기존 호환성·유효성 계약을 유지한다. Contact의 intended-contact 충돌도 local 호환성과 registration 검사 후 그 집단 안에서만 찾는다.
+
+canonical-exact-v1은 유한 float와 정규화된 범주를 정확히 비교한다. 표시 반올림·허용오차·baseline·로드 순서는 authority가 아니다. 관측 key의 고정 순서로 통계를 계산하며 출처 전체와 무효/충돌 근거를 반환한다. 재계산 시 현재 파일 집합을 사용하므로 교체·삭제 후 과거 근거가 남지 않는다. 비교 결과는 저장 파일을 변경하지 않는다.
+
 ## 4. 핵심 설계 원칙
 
 ### 4.1. 파이프라인 제어와 UI 분리

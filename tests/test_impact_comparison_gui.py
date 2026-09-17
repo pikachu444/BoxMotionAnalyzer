@@ -26,6 +26,61 @@ def _load(window, paths, monkeypatch, app):
     _events(app)
 
 
+def test_metric_variants_keep_counts_and_expose_reasons_on_baseline_change(tmp_path, monkeypatch):
+    import numpy as np
+    app = QApplication.instance() or QApplication([])
+    frames = [make_frame(), make_frame(), make_frame(), make_frame(source_sha256='b' * 64, velocity=(3., -2., 0.))]
+    frames[0].loc[2, ('Position', 'CoM', 'P_TY')] = np.nan
+    paths = [tmp_path / name for name in ('invalid.proc', 'valid.proc', 'copy.proc', 'trial_b.proc')]
+    for path, frame in zip(paths, frames):
+        frame.to_csv(path, index=False)
+    window = CompareMainWindow()
+    window.resize(1510, 800)
+    window.show()
+    _events(app)
+    try:
+        _load(window, paths, monkeypatch, app)
+        panel = window.table_panel
+        panel.view_combo.setCurrentIndex(1)
+        row = _metric_row(panel.table, 'Vertical velocity')
+        panel.table.setCurrentCell(row, 0)
+        QTest.mouseClick(window.control_panel.details_section.button, Qt.LeftButton)
+        window.control_panel.file_list.setCurrentRow(1)
+        _events(app)
+        assert window.control_panel.details.toPlainText().startswith('Vertical velocity')
+        assert 'Vertical velocity' in window.control_panel.file_list.item(1).toolTip()
+        QTest.mouseClick(panel.table.viewport(), Qt.LeftButton,
+                         pos=panel.table.visualItemRect(panel.table.item(row, 0)).center())
+        assert window.control_panel.details.toPlainText().startswith('Vertical velocity')
+        for path in paths:
+            window.control_panel.cb_baseline.setCurrentText(path.name)
+            _events(app)
+            assert [panel.table.item(row, col).text() for col in (1, 2, 3, 4, 5)] == ['2 (low)', '-3', '-4', '-2', '2']
+            assert panel.resolution_label.text().startswith('Duplicate 1   Invalid 1   Conflict 0')
+            details = window.control_panel.details.toPlainText()
+            assert 'Sources:' in details and 'valid.proc' in details and 'copy.proc' in details
+            assert 'invalid.proc: invalid' in details and 'SHA-256:' in details
+            assert panel.table.currentRow() == row
+        conflict = tmp_path / 'conflict.proc'
+        make_frame(velocity=(3., -3., 0.)).to_csv(conflict, index=False)
+        _load(window, [conflict], monkeypatch, app)
+        assert panel.table.item(row, 1).text() == '1 (low)'
+        assert 'Conflict 1' in panel.resolution_label.text()
+        assert 'Conflicting valid variants' in window.control_panel.details.toPlainText()
+        assert 'invalid.proc: invalid' in window.control_panel.details.toPlainText()
+        panel.view_combo.setCurrentIndex(3)
+        _events(app)
+        assert window.control_panel.details.toPlainText().startswith('Contact\n')
+        panel.view_combo.setCurrentIndex(2)
+        _events(app)
+        assert window.control_panel.details.toPlainText() == window.control_panel.file_list.currentItem().toolTip()
+        _load(window, [], monkeypatch, app)
+        assert len(window.model.datasets) == 5
+    finally:
+        window.close()
+        _events(app)
+
+
 def test_distinct_repeat_count_survives_duplicate_baseline_remove_and_reload(tmp_path, monkeypatch):
     app = QApplication.instance() or QApplication([])
     errors = []
@@ -44,9 +99,9 @@ def test_distinct_repeat_count_survives_duplicate_baseline_remove_and_reload(tmp
         assert [panel.table.item(row, col).text() for col in (1, 2, 3, 4, 5)] == ['3', '-2', '-3', '-1', '2']
         _load(window, [paths[0]], monkeypatch, app)
         assert len(window.model.datasets) == 4
-        assert window.warning_label.text() == '4 files   Repeats: 3 included, 1 excluded'
+        assert window.warning_label.text() == '4 files   3 compatible observations'
         duplicate = window.control_panel.file_list.item(3)
-        assert 'already counted' in duplicate.toolTip()
+        assert 'equivalent' in duplicate.toolTip()
         row = _metric_row(panel.table, 'Vertical velocity')
         assert panel.table.item(row, 1).text() == '3'
         assert panel.table.item(row, 2).text() == '-2'
