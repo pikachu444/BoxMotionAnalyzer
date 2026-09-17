@@ -86,7 +86,8 @@ class SceneReviewFlow:
         marker_busy = self.marker_review_busy or (self.review_worker is not None and self.review_worker.isRunning())
         busy = self.scene_busy or marker_busy
         loaded = self.raw_data is not None and self.parsed_data is not None
-        ready = loaded and not busy and not self.marker_review_dirty
+        review_valid = not getattr(self, '_review_invalidated', False)
+        ready = loaded and not busy and not self.marker_review_dirty and review_valid
         self.scene_panel.detect_button.setEnabled(ready or self.scene_busy)
         self.scene_panel.detect_button.setText('Cancel detection' if self.scene_busy else 'Detect scenes')
         self.scene_panel.geometry_button.setEnabled(ready)
@@ -116,12 +117,14 @@ class SceneReviewFlow:
                                        'Review running' if marker_busy else '')
         self.save_status_label.setVisible(bool(self.save_status_label.text()))
         self.load_csv_button.setEnabled(not busy)
-        self.review_marker_flips_button.setEnabled(loaded and not busy)
+        self.review_marker_flips_button.setEnabled(loaded and not busy and self._confirmed_dimensions is not None)
         self.box_dims_group.setEnabled(not busy)
         self.slice_group.setEnabled(not busy)
-        self.save_corrected_source_button.setEnabled(loaded and not busy and self.marker_review_dirty)
+        self.save_corrected_source_button.setEnabled(loaded and not busy and self.marker_review_dirty and review_valid)
 
     def _validate_scene_source(self):
+        if self.marker_review_busy or self._review_invalidated:
+            raise ValueError('Review the current source and dimensions before continuing.')
         if not self.source_path or _sha256_file(self.source_path) != self.active_source_sha256:
             raise ValueError('Capture changed on disk. Reload it before detection or saving.')
         if self.marker_review_dirty:
@@ -316,6 +319,8 @@ class SceneReviewFlow:
         self._update_scene_gates()
 
     def load_scene_geometry(self):
+        if self.marker_review_busy:
+            return
         path, _ = QFileDialog.getOpenFileName(self, 'Marker geometry', '', 'Geometry (*.json)')
         if not path:
             return
@@ -323,6 +328,14 @@ class SceneReviewFlow:
             registration = Registration.load(path)
             # Geometry is a deliberate input, not a marker-layout hash lookup.
             self.scene_registration = registration
+            # Scene registration does not reinterpret an already validated
+            # corrected stream when dimensions are unchanged. Pending review
+            # evidence does depend on its request context and must be renewed.
+            self._review_cache = None
+            if self.marker_review_dirty:
+                self._review_invalidated = True
+                self.confirm_review_dimensions.setChecked(False)
+                self._update_marker_review_summary()
             for edit, value in zip((self.le_box_l, self.le_box_w, self.le_box_h), registration.profile['box_dims_mm']):
                 edit.setText(str(value))
             self.scene_panel.geometry_button.setText('Geometry loaded')

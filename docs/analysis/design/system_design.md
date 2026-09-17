@@ -140,7 +140,10 @@ canonical-exact-v1은 유한 float와 정규화된 범주를 정확히 비교한
   - 별도 public artifact whitelist를 raw metadata → corrected/slice metadata → `Info/Artifact` proc 상수 열로 전달한다. test-only truth/event manifest를 읽지 않는다. 저장 형식은 `result_schema_notes.md`를 기준으로 한다.
   - 처리 설정은 raw 선언에서 복사하지 않는다. `processing_provenance.py`가 실행한 단계의 configured object/policy를 기록하고, `utils/processing_settings.py`가 canonical JSON과 식별 hash를 생성한다. 실행 이력이 없는 결과는 현재 기본값으로 호환 승격하지 않는다.
 - `MarkerFlipAnalyzer` / `FaceAssignmentAnalyzer`
-  - 공통 후보 탐색과 v2 호환 모델을 유지한다. 새 GUI는 면 할당 후 실제 자세를 다시 계산하는 FaceAssignmentAnalyzer를 사용하며 자동 추천은 검증 대기다.
+  - 기존 v2 호환 모델을 유지한다. FaceAssignmentAnalyzer는 실제 국소 refit의 조건부 NONE/X/Y/Z 추천을 제공하며 승인은 기본 OFF다.
+- `marker_review` / `MarkerReviewWorker`
+  - observation-only O(N) scan 후 이벤트별 최대 30 frame fits를 수행한다. 원본·활성 digest, 치수·geometry, face 이력, 실제 창과 계산 설정에 결과를 결합한다.
+  - 준비·scan·optimizer·Done 검증의 협력 취소와 오래된 결과 폐기를 관리한다. 기존 승인·원본·corrected 저장 계약과 #121의 source 수명을 공유한다. [실행 계약](../reference/marker_review_execution.md)을 참고한다.
 - `MarkerFlipReviewDialog`
   - 추천과 승인을 분리해 표시하고, 작업자 override와 안정 구간 그래프를 제공한다.
 - `UniformResampler`
@@ -158,7 +161,7 @@ canonical-exact-v1은 유한 float와 정규화된 범주를 정확히 비교한
 세부 책임은 `component_specs.txt`를 따른다.
 
 ## 6. 현재 설계상 유의점
-- Marker Flip의 v3 mechanics는 독립적으로 선언한 비대칭 합성 배치와 실제 Parser/PoseOptimizer/GUI 저장 흐름으로 확인한다. 자동 추천은 보류 중이며 MuJoCo와 실제 OptiTrack 정답 검증은 남아 있다. 상세 실행 근거와 다음 작업은 `../reference/marker_flip_review_findings.md`, `../reference/marker_flip_fixture_contract.md`를 따른다.
+- Marker Flip의 v3 mechanics와 조건부 추천은 독립 공개 합성 입력·MuJoCo·실제 Parser/PoseOptimizer/GUI 저장 흐름으로 확인한다. 실제 OptiTrack 교정 정확도는 #104에서 미검증이다. 상세 근거는 `../reference/marker_flip_review_findings.md`, `../reference/marker_flip_fixture_contract.md`, `../reference/marker_review_execution.md`를 따른다.
 - `.slice`는 line 0~1에 scene / box / timeline metadata를 가진다.
 - `.slice`는 processing 재개용 파일이며, 원본 `.csv`를 다시 열지 않고 Step 1.5부터 시작할 수 있다.
 - Step 2는 저장된 `.proc`만 직접 열 수 있다.

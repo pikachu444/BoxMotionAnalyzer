@@ -58,6 +58,11 @@ class MarkerFlipReviewDialog(QDialog):
 
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
+        if not self.candidates:
+            message = QLabel('No candidates for the current source and dimensions.\n'
+                             'Done records a review with no approvals; Cancel keeps the previous review.')
+            message.setWordWrap(True)
+            layout.addWidget(message)
         self.table = QTableWidget(len(self.candidates), 4, self)
         self.table.setHorizontalHeaderLabels(
             ["Event (s)", "Recommendation", "Apply", "Local axis"]

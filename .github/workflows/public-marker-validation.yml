@@ -59,6 +59,8 @@ jobs:
           tests/test_comparison_layout.py
           tests/test_processing_window_layout.py
           tests/test_marker_face_assignment.py
+          tests/test_event_local_marker_review.py
+          tests/test_marker_review_lifecycle.py
           tests/test_marker_flip.py
           tests/test_mujoco_marker_fixtures.py
           tests/test_marker_validation.py
@@ -116,6 +118,10 @@ jobs:
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_metric_variants_gui.py --junitxml=tmp/issue119/gui-125.xml
+      - name: Verify bounded marker review and real cancellation at 125 percent
+        env:
+          QT_SCALE_FACTOR: '1.25'
+        run: python -m pytest -q tests/test_marker_review_gui.py --junitxml=tmp/issue112/gui-125.xml
       - name: Replay retained public results in the release GUI at 125 percent
         env:
           QT_SCALE_FACTOR: '1.25'
@@ -151,6 +157,7 @@ jobs:
           name: public-validation-evidence
           path: |
             tmp/ci-desktop.json
+            tmp/issue112/**
             tmp/public-marker-results.xml
             tmp/public-validation-summary.json
             tmp/ci-*/**/validation*.json

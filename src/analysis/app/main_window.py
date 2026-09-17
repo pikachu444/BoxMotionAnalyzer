@@ -56,9 +56,11 @@ class MainApp(QMainWindow):
             self.statusBar().showMessage('Cancelling scene detection...')
             return
         worker = self.original_widget.review_worker
-        if worker is not None and worker.isRunning():
+        if worker is not None:
+            self.original_widget._close_after_review = True
+            self.original_widget.cancel_marker_review()
             event.ignore()
-            self.statusBar().showMessage('Wait for marker review calculation before closing.')
+            self.statusBar().showMessage('Cancelling marker review...')
             return
         processing_worker = getattr(self, 'worker', None)
         if processing_worker is not None and processing_worker.isRunning():
