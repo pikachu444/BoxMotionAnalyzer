@@ -803,6 +803,13 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             and c.evidence_json() == d.evidence_json and c.correction_kind == d.correction_kind
             and c.boundary_time_sec == d.boundary_time_sec for c in candidates)]
         dialog = self.marker_flip_dialog_factory(candidates, existing_decisions=existing, parent=self)
+        if isinstance(dialog, MarkerFlipReviewDialog):
+            targets = [target.replace(DisplayNames.MARKER_PREFIX, '') for target in self.current_selected_targets]
+            if DisplayNames.RB_CENTER in self.current_selected_targets:
+                targets.insert(0, RigidBodyCols.BASE_NAME)
+            dialog.set_observation_context(self.review_parsed_data, source_path=self.source_path or '',
+                units=(self.review_header_info or self.header_info or {}).get('export_metadata', {}).get('Length Units', ''),
+                preferred_target=targets[0] if targets else None)
         if identity is not None:
             dialog.setWindowTitle('Marker Review — ' + Path(self.source_path).name + ' — '
                                   + ' × '.join(map(str, self._read_box_dimensions())) + ' mm')

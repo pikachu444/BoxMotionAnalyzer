@@ -1,11 +1,12 @@
 # Event-local Marker Review
 
-Last Reviewed: 2026-09-17
+Last Reviewed: 2026-09-18
 
 Issue: [#112](https://github.com/pikachu444/BoxMotionAnalyzer/issues/112).
 Common contract: [#111](https://github.com/pikachu444/BoxMotionAnalyzer/issues/111).
-The source lifetime contract is also the integration boundary for #121; this change
-does not add its raw-context plot or change the modal approval surface.
+The source lifetime contract also protects the embedded raw-context plot added
+in #121. The modal approval surface remains in use; see
+`../../visualization/marker_review_context_layout.md` for the two-plot layout.
 
 ## Computation
 
@@ -186,4 +187,4 @@ without blocking findings after corrections. Final CI evidence belongs to the PR
 Existing 0.1 mm / 0.1 degree numerical
 gates are unchanged. Synthetic and GUI evidence do not validate actual tracking
 error causes, physical recovery, ISTA compliance or real calibration; #104 remains
-separate and unverified. #121 context inspection is still future work.
+separate and unverified. #121 now adds context inspection without changing these gates.

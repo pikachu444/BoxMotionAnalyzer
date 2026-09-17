@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Iterable
 import numpy as np
+import pandas as pd
 
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -13,16 +14,19 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QHeaderView,
+    QHBoxLayout,
     QLabel,
     QMessageBox,
     QPlainTextEdit,
+    QPushButton,
     QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
-from src.utils.qt_sections import CollapsibleSection
+from src.utils.qt_sections import CollapsibleSection, set_path_label
+from src.config.data_columns import RigidBodyCols
 
 from src.analysis.pipeline.marker_flip import (
     MarkerCorrectionDecision,
@@ -50,6 +54,9 @@ class MarkerFlipReviewDialog(QDialog):
         self._approval_checkboxes: list[QCheckBox] = []
         self._axis_combos: list[QComboBox] = []
         self._evidence_canvas_disposed = False
+        self._context_row = None
+        self._context_data = None
+        self._context_unit = 'unit unknown'
 
         self.setWindowTitle("Marker correction")
         self.resize(960, 680)
@@ -151,7 +158,37 @@ class MarkerFlipReviewDialog(QDialog):
 
         self.preview_status = QLabel()
         self.preview_status.setStyleSheet("color: #916000;")
-        layout.addWidget(self.preview_status)
+
+        plots = QHBoxLayout()
+        self.context_panel = QWidget()
+        context_layout = QVBoxLayout(self.context_panel)
+        context_layout.setContentsMargins(0, 0, 0, 0)
+        self.context_source = QLabel()
+        set_path_label(self.context_source, '')
+        context_layout.addWidget(self.context_source)
+        controls = QHBoxLayout()
+        self.context_target = QComboBox()
+        self.context_target.setAccessibleName('Original observation target')
+        self.context_target.setMinimumContentsLength(14)
+        self.context_target.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.around_event_button = QPushButton('Around event')
+        controls.addWidget(self.context_target, 1)
+        controls.addWidget(self.around_event_button)
+        context_layout.addLayout(controls)
+        self.context_figure = Figure(figsize=(6, 3), dpi=100, layout='constrained')
+        self.context_canvas = FigureCanvas(self.context_figure)
+        self.context_canvas.setMinimumHeight(170)
+        self.context_toolbar = NavigationToolbar2QT(self.context_canvas, self.context_panel, coordinates=False)
+        context_layout.addWidget(self.context_toolbar)
+        context_layout.addWidget(self.context_canvas, 1)
+        self.context_target.currentIndexChanged.connect(self._draw_context)
+        self.around_event_button.clicked.connect(self._center_context)
+        self.context_panel.hide()
+        plots.addWidget(self.context_panel, 1)
+        evidence_panel = QWidget()
+        evidence_layout = QVBoxLayout(evidence_panel)
+        evidence_layout.setContentsMargins(0, 0, 0, 0)
+        evidence_layout.addWidget(self.preview_status)
 
         self.evidence_figure = Figure(figsize=(8, 2.4), dpi=100)
         self.evidence_canvas = FigureCanvas(self.evidence_figure)
@@ -160,7 +197,9 @@ class MarkerFlipReviewDialog(QDialog):
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Expanding,
         )
-        layout.addWidget(self.evidence_canvas, 2)
+        evidence_layout.addWidget(self.evidence_canvas, 1)
+        plots.addWidget(evidence_panel, 1)
+        layout.addLayout(plots, 2)
         layout.addWidget(self.details_section)
         self.table.currentCellChanged.connect(self._update_evidence_plot)
         if self.candidates:
@@ -183,6 +222,77 @@ class MarkerFlipReviewDialog(QDialog):
             self._update_evidence_plot(row)
         self.table.scrollToItem(self.table.item(row, 0))
 
+    def set_observation_context(self, data, *, source_path='', units='', preferred_target=None):
+        """Copy only original position columns; never fit, correct or read truth."""
+        targets = sorted({column[:-2] for column in data.columns
+            if isinstance(column, str) and column.endswith('_X')
+            and all(column[:-2] + '_' + axis in data for axis in 'XYZ')}) if data is not None else []
+        columns = [target + '_' + axis for target in targets for axis in 'XYZ']
+        self._context_data = data[columns].copy(deep=True) if data is not None else pd.DataFrame()
+        self._context_unit = {'Millimeters': 'mm', 'Centimeters': 'cm', 'Meters': 'm'}.get(units, 'unit unknown')
+        set_path_label(self.context_source, source_path, 'Original observations')
+        self.context_source.setToolTip(source_path + '\nUnmodified observations; physical cause is not independently verified.')
+        self.context_target.blockSignals(True)
+        self.context_target.clear()
+        for target in targets:
+            label = 'Rigid body' if target == RigidBodyCols.BASE_NAME else 'Marker ' + target
+            self.context_target.addItem(label, target)
+        selected = preferred_target if preferred_target in targets else (
+            RigidBodyCols.BASE_NAME if RigidBodyCols.BASE_NAME in targets else (targets[0] if targets else None))
+        self.context_target.setCurrentIndex(self.context_target.findData(selected))
+        self.context_target.blockSignals(False)
+        self.context_target.setEnabled(bool(targets))
+        self.context_panel.show()
+        visible_rows = min(3, len(self.candidates))
+        self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
+            + sum(self.table.rowHeight(row) for row in range(visible_rows)) + 2 * self.table.frameWidth())
+        self.context_canvas.setMinimumHeight(140)
+        self.evidence_canvas.setMinimumHeight(140)
+        self._context_row = self.table.currentRow()
+        self.resize(1280, 740)
+        self._draw_context(recenter=True)
+
+    def _draw_context(self, *_args, recenter=False):
+        if self._context_data is None or self._evidence_canvas_disposed:
+            return
+        old_limits = self.context_figure.axes[0].get_xlim() if self.context_figure.axes else None
+        self.context_figure.clear()
+        axis = self.context_figure.add_subplot(111)
+        target = self.context_target.currentData()
+        available = False
+        if target is not None:
+            times = np.asarray(self._context_data.index, dtype=float)
+            for component, color in zip('XYZ', ('#c62828', '#2e7d32', '#1565c0')):
+                values = pd.to_numeric(self._context_data[target + '_' + component], errors='coerce').to_numpy(float)
+                axis.plot(times, values, label=component, color=color)
+                available |= bool(np.any(np.isfinite(times) & np.isfinite(values)))
+        if not available:
+            axis.text(.5, .5, 'Original observations unavailable', transform=axis.transAxes, ha='center')
+        else:
+            axis.legend(loc='best', fontsize=8)
+        row = self.table.currentRow()
+        self.around_event_button.setEnabled(0 <= row < len(self.candidates))
+        if 0 <= row < len(self.candidates):
+            candidate = self.candidates[row]
+            boundary = candidate.boundary_time_sec
+            axis.axvline(boundary, color='0.4', linestyle=':', label='Selected event')
+            if recenter:
+                # Display context only; this never changes review window/gates.
+                offsets = (*candidate.pre_window_time_offsets_sec, *candidate.post_window_time_offsets_sec)
+                extent = max([abs(t) for t in offsets if np.isfinite(t)] or [0.])
+                radius = max(.25, 2 * extent)
+                axis.set_xlim(boundary - radius, boundary + radius)
+        if old_limits is not None and not recenter:
+            axis.set_xlim(old_limits)
+        axis.set(title='Original observations', xlabel='Time (s)', ylabel=f'Position ({self._context_unit})')
+        axis.grid(True, alpha=.25)
+        self.context_toolbar.update()
+        self.context_toolbar.push_current()
+        self.context_canvas.draw()
+
+    def _center_context(self):
+        self._draw_context(recenter=True)
+
     @staticmethod
     def _trace_available(times, values):
         return (len(times) == len(values) and len(times) > 0
@@ -193,6 +303,9 @@ class MarkerFlipReviewDialog(QDialog):
         return f"{value:.6g}{suffix}" if value is not None and np.isfinite(value) else "unavailable"
 
     def _update_evidence_plot(self, current_row: int, *_args) -> None:
+        if current_row != self._context_row:
+            self._context_row = current_row
+            self._draw_context(recenter=True)
         self.evidence_figure.clear()
         axis = self.evidence_figure.add_subplot(111)
         if current_row < 0 or current_row >= len(self.candidates):
@@ -267,12 +380,17 @@ class MarkerFlipReviewDialog(QDialog):
         if self._evidence_canvas_disposed:
             return
         self._evidence_canvas_disposed = True
+        self._context_data = None
+        self.context_toolbar.update()
+        self.context_figure.clear()
         try:
             self.table.currentCellChanged.disconnect(self._update_evidence_plot)
         except (RuntimeError, TypeError):
             pass
         try:
             self.evidence_canvas.close()
+            self.context_toolbar.close()
+            self.context_canvas.close()
         except RuntimeError:
             pass
 
