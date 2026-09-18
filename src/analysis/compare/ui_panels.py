@@ -14,6 +14,7 @@ from src.config.result_metric_descriptors import METRIC_DESCRIPTORS
 from src.analysis.ui.plot_manager import PlotManager, plot_result_series, configure_result_axis
 from src.analysis.compare.impact_metrics import METRICS
 from src.analysis.compare.posture_metrics import POSTURE_METRICS
+from src.analysis.compare.metric_guide import MetricGuideDialog, guide_key_for_summary
 from src.config.data_columns import (get_result_metric_display_name, get_result_metric_tooltip,
                                      format_result_value, is_corner_id_column)
 from src.utils.qt_sections import CollapsibleSection, find_result_column_index
@@ -21,6 +22,27 @@ from src.utils.qt_sections import CollapsibleSection, find_result_column_index
 SOURCE_LABELS = {'real': 'Real', 'mujoco_synthetic': 'MuJoCo',
                  'handcrafted_dummy': 'Constructed', 'public_external': 'Public',
                  'unknown_legacy': 'Unknown'}
+
+
+class _ElidedContextLabel(QLabel):
+    def __init__(self):
+        super().__init__()
+        self._full_text = ''
+        self.setTextFormat(Qt.PlainText)
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+
+    def setText(self, text):
+        self._full_text = text
+        super().setText(self.fontMetrics().elidedText(text, Qt.ElideMiddle, self.width()))
+
+    def clear(self):
+        self.setText('')
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.setText(self._full_text)
+
 
 class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
@@ -42,9 +64,13 @@ class CompareTablePanel(QGroupBox):
         self.validation_badge.setToolTip('Not independently calibrated against measured trials.')
         self.validation_badge.hide()
         modes.addWidget(self.validation_badge)
-        self.cohort_label = QLabel()
-        modes.addWidget(self.cohort_label)
-        modes.addStretch()
+        self.cohort_label = _ElidedContextLabel()
+        modes.addWidget(self.cohort_label, stretch=1)
+        self.guide_button = QPushButton('Metric guide')
+        self.guide_button.setToolTip('Definitions, units and comparison limits')
+        self.guide_button.clicked.connect(self._open_metric_guide)
+        modes.addWidget(self.guide_button)
+        self._metric_guide = None
         layout.addLayout(modes)
         self._table_data = ({}, None, None)
         self._contact_data = None
@@ -63,6 +89,7 @@ class CompareTablePanel(QGroupBox):
         self._selected_contact = None
         self.table.currentCellChanged.connect(self._show_resolution)
         self.table.cellClicked.connect(self._show_resolution)
+        self.table.horizontalHeader().sectionResized.connect(self._refresh_file_labels)
 
     def update_table(self, diff_data: dict[str, dict], baseline_name: str, impact=None, contact=None, posture=None):
         self._table_data = (diff_data, baseline_name, impact)
@@ -81,15 +108,67 @@ class CompareTablePanel(QGroupBox):
             self._render_contents()
         finally:
             self.table.blockSignals(False)
+        self._refresh_file_labels()
         if preserve:
             self.table.verticalScrollBar().setValue(vertical)
             self.table.horizontalScrollBar().setValue(horizontal)
         self._last_mode = mode
         self._show_resolution()
 
+    def _open_metric_guide(self):
+        if self._metric_guide is not None:
+            self._metric_guide.raise_()
+            self._metric_guide.activateWindow()
+            return
+        item = self.table.item(self.table.currentRow(), 0)
+        key = item.data(Qt.UserRole) if item else None
+        dialog = MetricGuideDialog(self, key)
+        self._metric_guide = dialog
+        def finished():
+            self._metric_guide = None
+            dialog.deleteLater()
+        dialog.finished.connect(finished)
+        dialog.open()
+
+    def _file_label(self, name, source, width=None):
+        # Reserve a short first line for the reference marker. Keep two lines
+        # overall so a compact Summary still displays a complete metric row.
+        filename = self.table.fontMetrics().elidedText(name, Qt.ElideMiddle, max(1, width)) if width is not None else name
+        return f'Baseline ({source})\n{filename}' if name == self._table_data[1] else filename + '\n' + source
+
+    def _refresh_file_labels(self, *_):
+        if self.table.signalsBlocked():
+            return
+        mode = self.view_combo.currentIndex()
+        if mode in (0, 2, 4):
+            for col, (name, data) in enumerate(self._table_data[0].items(), 1):
+                item = self.table.horizontalHeaderItem(col)
+                if item is not None:
+                    source = data['source'] if mode == 2 else SOURCE_LABELS.get(data['source'], 'Unknown')
+                    item.setText(self._file_label(name, source, self.table.columnWidth(col) - 16))
+        elif mode == 3 and self._contact_data:
+            for row, (name, data) in enumerate(self._contact_data['files'].items()):
+                item = self.table.item(row, 0)
+                if item is not None:
+                    item.setText(self._file_label(name, SOURCE_LABELS.get(data['source'], 'Unknown'),
+                                                 self.table.columnWidth(0) - 16))
+            self.table.resizeRowsToContents()
+
+    def _file_identity(self, name):
+        impact = self._table_data[2]
+        entries = impact.get('files', {}).get(name, {}).get('metric_resolution', {}) if impact else {}
+        path = next(iter(entries.values()), {}).get('path', name)
+        return ('Baseline\n' if name == self._table_data[1] else '') + path
+
+    def _repeat_cohort_text(self, source):
+        baseline = self._table_data[1] or ''
+        self.cohort_label.setText('Source: ' + SOURCE_LABELS.get(source, 'Unknown') + '   Baseline: ' + baseline)
+        self.cohort_label.setToolTip(self._file_identity(baseline))
+
     def _render_contents(self):
         diff_data, baseline_name, impact = self._table_data
         self.cohort_label.clear()
+        self.cohort_label.setToolTip('')
         self.resolution_label.clear()
         mode = self.view_combo.currentIndex()
         self.resolution_label.setVisible(mode in (1, 5))
@@ -104,7 +183,7 @@ class CompareTablePanel(QGroupBox):
         if mode in (4, 5):
             impact = self._posture_data or {'files': {}, 'source': None}
         if mode in (1, 5) and impact['source']:
-            self.cohort_label.setText('Source: ' + SOURCE_LABELS.get(impact['source'], 'Unknown'))
+            self._repeat_cohort_text(impact['source'])
         self.table.clear()
         if not impact['files']:
             self.table.setRowCount(0)
@@ -144,11 +223,11 @@ class CompareTablePanel(QGroupBox):
         for row, (name, data) in enumerate(files.items()):
             result = data['result']
             resolution = data['metric_resolution']['contact']
-            labels = [name + '\n' + SOURCE_LABELS.get(data['source'], 'Unknown'), result.intended or '—',
+            labels = [self._file_label(name, SOURCE_LABELS.get(data['source'], 'Unknown')), result.intended or '—',
                       result.observed or '—', result.outcome + ' / ' + resolution['status'], self._number(result.time_s)]
             for col, label in enumerate(labels):
                 item = QTableWidgetItem(label)
-                detail = [name, result.reason, self._variant_detail(name, resolution)] + data['reasons']
+                detail = [self._file_identity(name), result.reason, self._variant_detail(name, resolution)] + data['reasons']
                 if col == 3:
                     detail.append('Exact contact-feature comparison. Different can include a corner or edge of the intended face; it is not an ISTA failure.')
                 item.setToolTip('\n'.join(part for part in detail if part))
@@ -200,7 +279,7 @@ class CompareTablePanel(QGroupBox):
         self.table.setRowCount(len(keys))
         self.table.setColumnCount(len(names) + 1)
         self.table.setHorizontalHeaderLabels(['Metric'] + [
-            f"{name}\n{SOURCE_LABELS.get(diff_data[name]['source'], 'Unknown')}"
+            self._file_label(name, SOURCE_LABELS.get(diff_data[name]['source'], 'Unknown'))
             for name in names])
         for r, key in enumerate(keys):
             self.table.setItem(r, 0, self._metric_item(key))
@@ -222,14 +301,16 @@ class CompareTablePanel(QGroupBox):
                 self.table.setItem(r, c, item)
         for c, name in enumerate(names, 1):
             self.table.horizontalHeaderItem(c).setToolTip(
-                name + '\n' + diff_data[name]['source'] + '\n' + '\n'.join(impact['files'][name]['reasons']))
+                self._file_identity(name) + '\n' + diff_data[name]['source'] + '\n' + '\n'.join(impact['files'][name]['reasons']))
 
     def _render_posture(self, posture, diff_data):
         names = list(posture['files'])
         self.table.setRowCount(len(POSTURE_METRICS))
         self.table.setColumnCount(len(names) + 1)
         self.table.setHorizontalHeaderLabels(['Metric'] + [
-            f"{name}\n{SOURCE_LABELS.get(diff_data[name]['source'], 'Unknown')}" for name in names])
+            self._file_label(name, SOURCE_LABELS.get(diff_data[name]['source'], 'Unknown')) for name in names])
+        for col, name in enumerate(names, 1):
+            self.table.horizontalHeaderItem(col).setToolTip(self._file_identity(name))
         for row, (key, descriptor) in enumerate(POSTURE_METRICS.items()):
             self.table.setItem(row, 0, self._metric_item(key, POSTURE_METRICS))
             for col, name in enumerate(names, 1):
@@ -250,6 +331,8 @@ class CompareTablePanel(QGroupBox):
         headers = ['Metric', 'n', 'Mean', 'Min', 'Max', 'Range', 'Counts', 'Match baseline']
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
+        self.table.horizontalHeaderItem(7).setToolTip(
+            self._file_identity(self._table_data[1]) + '\nCategory agreement, not intended-contact agreement.')
         for r, key in enumerate(descriptors):
             self.table.setItem(r, 0, self._metric_item(key, descriptors))
             stats = impact['statistics'][key]
@@ -359,9 +442,9 @@ class CompareTablePanel(QGroupBox):
         
         self.table.setRowCount(len(metrics))
         self.table.setColumnCount(len(datasets) + 1)
-        self.table.setHorizontalHeaderLabels(["Property"] + [f'{name}\n{diff_data[name]["source"]}' for name in datasets])
+        self.table.setHorizontalHeaderLabels(["Property"] + [self._file_label(name, diff_data[name]['source']) for name in datasets])
         for i, name in enumerate(datasets):
-            self.table.horizontalHeaderItem(i + 1).setToolTip(name + '\n' + '\n'.join(diff_data[name]['reasons']))
+            self.table.horizontalHeaderItem(i + 1).setToolTip(self._file_identity(name) + '\n' + '\n'.join(diff_data[name]['reasons']))
         
         for r, metric in enumerate(metrics):
             desc = METRIC_DESCRIPTORS.get(metric, {})
@@ -371,6 +454,7 @@ class CompareTablePanel(QGroupBox):
                 label += f" ({unit})"
                 
             prop_item = QTableWidgetItem(label)
+            prop_item.setData(Qt.UserRole, guide_key_for_summary(metric))
             tooltip = desc.get("tooltip", "")
             if tooltip:
                 prop_item.setToolTip(tooltip)

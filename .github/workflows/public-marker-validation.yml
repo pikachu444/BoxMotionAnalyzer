@@ -137,6 +137,10 @@ jobs:
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_posture_comparison_gui.py --junitxml=tmp/issue117/gui-125.xml -o faulthandler_timeout=90
+      - name: Check comparison reference labels and shared guide at 125 percent
+        env:
+          QT_SCALE_FACTOR: '1.25'
+        run: python -m pytest -q tests/test_comparison_reference_gui.py --junitxml=tmp/issue122/gui-125.xml -o faulthandler_timeout=90
       - name: Check incomplete pose rows without inferring contact
         run: python -m pytest -q tests/test_drop_posture_post_processor.py -k incomplete_pose --junitxml=tmp/issue115/incomplete.xml
       - name: Verify bounded marker review and real cancellation at 125 percent
@@ -184,6 +188,7 @@ jobs:
             tmp/issue121/**
             tmp/issue123/**
             tmp/issue117/**
+            tmp/issue122/**
             tmp/public-marker-results.xml
             tmp/public-validation-summary.json
             tmp/ci-*/**/validation*.json
