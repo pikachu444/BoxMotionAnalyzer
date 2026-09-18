@@ -13,6 +13,7 @@ import pandas as pd
 from src.config.result_metric_descriptors import METRIC_DESCRIPTORS
 from src.analysis.ui.plot_manager import PlotManager, plot_result_series, configure_result_axis
 from src.analysis.compare.impact_metrics import METRICS
+from src.analysis.compare.posture_metrics import POSTURE_METRICS
 from src.config.data_columns import (get_result_metric_display_name, get_result_metric_tooltip,
                                      format_result_value, is_corner_id_column)
 from src.utils.qt_sections import CollapsibleSection, find_result_column_index
@@ -34,7 +35,7 @@ class CompareTablePanel(QGroupBox):
         layout.setSpacing(4)
         modes = QHBoxLayout()
         self.view_combo = QComboBox()
-        self.view_combo.addItems(['Pre-contact', 'Repeats', 'Details', 'Contact'])
+        self.view_combo.addItems(['Pre-contact', 'Repeats', 'Details', 'Contact', 'Posture', 'Posture repeats'])
         modes.addWidget(self.view_combo)
         self.validation_badge = QLabel('Experimental')
         self.validation_badge.setStyleSheet('color: #805d00;')
@@ -47,6 +48,7 @@ class CompareTablePanel(QGroupBox):
         layout.addLayout(modes)
         self._table_data = ({}, None, None)
         self._contact_data = None
+        self._posture_data = None
         self.view_combo.currentIndexChanged.connect(self._render)
         
         self.table = QTableWidget()
@@ -57,13 +59,15 @@ class CompareTablePanel(QGroupBox):
         self.resolution_label.setTextFormat(Qt.PlainText)
         layout.addWidget(self.resolution_label)
         self._selected_metric = 'vertical_velocity'
+        self._selected_posture_metric = 'beta'
         self._selected_contact = None
         self.table.currentCellChanged.connect(self._show_resolution)
         self.table.cellClicked.connect(self._show_resolution)
 
-    def update_table(self, diff_data: dict[str, dict], baseline_name: str, impact=None, contact=None):
+    def update_table(self, diff_data: dict[str, dict], baseline_name: str, impact=None, contact=None, posture=None):
         self._table_data = (diff_data, baseline_name, impact)
         self._contact_data = contact
+        self._posture_data = posture
         self.view_combo.setVisible(impact is not None)
         self._render()
 
@@ -87,8 +91,9 @@ class CompareTablePanel(QGroupBox):
         diff_data, baseline_name, impact = self._table_data
         self.cohort_label.clear()
         self.resolution_label.clear()
-        self.resolution_label.setVisible(self.view_combo.currentIndex() == 1)
-        self.validation_badge.setText('Diagnostic' if impact is None or self.view_combo.currentIndex() == 2 else 'Experimental')
+        mode = self.view_combo.currentIndex()
+        self.resolution_label.setVisible(mode in (1, 5))
+        self.validation_badge.setText('Diagnostic' if impact is None or mode in (2, 4, 5) else 'Experimental')
         self.validation_badge.setVisible(bool(diff_data))
         if self.view_combo.currentIndex() == 3 and self._contact_data is not None:
             self._render_contact(self._contact_data)
@@ -96,15 +101,19 @@ class CompareTablePanel(QGroupBox):
         if impact is None or self.view_combo.currentIndex() == 2:
             self._render_diagnostics(diff_data, baseline_name)
             return
-        if self.view_combo.currentIndex() == 1 and impact['source']:
+        if mode in (4, 5):
+            impact = self._posture_data or {'files': {}, 'source': None}
+        if mode in (1, 5) and impact['source']:
             self.cohort_label.setText('Source: ' + SOURCE_LABELS.get(impact['source'], 'Unknown'))
         self.table.clear()
         if not impact['files']:
             self.table.setRowCount(0)
             self.table.setColumnCount(0)
             return
-        if self.view_combo.currentIndex() == 1:
-            self._render_statistics(impact)
+        if mode in (1, 5):
+            self._render_statistics(impact, POSTURE_METRICS if mode == 5 else METRICS)
+        elif mode == 4:
+            self._render_posture(impact, diff_data)
         else:
             self._render_motion(impact, diff_data)
         self.table.resizeColumnsToContents()
@@ -156,12 +165,12 @@ class CompareTablePanel(QGroupBox):
     def _number(value):
         return '\u2014' if value is None else f'{value:.6g}'
 
-    def _metric_item(self, key):
-        descriptor = METRICS[key]
+    def _metric_item(self, key, descriptors=METRICS):
+        descriptor = descriptors[key]
         label = descriptor['label']
         if descriptor['unit']:
             label += f" ({descriptor['unit']})"
-        if descriptor['role'] == 'diagnostic':
+        if descriptor['role'] == 'diagnostic' and descriptors is METRICS:
             label += ' [diagnostic]'
         item = QTableWidgetItem(label)
         item.setData(Qt.UserRole, key)
@@ -215,13 +224,34 @@ class CompareTablePanel(QGroupBox):
             self.table.horizontalHeaderItem(c).setToolTip(
                 name + '\n' + diff_data[name]['source'] + '\n' + '\n'.join(impact['files'][name]['reasons']))
 
-    def _render_statistics(self, impact):
-        self.table.setRowCount(len(METRICS))
+    def _render_posture(self, posture, diff_data):
+        names = list(posture['files'])
+        self.table.setRowCount(len(POSTURE_METRICS))
+        self.table.setColumnCount(len(names) + 1)
+        self.table.setHorizontalHeaderLabels(['Metric'] + [
+            f"{name}\n{SOURCE_LABELS.get(diff_data[name]['source'], 'Unknown')}" for name in names])
+        for row, (key, descriptor) in enumerate(POSTURE_METRICS.items()):
+            self.table.setItem(row, 0, self._metric_item(key, POSTURE_METRICS))
+            for col, name in enumerate(names, 1):
+                data = posture['files'][name]
+                metric, result = data['result'].metrics[key], data['result']
+                value = self._number(metric.value) if descriptor['kind'] == 'numeric' else str(metric.value or '—')
+                item = QTableWidgetItem(value if not metric.reason else 'Unavailable')
+                details = [metric.reason, *data['reasons'], self._variant_detail(name, data['metric_resolution'][key])]
+                if result.reference:
+                    details.append('Reference: ' + ', '.join(result.reference))
+                if not descriptor['whole'] and result.evaluation_time_s is not None:
+                    details.append(f'Recorded pre-contact sample: {result.evaluation_time_s:.6g} s')
+                item.setToolTip('\n'.join(part for part in details if part))
+                self.table.setItem(row, col, item)
+
+    def _render_statistics(self, impact, descriptors=METRICS):
+        self.table.setRowCount(len(descriptors))
         headers = ['Metric', 'n', 'Mean', 'Min', 'Max', 'Range', 'Counts', 'Match baseline']
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
-        for r, key in enumerate(METRICS):
-            self.table.setItem(r, 0, self._metric_item(key))
+        for r, key in enumerate(descriptors):
+            self.table.setItem(r, 0, self._metric_item(key, descriptors))
             stats = impact['statistics'][key]
             n = stats['n']
             count = QTableWidgetItem(str(n) if n >= 3 else f'{n} (low)')
@@ -242,8 +272,9 @@ class CompareTablePanel(QGroupBox):
             item.setToolTip('Diagnostic agreement with the baseline category; not agreement with an intended trial target.')
             self.table.setItem(r, 7, item)
 
-        keys = list(METRICS)
-        self.table.setCurrentCell(keys.index(self._selected_metric), 0)
+        keys = list(descriptors)
+        selected = self._selected_posture_metric if descriptors is POSTURE_METRICS else self._selected_metric
+        self.table.setCurrentCell(keys.index(selected), 0)
         self._show_resolution()
 
     @staticmethod
@@ -275,19 +306,23 @@ class CompareTablePanel(QGroupBox):
                 details.extend(self._variant_detail(v['file'], v) for v in observation['variants'])
             self.resolution_details_changed.emit('\n'.join(details))
             return
-        if mode != 1:
+        if mode not in (1, 5):
             self.resolution_details_changed.emit('')
             return
         row = self.table.currentRow()
         item = self.table.item(row, 0) if row >= 0 else None
         key = item.data(Qt.UserRole) if item else None
-        impact = self._table_data[2]
-        if key not in METRICS or not impact:
+        impact = self._posture_data if mode == 5 else self._table_data[2]
+        descriptors = POSTURE_METRICS if mode == 5 else METRICS
+        if key not in descriptors or not impact:
             self.resolution_details_changed.emit('')
             return
-        self._selected_metric = key
+        if mode == 5:
+            self._selected_posture_metric = key
+        else:
+            self._selected_metric = key
         duplicates = invalid = conflicts = 0
-        details = [METRICS[key]['label']]
+        details = [descriptors[key]['label']]
         for observation, metrics in impact.get('observations', {}).items():
             metric = metrics[key]
             duplicates += max(0, len(metric['sources']) - 1)

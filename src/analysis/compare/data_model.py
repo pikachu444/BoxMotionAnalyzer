@@ -11,6 +11,9 @@ from src.utils.result_time import timeline_from_frame, segmented_series
 from src.visualization.data_handler import DataHandler
 from src.analysis.compare.impact_metrics import calculate_impact_metrics, METRICS, MetricValue
 from src.analysis.compare.contact_metrics import calculate_contact_comparison
+from src.analysis.compare.posture_metrics import (
+    calculate_posture_metrics, POSTURE_METRICS, FACE_METRICS, repeat_reasons, context_difference, category_reference,
+)
 from src.analysis.compare.observation_resolution import resolve_observations, POLICY
 from src.config.data_columns import is_corner_id_column, format_result_value
 
@@ -32,6 +35,7 @@ class ComparisonModel:
         self.timelines = {}
         self.impact_results = {}
         self.contact_results = {}
+        self.posture_results = {}
         self.baseline_name = None
         # Adjustable display policy, not a physical detection threshold.
         self.max_gap_sec = 0.1
@@ -54,6 +58,7 @@ class ComparisonModel:
         timeline = timeline_from_frame(df)
         impact = calculate_impact_metrics(df)
         contact = calculate_contact_comparison(df)
+        posture = calculate_posture_metrics(df)
         if identity.source_kind not in SOURCE_KINDS - {'unknown_legacy'}:
             reason = 'Synchronization unavailable: unknown or invalid source class; individual review only'
             timeline = replace(timeline, reason='; '.join(filter(None, (timeline.reason, reason))))
@@ -71,6 +76,7 @@ class ComparisonModel:
         self.timelines[name] = timeline
         self.impact_results[name] = impact
         self.contact_results[name] = contact
+        self.posture_results[name] = posture
         self.visualization_handlers.pop(name, None)
         if visualizable:
             self.visualization_handlers[name] = handler
@@ -84,7 +90,7 @@ class ComparisonModel:
 
     def remove_file(self, name):
         for entries in (self.datasets, self.file_paths, self.file_hashes, self.file_colors, self.visualization_handlers, self.identities, self.timelines,
-                        self.impact_results, self.contact_results):
+                        self.impact_results, self.contact_results, self.posture_results):
             entries.pop(name, None)
         if self.baseline_name == name:
             self.baseline_name = next(iter(self.datasets), None)
@@ -190,6 +196,84 @@ class ComparisonModel:
                 stats = {'n': sum(counts.values()), 'counts': counts,
                          'reference': reference.value if not reference.reason else None}
                 stats['matching'] = counts.get(stats['reference'], 0) if stats['reference'] is not None else None
+            statistics[key] = stats
+        return {**resolution, 'statistics': statistics,
+                'source': self.identities[self.baseline_name].source_kind}
+
+    def get_posture_comparison(self):
+        if self.baseline_name is None:
+            return {'files': {}, 'statistics': {}, 'source': None}
+        baseline = self.posture_results[self.baseline_name]
+        common_reasons = {name: compatibility_reasons(self.identities[self.baseline_name], self.identities[name])
+                          for name in self.datasets}
+        baseline_observation = self.impact_results[self.baseline_name].observation_key
+        groups = {}
+        for name, result in self.posture_results.items():
+            observation = self.impact_results[name].observation_key
+            if observation is not None and not common_reasons[name]:
+                groups.setdefault(observation, []).append((name, result))
+        contexts, conflicts = {}, {}
+        for observation, members in groups.items():
+            contexts[observation] = {}
+            members.sort(key=lambda pair: (self.file_hashes[pair[0]], self.file_paths[pair[0]]))
+            for key, descriptor in POSTURE_METRICS.items():
+                if key not in FACE_METRICS and not descriptor['whole']:
+                    continue
+                candidates = [result for _, result in members if not result.metrics[key].reason
+                              and not repeat_reasons(result, result, key)]
+                # Resolve every observation's contexts before applying cohort
+                # gates; a selected baseline is not a preferred reprocessing.
+                if any(context_difference(a, b, key) for i, a in enumerate(candidates) for b in candidates[i+1:]):
+                    conflicts.setdefault(observation, {})[key] = 'Conflicting valid posture contexts for the same observation'
+                elif candidates:
+                    contexts[observation][key] = candidates[0]
+        baseline_contexts = contexts.get(baseline_observation, {})
+        # A missing/corrupt scalar alone does not invalidate independently
+        # verified geometry/window context. Use this only if no valid-value
+        # context exists; invalid variants never veto a valid one above.
+        for key, descriptor in POSTURE_METRICS.items():
+            if (key in baseline_contexts or key in conflicts.get(baseline_observation, {})
+                    or not (key in FACE_METRICS or descriptor['whole'])):
+                continue
+            fallback = [result for _, result in groups.get(baseline_observation, [])
+                        if not repeat_reasons(result, result, key)]
+            if fallback and not any(context_difference(a, b, key)
+                                    for i, a in enumerate(fallback) for b in fallback[i+1:]):
+                baseline_contexts[key] = fallback[0]
+        variants = []
+        for name, result in self.posture_results.items():
+            # Actual time is validated by each metric. Missing t1 must not reject
+            # whole-window diagnostics before their own support rules run.
+            observation = self.impact_results[name].observation_key
+            metrics = {}
+            for key, metric in result.metrics.items():
+                reason = repeat_reasons(result, result, key)
+                needs_context = key in FACE_METRICS or POSTURE_METRICS[key]['whole']
+                if needs_context and key not in conflicts.get(observation, {}):
+                    if key not in baseline_contexts:
+                        reason = '; '.join(filter(None, (reason, 'Baseline observation has no unambiguous valid posture comparison context')))
+                    else:
+                        reason = repeat_reasons(result, baseline_contexts[key], key)
+                metrics[key] = MetricValue(metric.value, '; '.join(filter(None, (metric.reason, reason))))
+            variants.append(self._variant(name, metrics, common_reasons[name]))
+        resolution = resolve_observations(variants, {key: d['kind'] for key, d in POSTURE_METRICS.items()},
+                                          metric_conflicts=conflicts)
+        for name, item in resolution['files'].items():
+            item['result'] = self.posture_results[name]
+        statistics = {}
+        for key, descriptor in POSTURE_METRICS.items():
+            values = [metrics[key]['value'] for metrics in resolution['observations'].values()
+                      if metrics[key]['status'] in ('contributing', 'equivalent')]
+            if descriptor['kind'] == 'numeric':
+                stats = dict(n=len(values), mean=float(np.mean(values)) if values else None,
+                    min=min(values) if values else None, max=max(values) if values else None,
+                    range=max(values) - min(values) if values else None)
+            else:
+                counts = {value: values.count(value) for value in sorted(set(values))}
+                metric = baseline.metrics[key]
+                reference = category_reference(metric.value) if not metric.reason else None
+                stats = dict(n=len(values), counts=counts, reference=reference,
+                             matching=counts.get(reference, 0) if reference is not None else None)
             statistics[key] = stats
         return {**resolution, 'statistics': statistics,
                 'source': self.identities[self.baseline_name].source_kind}
