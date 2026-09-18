@@ -74,7 +74,9 @@ and no claimed impact/t1. This does not mean no contact occurred. Comparisons
 report incomplete evidence. Fully valid records retain the original contact
 algorithm, and its whole-record comparison guard is retained. No missing rows are
 removed or interpolated and no event-bounding policy, new metadata field or
-storage version is introduced. #120 remains a separate investigation.
+storage version is introduced. The subsequent #120 investigation retained this
+behavior and deferred the proposed bounded policy; see
+[the evidence and limits](layout_and_contact_investigation.md).
 
 ## Reproduction and retained evidence
 

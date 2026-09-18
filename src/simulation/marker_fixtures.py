@@ -109,10 +109,9 @@ def validate_profile(profile):
     np.fill_diagonal(distances, np.inf)
     if (distances < 1.).any():
         raise ValueError('Markers must be separated by at least 1 mm.')
-    for face in FACE_NORMALS:
-        points = xyz[[m['face'] == face for m in markers]]
-        if len(points) == 3 and np.linalg.norm(np.cross(points[1] - points[0], points[2] - points[0])) < 1e-8:
-            raise ValueError('Three-marker face is collinear.')
+    # One face may be collinear while other observed faces constrain the pose.
+    # Geometry import is not pose certification; the analysis solver checks
+    # the complete available marker set at each frame.
     for original in (example_profile(), virtual_profile_32()):
         if profile['profile_id'] == original['profile_id'] and profile != original:
             raise ValueError('Modified public geometry requires a new custom profile ID.')

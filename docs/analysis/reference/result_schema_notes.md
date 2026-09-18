@@ -536,9 +536,10 @@ The approved compatibility change removes diagnostic eligibility previously
 given to contradictory event declarations, invalid execution/review provenance
 and legacy resampled results with unproven observed rows. It does not rewrite old
 artifacts. Existing compatible observation grouping still applies. Metric-wise
-duplicate resolution is #119. The bounded producer/replay policy, local numerical
-evidence, and distinct processing identity for old/new policies belong to #120;
-until then Contact retains its full legacy geometric replay and tail limitations.
+duplicate resolution is #119. The #120 bounded producer/replay proposal is deferred
+after normal-path investigation; no new policy identity or event fields were added.
+Contact retains its full geometric replay and tail limitations. See
+[the evidence and limits](layout_and_contact_investigation.md).
 
 Conditional equivalent height additionally requires current included SceneReview,
 confirmed Type G/free_fall at applied/reference edition 2018-03, matching executed
