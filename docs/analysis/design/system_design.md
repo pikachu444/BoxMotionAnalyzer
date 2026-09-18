@@ -3,6 +3,8 @@
 Last Reviewed: 2026-09-18
 
 ## 1. 개요
+비교 표의 기준 표시와 `MetricGuideDialog`는 표시 계층에서 처리한다. 도움말은 기존 impact/posture/summary descriptor를 읽어 생성하며 계산·호환성·저장 형식을 변경하지 않는다. 기본 도움말에는 중심점, 시점·구간, 단위, 지표별 반복 수와 제외 사유의 의미를 설명한다.
+
 `compare.posture_metrics`는 저장된 자세 요약을 실제 pose/8개 코너 기하와 확인하고, 접촉 직전 지표와 전체 구간 지표에 다른 조건을 적용한다. `ComparisonModel`은 관측별 유효한 기준면·구간 정보 및 그 충돌을 먼저 확인한 뒤 기존 호환성과 지표별 중복 해소를 적용한다. 새 코너 높이 차이는 비교 시 계산하며 저장 스키마·실험 등록·목표각을 추가하지 않는다. 세부 조건은 `posture_repeat_layout.md`를 따른다.
 
 이 문서는 현재 구현된 Box Motion Analyzer의 분석 GUI 구조를 요약한다. 목표는 대용량 raw CSV를 scene 단위로 재사용 가능하게 만들고, processing과 결과 분석을 단계적으로 분리하는 것이다.

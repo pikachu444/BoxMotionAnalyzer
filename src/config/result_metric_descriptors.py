@@ -222,8 +222,9 @@ DROP_POSTURE_SUMMARY_DESCRIPTORS = (
         priority=30,
         short_description="Whether the slice contains low, stable floor-contact evidence.",
         long_description=(
-            "The selected time window is already in a low, stable contact state, so t1-based "
-            "impact values are not assigned."
+            "The end of the selected window contains low, stable contact evidence. This can "
+            "coexist with an earlier impact and its pre-contact sample. Stable contact alone "
+            "does not establish a new impact or t1."
         ),
         visual_guide=DropPostureVisualGuide.CONTACT_STATE,
     ),
