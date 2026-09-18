@@ -141,7 +141,7 @@ canonical-exact-v1은 유한 float와 정규화된 범주를 정확히 비교한
   - 비교 윈도우에서 사용할 파일 목록, 파싱된 결과, 기준(baseline) 실험 설정 등을 관리한다.
   - `utils/artifact_metadata.py`에서 출처/호환성 전체 사유를, `utils/result_time.py`에서 canonical timestamp와 t1 계약을 공유한다. 미호환 파일은 개별 열람을 유지하고 기준 차이/집계 대상에서 제외한다.
   - 그래프는 파일별 실제 elapsed 시각을 유지한다. 3D row ID는 원본 frame 번호와 분리하며 가장 가까운 실제 샘플 시각을 명시한다. 긴 gap/범위 밖은 보간·끝점 고정 없이 unavailable로 표시한다.
-  - `utils/first_event_evidence.py`의 버전 있는 저장 사건 일관성 검증을 Impact/Contact가 공유한다. 진단의 사건 지원, 속도 적합 지원, 의도 접촉의 기하 검증을 분리하며 지표별 제외 사유를 Details/Repeats까지 전달한다. 기존 파일과 producer 정책은 수정하지 않는다. bounded 검출·저장 정책은 #120의 별도 범위다.
+  - `utils/first_event_evidence.py`의 버전 있는 저장 사건 일관성 검증을 Impact/Contact가 공유한다. 진단의 사건 지원, 속도 적합 지원, 의도 접촉의 기하 검증을 분리하며 지표별 제외 사유를 Details/Repeats까지 전달한다. 기존 파일과 producer 정책은 수정하지 않는다. #120의 bounded 검출·저장 정책은 정상 경로 결함이 입증되지 않아 보류했다. [조사 근거](../reference/layout_and_contact_investigation.md)를 따른다.
 - `PlotPopupDialog`
 - `DataSelectionDialog`
 - `PlotManager`

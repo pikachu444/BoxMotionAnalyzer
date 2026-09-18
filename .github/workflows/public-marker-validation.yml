@@ -57,6 +57,7 @@ jobs:
         run: >-
           python -m pytest -q --maxfail=1
           tests/test_comparison_layout.py
+          tests/test_collinear_profile_recovery.py
           tests/test_processing_window_layout.py
           tests/test_marker_face_assignment.py
           tests/test_event_local_marker_review.py
@@ -189,6 +190,7 @@ jobs:
             tmp/issue123/**
             tmp/issue117/**
             tmp/issue122/**
+            tmp/issue116/**
             tmp/public-marker-results.xml
             tmp/public-validation-summary.json
             tmp/ci-*/**/validation*.json

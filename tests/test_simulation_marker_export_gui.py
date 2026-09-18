@@ -119,17 +119,22 @@ def test_generate_preview_and_open_observations_only(gui, monkeypatch, tmp_path,
 
 
 def test_import_validation_cancel_overwrite_and_retained_success(gui, tmp_path, monkeypatch):
-    _, _, dialog = gui
+    app, window, dialog = gui
     errors = []
     monkeypatch.setattr(QMessageBox, 'warning', lambda *a: errors.append(a[2]))
     profile = copy.deepcopy(example_profile())
     profile_id = 'custom-example-' + 'long-layout-name-' * 6
     profile.update(profile_id=profile_id, publication='user-supplied', source='test-declared-coordinates')
-    profile['markers'][0]['xyz_mm'][0] += 1
+    profile['markers'] = [m for m in profile['markers'] if m['id'] != 'F4']
+    for marker, x in zip([m for m in profile['markers'] if m['face'] == 'FRONT'], (-60., -20., 20.)):
+        marker['xyz_mm'] = [x, 0., 40.]
     file = tmp_path / 'layout.json'; file.write_text(json.dumps(profile))
     monkeypatch.setattr(QFileDialog, 'getOpenFileName', lambda *a: (str(file), ''))
     QTest.mouseClick(dialog.import_button, Qt.LeftButton)
     assert dialog.profile == profile and dialog.profile_combo.currentText() == 'Imported: ' + profile_id
+    plotted = np.concatenate([np.array(c._offsets3d).T for c in dialog.axes.collections
+                              if hasattr(c, '_offsets3d')])
+    assert sorted(map(tuple, plotted)) == sorted(tuple(m['xyz_mm']) for m in profile['markers'])
     file.write_text('[]')
     QTest.mouseClick(dialog.import_button, Qt.LeftButton)
     assert errors and dialog.profile == profile
@@ -155,6 +160,23 @@ def test_import_validation_cancel_overwrite_and_retained_success(gui, tmp_path, 
     QApplication.processEvents()
     assert dialog.width() == 1000 and dialog.height() == 700
     assert dialog.rect().contains(dialog.open_button.geometry())
+    QTest.mouseClick(dialog.open_button, Qt.LeftButton)
+    analysis = window.analysis_windows[-1]
+    analysis.resize(1510, 800)
+    app.processEvents()
+    assert Path(analysis.original_widget.source_path) == Path(success)
+    assert analysis.original_widget._read_box_dimensions() == (200, 120, 80)
+    assert len(analysis.original_widget.parsed_data) == 63
+    assert all(f'F{i}_X' in analysis.original_widget.parsed_data for i in (1, 2, 3))
+    assert 'F4_X' not in analysis.original_widget.parsed_data
+    assert not analysis.original_widget.confirm_review_dimensions.isChecked()
+    evidence = Path('tmp/issue116'); evidence.mkdir(parents=True, exist_ok=True)
+    assert analysis.devicePixelRatioF() == 1.25
+    assert dialog.grab().save(str(evidence / 'imported-three.png'))
+    assert analysis.grab().save(str(evidence / 'three-step1.png'))
+    (evidence / 'gui.json').write_text(json.dumps(dict(logical_size=[analysis.width(), analysis.height()],
+        dpr=analysis.devicePixelRatioF(), samples=63, imported_markers=17,
+        note='Actual widget import, preview, export and Step 1 open; numeric Raw recovery has its own test.')))
     dialog.output_name.setText('failure')
     def fail(*args, **kwargs):
         raise OSError('injected export error')
