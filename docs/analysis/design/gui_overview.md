@@ -2,6 +2,13 @@
 
 Last Reviewed: 2026-10-02
 
+#136의 플립 검토창은 폭 1100 logical px 미만에서 원본/축 미리보기 탭을,
+넓은 창에서는 두 그래프를 나란히 표시한다. 그래프와 pan/zoom 범위·사건별
+선택·명시적 Apply를 보존하며, 파일명은 가운데 생략하고 전체 경로를 유지한다.
+계산 진행률·Cancel은 Step 1의 스크롤 상세 영역 밖에 둔다.
+820×600·125% widget/render·QTest 검사와 native Windows 확인 대기는
+[반응형 layout과 실행 기록](../../visualization/marker_review_responsive_layout.md)에 구분한다.
+
 ## 개요
 #135 CLI 회귀 실행기는 기존 단계 API와 Step2 scenario serializer를 공유한다. GUI 조작과 export 형식은 유지한다. 공개 합성 full fresh 처리와 GUI 재열기는 별도 증거이며 [실행 계약과 대기 범위](../reference/capture_regression.md)에 기록한다.
 

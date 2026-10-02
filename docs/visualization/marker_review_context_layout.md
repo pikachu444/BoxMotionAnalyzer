@@ -1,6 +1,15 @@
 # Marker review observation context
 
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-02
+
+#136 extends this delivered context without replacing it: below 1100 logical
+pixels, Original observations / Axis preview tabs use the full plot width;
+wider windows retain the paired plots described below. The filename now elides
+in the middle with the full path retained. Plot limits, navigation, original
+samples and explicit approval remain unchanged. Current layout, widget/render
+checks and native Windows pending scope are in
+[marker_review_responsive_layout.md](marker_review_responsive_layout.md).
+The #121 execution counts below are historical evidence of that delivery.
 
 #121 keeps the existing modal review and embeds a read-only observation plot.
 At 1280×740 (within a 1510×800 workspace), the event table remains above two

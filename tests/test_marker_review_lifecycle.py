@@ -178,6 +178,74 @@ def test_failure_discards_new_result_and_restores_controls(widget):
     assert widget.last_review_statistics is None
 
 
+@pytest.mark.parametrize('stop', ['cancel', 'error'])
+def test_small_loading_failure_cancel_and_retry_keep_prior_approvals(widget, monkeypatch, stop):
+    """Public Raw + held worker: render/QTest evidence, not native confirmation."""
+    from pathlib import Path
+    from PySide6.QtCore import QTimer, Qt
+    from PySide6.QtTest import QTest
+    from src.analysis.ui.dialog_marker_flip_review import MarkerFlipReviewDialog
+    from test_marker_review_layout import reachable
+
+    widget.resize(820, 600)
+    widget.show()
+    old = existing_decision(widget)
+    warnings, inspected, errors = [], [], []
+    monkeypatch.setattr(QMessageBox, 'warning', lambda *args: warnings.append(str(args[-1])))
+    root = Path('tmp/issue136/lifecycle'); root.mkdir(parents=True, exist_ok=True)
+    release = held_worker(widget, fail=stop == 'error')
+    try:
+        QApplication.processEvents()
+        assert widget.marker_review_busy and widget.marker_review_progress.isVisible()
+        reachable(widget.cancel_marker_review_button, widget)
+        assert not widget.review_marker_flips_button.isEnabled()
+        assert not widget.save_corrected_source_button.isEnabled()
+        widget.grab().save(str(root / f'{stop}-loading.png'))
+        if stop == 'cancel':
+            QTest.mouseClick(widget.cancel_marker_review_button, Qt.LeftButton)
+        release.set()
+        pump_until(lambda: widget.review_worker is None)
+        assert widget.marker_correction_decisions == [old]
+        assert widget.save_corrected_source_button.isEnabled()
+        assert widget.review_marker_flips_button.isEnabled()
+        assert bool(warnings) == (stop == 'error')
+        if warnings:
+            assert 'Injected computation failure' in warnings[0]
+            assert 'Injected computation failure' in widget.log_output.toPlainText()
+        widget.grab().save(str(root / f'{stop}-restored.png'))
+
+        timer = QTimer(widget)
+        def cancel_dialog():
+            dialog = QApplication.activeModalWidget()
+            if not isinstance(dialog, MarkerFlipReviewDialog):
+                return
+            timer.stop()
+            try:
+                dialog.resize(820, 600)
+                QApplication.processEvents()
+                assert all(not d.approved for d in dialog.get_decisions())
+                dialog.axis_combo(0).setCurrentText('Y')
+                assert all(not d.approved for d in dialog.get_decisions())
+                dialog.grab().save(str(root / f'{stop}-retry-preview.png'))
+                inspected.append(True)
+            except Exception as exc:
+                errors.append(str(exc))
+            finally:
+                dialog.reject()
+        timer.timeout.connect(cancel_dialog)
+        timer.start(15)
+        retry = held_worker(widget)
+        retry.set()
+        pump_until(lambda: (inspected or errors) and widget.review_worker is None)
+        timer.stop()
+        assert not errors, errors
+        assert inspected and widget.last_review_statistics is not None
+        assert widget.marker_correction_decisions == [old]
+        assert widget.save_corrected_source_button.isEnabled()
+    finally:
+        release.set()
+
+
 def test_close_cancels_and_waits_for_thread_cleanup(widget):
     widget.show()
     old = existing_decision(widget)
