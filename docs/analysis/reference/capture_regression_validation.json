@@ -8,12 +8,17 @@
   "automatic_full_status": "pass",
   "scope_issue": 135,
   "parent_issue": 134,
-  "report": "tmp/issue135/full_03/run_report.json",
-  "report_sha256": "10d1abb8e8128dd5f67148a411fa16458d5592f1d13de4f40a82cfa20870a224",
+  "report": "tmp/issue135/full_slice_guard/run_report.json",
+  "report_sha256": "3a46a9924a47d213073d8c51018ca3a5a36764e1e14b9a35095e861f88d818ee",
   "code": {
-    "commit": "909b30ca1f385f185a7dc06bb564a284831f8fd4",
+    "commit": "ab8ee0e7c0beb8b0f8fb73a72e35c07d1ec377aa",
     "dirty": true,
-    "semantics": "capture-replay-geocenter-v1"
+    "semantics": "capture-replay-geocenter-v1",
+    "dirty_reviewed_files": {
+      "src/analysis/pipeline/artifact_io.py": "310052f97dc39120b001ba368ff57e2d19a10446213daaf2ae404cb5a6dde23a",
+      "src/analysis/pipeline/data_loader.py": "cd7f8bff683bbcde6c96d8ba23bd38bbcb9a5ac37bf334073548fbf100e170a4",
+      "tests/test_capture_regression.py": "81ba304e26d033ef6743386b36cb529137963e59b8e0a3fc0680efd2ef3e5fac"
+    }
   },
   "environment": {
     "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
@@ -33,12 +38,12 @@
     "--asset-root",
     "tmp/issue135/assets_v2",
     "--output",
-    "tmp/issue135/full_03",
+    "tmp/issue135/full_slice_guard",
     "--tier",
     "full"
   ],
-  "utc": "2026-10-02T07:00:36.406934+00:00",
-  "kst": "2026-10-02T16:00:36.406962+09:00",
+  "utc": "2026-10-02T07:29:12.115560+00:00",
+  "kst": "2026-10-02T16:29:12.115577+09:00",
   "coverage": {
     "loaded": 6,
     "approved": 6,
@@ -48,8 +53,8 @@
     "unexecuted": 0
   },
   "optimizer_calls": 449,
-  "duration_s": 86.64328319998458,
-  "peak_memory_bytes": 179064832,
+  "duration_s": 85.48476899997331,
+  "peak_memory_bytes": 179302400,
   "manifest_sha256": "47ba5cac0ac266e3989ea12920f8e47d745e5ae058b3188e1cbb6e771f55771d",
   "input": {
     "asset_root": "tmp/issue135/assets_v2",
@@ -2220,6 +2225,18 @@
       "path": "tmp/issue135/full_02/run_report.json",
       "status": "fail",
       "reason": "Detector clock parsing mismatch after Parser precision fix"
+    },
+    {
+      "path": "tmp/issue135/public_required_08.xml",
+      "status": "fail",
+      "passed": 301,
+      "failed": 1,
+      "reason": "New additive original record column reset in ordinary suffix slice; fixed and rechecked19tests+6independenttests"
+    },
+    {
+      "path": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/36977575754",
+      "status": "fail",
+      "reason": "Same original record suffix-slice failure on first reviewed head; corrected"
     }
   ],
   "tests": {
@@ -2235,15 +2252,27 @@
       "path": "tmp/issue135/correction_07.xml"
     },
     "required_public_suite": {
-      "status": "running",
-      "path": "tmp/issue135/public_required_08.xml"
+      "status": "failed_then_corrected_remaining_running",
+      "first_passed": 301,
+      "first_failed": 1,
+      "path": "tmp/issue135/public_required_08.xml",
+      "remaining_path": "tmp/issue135/public_remaining_12.xml"
+    },
+    "slice_preservation": {
+      "passed": 19,
+      "path": "tmp/issue135/slice_preservation_09.xml"
+    },
+    "slice_mapping": {
+      "passed": 6,
+      "path": "tmp/issue135/slice_mapping_11.xml",
+      "independent_passed": 6
     }
   },
   "independent_review": {
     "status": "approved",
     "reviewer": "requirements_review",
     "date": "2026-10-02",
-    "basis": "Independent code review, 109 preservation checks, full fresh execution, 4 corrected control rechecks, and exact final small-summary verification; no unresolved P0/P1"
+    "basis": "Independent code review, 109 preservation checks, full fresh execution, 4 corrected control rechecks, and exact final small-summary verification; no unresolved P0/P1; ordinary/nested slice mapping and atomic stale replay preflight independently approved after6checks"
   },
   "gui": {
     "status": "partial",
@@ -2320,5 +2349,12 @@
         "relative": 0.0
       }
     }
+  },
+  "repeat_variation": {
+    "status": "pass",
+    "fresh": 12,
+    "reused": 0,
+    "max_numeric_variation": 0.0,
+    "path": "tmp/issue135/full_repeat_variation.json"
   }
 }

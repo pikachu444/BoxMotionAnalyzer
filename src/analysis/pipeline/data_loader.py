@@ -67,15 +67,17 @@ class DataLoader:
         raw_df.attrs['original_record_indices'] = list(range(len(raw_df)))
         if 'Slice File' in lines[0]:
             import json
+            from .artifact_io import validated_original_records
+            if metadata.original_record_indices_json:
+                raw_df.attrs['original_record_indices'] = validated_original_records(metadata.original_record_indices_json, len(raw_df))
             review = json.loads(metadata.scene_review_json or '{}')
             replay = review.get('capture_replay', {})
             if replay:
                 from src.analysis.regression.contracts import validate_envelope
                 validate_envelope(replay, 'CaptureReplay')
-                indices = replay['saved_original_record_indices']
-                if (len(indices) != len(raw_df) or any(type(i) is not int or i < 0 for i in indices)
-                        or any(b <= a for a, b in zip(indices, indices[1:]))):
-                    raise ValueError('Invalid original-record mapping in slice replay.')
+                indices = validated_original_records(replay['saved_original_record_indices'], len(raw_df))
+                if metadata.original_record_indices_json and indices != raw_df.attrs['original_record_indices']:
+                    raise ValueError('Slice original-record declarations conflict.')
                 raw_df.attrs['original_record_indices'] = indices
 
         if len(raw_df.columns) > 1:

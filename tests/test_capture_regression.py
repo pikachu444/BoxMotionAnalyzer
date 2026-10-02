@@ -322,6 +322,70 @@ def test_raw_clock_roundtrips_without_one_ulp_loss(assets,tmp_path):
     np.testing.assert_array_equal(DataLoader().load_result_csv(str(path)).index.to_numpy(float),expected)
 
 
+def test_ordinary_and_nested_slices_preserve_full_source_records(assets,tmp_path):
+    from src.analysis.pipeline.artifact_io import save_slice_file,read_slice_metadata
+    source=assets/'partial/observed.csv';h,raw=DataLoader().load_csv(str(source))
+    first=tmp_path/'ordinary.slice'
+    args=dict(full_start=10.,full_end=10.59,box_dims=[200.,120.,80.])
+    save_slice_file(filepath=str(first),header_info=h,raw_data=raw,source_path=str(source),user_start=10.4,user_end=10.5,pad_rows=3,**args)
+    sh,sr=DataLoader().load_csv(str(first))
+    expected=list(range(37,54))
+    assert sr.attrs['original_record_indices']==expected
+    assert json.loads(read_slice_metadata(str(first)).original_record_indices_json)==expected
+    parsed=Parser(FACE_PREFIX_TO_INFO).process(sh,sr)
+    assert parsed['Source_OriginalRecordIndex'].tolist()==expected
+    nested=tmp_path/'nested.slice'
+    save_slice_file(filepath=str(nested),header_info=sh,raw_data=sr,source_path=str(first),user_start=10.42,user_end=10.47,pad_rows=0,**args)
+    _,second=DataLoader().load_csv(str(nested))
+    assert second.attrs['original_record_indices']==list(range(42,48))
+
+
+@pytest.mark.parametrize('fault',['count','order','bool','replay_conflict'])
+def test_invalid_slice_original_mapping_is_rejected(assets,tmp_path,fault):
+    import csv
+    from src.analysis.pipeline.artifact_io import save_slice_file
+    h,raw=DataLoader().load_csv(str(assets/'partial/observed.csv'))
+    path=tmp_path/'bad.slice'
+    save_slice_file(filepath=str(path),header_info=h,raw_data=raw,source_path='partial.csv',full_start=10.,full_end=10.59,
+                    user_start=10.4,user_end=10.5,pad_rows=0,box_dims=[200.,120.,80.])
+    with path.open(newline='') as stream:rows=list(csv.reader(stream))
+    indices=list(range(40,51))
+    if fault=='count':indices.pop()
+    elif fault=='order':indices.reverse()
+    elif fault=='bool':indices[0]=True
+    else:
+        # A valid ordinary mapping must also agree with the replay declaration.
+        from src.analysis.regression.runner import production_capture
+        f=read_json(assets/'partial/review.json','CaptureReviewFixture')
+        out=tmp_path/'capture';out.mkdir()
+        _,_,_,_,_,_,_,session,_,_=production_capture(assets/'partial/observed.csv',f,out)
+        d=next(d for d in f['scene_decisions'] if d['decision']=='include')
+        payload=json.loads(session.payload(next(r['id'] for r in session.rows if r.get('replay_review_id')==d['review_id'])))
+        payload['candidate'].update(start=10.4,end=10.5)
+        payload['capture_replay']=envelope('CaptureReplay',saved_original_record_indices=list(range(140,151)))
+        rows[1]=[cell for cell in rows[1] if not cell.startswith('SceneReviewJson=')]+['SceneReviewJson='+json.dumps(payload)]
+    rows[1]=[cell for cell in rows[1] if not cell.startswith('original_record_indices=')]+['original_record_indices='+json.dumps(indices)]
+    with path.open('w',newline='') as stream:csv.writer(stream).writerows(rows)
+    with pytest.raises(ValueError,match='declarations conflict' if fault=='replay_conflict' else 'Invalid original-record mapping'):
+        DataLoader().load_csv(str(path))
+
+
+def test_stale_replay_mapping_cannot_replace_saved_slice(assets,tmp_path):
+    from src.analysis.pipeline.artifact_io import save_slice_file
+    f=read_json(assets/'partial/review.json','CaptureReviewFixture')
+    out=tmp_path/'capture';out.mkdir()
+    h,raw,_,_,_,_,_,session,_,_=production_capture(assets/f['relative_path'],f,out)
+    row=next(r for r in session.rows if r['decision']=='include')
+    payload=json.loads(session.payload(row['id']))
+    payload['capture_replay']=envelope('CaptureReplay',saved_original_record_indices=list(range(100,160)))
+    path=tmp_path/'keep.slice';path.write_bytes(b'previous completed artifact')
+    with pytest.raises(ValueError,match='publication forbidden'):
+        save_slice_file(filepath=str(path),header_info=h,raw_data=raw,source_path='partial.csv',
+            full_start=10.,full_end=10.59,user_start=10.,user_end=10.59,pad_rows=0,
+            box_dims=[200.,120.,80.],scene_review_json=json.dumps(payload))
+    assert path.read_bytes()==b'previous completed artifact'
+
+
 def test_raw_embedded_profile_mismatch_is_rejected(assets,tmp_path):
     from src.simulation.marker_fixtures import validate_profile
     f=read_json(assets/'partial/review.json','CaptureReviewFixture')

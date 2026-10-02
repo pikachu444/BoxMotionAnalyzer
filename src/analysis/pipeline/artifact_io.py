@@ -52,6 +52,7 @@ SLICE_META_DETAIL_KEYS = (
     "padded_end",
     "pad_rows",
     "row_count",
+    "original_record_indices",
     "correction_schema",
     "correction_algorithm",
     "correction_original_source",
@@ -109,6 +110,7 @@ class SliceMetadata:
     correction_context_json: str = ""
     artifact_metadata_json: str = ""
     scene_review_json: str = ""
+    original_record_indices_json: str = ""
 
 
 @dataclass(frozen=True)
@@ -193,6 +195,15 @@ def _slice_scene_review(detail_meta: dict) -> str:
     return _canonical_scene_review(value, start=start, end=end)
 
 
+def validated_original_records(value, row_count):
+    indices = json.loads(value) if isinstance(value, str) else value
+    if (not isinstance(indices, list) or len(indices) != row_count
+            or any(type(i) is not int or i < 0 for i in indices)
+            or any(b <= a for a, b in zip(indices, indices[1:]))):
+        raise ValueError('Invalid original-record mapping in slice.')
+    return indices
+
+
 def _replace_csv_rows(filepath: str, rows) -> None:
     """Publish a complete slice without truncating a previous saved result."""
     target = Path(filepath)
@@ -266,6 +277,7 @@ def _build_slice_metadata(
     marker_correction_metadata: CorrectionSourceMetadata | None = None,
     artifact_metadata_json: str = "",
     scene_review_json: str = "",
+    original_record_indices_json: str = "",
 ) -> SliceMetadata:
     correction_events_json = (
         marker_correction_metadata.events_json if marker_correction_metadata is not None else ""
@@ -323,6 +335,7 @@ def _build_slice_metadata(
         correction_events_json=correction_events_json,
         artifact_metadata_json=artifact_metadata_json,
         scene_review_json=scene_review_json,
+        original_record_indices_json=original_record_indices_json,
         correction_context_json=marker_correction_metadata.context_json if marker_correction_metadata else "",
     )
 
@@ -572,6 +585,8 @@ def read_slice_metadata(filepath: str) -> SliceMetadata:
     magic = prefix_meta.get("magic") or (first_row[0].strip() if first_row else "")
     if magic != SLICE_FILE_MAGIC:
         raise ValueError(f"Invalid slice file header: {filepath}")
+    if detail_meta.get('original_record_indices'):
+        validated_original_records(detail_meta['original_record_indices'], _safe_int(detail_meta.get('row_count')))
 
     if detail_meta.get('correction_schema') == '3':
         context = validate_face_context(detail_meta.get('correction_context', ''))
@@ -617,6 +632,7 @@ def read_slice_metadata(filepath: str) -> SliceMetadata:
         correction_context_json=detail_meta.get("correction_context", ""),
         artifact_metadata_json=detail_meta.get("artifact_metadata", ""),
         scene_review_json=_slice_scene_review(detail_meta),
+        original_record_indices_json=detail_meta.get("original_record_indices", ""),
     )
 
 
@@ -718,6 +734,15 @@ def save_slice_file(
         if box_dims is None or tuple(context['box_dims_mm']) != tuple(box_dims):
             raise ValueError('Slice dimensions differ from approved face correction context.')
     slice_raw_df = raw_data.iloc[row_start : row_end + 1].copy()
+    original_records = validated_original_records(raw_data.attrs.get('original_record_indices', list(range(len(raw_data)))), len(raw_data))
+    saved_records = original_records[row_start:row_end+1]
+    if scene_review_json:
+        replay = json.loads(scene_review_json).get('capture_replay')
+        if replay:
+            from src.analysis.regression.contracts import validate_envelope
+            validate_envelope(replay, 'CaptureReplay')
+            if validated_original_records(replay['saved_original_record_indices'], len(saved_records)) != saved_records:
+                raise ValueError('Slice original-record declarations conflict; publication forbidden.')
     if box_dims is not None:
         validate_declared_dimensions(header_info.get('artifact_metadata'), box_dims)
     metadata = _build_slice_metadata(
@@ -735,6 +760,7 @@ def save_slice_file(
         marker_correction_metadata=marker_correction_metadata,
         artifact_metadata_json=metadata_json(header_info.get('artifact_metadata')),
         scene_review_json=scene_review_json,
+        original_record_indices_json=json.dumps(saved_records, separators=(',', ':')),
     )
 
     header_rows = [
@@ -761,6 +787,7 @@ def save_slice_file(
                 "padded_end": metadata.padded_end,
                 "pad_rows": metadata.pad_rows,
                 "row_count": metadata.row_count,
+                "original_record_indices": metadata.original_record_indices_json,
                 "correction_schema": metadata.correction_schema_version,
                 "correction_algorithm": metadata.correction_algorithm_version,
                 "correction_original_source": metadata.correction_original_source,
