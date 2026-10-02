@@ -1,8 +1,11 @@
 # Export Analysis Scenario 형식 설명서
 
-Last Reviewed: 2026-03-08
+Last Reviewed: 2026-10-02
 
 이 문서는 현재 `WidgetResultsAnalyzer.export_analysis_scenario()`가 생성하는 파일 형식을 설명한다.
+
+#135부터 문자열 구성은 `pipeline.scenario_export.scenario_text`로 공유한다. GUI/CLI의 변수명,
+순서, 정밀도와 7줄 구조는 유지하며 CLI evaluator는 독립 기하·속도 수식으로 값을 대조한다.
 
 ## 1. 출력 형식
 - 결과는 텍스트 기반 CSV 파일이다.

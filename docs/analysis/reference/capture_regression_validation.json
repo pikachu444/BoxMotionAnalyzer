@@ -1,0 +1,2324 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "CaptureRegressionValidation",
+  "last_reviewed": "2026-10-02",
+  "source_kind": "public analytic synthetic; no experimental input",
+  "software_status": "pass",
+  "automatic_full_status": "pass",
+  "scope_issue": 135,
+  "parent_issue": 134,
+  "report": "tmp/issue135/full_03/run_report.json",
+  "report_sha256": "10d1abb8e8128dd5f67148a411fa16458d5592f1d13de4f40a82cfa20870a224",
+  "code": {
+    "commit": "909b30ca1f385f185a7dc06bb564a284831f8fd4",
+    "dirty": true,
+    "semantics": "capture-replay-geocenter-v1"
+  },
+  "environment": {
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "dependencies": {
+      "numpy": "2.3.5",
+      "scipy": "1.16.3",
+      "pandas": "2.3.3",
+      "PySide6": "6.10.1",
+      "mujoco": "3.6.0"
+    }
+  },
+  "command": [
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py",
+    "--manifest",
+    "tmp/issue135/assets_v2/corpus.json",
+    "--asset-root",
+    "tmp/issue135/assets_v2",
+    "--output",
+    "tmp/issue135/full_03",
+    "--tier",
+    "full"
+  ],
+  "utc": "2026-10-02T07:00:36.406934+00:00",
+  "kst": "2026-10-02T16:00:36.406962+09:00",
+  "coverage": {
+    "loaded": 6,
+    "approved": 6,
+    "fresh": 6,
+    "reused": 0,
+    "failed": 0,
+    "unexecuted": 0
+  },
+  "optimizer_calls": 449,
+  "duration_s": 86.64328319998458,
+  "peak_memory_bytes": 179064832,
+  "manifest_sha256": "47ba5cac0ac266e3989ea12920f8e47d745e5ae058b3188e1cbb6e771f55771d",
+  "input": {
+    "asset_root": "tmp/issue135/assets_v2",
+    "version": "public-analytic-corpus-v2",
+    "seed": 135001,
+    "raw_records": 552,
+    "proc_records": 452,
+    "valid_records": 449,
+    "approved_unavailable_records": 3
+  },
+  "residual_maximum": {
+    "center_mm": 0.0002098200647885873,
+    "rotation_deg": 0.00040423052945787484,
+    "corner_mm": 0.0010677346243233286,
+    "height_mm": 0.0004760921067941126
+  },
+  "scenes": [
+    {
+      "review_id": "two_drops-scene-0",
+      "identity": {
+        "raw_sha256": "355ef15cab92de6f0d89d871fee519e2becd2de62f9de219b6e71b9f5bc09bd7",
+        "decision_sha256": "72dc61c33a1bf766d5c5c00731796ca40d375e2e711889a3e3455089ed3898e1",
+        "profile": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+        "geometry": "a672e6dc850436245b177d9eb8d2b51bd083dba9229118336eaf118a48c8fe9f",
+        "settings": "10263c8ce26e0082e69e27e67771f5d4450a35b6f59ca6e8c24103fcbd19c8a2",
+        "tolerance_version": "public-analytic-corpus-v1"
+      },
+      "status": "pass",
+      "processing": "fresh",
+      "source_sha256": "355ef15cab92de6f0d89d871fee519e2becd2de62f9de219b6e71b9f5bc09bd7",
+      "metrics": {
+        "t1": {
+          "expected": {
+            "status": "valid",
+            "value": 10.29
+          },
+          "actual": {
+            "status": "valid",
+            "value": 10.29
+          },
+          "difference": 0.0,
+          "status": "pass"
+        },
+        "t2": {
+          "expected": {
+            "status": "not_detected",
+            "value": null
+          },
+          "actual": {
+            "status": "not_detected",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "reference_face": {
+          "expected": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 6.244119948271193e-05
+          },
+          "difference": 6.244119948271193e-05,
+          "status": "pass"
+        },
+        "maximum_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00039315719145492737
+          },
+          "difference": 0.00039315719145492737,
+          "status": "pass"
+        },
+        "MaxBetaDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00026945723884024117
+          },
+          "difference": 0.00026945723884024117,
+          "status": "pass"
+        },
+        "MaxAbsThetaLongDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0001524142474175834
+          },
+          "difference": 0.0001524142474175834,
+          "status": "pass"
+        },
+        "MaxAbsThetaShortDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00025038581087237917
+          },
+          "difference": 0.00025038581087237917,
+          "status": "pass"
+        },
+        "MaxDeltaH_mm": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0007211063654040117
+          },
+          "difference": 0.0007211063654040117,
+          "status": "pass"
+        },
+        "contact_state": {
+          "expected": {
+            "status": "valid",
+            "value": "ImpactEvent"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "ImpactEvent"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "impact_sequence": {
+          "expected": {
+            "status": "valid",
+            "value": "{C1,C2,C5,C6}"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "{C1,C2,C5,C6}"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "vertical_velocity": {
+          "expected": {
+            "status": "valid",
+            "value": -2.0593964999999996
+          },
+          "actual": {
+            "status": "valid",
+            "value": -2.0593941098531974
+          },
+          "difference": 2.3901468022557992e-06,
+          "status": "pass"
+        },
+        "horizontal_speed": {
+          "expected": {
+            "status": "valid",
+            "value": 0.020223748416156685
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.02021812018911863
+          },
+          "difference": -5.6282270380556e-06,
+          "status": "pass"
+        },
+        "angular_speed": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.000234515814046417
+          },
+          "difference": 0.000234515814046417,
+          "status": "pass"
+        },
+        "BetaAtT1MinusDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 5.762814003798845e-05
+          },
+          "difference": 5.762814003798845e-05,
+          "status": "pass"
+        },
+        "ThetaLongAtT1MinusDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": -2.6587460252841472e-05
+          },
+          "difference": -2.6587460252841472e-05,
+          "status": "pass"
+        },
+        "ThetaShortAtT1MinusDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": -5.112770084103245e-05
+          },
+          "difference": -5.112770084103245e-05,
+          "status": "pass"
+        },
+        "DeltaHAtT1Minus_mm": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00016419548172308396
+          },
+          "difference": 0.00016419548172308396,
+          "status": "pass"
+        },
+        "equivalent_height": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_face": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "observed_first_contact": {
+          "expected": {
+            "status": "valid",
+            "value": "{C1,C2,C5,C6}"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "{C1,C2,C5,C6}"
+          },
+          "difference": null,
+          "status": "pass"
+        }
+      },
+      "residual": {
+        "status": "pass",
+        "failures": [],
+        "reference_sha256": "9bddef69f1f1760c1590720a6a42a92ce9a31f3c24878cbd8a3df9cb662b4859",
+        "checked_samples": 80,
+        "approved_unavailable_samples": 0,
+        "residuals": {
+          "center_mm": {
+            "maximum": 0.00016476049170055426,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "rotation_deg": {
+            "maximum": 0.00030089095558727565,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "corner_mm": {
+            "maximum": 0.0006201536379439194,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.0006073803583289463,
+              0.0003105916094082475,
+              0.0005541060131595715,
+              0.0005191107677248449,
+              0.0005304863883404188,
+              0.00041593424779966975,
+              0.0006201536379439194,
+              0.00041783467207503057
+            ]
+          },
+          "height_mm": {
+            "maximum": 0.0004760921067941126,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.0004760921067941126,
+              0.00018726794257872825,
+              0.00018726820451320236,
+              0.00047609134702497613,
+              0.0002870118302382707,
+              0.0003067310204301066,
+              0.000306730318868631,
+              0.0002870110704975559
+            ]
+          }
+        }
+      },
+      "scenario_status": "pass",
+      "original_trial_n": {
+        "vertical_velocity": 0,
+        "horizontal_speed": 0,
+        "angular_speed": 0,
+        "equivalent_height": 0,
+        "first_contact": 0,
+        "final_face": 0,
+        "contact_confidence": 0
+      }
+    },
+    {
+      "review_id": "two_drops-scene-1",
+      "identity": {
+        "raw_sha256": "355ef15cab92de6f0d89d871fee519e2becd2de62f9de219b6e71b9f5bc09bd7",
+        "decision_sha256": "72dc61c33a1bf766d5c5c00731796ca40d375e2e711889a3e3455089ed3898e1",
+        "profile": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+        "geometry": "a672e6dc850436245b177d9eb8d2b51bd083dba9229118336eaf118a48c8fe9f",
+        "settings": "10263c8ce26e0082e69e27e67771f5d4450a35b6f59ca6e8c24103fcbd19c8a2",
+        "tolerance_version": "public-analytic-corpus-v1"
+      },
+      "status": "pass",
+      "processing": "fresh",
+      "source_sha256": "355ef15cab92de6f0d89d871fee519e2becd2de62f9de219b6e71b9f5bc09bd7",
+      "metrics": {
+        "t1": {
+          "expected": {
+            "status": "valid",
+            "value": 11.29
+          },
+          "actual": {
+            "status": "valid",
+            "value": 11.29
+          },
+          "difference": 0.0,
+          "status": "pass"
+        },
+        "t2": {
+          "expected": {
+            "status": "not_detected",
+            "value": null
+          },
+          "actual": {
+            "status": "not_detected",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "reference_face": {
+          "expected": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 6.244119948271193e-05
+          },
+          "difference": 6.244119948271193e-05,
+          "status": "pass"
+        },
+        "maximum_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00039315719145492737
+          },
+          "difference": 0.00039315719145492737,
+          "status": "pass"
+        },
+        "MaxBetaDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00026945723884024117
+          },
+          "difference": 0.00026945723884024117,
+          "status": "pass"
+        },
+        "MaxAbsThetaLongDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0001524142474175834
+          },
+          "difference": 0.0001524142474175834,
+          "status": "pass"
+        },
+        "MaxAbsThetaShortDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00025038581087237917
+          },
+          "difference": 0.00025038581087237917,
+          "status": "pass"
+        },
+        "MaxDeltaH_mm": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0007211063654040117
+          },
+          "difference": 0.0007211063654040117,
+          "status": "pass"
+        },
+        "contact_state": {
+          "expected": {
+            "status": "valid",
+            "value": "ImpactEvent"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "ImpactEvent"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "impact_sequence": {
+          "expected": {
+            "status": "valid",
+            "value": "{C1,C2,C5,C6}"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "{C1,C2,C5,C6}"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "vertical_velocity": {
+          "expected": {
+            "status": "valid",
+            "value": -2.0593964999999996
+          },
+          "actual": {
+            "status": "valid",
+            "value": -2.0593941098531974
+          },
+          "difference": 2.3901468022557992e-06,
+          "status": "pass"
+        },
+        "horizontal_speed": {
+          "expected": {
+            "status": "valid",
+            "value": 0.020223748416156685
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.020218120189163916
+          },
+          "difference": -5.628226992768909e-06,
+          "status": "pass"
+        },
+        "angular_speed": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.000234515814046417
+          },
+          "difference": 0.000234515814046417,
+          "status": "pass"
+        },
+        "BetaAtT1MinusDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 5.762814003798845e-05
+          },
+          "difference": 5.762814003798845e-05,
+          "status": "pass"
+        },
+        "ThetaLongAtT1MinusDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": -2.6587460252841472e-05
+          },
+          "difference": -2.6587460252841472e-05,
+          "status": "pass"
+        },
+        "ThetaShortAtT1MinusDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": -5.112770084103245e-05
+          },
+          "difference": -5.112770084103245e-05,
+          "status": "pass"
+        },
+        "DeltaHAtT1Minus_mm": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00016419548172308396
+          },
+          "difference": 0.00016419548172308396,
+          "status": "pass"
+        },
+        "equivalent_height": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_face": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "observed_first_contact": {
+          "expected": {
+            "status": "valid",
+            "value": "{C1,C2,C5,C6}"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "{C1,C2,C5,C6}"
+          },
+          "difference": null,
+          "status": "pass"
+        }
+      },
+      "residual": {
+        "status": "pass",
+        "failures": [],
+        "reference_sha256": "00a892c619d9d64391027a74c532cadfb61385ff838d9467ed8a11f8b7cab946",
+        "checked_samples": 80,
+        "approved_unavailable_samples": 0,
+        "residuals": {
+          "center_mm": {
+            "maximum": 0.00016476049164378348,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "rotation_deg": {
+            "maximum": 0.00030089095558727565,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "corner_mm": {
+            "maximum": 0.0006201536380539464,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.0006073803583010656,
+              0.00031059160945393896,
+              0.0005541060131820262,
+              0.0005191107675894303,
+              0.0005304863884136669,
+              0.00041593424788546326,
+              0.0006201536380539464,
+              0.00041783467110170157
+            ]
+          },
+          "height_mm": {
+            "maximum": 0.0004760921067941126,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.0004760921067941126,
+              0.00018726794257872825,
+              0.00018726820451320236,
+              0.00047609134702497613,
+              0.0002870118302382707,
+              0.0003067310204301066,
+              0.000306730318868631,
+              0.0002870110704975559
+            ]
+          }
+        }
+      },
+      "scenario_status": "pass",
+      "original_trial_n": {
+        "vertical_velocity": 0,
+        "horizontal_speed": 0,
+        "angular_speed": 0,
+        "equivalent_height": 0,
+        "first_contact": 0,
+        "final_face": 0,
+        "contact_confidence": 0
+      }
+    },
+    {
+      "review_id": "supported_H-scene-0",
+      "identity": {
+        "raw_sha256": "0516d1768d99bf3a8f79c80164254d8f1a2fc575ce9b6c97f756ba3f5127b8cc",
+        "decision_sha256": "d49b5dcee57164b0badd2a1940646a28de623bf1513fe958df284ccd44f161ce",
+        "profile": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+        "geometry": "a672e6dc850436245b177d9eb8d2b51bd083dba9229118336eaf118a48c8fe9f",
+        "settings": "10263c8ce26e0082e69e27e67771f5d4450a35b6f59ca6e8c24103fcbd19c8a2",
+        "tolerance_version": "public-analytic-corpus-v1"
+      },
+      "status": "pass",
+      "processing": "fresh",
+      "source_sha256": "0516d1768d99bf3a8f79c80164254d8f1a2fc575ce9b6c97f756ba3f5127b8cc",
+      "metrics": {
+        "t1": {
+          "expected": {
+            "status": "not_detected",
+            "value": null
+          },
+          "actual": {
+            "status": "not_detected",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "t2": {
+          "expected": {
+            "status": "not_detected",
+            "value": null
+          },
+          "actual": {
+            "status": "not_detected",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "reference_face": {
+          "expected": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00018260416383128562
+          },
+          "difference": 0.00018260416383128562,
+          "status": "pass"
+        },
+        "maximum_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 11.459155902616466
+          },
+          "actual": {
+            "status": "valid",
+            "value": 11.459204736520439
+          },
+          "difference": 4.8833903973033443e-05,
+          "status": "pass"
+        },
+        "MaxBetaDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 11.459155902616466
+          },
+          "actual": {
+            "status": "valid",
+            "value": 11.4591902208138
+          },
+          "difference": 3.4318197334570755e-05,
+          "status": "pass"
+        },
+        "MaxAbsThetaLongDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 11.459155902616466
+          },
+          "actual": {
+            "status": "valid",
+            "value": 11.459190220170617
+          },
+          "difference": 3.4317554151286345e-05,
+          "status": "pass"
+        },
+        "MaxAbsThetaShortDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0001603416016099031
+          },
+          "difference": 0.0001603416016099031,
+          "status": "pass"
+        },
+        "MaxDeltaH_mm": {
+          "expected": {
+            "status": "valid",
+            "value": 39.733866159012244
+          },
+          "actual": {
+            "status": "valid",
+            "value": 39.734150827963035
+          },
+          "difference": 0.0002846689507904898,
+          "status": "pass"
+        },
+        "contact_state": {
+          "expected": {
+            "status": "valid",
+            "value": "SustainedContact"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "SustainedContact"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "equivalent_height": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_face": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "vertical_velocity": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "horizontal_speed": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "angular_speed": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "contact_confidence": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "BetaAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "ThetaLongAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "ThetaShortAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "DeltaHAtT1Minus_mm": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "observed_first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        }
+      },
+      "residual": {
+        "status": "pass",
+        "failures": [],
+        "reference_sha256": "2ee2396bab2128f00e13014f8704649b129f19b7416eae238e640f695f053091",
+        "checked_samples": 80,
+        "approved_unavailable_samples": 0,
+        "residuals": {
+          "center_mm": {
+            "maximum": 0.00012057219391012825,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "rotation_deg": {
+            "maximum": 0.00018469266539159024,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "corner_mm": {
+            "maximum": 0.00042610607276687335,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.0003605130763560034,
+              0.00042610607276687335,
+              0.0003926074226756679,
+              0.0003245862449791154,
+              0.0003709155123698499,
+              0.0003000430670458407,
+              0.00031262335447964235,
+              0.0003277240035168211
+            ]
+          },
+          "height_mm": {
+            "maximum": 0.0003695012674143072,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.000253713176761039,
+              0.0003695012674143072,
+              0.0003536417947316295,
+              0.0002563639249331118,
+              0.0002237132013220844,
+              0.0001987441080757435,
+              0.0001971875121995481,
+              0.00023702351367660413
+            ]
+          }
+        }
+      },
+      "scenario_status": "pass",
+      "original_trial_n": {
+        "vertical_velocity": 0,
+        "horizontal_speed": 0,
+        "angular_speed": 0,
+        "equivalent_height": 0,
+        "first_contact": 0,
+        "final_face": 0,
+        "contact_confidence": 0
+      }
+    },
+    {
+      "review_id": "tracking_OFF-scene-0",
+      "identity": {
+        "raw_sha256": "af1f69c7b3e13a09baa2305c955e8da133fd0788650e66c9ffeaab6463eb9806",
+        "decision_sha256": "eb61acd90a185e636100f199b39f2c5df8413ebf30da92609a1213a7e12964fd",
+        "profile": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+        "geometry": "a672e6dc850436245b177d9eb8d2b51bd083dba9229118336eaf118a48c8fe9f",
+        "settings": "10263c8ce26e0082e69e27e67771f5d4450a35b6f59ca6e8c24103fcbd19c8a2",
+        "tolerance_version": "public-analytic-corpus-v1"
+      },
+      "status": "pass",
+      "processing": "fresh",
+      "source_sha256": "af1f69c7b3e13a09baa2305c955e8da133fd0788650e66c9ffeaab6463eb9806",
+      "metrics": {
+        "t1": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "t2": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "reference_face": {
+          "expected": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 180.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 179.99994903156343
+          },
+          "difference": -5.0968436568155084e-05,
+          "status": "pass"
+        },
+        "maximum_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 180.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 179.9999980537446
+          },
+          "difference": -1.9462553950688743e-06,
+          "status": "pass"
+        },
+        "MaxBetaDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 180.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 179.9999797599816
+          },
+          "difference": -2.0240018386630254e-05,
+          "status": "pass"
+        },
+        "MaxAbsThetaLongDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00012918082473814774
+          },
+          "difference": 0.00012918082473814774,
+          "status": "pass"
+        },
+        "MaxAbsThetaShortDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.000260519182500744
+          },
+          "difference": 0.000260519182500744,
+          "status": "pass"
+        },
+        "MaxDeltaH_mm": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.000520001989514185
+          },
+          "difference": 0.000520001989514185,
+          "status": "pass"
+        },
+        "contact_state": {
+          "expected": {
+            "status": "valid",
+            "value": "Unavailable"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "Unavailable"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "equivalent_height": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_face": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "vertical_velocity": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "horizontal_speed": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "angular_speed": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "contact_confidence": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "BetaAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "ThetaLongAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "ThetaShortAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "DeltaHAtT1Minus_mm": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "observed_first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        }
+      },
+      "residual": {
+        "status": "pass",
+        "failures": [],
+        "reference_sha256": "3e6f776ca98c5c2dafb3ea20dbd9c50cc31e408a168ce591d7533f3590b786ff",
+        "checked_samples": 77,
+        "approved_unavailable_samples": 3,
+        "residuals": {
+          "center_mm": {
+            "maximum": 0.00017873481200637276,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "rotation_deg": {
+            "maximum": 0.00038150792761926195,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "corner_mm": {
+            "maximum": 0.0009580679293330125,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.0009580679293330125,
+              0.0003437554354149352,
+              0.0007691495460277545,
+              0.0005860376327744671,
+              0.0008612949221377472,
+              0.00031246116612825166,
+              0.0006761504879473422,
+              0.00035721916157163865
+            ]
+          },
+          "height_mm": {
+            "maximum": 0.0003922278654613365,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.0003922278654613365,
+              0.00024176561237254646,
+              0.00024176591881541754,
+              0.00039222658836024493,
+              0.000243795833199556,
+              0.00023941149453321486,
+              0.00023941187038190037,
+              0.00024379548858632916
+            ]
+          }
+        }
+      },
+      "scenario_status": "pass",
+      "original_trial_n": {
+        "vertical_velocity": 0,
+        "horizontal_speed": 0,
+        "angular_speed": 0,
+        "equivalent_height": 0,
+        "first_contact": 0,
+        "final_face": 0,
+        "contact_confidence": 0
+      }
+    },
+    {
+      "review_id": "partial-scene-0",
+      "identity": {
+        "raw_sha256": "6c8039227ccdf6ddbd1f67db764e0f8c04d2be0748bfa2f0c430d3cdc430b2f7",
+        "decision_sha256": "763e563b80103dd487345c30f3bb5c450fe9ce83a2b2e1ec9278e3152b9a83d4",
+        "profile": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+        "geometry": "a672e6dc850436245b177d9eb8d2b51bd083dba9229118336eaf118a48c8fe9f",
+        "settings": "10263c8ce26e0082e69e27e67771f5d4450a35b6f59ca6e8c24103fcbd19c8a2",
+        "tolerance_version": "public-analytic-corpus-v1"
+      },
+      "status": "pass",
+      "processing": "fresh",
+      "source_sha256": "6c8039227ccdf6ddbd1f67db764e0f8c04d2be0748bfa2f0c430d3cdc430b2f7",
+      "metrics": {
+        "t1": {
+          "expected": {
+            "status": "not_detected",
+            "value": null
+          },
+          "actual": {
+            "status": "not_detected",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "t2": {
+          "expected": {
+            "status": "not_detected",
+            "value": null
+          },
+          "actual": {
+            "status": "not_detected",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "reference_face": {
+          "expected": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 3.3804509912719323
+          },
+          "actual": {
+            "status": "valid",
+            "value": 3.380390438971213
+          },
+          "difference": -6.055230071932982e-05,
+          "status": "pass"
+        },
+        "maximum_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 3.3804509912719323
+          },
+          "actual": {
+            "status": "valid",
+            "value": 3.380390438971213
+          },
+          "difference": -6.055230071932982e-05,
+          "status": "pass"
+        },
+        "MaxBetaDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 3.3804509912718244
+          },
+          "actual": {
+            "status": "valid",
+            "value": 3.3803759199872214
+          },
+          "difference": -7.507128460293444e-05,
+          "status": "pass"
+        },
+        "MaxAbsThetaLongDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 3.380450991271857
+          },
+          "actual": {
+            "status": "valid",
+            "value": 3.380375919549965
+          },
+          "difference": -7.507172189225031e-05,
+          "status": "pass"
+        },
+        "MaxAbsThetaShortDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0002764192888426581
+          },
+          "difference": 0.0002764192888426581,
+          "status": "pass"
+        },
+        "MaxDeltaH_mm": {
+          "expected": {
+            "status": "valid",
+            "value": 11.79315522477508
+          },
+          "actual": {
+            "status": "valid",
+            "value": 11.792969460260394
+          },
+          "difference": -0.00018576451468632627,
+          "status": "pass"
+        },
+        "contact_state": {
+          "expected": {
+            "status": "valid",
+            "value": "Approach"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "Approach"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "equivalent_height": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_face": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "vertical_velocity": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "horizontal_speed": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "angular_speed": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "contact_confidence": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "BetaAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "ThetaLongAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "ThetaShortAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "DeltaHAtT1Minus_mm": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "observed_first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        }
+      },
+      "residual": {
+        "status": "pass",
+        "failures": [],
+        "reference_sha256": "169c92ae84bfb511f6ed83d56cde886a4f6d38113137db46f7a4cda96e10189b",
+        "checked_samples": 60,
+        "approved_unavailable_samples": 0,
+        "residuals": {
+          "center_mm": {
+            "maximum": 0.0002098200647885873,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "rotation_deg": {
+            "maximum": 0.00040423052945787484,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "corner_mm": {
+            "maximum": 0.0010677346243233286,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.0007030030305266655,
+              0.0006007118652926062,
+              0.0010677346243233286,
+              0.00042256476922836184,
+              0.0006492226532475952,
+              0.00048723999350390934,
+              0.0010194432482698837,
+              0.00045918521960764585
+            ]
+          },
+          "height_mm": {
+            "maximum": 0.0003012280259895306,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.00028694289784425564,
+              0.0003012280259895306,
+              0.00030019262220548626,
+              0.00029258818915423035,
+              0.0002847989250653882,
+              0.00027332939544066903,
+              0.0002633997395946608,
+              0.0002897169031825797
+            ]
+          }
+        }
+      },
+      "scenario_status": "pass",
+      "original_trial_n": {
+        "vertical_velocity": 0,
+        "horizontal_speed": 0,
+        "angular_speed": 0,
+        "equivalent_height": 0,
+        "first_contact": 0,
+        "final_face": 0,
+        "contact_confidence": 0
+      }
+    },
+    {
+      "review_id": "two_flips-scene-0",
+      "identity": {
+        "raw_sha256": "c767d571ffe2a6ed3837151ee730ecd9709d286386b5bd92b1f68099a7b1f08b",
+        "decision_sha256": "aa2e844b294f00200c4012c309ba0fac417f6bd1cb36fd8ccda37f81216e8d6d",
+        "profile": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+        "geometry": "a672e6dc850436245b177d9eb8d2b51bd083dba9229118336eaf118a48c8fe9f",
+        "settings": "10263c8ce26e0082e69e27e67771f5d4450a35b6f59ca6e8c24103fcbd19c8a2",
+        "tolerance_version": "public-analytic-corpus-v1"
+      },
+      "status": "pass",
+      "processing": "fresh",
+      "source_sha256": "c767d571ffe2a6ed3837151ee730ecd9709d286386b5bd92b1f68099a7b1f08b",
+      "metrics": {
+        "t1": {
+          "expected": {
+            "status": "not_detected",
+            "value": null
+          },
+          "actual": {
+            "status": "not_detected",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "t2": {
+          "expected": {
+            "status": "not_detected",
+            "value": null
+          },
+          "actual": {
+            "status": "not_detected",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "reference_face": {
+          "expected": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "BOTTOM"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00021404655314380657
+          },
+          "difference": 0.00021404655314380657,
+          "status": "pass"
+        },
+        "maximum_rotation_deg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0002899005989100181
+          },
+          "difference": 0.0002899005989100181,
+          "status": "pass"
+        },
+        "MaxBetaDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0002361004468257233
+          },
+          "difference": 0.0002361004468257233,
+          "status": "pass"
+        },
+        "MaxAbsThetaLongDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00014976069215991868
+          },
+          "difference": 0.00014976069215991868,
+          "status": "pass"
+        },
+        "MaxAbsThetaShortDeg": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.00021131870251529813
+          },
+          "difference": 0.00021131870251529813,
+          "status": "pass"
+        },
+        "MaxDeltaH_mm": {
+          "expected": {
+            "status": "valid",
+            "value": 0.0
+          },
+          "actual": {
+            "status": "valid",
+            "value": 0.0007508648212137814
+          },
+          "difference": 0.0007508648212137814,
+          "status": "pass"
+        },
+        "contact_state": {
+          "expected": {
+            "status": "valid",
+            "value": "NoContact"
+          },
+          "actual": {
+            "status": "valid",
+            "value": "NoContact"
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "equivalent_height": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "final_face": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "vertical_velocity": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "horizontal_speed": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "angular_speed": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "contact_confidence": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "BetaAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "ThetaLongAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "ThetaShortAtT1MinusDeg": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "DeltaHAtT1Minus_mm": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        },
+        "observed_first_contact": {
+          "expected": {
+            "status": "unavailable",
+            "value": null
+          },
+          "actual": {
+            "status": "unavailable",
+            "value": null
+          },
+          "difference": null,
+          "status": "pass"
+        }
+      },
+      "residual": {
+        "status": "pass",
+        "failures": [],
+        "reference_sha256": "2533bb8b76b1c01da14e73647c90b4b709c24d0d2c04a3ee18444a6f05244012",
+        "checked_samples": 72,
+        "approved_unavailable_samples": 0,
+        "residuals": {
+          "center_mm": {
+            "maximum": 0.0001407034327332346,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "rotation_deg": {
+            "maximum": 0.00026353166088487206,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.1,
+              "relative": 0.0
+            },
+            "per_corner_maximum": null
+          },
+          "corner_mm": {
+            "maximum": 0.0005977469411714207,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.00041186373754511856,
+              0.000568487015962451,
+              0.0004565706928666464,
+              0.0005977469411714207,
+              0.0004871777224949978,
+              0.0004895793987280073,
+              0.00042159288662294383,
+              0.0005681247462289312
+            ]
+          },
+          "height_mm": {
+            "maximum": 0.0004201565321579892,
+            "violations": 0,
+            "first_violation_raw_time_s": null,
+            "tolerance": {
+              "absolute": 0.35,
+              "relative": 0.0
+            },
+            "per_corner_maximum": [
+              0.00037231394512105,
+              0.00034897834729008537,
+              0.0003489778974312685,
+              0.00037231435635476373,
+              0.0004201565321579892,
+              0.0002718516089998957,
+              0.0002718511590842354,
+              0.00042015551332497125
+            ]
+          }
+        }
+      },
+      "scenario_status": "pass",
+      "original_trial_n": {
+        "vertical_velocity": 0,
+        "horizontal_speed": 0,
+        "angular_speed": 0,
+        "equivalent_height": 0,
+        "first_contact": 0,
+        "final_face": 0,
+        "contact_confidence": 0
+      }
+    }
+  ],
+  "preserved_failures": [
+    {
+      "path": "tmp/issue135/full_01/run_report.json",
+      "status": "fail",
+      "reason": "CaptureSignature indexing, source Time conversion, geometric vs gated contact meaning"
+    },
+    {
+      "path": "tmp/issue135/full_02/run_report.json",
+      "status": "fail",
+      "reason": "Detector clock parsing mismatch after Parser precision fix"
+    }
+  ],
+  "tests": {
+    "initial_preservation": {
+      "passed": 212,
+      "path": "tmp/issue135/preservation_01.xml"
+    },
+    "independent_preservation": {
+      "passed": 109
+    },
+    "last_correction": {
+      "passed": 4,
+      "path": "tmp/issue135/correction_07.xml"
+    },
+    "required_public_suite": {
+      "status": "running",
+      "path": "tmp/issue135/public_required_08.xml"
+    }
+  },
+  "independent_review": {
+    "status": "approved",
+    "reviewer": "requirements_review",
+    "date": "2026-10-02",
+    "basis": "Independent code review, 109 preservation checks, full fresh execution, 4 corrected control rechecks, and exact final small-summary verification; no unresolved P0/P1"
+  },
+  "gui": {
+    "status": "partial",
+    "confirmed": [
+      "Native MainApp Step2 result opening",
+      "Compare six-file loading",
+      "Actual scenario export button; exact serializer output"
+    ],
+    "evidence": "tmp/issue135/pytest_5a1d99a2069a4694a79424689f96a39b/gui/execution.json",
+    "screen_physical_px": [
+      2560,
+      1440
+    ],
+    "dpr": 1.0,
+    "window_logical_px": [
+      1510,
+      800
+    ],
+    "fresh": 0,
+    "reused": 6,
+    "pending": [
+      "New corpus native Step1/Step1.5 fresh processing",
+      "Native save chooser interaction",
+      "Compare 3D visual playback (local viewport black; cause unconfirmed)"
+    ]
+  },
+  "calibration_status": "pending",
+  "measured_data_status": "unavailable",
+  "measured_validation_issue": 104,
+  "tolerance": {
+    "version": "public-analytic-corpus-v1",
+    "approval": {
+      "status": "approved",
+      "reviewer": "requirements_review",
+      "date": "2026-10-02",
+      "basis": "Independent read-only formula/geometry/replay review and two frozen proposed-gate fresh probes with zero numerical variation; public test-only software approval. v2 observed_first_contact / censored Compare first_contact meaning migration reviewed separately. No experimental, ISTA, native GUI or full execution approval. See capture_regression.md."
+    },
+    "basis": "Noiseless analytic software acceptance: 0.1 mm/0.1 deg existing pose bounds; corner 0.35 mm = center bound + 123.3 mm radius * sin(0.1 deg); event bracket 0.01 s sampling, bound 1e-8 s preserves a sample, not event uncertainty; precontact 0.005 m/s is a separate stricter noiseless accuracy gate (the 5-point quadratic endpoint derivative +/-0.1mm worst bound is 0.0228571 m/s); spin 0.01 rad/s is a separate stricter noiseless software gate (the worst +/-0.1 deg endpoint propagation over 0.04 s is 0.0873 rad/s); repeat variation measured in execution report, not used to enlarge bounds.",
+    "bounds": {
+      "center_mm": {
+        "absolute": 0.1,
+        "relative": 0.0
+      },
+      "rotation_deg": {
+        "absolute": 0.1,
+        "relative": 0.0
+      },
+      "corner_mm": {
+        "absolute": 0.35,
+        "relative": 0.0
+      },
+      "height_mm": {
+        "absolute": 0.35,
+        "relative": 0.0
+      },
+      "time_s": {
+        "absolute": 1e-08,
+        "relative": 0.0
+      },
+      "velocity_m_s": {
+        "absolute": 0.005,
+        "relative": 0.0
+      },
+      "angular_rad_s": {
+        "absolute": 0.01,
+        "relative": 0.0
+      },
+      "diagnostic_deg": {
+        "absolute": 0.1,
+        "relative": 0.0
+      },
+      "diagnostic_mm": {
+        "absolute": 0.35,
+        "relative": 0.0
+      }
+    }
+  }
+}

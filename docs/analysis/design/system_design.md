@@ -1,8 +1,10 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-02
 
 ## 1. 개요
+#135의 `analysis.regression`은 기존 처리 API를 호출하는 공개 합성 검증 실행기다. 원본 승인 replay, slice/proc 재열기, Compare/export와 모든 승인 시점의 독립 잔차를 검사한다. 등록 #113은 선행 조건이 아니며 marker 의미 #138은 현재 의미 digest로 연결한다. [계약과 검증 범위](../reference/capture_regression.md)를 따른다.
+
 비교 표의 기준 표시와 `MetricGuideDialog`는 표시 계층에서 처리한다. 도움말은 기존 impact/posture/summary descriptor를 읽어 생성하며 계산·호환성·저장 형식을 변경하지 않는다. 기본 도움말에는 중심점, 시점·구간, 단위, 지표별 반복 수와 제외 사유의 의미를 설명한다.
 
 `compare.posture_metrics`는 저장된 자세 요약을 실제 pose/8개 코너 기하와 확인하고, 접촉 직전 지표와 전체 구간 지표에 다른 조건을 적용한다. `ComparisonModel`은 관측별 유효한 기준면·구간 정보 및 그 충돌을 먼저 확인한 뒤 기존 호환성과 지표별 중복 해소를 적용한다. 새 코너 높이 차이는 비교 시 계산하며 저장 스키마·실험 등록·목표각을 추가하지 않는다. 세부 조건은 `posture_repeat_layout.md`를 따른다.

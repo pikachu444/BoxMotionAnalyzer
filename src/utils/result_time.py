@@ -12,6 +12,16 @@ T1_COLUMN = ('Analysis', 'DropPostureSummary', 'T1MinusTimeSec')
 T1_DETECTED_COLUMN = ('Analysis', 'DropPostureSummary', 'T1Detected')
 
 
+def recorded_seconds(series):
+    """Parse each recorded decimal without pandas' one-ULP conversion loss."""
+    def parse(value):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return float('nan')
+    return series.map(parse)
+
+
 def exceeds_gap_limit(left, right, limit):
     """Tolerate representation roundoff only, capped at one picosecond.
 
@@ -37,7 +47,7 @@ def read_result_frame(path):
     converters = {i: str for i, col in enumerate(zip(*headers))
                   if (col[:2] == ('Info', 'Artifact') and col[2] not in DIMENSIONS)
                   or col == ('Info', 'MarkerCorrection', 'OriginalSourceSha256')}
-    df = pd.read_csv(path, header=[0, 1, 2], converters=converters)
+    df = pd.read_csv(path, header=[0, 1, 2], converters=converters, float_precision='round_trip')
     df.columns = pd.MultiIndex.from_tuples(list(zip(*headers)))
     if df.empty:
         raise ValueError('Result contains no samples.')

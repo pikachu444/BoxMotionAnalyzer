@@ -1397,45 +1397,15 @@ class WidgetResultsAnalyzer(QWidget):
         else:
             velocities = {key: 0.0 for key in vel_cols.keys()}
 
-        output_data = [
-            ('1', 'Left'), ('2', 'Right'), ('3', 'Bottom'),
-            ('4', 'Top'), ('5', 'Rear'), ('6', 'Front'),
-            ('cat', 'Corner_Drop_2nd'),
-            ('drop_name', self.le_scene_name.text()),
-        ]
-
-        for i, (corner_name, corner_value) in enumerate(offset_data):
-            variable_name = CORNER_NAME_MAP.get(corner_name, "Unknown")
-            output_data.append((f'variable_{i+1}', variable_name))
-            output_data.append((f'value_{i+1}', f'{corner_value:.6f}'))
-
-        output_data.extend([
-            ('variable_4', 'OFFSET'), ('value_4', '0.0'),
-            ('variable_5', 'ANG_VEL_X'), ('value_5', f"{velocities['ANG_VEL_X']:.6f}"),
-            ('variable_6', 'ANG_VEL_Y'), ('value_6', f"{velocities['ANG_VEL_Y']:.6f}"),
-            ('variable_7', 'ANG_VEL_Z'), ('value_7', f"{velocities['ANG_VEL_Z']:.6f}"),
-            ('variable_8', 'TRA_VEL_X'), ('value_8', f"{velocities['TRA_VEL_X']:.6f}"),
-            ('variable_9', 'TRA_VEL_Y'), ('value_9', f"{velocities['TRA_VEL_Y']:.6f}"),
-            ('variable_10', 'TRA_VEL_Z'), ('value_10', f"{velocities['TRA_VEL_Z']:.6f}"),
-            ('variable_11', 'POSI_FROM_CENT_X'), ('value_11', '0.0'),
-            ('variable_12', 'POSI_FROM_CENT_Y'), ('value_12', '0.0'),
-            ('variable_13', 'POSI_FROM_CENT_Z'), ('value_13', '0.0'),
-            ('variable_14', 'ROT_ANG_VEL_X'), ('value_14', '0.0'),
-            ('variable_15', 'ROT_ANG_VEL_Y'), ('value_15', '0.0'),
-            ('variable_16', 'ROT_ANG_VEL_Z'), ('value_16', '0.0'),
-            ('run_time', self.le_run_time.text()),
-            ('tmin', self.le_time_step.text()),
-        ])
+        from src.analysis.pipeline.scenario_export import scenario_text
+        csv_string = scenario_text(offset_data, velocities, self.le_scene_name.text(),
+                                   self.le_run_time.text(), self.le_time_step.text())
 
         suggested_filename = f"scenario_{self.le_scene_name.text()}.csv" if self.le_scene_name.text() else "analysis_scenario.csv"
         filepath, _ = QFileDialog.getSaveFileName(self, "Export Analysis Scenario", suggested_filename, "CSV Files (*.csv)")
 
         if filepath:
             try:
-                lines = [f"{key},{value}" for key, value in output_data[:6]]
-                last_line = ",".join([f"{key},{value}" for key, value in output_data[6:]])
-                csv_string = "\n".join(lines) + "\n" + last_line
-
                 with open(filepath, 'w') as f:
                     f.write(csv_string)
                 self.log_message.emit(f"[SUCCESS] Analysis scenario exported to {filepath}")

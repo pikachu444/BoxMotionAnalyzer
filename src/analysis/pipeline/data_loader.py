@@ -48,7 +48,9 @@ class DataLoader:
         component_header = header_info['component']
         data_lines_raw = lines[8:]
         reader = csv.reader(data_lines_raw)
-        data_as_list = list(reader)
+        # Record identity excludes empty CSV lines, but includes malformed Time
+        # records. Parser may remove those later; Frame is never record identity.
+        data_as_list = [row for row in reader if any(cell.strip() for cell in row)]
 
         if not data_as_list:
             return header_info, pd.DataFrame()
@@ -62,6 +64,19 @@ class DataLoader:
             for i in range(raw_df.shape[1], num_columns):
                 raw_df[i] = pd.NA
         raw_df.columns = df_cols
+        raw_df.attrs['original_record_indices'] = list(range(len(raw_df)))
+        if 'Slice File' in lines[0]:
+            import json
+            review = json.loads(metadata.scene_review_json or '{}')
+            replay = review.get('capture_replay', {})
+            if replay:
+                from src.analysis.regression.contracts import validate_envelope
+                validate_envelope(replay, 'CaptureReplay')
+                indices = replay['saved_original_record_indices']
+                if (len(indices) != len(raw_df) or any(type(i) is not int or i < 0 for i in indices)
+                        or any(b <= a for a, b in zip(indices, indices[1:]))):
+                    raise ValueError('Invalid original-record mapping in slice replay.')
+                raw_df.attrs['original_record_indices'] = indices
 
         if len(raw_df.columns) > 1:
             rename_map = {raw_df.columns[0]: TimeCols.FRAME, raw_df.columns[1]: TimeCols.TIME}

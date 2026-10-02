@@ -230,7 +230,8 @@ def _sha256_file(filepath: str) -> str:
 
 
 def _slice_time_bounds(raw_data: pd.DataFrame, start: float, end: float, pad_rows: int) -> tuple[int, int, float, float]:
-    numeric_time = pd.to_numeric(raw_data[TimeCols.TIME], errors="coerce")
+    from src.utils.result_time import recorded_seconds
+    numeric_time = recorded_seconds(raw_data[TimeCols.TIME])
     valid_mask = numeric_time.notna()
     if not valid_mask.any():
         raise ValueError("Slice save failed: no numeric time values were found in the loaded raw data.")
@@ -243,7 +244,7 @@ def _slice_time_bounds(raw_data: pd.DataFrame, start: float, end: float, pad_row
     raw_start_index = max(0, int(matching_indices[0]) - int(pad_rows))
     raw_end_index = min(len(raw_data) - 1, int(matching_indices[-1]) + int(pad_rows))
 
-    padded_time = pd.to_numeric(raw_data[TimeCols.TIME], errors="coerce")
+    padded_time = recorded_seconds(raw_data[TimeCols.TIME])
     padded_start = float(padded_time.iloc[raw_start_index])
     padded_end = float(padded_time.iloc[raw_end_index])
     return raw_start_index, raw_end_index, padded_start, padded_end

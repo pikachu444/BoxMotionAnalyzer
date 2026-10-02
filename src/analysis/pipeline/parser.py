@@ -101,6 +101,10 @@ class Parser:
 
         # 3. 최종 DataFrame 생성
         final_df = pd.DataFrame(processed_frames_data)
+        indices = raw_df.attrs.get('original_record_indices', list(range(len(raw_df))))
+        if len(indices) != len(raw_df):
+            raise ValueError('Original-record mapping length differs from Raw data.')
+        final_df['Source_OriginalRecordIndex'] = indices
         # Face identity exists even when a coordinate sample is missing.
         for mid in all_marker_identifiers:
             if mid == RigidBodyCols.BASE_NAME:
@@ -121,12 +125,17 @@ class Parser:
                     final_df[coordinate] = float('nan')
 
         # 데이터 타입 변환
-        final_df[TimeCols.TIME] = pd.to_numeric(final_df[TimeCols.TIME], errors='coerce')
+        # Scalar float parsing preserves the recorded decimal's roundtrip bits.
+        # pd.to_numeric can round a clock such as 11.120000000000001 to 11.12.
+        from src.utils.result_time import recorded_seconds
+        final_df[TimeCols.TIME] = recorded_seconds(final_df[TimeCols.TIME])
         coord_cols = [col for col in final_df.columns if col.endswith(('_X', '_Y', '_Z'))]
         if coord_cols:
             final_df[coord_cols] = final_df[coord_cols].apply(pd.to_numeric, errors='coerce')
 
+        removed = final_df.loc[final_df[TimeCols.TIME].isna(), 'Source_OriginalRecordIndex'].tolist()
         final_df = final_df.dropna(subset=[TimeCols.TIME])
         final_df.set_index(TimeCols.TIME, inplace=True)
+        final_df.attrs['removed_records'] = [dict(original_record_index=int(i), reason='invalid_time') for i in removed]
 
         return final_df

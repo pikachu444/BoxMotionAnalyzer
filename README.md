@@ -1,6 +1,6 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-09-13
+Last Reviewed: 2026-10-02
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
@@ -111,6 +111,22 @@ python src/main.py
 *   **3D Visualization**: 시뮬레이션에서 생성되거나 데이터 분석에서 추출된 `.proc` 결과 파일을 열어 3D/2D로 탐색
     *   런처 버튼을 반복 클릭하면 새 시각화 창이 추가로 열립니다.
     *   시각화 창 안에서는 `File > New Visualization Window`로 새 창을 바로 만들 수 있습니다.
+
+### 공개 합성 capture 회귀 (#135)
+
+전체 Raw의 승인 씬을 현재 production pipeline으로 새로 처리하고 slice/proc 재열기,
+Compare 및 scenario export를 검사하는 CLI를 제공합니다. 독립 수식·기하 기대값을 가진
+공개 합성 corpus를 사용하며 실측 정확도와 물리 교정은 #104의 별도 대기 항목입니다.
+
+```powershell
+.venv/Scripts/python.exe -m src.simulation.capture_corpus --output tmp/capture-assets-v2
+.venv/Scripts/python.exe -m src.analysis.regression.runner --manifest tmp/capture-assets-v2/corpus.json --asset-root tmp/capture-assets-v2 --output tmp/capture-full --tier full
+.venv/Scripts/python.exe -m pytest tests/test_capture_regression.py -q
+```
+
+출력 폴더는 매번 새로 지정해야 합니다. full은 모든 승인 씬의 fresh 처리를 요구하며,
+일부 선택은 representative로 보고합니다. 원본·기준값·승인 누락과 처리·저장 실패는
+통과하지 않습니다. [계약·기대값·검증 범위](docs/analysis/reference/capture_regression.md)를 참고하세요.
 
 ### 3. 분석 결과 export와 visualization의 관계
 

@@ -1,12 +1,14 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-02
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #135: Implement source-bound capture replay, fresh production slice/proc/Compare/export regression, additive signatures and full-trajectory guards with independently reviewed public analytic expectations. Six approved scenes freshly processed. See `../reference/capture_regression.md`; final review/CI/publication is recorded in the PR. Only #135 of parent #134 is delivered.
+- [ ] #135 GUI follow-up: New corpus Step1/1.5 native fresh processing, native save chooser and Compare 3-D visual inspection. Step2/Compare load and actual scenario export used six reused fresh outputs; they do not certify these pending paths.
 - [O] #115: Connect the general observation exporter to observed-only review, explicit widget approval, corrected/slice round trips and real Raw reprocessing. Preserve missing rows and report unavailable contact instead of aborting on all-NaN corners. See `../reference/general_export_recovery.md`; final independent review/CI/merge evidence belongs to the PR.
 - [O] #114: Add optional Simulation marker CSV generation with public/imported layout preview, explicit layout dimensions, cancellable worker, new-folder publication and observed-only Step 1 handoff. Direct `.proc` export remains available. See `../../simulation.md` and `../../visualization/synthetic_marker_export_layout.md`; required CI and merge are recorded in the PR.
 - [O] #121: Embed original observation context next to the existing local-axis preview, with marker/body selection, actual-time event cursor, pan/zoom and Around event. Preserve pending choices and the existing modal/source verification/save gates. See `../../visualization/marker_review_context_layout.md`; CI and merge are recorded in the PR.

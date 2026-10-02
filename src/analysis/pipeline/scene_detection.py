@@ -176,7 +176,8 @@ def _quadratic(times, values, block_ids, settings, cancelled=None):
 
 def detect_scenes(header, raw, parsed, *, registration=None, settings=None, cancelled=None):
     settings = settings or DetectionSettings()
-    times = pd.to_numeric(raw[TimeCols.TIME], errors='coerce').to_numpy(float)
+    from src.utils.result_time import recorded_seconds
+    times = recorded_seconds(raw[TimeCols.TIME]).to_numpy(float)
     if not len(times) or not np.isfinite(times).all() or (np.diff(times) <= 0).any():
         raise ValueError('Capture times must be finite and strictly increasing.')
     if len(parsed) != len(raw) or not np.array_equal(parsed.index.to_numpy(float), times):
