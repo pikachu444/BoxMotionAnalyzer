@@ -1170,7 +1170,8 @@ def _raw_time_values(raw_df: pd.DataFrame) -> np.ndarray:
     time_position = matching_positions[0] if matching_positions else 1
     if raw_df.shape[1] <= time_position:
         raise ValueError("Raw marker data is missing the time column.")
-    values = pd.to_numeric(raw_df.iloc[:, time_position], errors="coerce").to_numpy(dtype=float)
+    from src.utils.result_time import recorded_seconds
+    values = recorded_seconds(raw_df.iloc[:, time_position]).to_numpy(dtype=float)
     if not np.isfinite(values).all():
         raise ValueError("Marker correction requires finite numeric time values.")
     return values

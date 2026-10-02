@@ -117,6 +117,7 @@ jobs:
           tests/test_scenario_345.py
           tests/test_scenario_6.py
           tests/test_raw_data_processing.py
+          tests/test_capture_regression.py
           --junitxml=tmp/public-marker-results.xml
       - name: Generate marker observations and open Step 1 at 125 percent
         env:
@@ -202,6 +203,7 @@ jobs:
             tmp/issue78_release_gui/**
             tmp/issue118/qt_*/**
             tmp/issue119/**
+            tmp/issue135/**
             tmp/issue81_gui/**
             tmp/issue74_gui/**
           if-no-files-found: warn

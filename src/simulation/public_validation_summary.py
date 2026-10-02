@@ -8,6 +8,12 @@ import xml.etree.ElementTree as ET
 # Explicitly inspected engine/observation-to-consumer paths. Pure array, schema,
 # policy and GUI-only checks remain Level 1 even when their fixture is public.
 SYNTHETIC_TESTS = {
+    'test_capture_regression': {
+        'test_fresh_full_capture_pipeline_preserves_every_approved_scene',
+        'test_deleted_truth_and_changed_labels_leave_actual_processing_equal',
+        'test_actual_step2_compare_and_scenario_export_reuse_fresh_results',
+        'test_actual_replay_fault_changes_pose_and_full_guard_fails',
+    },
     'test_collinear_profile_recovery': {'test_public_collinear_face_export_recovers_whole_pose'},
     'test_posture_comparison_gui': {'test_posture_repeats_in_real_window_with_observed_only_pipeline'},
     'test_scene_signal_gui': {'test_actual_vertical_and_rotation_selection_edit_save_reopen'},

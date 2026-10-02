@@ -1,8 +1,10 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-02
 
 ## 개요
+#135 CLI 회귀 실행기는 기존 단계 API와 Step2 scenario serializer를 공유한다. GUI 조작과 export 형식은 유지한다. 공개 합성 full fresh 처리와 GUI 재열기는 별도 증거이며 [실행 계약과 대기 범위](../reference/capture_regression.md)에 기록한다.
+
 비교 표의 기준 파일은 `Baseline` 텍스트로 표시한다. 긴 파일명은 줄여 표시하고 전체 경로는 툴팁에서 확인한다. 모든 비교 보기에서 같은 `Metric guide` 버튼을 사용할 수 있으며, 기존 지표 설명과 #117의 자세 지표를 재사용한다. 기준 변경 시 선택 파일·보기·그래프 선택을 유지한다. [기준 표시와 도움말 배치](comparison_help_layout.md)를 참고한다.
 
 비교 창의 `Posture`는 시험별 자세와 코너 높이 차이를, `Posture repeats`는 같은 조건의 별도 시험별 통계를 표시한다. 기존 Summary 표와 Details를 재사용하며, 사본·재처리본은 시험 횟수를 늘리지 않는다. 기준면, 접촉 직전 시점, 전체 구간 정의가 맞지 않는 값은 이유를 표시한다. [자세 비교 배치와 조건](posture_repeat_layout.md)을 참고한다.

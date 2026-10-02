@@ -48,7 +48,9 @@ class DataLoader:
         component_header = header_info['component']
         data_lines_raw = lines[8:]
         reader = csv.reader(data_lines_raw)
-        data_as_list = list(reader)
+        # Record identity excludes empty CSV lines, but includes malformed Time
+        # records. Parser may remove those later; Frame is never record identity.
+        data_as_list = [row for row in reader if any(cell.strip() for cell in row)]
 
         if not data_as_list:
             return header_info, pd.DataFrame()
@@ -62,6 +64,21 @@ class DataLoader:
             for i in range(raw_df.shape[1], num_columns):
                 raw_df[i] = pd.NA
         raw_df.columns = df_cols
+        raw_df.attrs['original_record_indices'] = list(range(len(raw_df)))
+        if 'Slice File' in lines[0]:
+            import json
+            from .artifact_io import validated_original_records
+            if metadata.original_record_indices_json:
+                raw_df.attrs['original_record_indices'] = validated_original_records(metadata.original_record_indices_json, len(raw_df))
+            review = json.loads(metadata.scene_review_json or '{}')
+            replay = review.get('capture_replay', {})
+            if replay:
+                from src.analysis.regression.contracts import validate_envelope
+                validate_envelope(replay, 'CaptureReplay')
+                indices = validated_original_records(replay['saved_original_record_indices'], len(raw_df))
+                if metadata.original_record_indices_json and indices != raw_df.attrs['original_record_indices']:
+                    raise ValueError('Slice original-record declarations conflict.')
+                raw_df.attrs['original_record_indices'] = indices
 
         if len(raw_df.columns) > 1:
             rename_map = {raw_df.columns[0]: TimeCols.FRAME, raw_df.columns[1]: TimeCols.TIME}
