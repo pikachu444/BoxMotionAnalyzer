@@ -256,7 +256,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.cancel_marker_review_button = QPushButton('Cancel')
         progress_row.addWidget(self.marker_review_progress, 1)
         progress_row.addWidget(self.cancel_marker_review_button)
-        marker_review_layout.addLayout(progress_row)
+        # Keep calculation cancellation outside the scrolling Details panel.
+        right_panel_layout.addLayout(progress_row)
         self.marker_review_progress.hide()
         self.cancel_marker_review_button.hide()
         self.marker_review_section = CollapsibleSection('Marker correction', self.marker_review_group)

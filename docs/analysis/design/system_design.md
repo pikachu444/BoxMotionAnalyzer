@@ -2,6 +2,12 @@
 
 Last Reviewed: 2026-10-02
 
+#136의 `MarkerFlipReviewDialog`는 폭에 따라 기존 panel을 탭 또는 병렬 배치로
+옮긴다. layout 변경은 source snapshot·axes·navigation·승인을 다시 만들지 않는다.
+두 canvas는 resize/draw마다 축·단위를 배치하고, 계산 Cancel은 상세 스크롤과
+분리한다. 처리·worker identity·저장 계약은 동일하다. native 확인은 자동 widget
+검사와 별도 완료 조건이며 [실행 기록](../../visualization/marker_review_responsive_layout.md)을 따른다.
+
 ## 1. 개요
 #135의 `analysis.regression`은 기존 처리 API를 호출하는 공개 합성 검증 실행기다. 원본 승인 replay, slice/proc 재열기, Compare/export와 모든 승인 시점의 독립 잔차를 검사한다. 등록 #113은 선행 조건이 아니며 marker 의미 #138은 현재 의미 digest로 연결한다. [계약과 검증 범위](../reference/capture_regression.md)를 따른다.
 

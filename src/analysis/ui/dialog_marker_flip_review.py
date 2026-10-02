@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -34,6 +35,23 @@ from src.analysis.pipeline.marker_flip import (
     SUPPORTED_LOCAL_AXES,
     normalize_marker_corrections,
 )
+
+
+class _ElidedSourceLabel(QLabel):
+    """Keep the existing path tooltip/menu while fitting the visible filename."""
+
+    def setText(self, text):
+        self._filename = text
+        self._elide()
+
+    def _elide(self):
+        super().setText(self.fontMetrics().elidedText(
+            getattr(self, '_filename', ''), Qt.TextElideMode.ElideMiddle,
+            max(0, self.contentsRect().width())))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._elide()
 
 
 class MarkerFlipReviewDialog(QDialog):
@@ -57,6 +75,8 @@ class MarkerFlipReviewDialog(QDialog):
         self._context_row = None
         self._context_data = None
         self._context_unit = 'unit unknown'
+        self._tabbed_plots = False
+        self._active_plot_tab = 0
 
         self.setWindowTitle("Marker correction")
         self.resize(960, 680)
@@ -159,11 +179,16 @@ class MarkerFlipReviewDialog(QDialog):
         self.preview_status = QLabel()
         self.preview_status.setStyleSheet("color: #916000;")
 
-        plots = QHBoxLayout()
+        self.plots = QHBoxLayout()
+        self.plot_tabs = QTabWidget()
+        self.plot_tabs.setAccessibleName('Marker review graphs')
+        self.plot_tabs.currentChanged.connect(self._plot_tab_changed)
+        self.plot_tabs.hide()
+        self.plots.addWidget(self.plot_tabs)
         self.context_panel = QWidget()
         context_layout = QVBoxLayout(self.context_panel)
         context_layout.setContentsMargins(0, 0, 0, 0)
-        self.context_source = QLabel()
+        self.context_source = _ElidedSourceLabel()
         set_path_label(self.context_source, '')
         context_layout.addWidget(self.context_source)
         controls = QHBoxLayout()
@@ -184,13 +209,13 @@ class MarkerFlipReviewDialog(QDialog):
         self.context_target.currentIndexChanged.connect(self._draw_context)
         self.around_event_button.clicked.connect(self._center_context)
         self.context_panel.hide()
-        plots.addWidget(self.context_panel, 1)
-        evidence_panel = QWidget()
-        evidence_layout = QVBoxLayout(evidence_panel)
+        self.plots.addWidget(self.context_panel, 1)
+        self.evidence_panel = QWidget()
+        evidence_layout = QVBoxLayout(self.evidence_panel)
         evidence_layout.setContentsMargins(0, 0, 0, 0)
         evidence_layout.addWidget(self.preview_status)
 
-        self.evidence_figure = Figure(figsize=(8, 2.4), dpi=100)
+        self.evidence_figure = Figure(figsize=(8, 2.4), dpi=100, layout='constrained')
         self.evidence_canvas = FigureCanvas(self.evidence_figure)
         self.evidence_canvas.setMinimumHeight(170)
         self.evidence_canvas.setSizePolicy(
@@ -198,13 +223,13 @@ class MarkerFlipReviewDialog(QDialog):
             QSizePolicy.Policy.Expanding,
         )
         evidence_layout.addWidget(self.evidence_canvas, 1)
-        plots.addWidget(evidence_panel, 1)
-        layout.addLayout(plots, 2)
+        self.plots.addWidget(self.evidence_panel, 1)
+        layout.addLayout(self.plots, 2)
         layout.addWidget(self.details_section)
         self.table.currentCellChanged.connect(self._update_evidence_plot)
         if self.candidates:
             self.table.selectRow(0)
-            self._update_evidence_plot(0)
+        self._update_evidence_plot(self.table.currentRow())
 
         self.button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
@@ -214,6 +239,43 @@ class MarkerFlipReviewDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         self.button_box.button(QDialogButtonBox.StandardButton.Ok).setText("Done")
         layout.addWidget(self.button_box)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'plot_tabs'):
+            self._sync_plot_layout()
+
+    def _sync_plot_layout(self):
+        if self._context_data is None or self._evidence_canvas_disposed:
+            return
+        tabbed = self.width() < 1100
+        if tabbed == self._tabbed_plots:
+            return
+        self._tabbed_plots = tabbed
+        self.plot_tabs.blockSignals(True)
+        if tabbed:
+            for panel, title in ((self.context_panel, 'Original observations'),
+                                 (self.evidence_panel, 'Axis preview')):
+                self.plots.removeWidget(panel)
+                self.plot_tabs.addTab(panel, title)
+            self.plot_tabs.setCurrentIndex(self._active_plot_tab)
+            self.plot_tabs.show()
+        else:
+            self._active_plot_tab = self.plot_tabs.currentIndex()
+            for panel in (self.context_panel, self.evidence_panel):
+                self.plot_tabs.removeTab(0)
+                self.plots.addWidget(panel, 1)
+                panel.show()
+            self.plot_tabs.hide()
+        self.plot_tabs.blockSignals(False)
+        self.context_canvas.draw_idle()
+        self.evidence_canvas.draw_idle()
+
+    def _plot_tab_changed(self, index):
+        if self._evidence_canvas_disposed or index < 0:
+            return
+        self._active_plot_tab = index
+        (self.context_canvas if index == 0 else self.evidence_canvas).draw_idle()
 
     def _select_event(self, row):
         if self.table.currentRow() != row:
@@ -365,7 +427,7 @@ class MarkerFlipReviewDialog(QDialog):
                 axis.axhline(selected.residual_deg, linestyle="--", label=f"Predicted {selected_axis} mean")
         axis.axvline(0.0, linestyle=":", linewidth=1.0, color="0.5")
         axis.set_xlabel("Time from event (s)")
-        axis.set_ylabel("Relative rotation (degrees)")
+        axis.set_ylabel("Relative rotation (°)")
         axis.grid(True, alpha=0.25)
         if axis.get_legend_handles_labels()[0]:
             axis.legend(loc="best", fontsize=8)
@@ -373,7 +435,6 @@ class MarkerFlipReviewDialog(QDialog):
         if high - low < 1.0:
             centre = (low + high) / 2.0
             axis.set_ylim(centre - .5, centre + .5)
-        self.evidence_figure.tight_layout()
         self.evidence_canvas.draw()
 
     def _dispose_evidence_canvas(self) -> None:

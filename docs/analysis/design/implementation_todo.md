@@ -7,6 +7,16 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #136: Implement the approved narrow graph tabs / wide paired layout,
+  filename elision, constrained axis/unit redraw, empty preview and fixed
+  calculation Cancel; retain original/context/approval/worker semantics.
+  Layout/lifecycle 34, final layout 13 per DPR and preservation 146+3 subtests
+  passed. The single GPT-6.1 Sol/high independent review has no P0/P1/P2 code
+  findings; evidence is in `../../visualization/marker_review_responsive_layout.md`.
+- [ ] #136: Confirm native Windows 820×600 and target-screen important states.
+  Native capture is black and activation/input fails; widget/render/QTest
+  evidence does not satisfy this requirement. Keep issue/PR completion pending.
+  #104 measured calibration remains separately pending.
 - [O] #135: Implement source-bound capture replay, fresh production slice/proc/Compare/export regression, additive signatures and full-trajectory guards with independently reviewed public analytic expectations. Six approved scenes freshly processed. See `../reference/capture_regression.md`; final review/CI/publication is recorded in the PR. Only #135 of parent #134 is delivered.
 - [ ] #135 GUI follow-up: New corpus Step1/1.5 native fresh processing, native save chooser and Compare 3-D visual inspection. Step2/Compare load and actual scenario export used six reused fresh outputs; they do not certify these pending paths.
 - [O] #115: Connect the general observation exporter to observed-only review, explicit widget approval, corrected/slice round trips and real Raw reprocessing. Preserve missing rows and report unavailable contact instead of aborting on all-NaN corners. See `../reference/general_export_recovery.md`; final independent review/CI/merge evidence belongs to the PR.
