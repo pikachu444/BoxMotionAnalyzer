@@ -53,6 +53,14 @@ jobs:
           Path('tmp').mkdir(exist_ok=True);
           Path('tmp/ci-desktop.json').write_text(json.dumps(report), encoding='utf-8');
           print(report); assert physical == [1920, 1080], report"
+      - name: Preserve scene review and render PUB04 at 125 percent
+        env:
+          QT_SCALE_FACTOR: '1.25'
+        run: |
+          python -m pytest -q tests/test_scene_workflow_gui.py --junitxml=tmp/issue137/gui-125.xml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m src.simulation.scene_review_validation --output tmp/issue137/render-125
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Check public geometry, correction, persistence and Qt workflow
         run: >-
           python -m pytest -q --maxfail=1
@@ -104,6 +112,8 @@ jobs:
           tests/test_scene_review_gui.py
           tests/test_scene_workspace.py
           tests/test_scene_workspace_gui.py
+          tests/test_scene_workflow_state.py
+          tests/test_scene_workflow_gui.py
           tests/test_scene_trial_record.py
           tests/test_trial_record_integration.py
           tests/test_trial_record_gui.py
@@ -210,6 +220,7 @@ jobs:
             tmp/issue119/**
             tmp/issue135/**
             tmp/issue136/**
+            tmp/issue137/**
             tmp/issue81_gui/**
             tmp/issue74_gui/**
           if-no-files-found: warn

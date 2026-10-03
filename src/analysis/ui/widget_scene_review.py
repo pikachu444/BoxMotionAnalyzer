@@ -1,7 +1,7 @@
 """Compact scene review inside Step 1; the existing plot edits the range."""
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QMenu, QGridLayout)
+    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QMenu, QGridLayout, QScrollArea)
 from src.utils.qt_sections import CollapsibleSection
 from src.analysis.pipeline.intended_contact import feature_options, feature_label, feature_corners
 from src.analysis.pipeline.scene_trial_record import eligibility_suggestion
@@ -84,13 +84,16 @@ class SceneReviewWidget(QWidget):
         self.remove_button = QPushButton('Remove')
         self.include_button = QPushButton('Include')
         self.exclude_button = QPushButton('Exclude')
+        self.revert_button = QPushButton('Revert detected range')
         for button in (self.detect_button, self.add_button,
-                       self.remove_button, self.include_button, self.exclude_button):
+                       self.remove_button, self.include_button, self.exclude_button, self.revert_button):
             tools.addWidget(button)
         tools.addStretch()
         self.count_label = QLabel('No scenes')
         tools.addWidget(self.count_label)
         layout.addLayout(tools)
+        self.range_label = QLabel('No scene selected')
+        layout.addWidget(self.range_label)
         self.table = QTableWidget(0, 9)
         self.table.setHorizontalHeaderLabels(['Scene', 'Start (s)', 'End (s)', 'Motion', 'Rotation (deg)', 'Review', 'Item', 'Intended contact', 'Observed'])
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -135,7 +138,6 @@ class SceneReviewWidget(QWidget):
         identity.addWidget(self.set_intended_button)
         identity.addStretch()
         self.save_all_button = QPushButton('Save included...')
-        identity.addWidget(self.save_all_button)
         details = QWidget()
         details_layout = QVBoxLayout(details)
         details_layout.setContentsMargins(0, 0, 0, 0)
@@ -144,6 +146,8 @@ class SceneReviewWidget(QWidget):
             files.addWidget(button)
         files.addStretch()
         details_layout.addLayout(files)
+        self.type_basis_label = QLabel('Type basis: Unconfirmed')
+        details_layout.addWidget(self.type_basis_label)
         # Two short rows avoid making every optional trial control part of the
         # minimum window width.
         grid = QGridLayout()
@@ -155,17 +159,25 @@ class SceneReviewWidget(QWidget):
         for index, widget in enumerate(optional):
             grid.addWidget(widget, index // 5, index % 5)
         details_layout.addLayout(grid)
-        self.details_section = CollapsibleSection('Details', details)
+        self.details_scroll = QScrollArea()
+        self.details_scroll.setWidgetResizable(True)
+        self.details_scroll.setFrameShape(QScrollArea.NoFrame)
+        self.details_scroll.setWidget(details)
+        self.details_scroll.setMaximumHeight(150)
+        self.details_section = CollapsibleSection('Details', self.details_scroll)
         layout.addWidget(self.details_section)
         for column in (4, 6, 7, 8):
             self.table.setColumnHidden(column, True)
         self.details_section.button.toggled.connect(
             lambda expanded: [self.table.setColumnHidden(column, not expanded) for column in (4, 6, 7, 8)])
+        self.details_section.button.toggled.connect(self._layout_details)
         self.table.itemSelectionChanged.connect(self._selection_changed)
         self.include_button.clicked.connect(lambda: self._decide('include'))
         self.exclude_button.clicked.connect(lambda: self._decide('exclude'))
         self.remove_button.clicked.connect(self._remove)
+        self.revert_button.clicked.connect(self._revert)
         self.type_combo.currentTextChanged.connect(self._context_changed)
+        self.type_combo.activated.connect(self._type_selected)
         self.edition_combo.currentIndexChanged.connect(self._context_changed)
         self.identify_button.clicked.connect(self._identify)
         self.confirm_button.clicked.connect(self._confirm)
@@ -230,7 +242,15 @@ class SceneReviewWidget(QWidget):
         self.trial_record_button.setEnabled(enabled)
         self.clear_trial_record_action.setEnabled(bool(self.session and self.session.trial_record))
         suggestion = eligibility_suggestion(self.session.trial_record, applied_edition=self.session.applied_edition)['suggested_type'] if self.session and self.session.trial_record else None
-        self.type_combo.setToolTip(f'2018-03 p.2 suggests Type {suggestion}; verify test eligibility.' if suggestion else '')
+        basis = self.session.type_basis if self.session else 'unconfirmed'
+        basis_label = {'operator': 'Operator selection', 'test_record': 'Test record',
+                       'source_declaration': 'Source declaration; confirm Type',
+                       'legacy_unconfirmed': 'Previous selection; confirm Type', 'unconfirmed': 'Unconfirmed'}[basis]
+        self.type_basis_label.setText('Type basis: ' + basis_label)
+        tip = 'Select Type against the test record. Filename, mass or row order cannot confirm a trial.'
+        if suggestion:
+            tip += f' 2018-03 p.2 suggests Type {suggestion}; verify test eligibility.'
+        self.type_combo.setToolTip(tip)
         for button in (self.add_button, self.remove_button, self.include_button, self.exclude_button):
             button.setEnabled(enabled)
         reviewed = enabled and self.session.all_reviewed
@@ -247,6 +267,7 @@ class SceneReviewWidget(QWidget):
 
     def _selection_changed(self):
         row = self.selected_row()
+        self._update_range_display(row)
         self.item_combo.clear()
         self.item_combo.addItem('Unconfirmed', None)
         self.item_combo.setToolTip(_item_tooltip(row) if row else '')
@@ -256,7 +277,8 @@ class SceneReviewWidget(QWidget):
             if row['identity']['confirmed']:
                 self.item_combo.setCurrentText(row['identity']['scenario_id'])
         self.confirm_button.setEnabled(bool(row and row['item_candidates'] and self.session.all_reviewed
-                                            and self.session.applied_edition))
+                                            and self.session.applied_edition
+                                            and self.session.type_basis in ('operator', 'test_record')))
         self.intended_combo.setCurrentIndex(0)
         if row and row.get('intended_contact'):
             target = tuple(row['intended_contact']['faces'])
@@ -269,6 +291,45 @@ class SceneReviewWidget(QWidget):
         self.set_intended_button.setEnabled(contact_ready)
         self.row_selected.emit(row)
         self.changed.emit()
+
+    def can_revert(self):
+        row = self.selected_row()
+        return bool(row and len(self.selected_ids()) == 1 and row['origin'] == 'automatic'
+                    and row['auto_start'] is not None and row['auto_end'] is not None
+                    and (row['start'], row['end']) != (row['auto_start'], row['auto_end']))
+
+    def _update_range_display(self, row):
+        self.revert_button.setEnabled(self.can_revert())
+        if row is None:
+            text, tip = 'No scene selected', 'Select an edited detected scene.'
+        elif row['origin'] == 'manual':
+            text = f"Manual: {row['start']:.6g}–{row['end']:.6g} s    No detected range"
+            tip = 'Manual scenes have no detected range to restore.'
+        else:
+            edited = (row['start'], row['end']) != (row['auto_start'], row['auto_end'])
+            text = (f"Edited: {row['start']:.6g}–{row['end']:.6g} s    " if edited else '')
+            text += f"Detected: {row['auto_start']:.6g}–{row['auto_end']:.6g} s"
+            tip = 'Restore detected bounds; review Include/Exclude again.'
+        self.range_label.setText(text)
+        self.revert_button.setToolTip(tip)
+
+    def _revert(self):
+        if self.session and self.can_revert():
+            try:
+                self.session.revert_detected_range(self.selected_id())
+                self.refresh()
+            except ValueError as exc:
+                self.error.emit(str(exc))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._layout_details()
+
+    def _layout_details(self):
+        narrow = self.width() < 1100
+        self.details_scroll.setMinimumHeight(54 if narrow else 130)
+        self.details_scroll.setMaximumHeight(68 if narrow else 150)
+        self.table.setMinimumHeight(94 if narrow and self.details_section.button.isChecked() else 110)
 
     def can_set_intended_contact(self):
         row = self.selected_row()
@@ -299,6 +360,12 @@ class SceneReviewWidget(QWidget):
     def _context_changed(self):
         if self.session:
             self.session.set_context(self.type_combo.currentText(), self.edition_combo.currentData())
+            self.refresh()
+
+    def _type_selected(self):
+        if self.session:
+            self.session.set_context(self.type_combo.currentText(), self.edition_combo.currentData(),
+                type_basis='unconfirmed' if self.type_combo.currentText() == 'Unknown' else 'operator')
             self.refresh()
 
     def _identify(self):

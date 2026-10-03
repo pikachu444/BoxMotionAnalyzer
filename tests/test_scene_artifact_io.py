@@ -168,6 +168,43 @@ def test_dimension_rewrite_preserves_interval_but_clears_geometry_identity(tmp_p
     assert read_slice_metadata(str(path)) == updated
 
 
+def test_new_slice_geometry_change_audits_unrecorded_confirmation_through_proc(tmp_path):
+    from copy import deepcopy
+    from src.analysis.pipeline.scene_workflow_state import PLAN_SPEC
+    review = _review(identified=True)
+    review.update(schema_version=2, plan_spec=PLAN_SPEC, type_basis='operator',
+                  history=dict(schema_version=1, plan_spec=PLAN_SPEC, entries=[]))
+    review['candidate']['id'] = 'scene_002'
+    expected_identity = deepcopy(review['identity'])
+    path = tmp_path / 'operator.slice'
+    _save(path, review)
+    assert json.loads(update_slice_box_dimensions(str(path), (300., 180., 90.)).scene_review_json) == review
+    updated = update_slice_box_dimensions(str(path), (310., 180., 90.))
+    packet = json.loads(updated.scene_review_json)
+    entry, = packet['history']['entries']
+    assert entry['serial'] == 1 and entry['action'] == 'geometry_changed'
+    assert entry['source_sha256'] == 'f' * 64
+    assert entry['snapshot']['identity'] == expected_identity
+    assert (entry['snapshot']['start'], entry['snapshot']['end']) == (START, END)
+    assert entry['context'] == dict(ista_type='G', applied_edition='2018-03', type_basis='operator')
+    assert packet['candidate']['previous_review']['identity'] == expected_identity
+    assert packet['candidate']['previous_review']['reasons'] == ['geometry_changed']
+    assert not packet['identity']['confirmed'] and packet['identity']['scenario_id'] is None
+    assert packet['candidate']['decision'] == 'include'
+    again = update_slice_box_dimensions(str(path), (320., 180., 90.))
+    latest = json.loads(again.scene_review_json)
+    assert latest['candidate']['previous_review']['identity'] == expected_identity
+    assert len(latest['history']['entries']) == 2
+    assert not latest['history']['entries'][1]['snapshot']['identity']['confirmed']
+    from src.analysis.ui.widget_slice_processing import WidgetSliceProcessing
+    context = WidgetSliceProcessing._build_timeline_context(SimpleNamespace(slice_metadata=again))
+    proc = tmp_path / 'operator.proc'
+    frame = pd.DataFrame({'Frame': [1, 2]}, index=pd.Index([START, END], name='Time'))
+    save_proc_file(str(proc), add_timeline_context_columns(frame, context))
+    result = DataLoader().load_result_csv(str(proc))
+    assert result[('Info', 'SceneReview', 'Json')].tolist() == [again.scene_review_json] * 2
+
+
 def test_failed_slice_publication_preserves_existing_file_and_removes_temporary(tmp_path, monkeypatch):
     path = tmp_path / "reviewed.slice"
     _save(path, _review())

@@ -1,0 +1,457 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "kind": "scene-review-preapproval-mockup",
+  "approval_status": "pending",
+  "code_head": "3a38b496ce2dedd2570479c8a77fef03d78961aa",
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "qt_platform": "windows",
+    "pyside": "6.10.1",
+    "matplotlib": "3.10.7",
+    "target_available": [
+      2560,
+      1392
+    ],
+    "target_dpr": 1.0
+  },
+  "input": {
+    "source_kind": "public-handcrafted-synthetic",
+    "raw_sha256": "fc61614f75c66fc3f98d88cd232fec7c62aaf0281eae1e39f7d002794652c2e5",
+    "relative_runtime_path": "tmp/issue137/mockup/observations-1790991873480020900/public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_.csv",
+    "rows": 601,
+    "units": "mm",
+    "time_basis": "capture_seconds",
+    "capture_interval_s": [
+      0.0,
+      12.0
+    ],
+    "ui_fixture_basis": "Independent SceneCandidate ranges at 0.10+0.5i to 0.35+0.5i seconds; no production detector labels."
+  },
+  "states": [
+    {
+      "rows": 0,
+      "selected_id": null,
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "No scene selected",
+      "revert_enabled": false,
+      "current_targets": 0,
+      "included_targets": 0,
+      "pending": 0,
+      "reason": "No scenes",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "empty",
+      "screenshot": "820x600-empty.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 1,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Detected: 0.10\u20130.35 s",
+      "revert_enabled": false,
+      "current_targets": 1,
+      "included_targets": 1,
+      "pending": 0,
+      "reason": "",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "one",
+      "screenshot": "820x600-one.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Detected: 0.10\u20130.35 s",
+      "revert_enabled": false,
+      "current_targets": 1,
+      "included_targets": 2,
+      "pending": 0,
+      "reason": "",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "many",
+      "screenshot": "820x600-many.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Edited: 0.14\u20130.30 s    Detected: 0.10\u20130.35 s",
+      "revert_enabled": true,
+      "current_targets": 0,
+      "included_targets": 1,
+      "pending": 1,
+      "reason": "Review 1 remaining",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "edited",
+      "screenshot": "820x600-edited.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 1,
+      "selected_id": "manual_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Manual: 0.14\u20130.30 s    No detected range",
+      "revert_enabled": false,
+      "current_targets": 0,
+      "included_targets": 0,
+      "pending": 1,
+      "reason": "Review 1 remaining",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "manual",
+      "screenshot": "820x600-manual.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Edited: 0.14\u20130.30 s    Detected: 0.10\u20130.35 s",
+      "revert_enabled": true,
+      "current_targets": 0,
+      "included_targets": 0,
+      "pending": 4,
+      "reason": "Review 4 remaining",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "blocked",
+      "screenshot": "820x600-blocked.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Detected: 0.10\u20130.35 s",
+      "revert_enabled": false,
+      "current_targets": 1,
+      "included_targets": 2,
+      "pending": 0,
+      "reason": "Detection running",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "loading",
+      "screenshot": "820x600-loading.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Detected: 0.10\u20130.35 s",
+      "revert_enabled": false,
+      "current_targets": 1,
+      "included_targets": 2,
+      "pending": 0,
+      "reason": "Save failed; retry available",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "error",
+      "screenshot": "820x600-error.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Detected: 0.10\u20130.35 s",
+      "revert_enabled": false,
+      "current_targets": 1,
+      "included_targets": 2,
+      "pending": 0,
+      "reason": "",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        820,
+        600
+      ],
+      "requested_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "details": true,
+      "state": "details",
+      "screenshot": "820x600-details.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Edited: 0.14\u20130.30 s    Detected: 0.10\u20130.35 s",
+      "revert_enabled": true,
+      "current_targets": 0,
+      "included_targets": 1,
+      "pending": 1,
+      "reason": "Review 1 remaining",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        1510,
+        800
+      ],
+      "requested_size": [
+        1510,
+        800
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "edited",
+      "screenshot": "1510x800-edited.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Edited: 0.14\u20130.30 s    Detected: 0.10\u20130.35 s",
+      "revert_enabled": true,
+      "current_targets": 0,
+      "included_targets": 1,
+      "pending": 1,
+      "reason": "Review 1 remaining",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "details": false,
+      "state": "edited",
+      "screenshot": "1920x1080-edited.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Detected: 0.10\u20130.35 s",
+      "revert_enabled": false,
+      "current_targets": 1,
+      "included_targets": 2,
+      "pending": 0,
+      "reason": "",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "details": true,
+      "state": "details",
+      "screenshot": "1920x1080-details.png",
+      "evidence_kind": "widget-render-mockup"
+    },
+    {
+      "rows": 24,
+      "selected_id": "scene_001",
+      "signal": "Vertical speed (mm/s)",
+      "range_text": "Detected: 0.10\u20130.35 s",
+      "revert_enabled": false,
+      "current_targets": 1,
+      "included_targets": 2,
+      "pending": 0,
+      "reason": "",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "logical_size": [
+        2560,
+        1392
+      ],
+      "requested_size": [
+        2560,
+        1392
+      ],
+      "dpr": 1.0,
+      "details": true,
+      "state": "details",
+      "screenshot": "2560x1392-details.png",
+      "evidence_kind": "widget-render-mockup"
+    }
+  ],
+  "production_changed": false,
+  "native_status": "not-executed",
+  "limitations": [
+    "Mockup count/reason text is illustrative; shared production gate is pending approval.",
+    "Widget renders are not native capture or external input acceptance.",
+    "No measured accuracy or #104 calibration claim."
+  ]
+}

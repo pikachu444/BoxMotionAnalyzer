@@ -25,6 +25,22 @@ def record(digest, entries=None, **kwargs):
         ista_type='G', applied_edition='2018-03', trials=entries or [entry(conditions={'critical_face_status': 'unknown'})], **kwargs)
 
 
+def test_type_provenance_record_load_clear_and_contact_scope(review):
+    source, result, session = review
+    intended = session.set_intended_contact('scene_001', ['LEFT'])
+    session.set_context('G', '2018-03', type_basis='source_declaration')
+    assert session.row('scene_001')['intended_contact'] == intended
+    session.set_trial_record(record(session.source_sha256))
+    assert session.type_basis == 'test_record'
+    session.confirm_item('scene_001', 'G16')
+    session.set_trial_record(None)
+    assert session.ista_type == 'G' and session.type_basis == 'unconfirmed'
+    assert session.row('scene_001')['decision'] == 'include'
+    assert not session.row('scene_001')['identity']['confirmed']
+    assert session.row('scene_001')['intended_contact'] == intended
+    assert session.history['entries'][-2]['snapshot']['identity']['confirmed']
+
+
 @pytest.fixture
 def review(tmp_path):
     source = tmp_path / 'source.csv'
@@ -136,7 +152,8 @@ def test_workspace_recomputes_on_saved_ranges_and_keeps_legacy_absence(review,tm
     session.confirm_item('scene_001','G16')
     save_workspace(path,session,source,[200.,120.,80.])
     loaded = read_workspace(path)
-    assert set(loaded['context']) == {'ista_type','applied_edition'}
+    assert set(loaded['context']) == {'ista_type','applied_edition','type_basis'}
+    assert loaded['context']['type_basis'] == 'operator'
     restored,changed = restore_session(loaded,result,session.source_sha256)
     assert not changed and restored.rows == session.rows
     manual = session.add_range(.1,.35)

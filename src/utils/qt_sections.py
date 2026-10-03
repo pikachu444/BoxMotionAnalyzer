@@ -2,7 +2,7 @@
 import os
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QMenu, QSizePolicy, QToolButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QApplication, QLabel, QMenu, QSizePolicy, QToolButton, QVBoxLayout, QWidget
 
 
 def find_result_column_index(combo, column):
@@ -15,6 +15,23 @@ def find_result_column_index(combo, column):
         if isinstance(value, (tuple, list)) and tuple(value) == key:
             return index
     return -1
+
+
+class ElidedPathLabel(QLabel):
+    def __init__(self, text='', parent=None):
+        super().__init__(parent)
+        self._path_text = text
+        self.setWordWrap(False)
+        self.setText(text)
+
+    def setText(self, text):
+        self._path_text = text
+        super().setText(self.fontMetrics().elidedText(text, Qt.TextElideMode.ElideMiddle,
+                                                    max(1, self.width() - 4)))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.setText(self._path_text)
 
 
 class CollapsibleSection(QWidget):

@@ -1,12 +1,28 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-10-02
+Last Reviewed: 2026-10-04
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #137 / PUB04 implementation: approved FHD/minimum-window mockup; scoped
+  viewport persistence, Revert, shared save counts/gates and Type/edit history.
+  Automatic preservation found two regressions; both were corrected and passed
+  targeted replay. Production render: 19 states; final 125% GUI: 25 passed.
+  Type/context/artifact contracts: 126 passed. Independent review/recheck has no
+  outstanding findings; corrected clean head passed 42 checks and 19 renders.
+  Hosted initial FHD client-size fitting was corrected in the validation harness;
+  same-reviewer recheck and local 125% replay passed 25 GUI/19 render cases.
+  Required CI is enforced before merge; final CI/publication
+  evidence is recorded in `../../visualization/scene_review_workflow_137.md`.
+- [ ] #137 native follow-up: FHD production window/accessibility was enumerated,
+  but black capture and activation failure prevented visual/external input
+  acceptance. Keep issue open for native checks at 820x600/FHD/target size,
+  selection/edit/Revert, signal/pan/zoom, save/dialog/reopen and loading/error.
+  #113 registration integration is excluded by user decision; existing source
+  identity remains verified. #104 is separate. Do not start #138 onward.
 - [O] #136: Implement the approved narrow graph tabs / wide paired layout,
   filename elision, constrained axis/unit redraw, empty preview and fixed
   calculation Cancel; retain original/context/approval/worker semantics.

@@ -79,6 +79,7 @@ class PlotManager(QObject):
         super().__init__()
         self.canvas = canvas
         self.fig = fig
+        self.use_constrained_layout = False
         self.ax = self.fig.add_subplot(111)
         self.category_ax = None
         self.span_selector = None
@@ -128,7 +129,7 @@ class PlotManager(QObject):
             self.ax.legend(handles=lines)
 
         self._initialize_hover_annotation()
-        self.fig.tight_layout()
+        self._layout_axes()
         self.canvas.draw()
 
     @property
@@ -211,7 +212,13 @@ class PlotManager(QObject):
 
     def _on_resize(self, _event):
         # Recompute subplot padding when the embedded canvas size changes.
-        self.fig.tight_layout()
+        self._layout_axes()
+
+    def _layout_axes(self):
+        if self.use_constrained_layout:
+            self.fig.set_layout_engine('constrained')
+        else:
+            self.fig.tight_layout()
         self.canvas.draw_idle()
 
     def _place_hover_annotation(self, x, y):

@@ -668,10 +668,17 @@ def update_slice_box_dimensions(filepath: str, box_dims: tuple[float, float, flo
     old_dims = tuple(_safe_float(detail_meta.get(key)) for key in ("box_l", "box_w", "box_h"))
     if scene_review_json and old_dims != normalized_dims:
         review = json.loads(scene_review_json)
+        from .scene_review import previous_review_snapshot
+        from .scene_workflow_state import append_history_action, contract
+        prior_row = dict(review['candidate'], identity=review['identity'])
+        if contract(review):
+            append_history_action(review['history'], 'geometry_changed', prior_row, review['source_sha256'],
+                dict(ista_type=review['identity']['ista_type'],
+                     applied_edition=review['identity'].get('applied_edition'), type_basis=review['type_basis']))
+        review['candidate']['previous_review'] = previous_review_snapshot(
+            prior_row, ['geometry_changed'], review.get('trial_record'))
+        review['candidate']['evidence_status'] = 'geometry_changed'
         if review.get('trial_record') is not None:
-            from .scene_review import previous_review_snapshot
-            review['candidate']['previous_review'] = previous_review_snapshot(
-                dict(review['candidate'], identity=review['identity']), ['geometry_changed'], review['trial_record'])
             for key in ('record_evidence', 'observed_consistency', 'posture_candidates'):
                 review['candidate'].pop(key, None)
             review['candidate']['evidence_status'] = 'geometry_changed'

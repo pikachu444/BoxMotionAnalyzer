@@ -37,6 +37,10 @@ def reviewed(tmp_path, monkeypatch):
         slice_saved=SimpleNamespace(emit=signals.append), append_log=logs.append,
         _validate_scene_source=lambda: None, _read_box_dimensions=lambda: (200., 120., 80.),
         _scene_slice_context=lambda: ({}, panel.current))
+    # Handoff unit harness: gate behavior is exercised by real widget tests.
+    host._scene_save_gate = lambda **kwargs: (2, '')
+    host._scene_save_request_key = lambda: 'unchanged-review'
+    host._update_scene_gates = lambda: None
     monkeypatch.setattr(QFileDialog, 'getExistingDirectory', lambda *_args: str(tmp_path))
     monkeypatch.setattr(QMessageBox, 'warning', lambda *_args: None)
     yield host, signals, tmp_path
@@ -95,10 +99,11 @@ def test_explicit_restored_scene_scrolls_into_view_without_resetting_manual_scro
     rows = [dict(id=f'scene_{i + 1:03}', start=i * .2, end=i * .2 + .1,
         motion='stationary', rotation_deg=0., decision='include',
         identity={'scenario_id': None, 'confirmed': False}, item_candidates=[], tags=[],
-        left_censored=False, right_censored=False, evidence_status='current') for i in range(9)]
+        left_censored=False, right_censored=False, evidence_status='current',
+        origin='automatic', auto_start=i * .2, auto_end=i * .2 + .1) for i in range(9)]
     rows[3].update(start=1.584, end=1.848)
     panel.session = SimpleNamespace(rows=rows, all_reviewed=True, trial_record=None,
-        applied_edition=None, result=SimpleNamespace(registration=None),
+        applied_edition=None, type_basis='unconfirmed', result=SimpleNamespace(registration=None),
         row=lambda row_id: next(row for row in rows if row['id'] == row_id))
     selected = []
     panel.row_selected.connect(selected.append)

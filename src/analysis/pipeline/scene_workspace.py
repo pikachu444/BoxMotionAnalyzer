@@ -14,6 +14,8 @@ from .scene_review import REFERENCE_EDITION, SceneReviewSession, previous_review
 from .intended_contact import validate_intended_contact, validate_intended_contact_context
 from .scene_trial_record import (validate_trial_record, validate_binding, validate_record_confirmation,
                                 ITEM_KINDS)
+from .scene_workflow_state import (PLAN_SPEC, SCHEMA_VERSION, TYPE_BASES, contract,
+    empty_history, unavailable_plot_view, validate_history, validate_plot_view)
 
 
 KIND = 'boxmotion-scene-review'
@@ -53,6 +55,7 @@ def _validate(data):
     try:
         if data['kind'] != KIND or type(data['version']) is not int or data['version'] != 1:
             raise ValueError('Unsupported scene workspace.')
+        current_contract = contract(data)
         source = data['source']
         if not isinstance(source['path'], str) or not source['path'] or '\x00' in source['path']:
             raise ValueError('Workspace needs its observed source path.')
@@ -79,6 +82,14 @@ def _validate(data):
         if not isinstance(data['detection_version'], str) or not data['detection_version']:
             raise ValueError('Workspace needs its detection version.')
         context = data['context']
+        if not current_contract and 'type_basis' in context:
+            raise ValueError('Workspace Type basis needs schema_version and plan_spec.')
+        if current_contract:
+            if context['type_basis'] not in TYPE_BASES:
+                raise ValueError('Invalid workspace Type basis.')
+            validate_history(data['history'])
+            if any(entry['source_sha256'] != source['sha256'] for entry in data['history']['entries']):
+                raise ValueError('Scene history belongs to another source.')
         if (context['ista_type'] not in ('Unknown', 'G', 'H')
                 or (context['applied_edition'] is not None and not isinstance(context['applied_edition'], str))):
             raise ValueError('Invalid workspace test context.')
@@ -102,6 +113,8 @@ def _validate(data):
                 if not _finite(row[first]) or not _finite(row[last]) or row[first] > row[last]:
                     raise ValueError('Invalid saved scene range.')
             _identity(row['identity'])
+            if current_contract and row['identity']['confirmed'] and context['type_basis'] not in ('operator', 'test_record'):
+                raise ValueError('Confirmed identity needs an explicit Type basis.')
             if 'trial_record' in data:
                 validate_record_confirmation(data['trial_record'], row, row['identity'], rows)
             elif row['identity'].get('record_reference') is not None:
@@ -142,6 +155,9 @@ def _validate(data):
         targets = view.setdefault('targets', [])
         if not isinstance(targets, list) or any(not isinstance(target, str) for target in targets):
             raise ValueError('Saved plot targets must be a list of names.')
+        if current_contract:
+            validate_plot_view(data['plot_view'], source_sha256=source['sha256'],
+                               signal=view['signal'], targets=targets)
         # Reject NaN in any cached field, without trusting that field as evidence.
         _json(data)
     except (KeyError, TypeError, AttributeError, OverflowError) as error:
@@ -150,7 +166,7 @@ def _validate(data):
 
 
 def save_workspace(path, session, source_path, box_dims, *, selected_id=None, signal=None,
-                   registration=_USE_RESULT_REGISTRATION, targets=None):
+                   registration=_USE_RESULT_REGISTRATION, targets=None, plot_view=None):
     """Keep pending geometry even when the session still has old computed evidence."""
     target, source = Path(path).resolve(), Path(source_path).resolve()
     if (target.suffix.lower() == '.csv' or target == source
@@ -168,11 +184,15 @@ def save_workspace(path, session, source_path, box_dims, *, selected_id=None, si
         registration = result.registration
     data = {
         'kind': KIND, 'version': 1,
+        'schema_version': SCHEMA_VERSION, 'plan_spec': PLAN_SPEC,
+        'history': deepcopy(session.history),
+        'plot_view': unavailable_plot_view() if plot_view is None else deepcopy(plot_view),
         'source': {'path': source_reference, 'sha256': actual_hash},
         'box_dims_mm': list(box_dims),
         'registration': asdict(registration) if registration is not None else None,
         'settings': asdict(result.settings), 'detection_version': getattr(result, 'version', VERSION),
-        'context': {'ista_type': session.ista_type, 'applied_edition': session.applied_edition},
+        'context': {'ista_type': session.ista_type, 'applied_edition': session.applied_edition,
+                    'type_basis': session.type_basis},
         'rows': deepcopy(session.rows), 'deleted_ids': sorted(session.deleted_ids),
         'manual_serial': session.manual_serial,
         'view': {'selected_id': selected_id if selected_id in {r['id'] for r in session.rows} else None,
@@ -215,7 +235,16 @@ def restore_session(data, result, source_sha256, *, original_source_sha256=None)
     if source_sha256 != data['source']['sha256']:
         raise ValueError('Observed source differs from the saved workspace.')
     session = SceneReviewSession(result, source_sha256, original_source_sha256=original_source_sha256)
-    session.set_context(**data['context'])
+    context = dict(data['context'])
+    if 'type_basis' not in context:
+        # Legacy choice may be retained, but its provenance was never recorded.
+        context['type_basis'] = 'legacy_unconfirmed' if context['ista_type'] != 'Unknown' else 'unconfirmed'
+        record = data.get('trial_record')
+        if record and context['ista_type'] != 'Unknown' and (
+                record['ista_type'], record['applied_edition']) == (context['ista_type'], context['applied_edition']):
+            context['type_basis'] = 'test_record'
+    session.set_context(**context)
+    session.history = deepcopy(data.get('history', empty_history()))
     if 'trial_record' in data:
         validate_binding(data['trial_record'], source_sha256, original_source_sha256)
         session.trial_record = deepcopy(data['trial_record'])
@@ -229,10 +258,15 @@ def restore_session(data, result, source_sha256, *, original_source_sha256=None)
     if _json(data['registration']) != _json(registration):
         context_reasons.append('registration_changed')
     start, end = float(result.signals.index[0]), float(result.signals.index[-1])
+    plot_view = data.get('plot_view', unavailable_plot_view())
+    if plot_view['status'] == 'valid' and plot_view['capture_interval_s'] != [start, end]:
+        raise ValueError('Scene plot view capture clock differs from observations.')
     restored, changed_ids = [], set()
     for saved in data['rows']:
         if not start <= saved['start'] <= saved['end'] <= end:
             raise ValueError(f"Saved scene {saved['id']} is outside the observed capture.")
+        if saved['origin'] == 'automatic' and not start <= saved['auto_start'] <= saved['auto_end'] <= end:
+            raise ValueError('Detected range is outside the observed capture.')
         fresh = session.recompute_saved_row(saved)
         reasons = list(context_reasons)
         from .scene_face_corrections import version_change_affects_range
@@ -259,6 +293,7 @@ def restore_session(data, result, source_sha256, *, original_source_sha256=None)
         ):
             reasons.append('confirmed_item_no_longer_supported')
         if reasons:
+            session.record_action('evidence_changed', saved)
             changed_ids.add(saved['id'])
             fresh['decision'] = 'unreviewed'
             fresh['previous_review'] = previous_review_snapshot(saved, reasons, data.get('trial_record'))
@@ -268,6 +303,12 @@ def restore_session(data, result, source_sha256, *, original_source_sha256=None)
                 fresh['intended_contact'] = deepcopy(saved['intended_contact'])
             if 'previous_review' in saved:
                 fresh['previous_review'] = deepcopy(saved['previous_review'])
+            if identity['confirmed'] and session.type_basis == 'legacy_unconfirmed':
+                # Preserve the old decision as history, while requiring Type
+                # provenance before carrying its trial approval into new files.
+                session.record_action('test_context_changed', saved)
+                fresh['previous_review'] = previous_review_snapshot(saved, ['type_basis_unrecorded'], data.get('trial_record'))
+                session._reset_identity(fresh)
         restored.append(fresh)
     session.rows = restored
     session.deleted_ids = set(data['deleted_ids'])

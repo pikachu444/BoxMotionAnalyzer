@@ -1,6 +1,6 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-10-02
+Last Reviewed: 2026-10-04
 
 ## 1. 목적
 #135 회귀 출력은 `Info / Source / OriginalRecordIndex`, `Info / CaptureReplay / Json`과 slice SceneReview capture_replay를 additive로 보존한다. 원본 record는 Time 오류 제거 전에 고정하며 저장 후 source/fixture/config/geometry 및 원본 행·시계를 정확 대조한다. 기존 결과에 추정값을 채우지 않는다. 공통 scalar Time 파싱과 proc round_trip 읽기로 원본 시계 정밀도를 보존한다. [전체 계약](capture_regression.md)을 참고한다.
@@ -30,6 +30,37 @@ Marker Review #112는 v3 face context에 `review_policy`, 실제 face `geometry`
 7. `Visualization`은 export된 `HeaderL3` metric 키를 long-format 내부 컬럼에도 그대로 재사용한다
 
 ## Scene review metadata (#75)
+
+#137 adds `schema_version=2` and `plan_spec=ISTA6A-PLAN-20261001-v1` to the
+existing version-1 workspace and SceneReview envelopes. `type_basis` distinguishes
+operator/test-record choice from source declaration, unknown and legacy provenance.
+Unrecorded legacy trial confirmation is retained in history; the active identity
+needs Type confirmation again. A compatible explicit legacy test record can supply
+its Type basis. Include/Exclude remains a separate choice.
+
+`history` schema_version 1 uses the same plan_spec, ordered action serials, capture
+SHA, pre-change row/decision/identity snapshots and Type/edition context. Adds
+record their new manual state. Range snapshots declare `capture_seconds` and
+`inclusive-gui-seconds`: the existing GUI bounds, not half-open original records.
+Files without extensions remain legacy; extension fields without the contract fail.
+History survives workspace, slice and proc. It is not physical truth or approval.
+Source lineage retains its existing original-record and slice-padding contracts.
+
+Workspace-only `plot_view` schema_version 1 stores source SHA, signal/targets,
+units, capture interval and x/y limits, or explicit `unavailable/not_captured`.
+All nine derived signals use explicit units independent of Raw length units:
+speed mm/s, angles deg, rotation rate deg/s, marker count count, fit RMS mm and
+acceleration diagnostics m/s2. Capture, validation and reopening share that
+mapping; mismatched declared units are rejected. Slice geometry changes retain
+the prior identity in `previous_review` and append a schema-2 `geometry_changed`
+history entry before invalidating it, including operator confirmations without
+a test record. Slice/proc transport preserves that history.
+Unsupported version/plan/clock/unit, nonfinite limits and mismatched source/view
+binding fail before active work is replaced. Restore checks capture time against
+observations and applies limits only to matching available signal, targets and
+units. A fallback signal does not inherit another signal's y limits. New source
+loading resets cached viewports. Slice/proc retain review metadata without
+reconstructing the full-source graph from partial padded observations.
 
 `SceneReviewJson=<JSON>` is optional in the existing second `.slice` metadata row.
 Step 1.5 carries it as `scene_review_json`; `.proc` writes the constant string at
