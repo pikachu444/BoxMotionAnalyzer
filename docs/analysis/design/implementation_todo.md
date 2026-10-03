@@ -13,6 +13,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   targeted replay. Production render: 19 states; final 125% GUI: 25 passed.
   Type/context/artifact contracts: 126 passed. Independent review/recheck has no
   outstanding findings; corrected clean head passed 42 checks and 19 renders.
+  Hosted initial FHD client-size fitting was corrected in the validation harness;
+  same-reviewer recheck and local 125% replay passed 25 GUI/19 render cases.
   Required CI is enforced before merge; final CI/publication
   evidence is recorded in `../../visualization/scene_review_workflow_137.md`.
 - [ ] #137 native follow-up: FHD production window/accessibility was enumerated,

@@ -277,6 +277,13 @@ failures surface earlier; all existing checks remain required.
 Replay: `$env:QT_SCALE_FACTOR='1.25'; python -m pytest -q tests/test_scene_workflow_gui.py --junitxml=tmp/issue137/windows-client-size-125.xml`
 passed all 25 cases in 106.34 s. Hosted physical FHD acceptance still requires
 the updated CI run; no failed run is classified as passed.
+Exact clean validation head `46d2e7153837b182f11a726957242f5fa358a649`:
+`$env:QT_SCALE_FACTOR='1.25'; python -m src.simulation.scene_review_validation --output tmp/issue137/windows-client-render-125`
+passed all 19 render states. [125% screens/manifest](mockups/scene_review_137/final-125/execution.json)
+retain the source/environment/client-size policy; they are widget renders,
+not native desktop capture. The same reviewer confirmed the unchanged
+assertions and passing local gates with no new findings. Final documentation
+head and hosted CI result are tracked by PR #148.
 
 ## Native limitation and remaining acceptance
 

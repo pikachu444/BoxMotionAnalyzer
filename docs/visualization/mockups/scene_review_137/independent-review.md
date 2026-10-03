@@ -54,3 +54,16 @@ failures/errors/skips and 19/19 render states with matching code/environment/Raw
 SHA. Updated FHD edited/Details and 820x600 Details remain consistent with the
 reviewed layout. Local regression/render publication gates are met; required CI
 is still the merge gate. No new findings; native follow-up keeps #137 open.
+
+## Hosted initial-size harness recheck
+
+After CI stopped at initial FHD height 1061 instead of 1080 (962 passed, eight
+subtests), the same reviewer checked `46d2e7153837b182f11a726957242f5fa358a649`.
+No production changes, no weakened size/button/canvas/Details/QTest assertions.
+Exposure/settle/second resize matches existing layout policy. Workflow only
+relocates the identical PUB04 125% commands earlier; all checks remain.
+Verified 25 GUI passes and 19 renders at exact clean head, DPR 1.25, matching
+logical requested/actual size and Raw SHA. [125% manifest](final-125/execution.json).
+Representative screenshots remain consistent. No new findings; local gates
+met. Earlier P2 remain resolved. Required hosted CI still gates merge; native
+acceptance is unexecuted and #137 remains open.
