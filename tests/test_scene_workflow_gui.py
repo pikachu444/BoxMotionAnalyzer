@@ -280,7 +280,12 @@ def test_production_window_size_and_primary_controls_accessible(widgets, size, s
     w = widgets(state)
     w.resize(*size)
     w.show()
-    APP.processEvents()
+    assert QTest.qWaitForWindowExposed(w, 2000)
+    # The first Windows exposure may fit a decorated window to the desktop.
+    # Measure the requested logical client size after those events settle.
+    QTest.qWait(100)
+    w.resize(*size)
+    QTest.qWait(100)
     assert (w.width(), w.height()) == size
     w.canvas.draw()
     for button in (w.scene_panel.detect_button, w.scene_panel.details_section.button,

@@ -263,6 +263,21 @@ required CI must pass before merging. Final publication status and the check
 run tied to the published head are available on that PR.
 Native acceptance is the remaining issue follow-up below.
 
+Required CI [37133853343](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37133853343)
+on documentation head `90e6ae0` passed 962 tests and eight subtests, then stopped
+at the new FHD widget size check: first exposure on a physical 1920x1080 Windows
+desktop produced a 1920x1061 client window. This is initial window-decoration
+fitting, not a waived layout assertion. The test and disposable renderer now
+wait for exposure, settle initial geometry events, request the exact logical
+client size again, and keep the original size/accessibility assertions.
+Render manifests explicitly distinguish requested logical client size from
+physical desktop size and native acceptance. Production UI behavior is unchanged.
+The existing PUB04 125% CI step runs before the long full suite so platform
+failures surface earlier; all existing checks remain required.
+Replay: `$env:QT_SCALE_FACTOR='1.25'; python -m pytest -q tests/test_scene_workflow_gui.py --junitxml=tmp/issue137/windows-client-size-125.xml`
+passed all 25 cases in 106.34 s. Hosted physical FHD acceptance still requires
+the updated CI run; no failed run is classified as passed.
+
 ## Native limitation and remaining acceptance
 
 The production FHD attempt used the installed computer-use skill. Enumeration

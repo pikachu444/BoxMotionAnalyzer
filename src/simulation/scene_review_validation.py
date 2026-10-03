@@ -9,6 +9,7 @@ import time
 
 import matplotlib
 import PySide6
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from src.analysis.app.main_window import MainApp
@@ -42,7 +43,13 @@ def main():
         install_ui_fixture(w, source, state)
         window.resize(*size)
         window.show()
-        app.processEvents()
+        if not QTest.qWaitForWindowExposed(window, 2000):
+            raise RuntimeError('Production validation window was not exposed.')
+        QTest.qWait(100)
+        # Match layout tests: Windows may constrain only the initial exposure
+        # to fit its decorations. Request the logical client size afterwards.
+        window.resize(*size)
+        QTest.qWait(100)
         w.update_plot()
         w.plot_manager.ax.set_xlim(0., 3.)
         w.plot_manager.ax.set_ylim(-100., 100.)
@@ -89,6 +96,7 @@ def main():
             independent_ui_ranges='0.10+0.5i through 0.35+0.5i inclusive capture seconds'),
         mockup_approval='User approved FHD/minimum mockups on 2026-10-03 before production UI edits.',
         states=states, result='pass' if all(s['result'] == 'pass' for s in states) else 'fail',
+        render_size_policy='requested logical client size after initial Windows exposure',
         native_status='not-executed', measured_calibration='#104 separate, not assessed')
     (root/'execution.json').write_text(json.dumps(report, indent=2, allow_nan=False)+'\n', encoding='utf-8')
     print(json.dumps(dict(result=report['result'], states=len(states), code_head=report['code_head'],
