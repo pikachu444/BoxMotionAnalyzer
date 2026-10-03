@@ -20,7 +20,6 @@ def test_long_paths_preserve_text_and_allow_plot_panel_resizing():
         labels = [widget.file_path_label, widget.slice_path_label]
         widget.slice_path_label.setText(path + '.slice')
         assert widget.file_path_label.toolTip() == path
-        original_texts = [label.text() for label in labels]
         window.show()
         assert QTest.qWaitForWindowExposed(window, 2000)
         # Windows may constrain the initial native window to the desktop.
@@ -36,16 +35,24 @@ def test_long_paths_preserve_text_and_allow_plot_panel_resizing():
         wide_plot, narrow_panel = splitter.sizes()
         assert wide_plot > 1.5 * narrow_panel
         assert window.width() == 1510
+        narrow_text = widget.file_path_label.text()
+        assert widget.file_path_label.property('fullPath') == path
+        assert widget.file_path_label.fontMetrics().horizontalAdvance(narrow_text) <= widget.file_path_label.width()
 
         splitter.setSizes([650, 750])
         app.processEvents()
         narrow_plot, wide_panel = splitter.sizes()
         assert narrow_plot < wide_plot
         assert wide_panel > narrow_panel
-        for label, original in zip(labels, original_texts):
-            assert label.text() == original
-            label.setSelection(0, len(original))
-            assert label.selectedText() == original
+        assert widget.file_path_label.property('fullPath') == path
+        assert widget.file_path_label.toolTip() == path
+        assert widget.file_path_label.text().endswith('.csv')
+        assert widget.file_path_label.fontMetrics().horizontalAdvance(widget.file_path_label.text()) <= widget.file_path_label.width()
+        assert widget.slice_path_label.text() == path + '.slice'
+        for label in labels:
+            displayed = label.text()
+            label.setSelection(0, len(displayed))
+            assert label.selectedText() == displayed
             assert label.textInteractionFlags() & Qt.TextInteractionFlag.TextSelectableByMouse
     finally:
         window.close()

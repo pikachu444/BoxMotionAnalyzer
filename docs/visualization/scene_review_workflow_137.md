@@ -4,7 +4,8 @@ Last Reviewed: 2026-10-04
 
 Plan Spec: ISTA6A-PLAN-20261001-v1. Parent: #134.
 Status: approved production implementation and automatic checks are available.
-Independent review/publication are pending. Native visual/external input acceptance
+Independent review found no P0/P1; two P2 corrections are being rechecked.
+PR #148 publication/required CI are pending. Native visual/external input acceptance
 is not executed because window capture/activation failed; #137 remains open.
 
 ## Starting state and scope
@@ -231,6 +232,33 @@ The #135 full fresh processing preservation test passed within the affected
 run. Its RunReport still has loaded/approved/fresh=6, reused/failed/unexecuted=0
 and 449 optimizer calls; GUI and measured calibration remain separately pending.
 Its own immutable run folder identifies exact inputs/config and fresh outputs.
+
+## Independent review and publication
+
+Clean candidate `0c5bd078dc8630b5301af2c62d2e7f8f64725054` passed
+`python -m pytest -q tests/test_scene_workflow_state.py tests/test_scene_workflow_gui.py tests/test_scene_trial_record.py tests/test_scene_artifact_io.py --junitxml=tmp/issue137/candidate-head.xml`
+(98 passed) and production rendering to `tmp/issue137/candidate-head-render`
+(19 passed, manifest records exact head/environment/Raw identity).
+
+One read-only GPT-6.1 Sol / High found no P0/P1 and two P2 issues;
+[report and correction tracking](mockups/scene_review_137/independent-review.md).
+Main fixed all derived-unit declarations and slice geometry invalidation history.
+No finding is deferred. Required CI on the first candidate failed at the old
+long-path layout expectation (14 passed before stopping):
+[37132419910](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37132419910).
+The test now checks retained full path/tooltip, displayed text selection and
+actual width, preserving the approved filename elision.
+
+Correction commands (same Windows/Python environment as above):
+
+- `python -m pytest -q tests/test_processing_window_layout.py tests/test_scene_workflow_state.py tests/test_scene_artifact_io.py --junitxml=tmp/issue137/review-fixes.xml`: 41 passed, including nine independent unit expectations/mismatch negatives and unrecorded operator slice-to-proc history.
+- `python -m pytest -q tests/test_scene_signal_gui.py tests/test_scene_workflow_gui.py tests/test_slice_dimension_provenance_gui.py --junitxml=tmp/issue137/review-gui-fixes.xml`: 32 passed, one new test failed because an unregistered synthetic COM correctly leaves rotation bound unavailable; no production defect. The independent fixture now explicitly declares COM at the box centre.
+- `python -m pytest -q tests/test_scene_signal_gui.py::test_all_observed_derived_views_save_and_reopen_with_declared_units --junitxml=tmp/issue137/review-all-signals.xml`: passed; all nine observed derived signals save/reopen their declared units and expected independent x/y limits.
+
+[PR #148](https://github.com/pikachu444/BoxMotionAnalyzer/pull/148) contains the
+English/Korean change and execution summary. Correction recheck and required CI
+must pass before merging; final publication status is available on that PR.
+Native acceptance is the remaining issue follow-up below.
 
 ## Native limitation and remaining acceptance
 

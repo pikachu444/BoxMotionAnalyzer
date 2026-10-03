@@ -48,6 +48,13 @@ Source lineage retains its existing original-record and slice-padding contracts.
 
 Workspace-only `plot_view` schema_version 1 stores source SHA, signal/targets,
 units, capture interval and x/y limits, or explicit `unavailable/not_captured`.
+All nine derived signals use explicit units independent of Raw length units:
+speed mm/s, angles deg, rotation rate deg/s, marker count count, fit RMS mm and
+acceleration diagnostics m/s2. Capture, validation and reopening share that
+mapping; mismatched declared units are rejected. Slice geometry changes retain
+the prior identity in `previous_review` and append a schema-2 `geometry_changed`
+history entry before invalidating it, including operator confirmations without
+a test record. Slice/proc transport preserves that history.
 Unsupported version/plan/clock/unit, nonfinite limits and mismatched source/view
 binding fail before active work is replaced. Restore checks capture time against
 observations and applies limits only to matching available signal, targets and

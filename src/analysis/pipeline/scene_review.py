@@ -18,7 +18,7 @@ from src.analysis.pipeline.scene_trial_record import (validate_trial_record, val
     associate, observe_trial, record_reference, validate_record_confirmation, ITEM_KINDS)
 from src.config.config_app import FACE_DEFINITIONS
 from .scene_workflow_state import (PLAN_SPEC, SCHEMA_VERSION, TYPE_BASES, contract,
-                                   empty_history, validate_history, finite)
+                                   empty_history, validate_history, finite, append_history_action)
 
 
 REFERENCE_EDITION = '2018-03'
@@ -176,15 +176,8 @@ class SceneReviewSession:
         self.history = empty_history()
 
     def record_action(self, action, row):
-        snapshot = {key: deepcopy(row[key]) for key in ('id', 'start', 'end', 'decision', 'identity')}
-        snapshot.update(time_basis='capture_seconds', boundary_policy='inclusive-gui-seconds')
-        for key in ('intended_contact', 'record_evidence'):
-            if key in row:
-                snapshot[key] = deepcopy(row[key])
-        self.history['entries'].append(dict(serial=len(self.history['entries'])+1, action=action,
-            source_sha256=self.source_sha256, snapshot=snapshot,
-            context=dict(ista_type=self.ista_type, applied_edition=self.applied_edition,
-                         type_basis=self.type_basis)))
+        append_history_action(self.history, action, row, self.source_sha256,
+            dict(ista_type=self.ista_type, applied_edition=self.applied_edition, type_basis=self.type_basis))
 
     def _row(self, candidate):
         row = asdict(candidate)

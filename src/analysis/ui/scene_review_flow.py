@@ -15,7 +15,7 @@ from src.analysis.pipeline.scene_workspace import (save_workspace, read_workspac
 from src.analysis.pipeline.artifact_io import (_sha256_file, save_slice_file,
     build_slice_default_name, DEFAULT_SLICE_PADDING_ROWS)
 from src.utils.artifact_metadata import normalize_metadata
-from src.analysis.pipeline.scene_workflow_state import PLAN_SPEC, validate_plot_view
+from src.analysis.pipeline.scene_workflow_state import PLAN_SPEC, validate_plot_view, plot_signal_unit
 
 
 class SceneDetectionWorker(QThread):
@@ -243,12 +243,8 @@ class SceneReviewFlow:
         return validate_plot_view(value)
 
     def _scene_plot_unit(self, signal):
-        if signal == 'Vertical speed (mm/s)':
-            return 'mm/s'
-        if signal == 'Relative rotation (deg)':
-            return 'deg'
-        declared = str((self.header_info or {}).get('export_metadata', {}).get('Length Units', '')).strip().lower()
-        return {'millimeters': 'mm', 'centimeters': 'cm', 'meters': 'm'}.get(declared, 'unit unknown')
+        declared = (self.header_info or {}).get('export_metadata', {}).get('Length Units', '')
+        return plot_signal_unit(signal, declared)
 
     def _restore_scene_plot_view(self, view):
         if view is None or view['status'] != 'valid':
@@ -455,9 +451,8 @@ class SceneReviewFlow:
             plot_view = data.get('plot_view')
             if plot_view and plot_view['status'] == 'valid':
                 signal = plot_view['signal']
-                declared = str(preview['header_info'].get('export_metadata', {}).get('Length Units', '')).strip().lower()
-                unit = {'Vertical speed (mm/s)': 'mm/s', 'Relative rotation (deg)': 'deg'}.get(signal,
-                    {'millimeters': 'mm', 'centimeters': 'cm', 'meters': 'm'}.get(declared, 'unit unknown'))
+                declared = preview['header_info'].get('export_metadata', {}).get('Length Units', '')
+                unit = plot_signal_unit(signal, declared)
                 if unit != plot_view['units']:
                     raise ValueError('Saved plot units differ from the observed source.')
             # All reads and evidence checks finish before replacing active work.

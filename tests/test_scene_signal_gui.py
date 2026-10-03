@@ -149,6 +149,41 @@ def test_actual_vertical_and_rotation_selection_edit_save_reopen(window, tmp_pat
     assert report['logical_size'] == [1510, 800]
 
 
+def test_all_observed_derived_views_save_and_reopen_with_declared_units(window, tmp_path, monkeypatch):
+    source, _ = capture(tmp_path/'capture', rotating=True)
+    w = window.original_widget
+    w.load_csv_path(str(source))
+    for edit, value in zip((w.le_box_l, w.le_box_w, w.le_box_h), (200, 120, 80)):
+        edit.setText(str(value))
+    # Explicit synthetic COM at the declared box centre makes the rotation
+    # diagnostic available; unregistered sources correctly keep it unavailable.
+    w.scene_registration = Registration(example_profile(), com_offset_mm=(0, 0, 0))
+    w.detect_scene_candidates(); wait(w)
+    expected = {
+        'Relative rotation (deg)': 'deg', 'Vertical speed (mm/s)': 'mm/s',
+        'Speed (mm/s)': 'mm/s', 'Solved markers': 'count',
+        'Window rotation rate (deg/s)': 'deg/s', 'Window rotation span (deg)': 'deg',
+        'Marker fit RMS (mm)': 'mm', 'Gravity residual (m/s2)': 'm/s2',
+        'Rotation bound (m/s2)': 'm/s2',
+    }
+    assert set(w.scene_session.result.signals.columns) == set(expected)
+    saved = tmp_path/'all-signals.scene-review.json'
+    monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *a, **k: (str(saved), ''))
+    monkeypatch.setattr(QFileDialog, 'getOpenFileName', lambda *a, **k: (str(saved), ''))
+    for signal, unit in expected.items():
+        select(w, signal)
+        w.plot_manager.ax.set_xlim(.05, .45)
+        w.plot_manager.ax.set_ylim(-10., 25.)
+        w.save_scene_review()
+        packet = json.loads(saved.read_text())
+        assert packet['plot_view']['signal'] == signal and packet['plot_view']['units'] == unit
+        select(w, PoseCols.POS_Y)
+        w.open_scene_review(); wait(w)
+        assert w.combo_plot_axis.currentData() == signal
+        np.testing.assert_allclose(w.plot_manager.ax.get_xlim(), [.05, .45])
+        np.testing.assert_allclose(w.plot_manager.ax.get_ylim(), [-10., 25.])
+
+
 def test_finite_fallbacks_empty_signal_and_new_source_clear_old_curve(window, tmp_path):
     w = window.original_widget
     source, _ = capture(tmp_path/'capture')

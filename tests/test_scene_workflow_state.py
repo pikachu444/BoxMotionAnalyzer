@@ -6,7 +6,7 @@ import pytest
 
 from src.analysis.pipeline.scene_review import validate_scene_review_json
 from src.analysis.pipeline.scene_workspace import save_workspace, restore_session, read_workspace
-from src.analysis.pipeline.scene_workflow_state import PLAN_SPEC, validate_plot_view, validate_history
+from src.analysis.pipeline.scene_workflow_state import PLAN_SPEC, validate_plot_view, validate_history, plot_signal_unit
 from src.simulation.scene_review_fixtures import public_raw, ui_session, VERTICAL
 
 
@@ -128,3 +128,21 @@ def test_new_review_packet_rejects_non_numeric_or_non_finite_time(source, value)
     packet['candidate']['start'] = value
     with pytest.raises(ValueError, match='finite capture seconds'):
         validate_scene_review_json(packet)
+
+
+@pytest.mark.parametrize('signal,unit', [
+    ('Relative rotation (deg)', 'deg'), ('Vertical speed (mm/s)', 'mm/s'),
+    ('Speed (mm/s)', 'mm/s'), ('Solved markers', 'count'),
+    ('Window rotation rate (deg/s)', 'deg/s'), ('Window rotation span (deg)', 'deg'),
+    ('Marker fit RMS (mm)', 'mm'), ('Gravity residual (m/s2)', 'm/s2'),
+    ('Rotation bound (m/s2)', 'm/s2'),
+])
+def test_all_derived_units_are_independent_of_source_length_and_reject_mismatch(source, signal, unit):
+    packet = plot_view(source)
+    packet.update(signal=signal, units=unit)
+    assert validate_plot_view(packet)['units'] == unit
+    for source_unit in ('Millimeters', 'Centimeters', 'Meters', ''):
+        assert plot_signal_unit(signal, source_unit) == unit
+    packet['units'] = 'cm'
+    with pytest.raises(ValueError, match='units differ from signal'):
+        validate_plot_view(packet)

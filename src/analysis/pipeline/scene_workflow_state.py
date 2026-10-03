@@ -9,6 +9,29 @@ TYPE_BASES = {'unconfirmed', 'operator', 'test_record', 'source_declaration', 'l
 HISTORY_ACTIONS = {'range_edit', 'revert_detected_range', 'decision', 'add', 'remove',
                    'test_context_changed', 'test_record_changed', 'geometry_changed',
                    'detection_context_changed', 'confirm_item', 'intended_contact', 'evidence_changed'}
+SCENE_SIGNAL_UNITS = {
+    'Relative rotation (deg)': 'deg', 'Vertical speed (mm/s)': 'mm/s',
+    'Speed (mm/s)': 'mm/s', 'Solved markers': 'count',
+    'Window rotation rate (deg/s)': 'deg/s', 'Window rotation span (deg)': 'deg',
+    'Marker fit RMS (mm)': 'mm', 'Gravity residual (m/s2)': 'm/s2',
+    'Rotation bound (m/s2)': 'm/s2',
+}
+
+
+def plot_signal_unit(signal, length_units=''):
+    return SCENE_SIGNAL_UNITS.get(signal, {
+        'millimeters': 'mm', 'centimeters': 'cm', 'meters': 'm',
+    }.get(str(length_units).strip().lower(), 'unit unknown'))
+
+
+def append_history_action(history, action, row, source_sha256, context):
+    snapshot = {key: deepcopy(row[key]) for key in ('id', 'start', 'end', 'decision', 'identity')}
+    snapshot.update(time_basis='capture_seconds', boundary_policy='inclusive-gui-seconds')
+    for key in ('intended_contact', 'record_evidence'):
+        if key in row:
+            snapshot[key] = deepcopy(row[key])
+    history['entries'].append(dict(serial=len(history['entries'])+1, action=action,
+        source_sha256=source_sha256, snapshot=snapshot, context=deepcopy(context)))
 
 
 def finite(value):
@@ -87,8 +110,8 @@ def validate_plot_view(value, *, source_sha256=None, signal=None, targets=None):
             raise ValueError('Invalid scene plot targets.')
         if targets is not None and value['targets'] != list(targets):
             raise ValueError('Scene plot targets differ from workspace.')
-        expected_unit = {'Vertical speed (mm/s)': 'mm/s', 'Relative rotation (deg)': 'deg'}.get(value['signal'])
-        if value['units'] not in ('mm', 'cm', 'm', 'mm/s', 'deg', 'unit unknown'):
+        expected_unit = SCENE_SIGNAL_UNITS.get(value['signal'])
+        if value['units'] not in ('mm', 'cm', 'm', 'mm/s', 'deg', 'deg/s', 'm/s2', 'count', 'unit unknown'):
             raise ValueError('Unsupported scene plot units.')
         if expected_unit is not None and value['units'] != expected_unit:
             raise ValueError('Scene plot units differ from signal.')
