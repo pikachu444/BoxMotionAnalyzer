@@ -231,6 +231,7 @@ class TestMarkerFlipRawWidget(unittest.TestCase):
         )
         self.widget.source_path = long_path
         self.widget.correction_source_metadata = SimpleNamespace(
+            schema_version='2',
             event_count=0,
             approved_event_count=0,
         )
@@ -240,8 +241,10 @@ class TestMarkerFlipRawWidget(unittest.TestCase):
         self.widget.show()
         app.processEvents()
 
-        self.assertTrue(self.widget.file_path_label.wordWrap())
-        self.assertEqual(self.widget.file_path_label.text(), Path(long_path).name)
+        self.assertFalse(self.widget.file_path_label.wordWrap())
+        self.assertEqual(self.widget.file_path_label._path_text, Path(long_path).name)
+        self.assertLessEqual(self.widget.file_path_label.fontMetrics().horizontalAdvance(
+            self.widget.file_path_label.text()), self.widget.file_path_label.width())
         self.assertEqual(self.widget.file_path_label.property("fullPath"), long_path)
         self.assertEqual(self.widget.file_path_label.toolTip(), long_path)
         self.assertTrue(self.widget.marker_review_source_label.wordWrap())

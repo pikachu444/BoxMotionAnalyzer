@@ -126,6 +126,10 @@ def test_legacy_support_plot_selection_falls_back_without_changing_saved_review(
     original, path, selected, _, _ = saved
     data = json.loads(path.read_text(encoding='utf-8'))
     expected = deepcopy(original.scene_session.rows)
+    # A real version-1 workspace has no version-2 plot/history envelope.
+    for key in ('schema_version', 'plan_spec', 'history', 'plot_view'):
+        data.pop(key)
+    data['context'].pop('type_basis')
     for index, legacy_signal in enumerate((LIFT_SIGNAL, EDGE_TRAVEL_SIGNAL)):
         data['view']['signal'] = legacy_signal
         path.write_text(json.dumps(data), encoding='utf-8')

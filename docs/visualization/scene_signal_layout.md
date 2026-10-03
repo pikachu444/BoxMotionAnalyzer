@@ -1,6 +1,6 @@
 # Scene review signal selection
 
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-04
 
 #123 keeps the existing single plot and Signal combo. The smallest change is
 to select the existing Vertical speed signal on first scene detection, with
@@ -20,6 +20,12 @@ On re-detection of the same source, keep the currently selected raw or derived
 signal if it exists and has finite samples. If it is absent/unavailable, prefer
 usable vertical speed, then usable relative rotation, then the normal raw
 position view. An unavailable series never inherits the previous curve.
+#137 keeps pan/zoom through selection, edits, Revert and saving, and stores the
+current viewport with signal/targets in the source-bound workspace. Each
+signal/target selection has its own y scale; a first switch retains only the
+shared capture-time x interval. New source loading resets these viewports.
+On very short canvases a compact unit label replaces the full axis name and
+a redundant single derived-signal legend is hidden. The Signal combo names it.
 Opening another source resets derived-signal choices; a saved scene review
 still restores its own valid signal selection. Errors and cancellation keep
 the existing valid review; source changes discard old result callbacks.

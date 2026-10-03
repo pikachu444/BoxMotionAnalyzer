@@ -113,6 +113,17 @@ def test_capture_reopen_preserves_motion_and_conditional_item_choice(recording, 
     if case == 'drops':
         assert restored.row(falls[0]['id'])['identity']['scenario_id'] == 'H/B16/D06'
         assert restored.row(falls[1]['id'])['identity']['confirmed'] is False
+        legacy = read_workspace(path)
+        for key in ('schema_version', 'plan_spec', 'history', 'plot_view'):
+            legacy.pop(key)
+        legacy['context'].pop('type_basis')
+        old, legacy_changed = restore_session(legacy, result, _hash(source))
+        assert not legacy_changed and old.row(falls[0]['id'])['decision'] == 'include'
+        assert old.type_basis == 'legacy_unconfirmed'
+        assert not old.row(falls[0]['id'])['identity']['confirmed']
+        assert old.row(falls[0]['id'])['previous_review']['identity']['scenario_id'] == 'H/B16/D06'
+        assert old.history['entries'][-1]['snapshot']['identity']['confirmed']
+        assert json.loads(old.payload(falls[0]['id']))['identity']['scenario_id'] is None
         altered = read_workspace(path)
         selected = next(row for row in altered['rows'] if row['id'] == falls[0]['id'])
         selected['identity']['scenario_id'] = 'H/B04/D01'

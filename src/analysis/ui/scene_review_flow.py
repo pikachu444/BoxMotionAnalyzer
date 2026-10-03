@@ -15,6 +15,7 @@ from src.analysis.pipeline.scene_workspace import (save_workspace, read_workspac
 from src.analysis.pipeline.artifact_io import (_sha256_file, save_slice_file,
     build_slice_default_name, DEFAULT_SLICE_PADDING_ROWS)
 from src.utils.artifact_metadata import normalize_metadata
+from src.analysis.pipeline.scene_workflow_state import PLAN_SPEC, validate_plot_view
 
 
 class SceneDetectionWorker(QThread):
@@ -28,6 +29,7 @@ class SceneDetectionWorker(QThread):
         self.registration = deepcopy(registration)
         self.settings = settings
         self.source_context = (parent._source_revision, parent.source_path, parent.active_source_sha256)
+        self.review_context = parent._scene_detection_context()
         self.cancel_requested = False
 
     def run(self):
@@ -53,6 +55,11 @@ class SceneReviewFlow:
         self.scene_session = None
         self._selecting_scene = False
         self._workspace_open_context = None
+        self._plot_views = {}
+        self._plot_view_key = None
+        self._scene_dimensions = None
+        self._scene_source_blocked = ''
+        self._scene_save_feedback = ''
 
     def _connect_scene_signals(self):
         panel = self.scene_panel
@@ -72,6 +79,11 @@ class SceneReviewFlow:
         self._update_scene_gates()
 
     def _reset_scenes(self):
+        self._plot_views.clear()
+        self._plot_view_key = None
+        self._scene_dimensions = None
+        self._scene_source_blocked = ''
+        self._scene_save_feedback = ''
         self.scene_session, self.scene_registration = None, None
         self.scene_panel.session = None
         declared = normalize_metadata((self.header_info or {}).get('artifact_metadata'))
@@ -79,15 +91,25 @@ class SceneReviewFlow:
         self.scene_panel.edition_combo.setCurrentIndex(0)
         self.scene_panel.geometry_button.setText('Geometry...')
         self.scene_panel.refresh()
-        while self.combo_plot_axis.count() > 3:
-            self.combo_plot_axis.removeItem(3)
+        self.combo_plot_axis.blockSignals(True)
+        try:
+            was_derived = self.combo_plot_axis.currentIndex() >= 3
+            while self.combo_plot_axis.count() > 3:
+                self.combo_plot_axis.removeItem(3)
+            if was_derived:
+                self.combo_plot_axis.setCurrentIndex(0)
+        finally:
+            self.combo_plot_axis.blockSignals(False)
+        # Panel refresh can draw while the old signal is still being removed.
+        self._plot_views.clear()
+        self._plot_view_key = None
         self._update_scene_gates()
 
     def _update_scene_gates(self):
         if not hasattr(self, 'scene_panel'):
             return
         marker_busy = self.marker_review_busy or (self.review_worker is not None and self.review_worker.isRunning())
-        busy = self.scene_busy or marker_busy
+        busy = self.scene_busy or (self.scene_worker is not None and self.scene_worker.isRunning()) or marker_busy
         loaded = self.raw_data is not None and self.parsed_data is not None
         review_valid = not getattr(self, '_review_invalidated', False)
         ready = loaded and not busy and not self.marker_review_dirty and review_valid
@@ -108,16 +130,24 @@ class SceneReviewFlow:
             and any(r['decision'] == 'include' for r in self.scene_session.rows))
         selected = self.scene_panel.selected_row()
         self.scene_panel.confirm_button.setEnabled(ready and reviewed and bool(selected
-            and selected['item_candidates'] and self.scene_session.applied_edition))
+            and selected['item_candidates'] and self.scene_session.applied_edition
+            and self.scene_session.type_basis in ('operator', 'test_record')))
+        self.scene_panel.revert_button.setEnabled(ready and self.scene_panel.can_revert())
         contact_ready = ready and self.scene_panel.can_set_intended_contact()
         self.scene_panel.intended_combo.setEnabled(contact_ready)
         self.scene_panel.set_intended_button.setEnabled(contact_ready)
-        self.save_slice_button.setEnabled(ready and (self.scene_session is None
-            or (reviewed and selected is not None and selected['decision'] == 'include')))
-        self.save_process_button.setEnabled(ready and (self.scene_session is None
-            or (reviewed and any(row['decision'] == 'include' for row in self.scene_session.rows))))
-        self.save_status_label.setText('Save correction first' if self.marker_review_dirty else
-                                       'Review running' if marker_busy else '')
+        current_count, current_reason = self._scene_save_gate()
+        included_count, included_reason = self._scene_save_gate(batch=True)
+        self.save_slice_button.setEnabled(not current_reason)
+        self.scene_panel.save_all_button.setEnabled(self.scene_session is not None and not included_reason)
+        self.save_process_button.setEnabled(not (included_reason if self.scene_session else current_reason))
+        self.save_slice_button.setText(f'Save current ({current_count})...' if self.scene_session is not None else 'Save slice...')
+        self.scene_panel.save_all_button.setText(f'Save included ({included_count})...')
+        for button, reason in ((self.save_slice_button, current_reason), (self.scene_panel.save_all_button, included_reason),
+                               (self.save_process_button, included_reason if self.scene_session else current_reason)):
+            button.setToolTip(reason)
+        reasons = list(dict.fromkeys(reason for reason in (current_reason, included_reason if self.scene_session else '') if reason))
+        self.save_status_label.setText(' / '.join(reasons) or self._scene_save_feedback)
         self.save_status_label.setVisible(bool(self.save_status_label.text()))
         self.load_csv_button.setEnabled(not busy)
         self.review_marker_flips_button.setEnabled(loaded and not busy and self._confirmed_dimensions is not None)
@@ -125,11 +155,123 @@ class SceneReviewFlow:
         self.slice_group.setEnabled(not busy)
         self.save_corrected_source_button.setEnabled(loaded and not busy and self.marker_review_dirty and review_valid)
 
+    def _scene_save_gate(self, *, batch=False, verify_source=False):
+        session = self.scene_session
+        row = self.scene_panel.selected_row()
+        count = (sum(r['decision'] == 'include' for r in session.rows) if batch else
+                 int(row is not None and row['decision'] == 'include')) if session is not None else 1
+        reason = ''
+        if self.raw_data is None or self.parsed_data is None:
+            count, reason = 0, 'Open capture first'
+        elif self.scene_busy or (self.scene_worker is not None and self.scene_worker.isRunning()):
+            reason = 'Detection running'
+        elif self.marker_review_busy or (self.review_worker is not None and self.review_worker.isRunning()):
+            reason = 'Review running'
+        elif self.marker_review_dirty:
+            reason = 'Save correction first'
+        elif self._review_invalidated:
+            reason = 'Review source and dimensions'
+        elif self._scene_source_blocked:
+            reason = self._scene_source_blocked
+        else:
+            try:
+                dims = self._read_box_dimensions()
+                declared = normalize_metadata((self.header_info or {}).get('artifact_metadata'))
+                declared_dims = [declared[key] for key in ('BoxLengthMm', 'BoxWidthMm', 'BoxHeightMm')]
+                if self.scene_registration and dims != tuple(self.scene_registration.profile['box_dims_mm']):
+                    reason = 'Match registered dimensions'
+                elif any(value is not None and value != dim for value, dim in zip(declared_dims, dims)):
+                    reason = 'Match source dimensions'
+                elif self.correction_source_metadata and self.correction_source_metadata.schema_version == '3' and tuple(
+                        json.loads(self.correction_source_metadata.context_json)['box_dims_mm']) != dims:
+                    reason = 'Review source and dimensions'
+                elif session is not None:
+                    pending = sum(r['decision'] == 'unreviewed' for r in session.rows)
+                    if session.source_sha256 != self.active_source_sha256:
+                        reason = 'Reload capture'
+                    elif not session.rows:
+                        reason = 'No scenes'
+                    elif pending:
+                        reason = f'Review {pending} remaining'
+                    elif any(r['decision'] == 'include' and r['evidence_status'] == 'geometry_changed' for r in session.rows):
+                        reason = 'Re-detect changed geometry'
+                    elif not count:
+                        reason = 'No included scenes' if batch else 'Select included scene'
+                    elif not batch and self._get_slice_bounds() != (row['start'], row['end']):
+                        reason = 'Review edited range'
+                if not reason:
+                    times = self.parsed_data.index
+                    ranges = ([(r['start'], r['end']) for r in session.rows if r['decision'] == 'include']
+                              if batch and session is not None else [self._get_slice_bounds()])
+                    if any(not (np.isfinite([start, end]).all() and times[0] <= start <= end <= times[-1])
+                           for start, end in ranges):
+                        reason = 'Select range inside capture'
+            except (ValueError, TypeError, KeyError):
+                reason = 'Enter valid dimensions or range'
+        if not reason and verify_source:
+            try:
+                self._validate_scene_source()
+            except (ValueError, OSError) as exc:
+                reason = str(exc)
+        return count, reason
+
+    def _scene_save_request_key(self):
+        return (self._source_revision, self.source_path, self.active_source_sha256,
+                self._scene_detection_context(), (self.le_slice_start.text(), self.le_slice_end.text(),
+                    self.slice_group.isChecked()), self.scene_panel.selected_id(),
+                None if self.scene_session is None else (id(self.scene_session), self.scene_session.ista_type,
+                    self.scene_session.applied_edition, len(self.scene_session.history['entries'])))
+
+    def _scene_detection_context(self):
+        try:
+            dims = self._read_box_dimensions()
+        except ValueError:
+            dims = None
+        return (dims, self.scene_registration.fingerprint if self.scene_registration else None)
+
+    def _capture_scene_plot_view(self):
+        if self.parsed_data is None or self.parsed_data.empty:
+            return None
+        signal = self.combo_plot_axis.currentData()
+        unit = self._scene_plot_unit(signal)
+        value = dict(schema_version=1, plan_spec=PLAN_SPEC, status='valid',
+            source_sha256=self.active_source_sha256, signal=signal,
+            targets=list(self.current_selected_targets), time_basis='capture_seconds', units=unit,
+            capture_interval_s=[float(self.parsed_data.index[0]), float(self.parsed_data.index[-1])],
+            xlim=[float(v) for v in self.plot_manager.ax.get_xlim()],
+            ylim=[float(v) for v in self.plot_manager.ax.get_ylim()])
+        return validate_plot_view(value)
+
+    def _scene_plot_unit(self, signal):
+        if signal == 'Vertical speed (mm/s)':
+            return 'mm/s'
+        if signal == 'Relative rotation (deg)':
+            return 'deg'
+        declared = str((self.header_info or {}).get('export_metadata', {}).get('Length Units', '')).strip().lower()
+        return {'millimeters': 'mm', 'centimeters': 'cm', 'meters': 'm'}.get(declared, 'unit unknown')
+
+    def _restore_scene_plot_view(self, view):
+        if view is None or view['status'] != 'valid':
+            return
+        # A usable fallback signal/marker set must use its own y scale.
+        if (view['signal'] == self.combo_plot_axis.currentData()
+                and view['targets'] == self.current_selected_targets
+                and view['units'] == self._scene_plot_unit(view['signal'])):
+            self.plot_manager.restore_limits([(view['xlim'], view['ylim'])])
+            self.canvas.draw_idle()
+
     def _validate_scene_source(self):
         if self.marker_review_busy or self._review_invalidated:
             raise ValueError('Review the current source and dimensions before continuing.')
-        if not self.source_path or _sha256_file(self.source_path) != self.active_source_sha256:
+        try:
+            matches = bool(self.source_path and _sha256_file(self.source_path) == self.active_source_sha256)
+        except OSError:
+            matches = False
+        if not matches:
+            self._scene_source_blocked = 'Reload capture'
             raise ValueError('Capture changed on disk. Reload it before detection or saving.')
+        if self.scene_session is not None and self.scene_session.source_sha256 != self.active_source_sha256:
+            raise ValueError('Scene review belongs to another source. Reload capture.')
         if self.marker_review_dirty:
             raise ValueError('Save the corrected source before detecting or saving scenes.')
         if self.scene_registration and tuple(self.scene_registration.profile['box_dims_mm']) != self._read_box_dimensions():
@@ -179,9 +321,13 @@ class SceneReviewFlow:
             if self.scene_session is None:
                 self.scene_session = SceneReviewSession(result, self.active_source_sha256,
                     original_source_sha256=self.original_source_sha256)
+                self.scene_session.set_context(self.scene_panel.type_combo.currentText(),
+                    self.scene_panel.edition_combo.currentData(), type_basis='source_declaration'
+                    if self.scene_panel.type_combo.currentText() != 'Unknown' else 'unconfirmed')
             else:
                 self.scene_session.refresh(result)
             panel = self.scene_panel
+            self._scene_dimensions = self._read_box_dimensions()
             panel.session = self.scene_session
             self.scene_session.set_context(panel.type_combo.currentText(), panel.edition_combo.currentData())
             self._populate_scene_signals(result, selected)
@@ -223,11 +369,11 @@ class SceneReviewFlow:
         if worker is not self.scene_worker:
             return False
         current = (self._source_revision, self.source_path, self.active_source_sha256)
-        if worker.source_context == current:
+        if worker.source_context == current and worker.review_context == self._scene_detection_context():
             return True
         self._workspace_open_context = None
         self.scene_busy = False
-        self.append_log('[INFO] Source changed; previous detection result discarded.')
+        self.append_log('[INFO] Source or geometry changed; previous detection result discarded.')
         self._update_scene_gates()
         return False
 
@@ -241,11 +387,12 @@ class SceneReviewFlow:
                                                   'Scene review (*.scene-review.json)')
             if not path:
                 return
+            self._validate_scene_source()
             save_workspace(path, self.scene_session, self.source_path, self._read_box_dimensions(),
                            registration=self.scene_registration,
                            selected_id=self.scene_panel.selected_id(),
                            targets=self.current_selected_targets,
-                           signal=self.combo_plot_axis.currentData())
+                           signal=self.combo_plot_axis.currentData(), plot_view=self._capture_scene_plot_view())
             self.scene_panel.save_review_button.setToolTip(str(Path(path).resolve()))
             self.append_log(f'[INFO] Scene review saved: {path}')
         except Exception as exc:
@@ -305,6 +452,14 @@ class SceneReviewFlow:
             source_hash = _sha256_file(source)
             session, changed = restore_session(data, result, source_hash,
                 original_source_sha256=preview['marker_state'][4])
+            plot_view = data.get('plot_view')
+            if plot_view and plot_view['status'] == 'valid':
+                signal = plot_view['signal']
+                declared = str(preview['header_info'].get('export_metadata', {}).get('Length Units', '')).strip().lower()
+                unit = {'Vertical speed (mm/s)': 'mm/s', 'Relative rotation (deg)': 'deg'}.get(signal,
+                    {'millimeters': 'mm', 'centimeters': 'cm', 'meters': 'm'}.get(declared, 'unit unknown'))
+                if unit != plot_view['units']:
+                    raise ValueError('Saved plot units differ from the observed source.')
             # All reads and evidence checks finish before replacing active work.
             self._apply_csv_preview(source, preview, emit=False)
             self.scene_session, self.scene_registration = session, result.registration
@@ -312,6 +467,7 @@ class SceneReviewFlow:
             panel.session = session
             for edit, value in zip((self.le_box_l, self.le_box_w, self.le_box_h), data['box_dims_mm']):
                 edit.setText(str(value))
+            self._scene_dimensions = tuple(data['box_dims_mm'])
             for combo in (panel.type_combo, panel.edition_combo):
                 combo.blockSignals(True)
             try:
@@ -330,6 +486,7 @@ class SceneReviewFlow:
             self.selected_data_label.setText('Selected: ' + ', '.join(self.current_selected_targets))
             self._populate_scene_signals(result, data['view']['signal'])
             panel.refresh(data['view']['selected_id'])
+            self._restore_scene_plot_view(plot_view)
             self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
             self.append_log(f"[INFO] Scene review opened: {context['path']}")
             if changed:
@@ -422,6 +579,7 @@ class SceneReviewFlow:
     def _invalidate_scene_evidence(self, reason):
         if self.scene_session:
             for row in self.scene_session.rows:
+                self.scene_session.record_action('geometry_changed', row)
                 self.scene_session._remember_trial_review(row, reason)
                 if row['decision'] != 'unreviewed':
                     row.setdefault('previous_review', {'decision': row['decision'],
@@ -438,12 +596,15 @@ class SceneReviewFlow:
             self.scene_panel.refresh()
 
     def _scene_dimensions_changed(self):
-        if self.scene_registration:
+        if self.scene_session:
             try:
-                if self._read_box_dimensions() != tuple(self.scene_registration.profile['box_dims_mm']):
-                    self._invalidate_scene_evidence('geometry_changed')
+                dims = self._read_box_dimensions()
             except ValueError:
+                dims = None
+            if dims != self._scene_dimensions:
                 self._invalidate_scene_evidence('geometry_changed')
+                self._scene_dimensions = dims
+        self._update_scene_gates()
 
     def _select_scene(self, row):
         if row is None:
@@ -499,9 +660,13 @@ class SceneReviewFlow:
         return header, review_json
 
     def save_included_scenes(self):
-        if (not self.scene_session or not self.scene_session.all_reviewed
-                or not any(row['decision'] == 'include' for row in self.scene_session.rows)):
+        _, reason = self._scene_save_gate(batch=True, verify_source=True)
+        if not self.scene_session or reason:
+            if reason:
+                self.append_log('[INFO] ' + reason)
+            self._update_scene_gates()
             return []
+        request_key = self._scene_save_request_key()
         parent = QFileDialog.getExistingDirectory(self, 'Save included scenes', str(Path(self.source_path).parent))
         if not parent:
             return []
@@ -509,6 +674,11 @@ class SceneReviewFlow:
         selected = self.scene_panel.selected_row()
         selected_id = selected['id'] if selected else None
         try:
+            if request_key != self._scene_save_request_key():
+                raise ValueError('Capture or review changed while choosing save folder. Retry.')
+            _, reason = self._scene_save_gate(batch=True, verify_source=True)
+            if reason:
+                raise ValueError(reason)
             if self.marker_review_dirty or self.marker_review_busy or self.scene_busy:
                 raise ValueError('Finish and save marker review before saving scenes.')
             self._validate_scene_source()
@@ -536,8 +706,10 @@ class SceneReviewFlow:
             from src.utils.qt_sections import set_path_label
             set_path_label(self.slice_path_label, str(output))
             self.append_log(f'[INFO] Saved {len(written)} included scenes to {output}')
+            self._scene_save_feedback = f'Saved {len(written)} scenes'
             return [str(path.resolve()) for path in written]
         except Exception as exc:
+            self._scene_save_feedback = 'Save failed; retry available'
             self.append_log(f'[ERROR] Saved {len(written)} scenes before failure: {exc}')
             QMessageBox.warning(self, 'Scene save failed', str(exc))
             return []

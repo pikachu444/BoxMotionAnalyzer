@@ -16,7 +16,7 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
-from src.utils.qt_sections import CollapsibleSection, set_path_label
+from src.utils.qt_sections import CollapsibleSection, ElidedPathLabel, set_path_label
 from src.analysis.ui.widget_scene_review import SceneReviewWidget
 from src.analysis.ui.scene_review_flow import SceneReviewFlow
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
@@ -198,6 +198,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         plot_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.plot_manager = PlotManager(self.canvas, self.fig)
+        self.plot_manager.use_constrained_layout = True
+        self.canvas.mpl_connect('resize_event', self._fit_capture_plot_labels)
         self.plot_manager.ax.text(0.5, 0.5, "Load a CSV file to start.", ha='center', va='center')
         self.plot_manager.canvas.draw()
         top_splitter.addWidget(plot_container)
@@ -207,8 +209,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         right_panel_layout = QVBoxLayout()
         right_panel.setLayout(right_panel_layout)
         self.load_csv_button = QPushButton("Open capture...")
-        self.file_path_label = QLabel("No file selected.")
-        self.file_path_label.setWordWrap(True)
+        self.file_path_label = ElidedPathLabel("No file selected.")
         self.file_path_label.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
@@ -298,6 +299,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         h_controls_layout = QHBoxLayout(controls_widget)
         controls_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         controls_widget.setMinimumHeight(110)
+        controls_widget.setMaximumHeight(130)
 
         # Plot Options
         plot_options_group = QGroupBox("Plot Options")
@@ -372,6 +374,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.save_slice_button = QPushButton("Save slice...")
         self.save_slice_button.setEnabled(False)
         run_button_layout.addWidget(self.save_slice_button)
+        run_button_layout.addWidget(self.scene_panel.save_all_button)
         self.save_process_button = QPushButton('Save and Process')
         self.save_process_button.setEnabled(False)
         run_button_layout.addWidget(self.save_process_button)
@@ -946,6 +949,38 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         set_path_label(self.file_path_label, filepath)
 
     def update_plot(self):
+        key = (self._source_revision, self.combo_plot_axis.currentData(),
+               tuple(self.current_selected_targets))
+        previous_x = None
+        if self._plot_view_key is not None and self._plot_view_key[0] == key[0]:
+            previous_x = self.plot_manager.ax.get_xlim()
+            self._plot_views[self._plot_view_key] = (previous_x, self.plot_manager.ax.get_ylim())
+        self._draw_capture_plot()
+        if key in self._plot_views:
+            xlim, ylim = self._plot_views[key]
+            self.plot_manager.ax.set_xlim(xlim)
+            self.plot_manager.ax.set_ylim(ylim)
+        elif previous_x is not None:
+            self.plot_manager.ax.set_xlim(previous_x)
+        self._plot_view_key = key if self.parsed_data is not None else None
+        self._fit_capture_plot_labels()
+        self.canvas.draw_idle()
+
+    def _fit_capture_plot_labels(self, _event=None):
+        if not hasattr(self, 'combo_plot_axis') or not self.canvas.isVisible():
+            return
+        signal = self.combo_plot_axis.currentData()
+        compact = self.canvas.height() < 160
+        if signal == 'Vertical speed (mm/s)':
+            self.plot_manager.ax.set_ylabel('Speed\n(mm/s)' if compact else signal)
+        elif signal == 'Relative rotation (deg)':
+            self.plot_manager.ax.set_ylabel('Rotation\n(deg)' if compact else signal)
+        legend = self.plot_manager.ax.get_legend()
+        if legend is not None:
+            legend.set_visible(not (compact and self.scene_session is not None
+                                   and signal in self.scene_session.result.signals))
+
+    def _draw_capture_plot(self):
         self.combo_plot_axis.setToolTip('')
         df = self.parsed_data
         if df is None or df.empty:
@@ -1077,9 +1112,10 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         config_app.BOX_DIMS = [length, width, height]
 
     def _save_slice(self) -> bool:
-        if self.marker_review_busy or self._review_invalidated:
-            return False
-        if self.raw_data is None or self.parsed_data is None:
+        _, reason = self._scene_save_gate(verify_source=True)
+        if reason:
+            self.append_log(f'[ERROR] Cannot save current scene: {reason}')
+            self._update_scene_gates()
             return False
 
         try:
@@ -1094,6 +1130,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             scene_header, scene_review_json = self._scene_slice_context()
             scene_name = self.le_scene_name.text().strip() or "scene"
             default_name = build_slice_default_name(self.source_path or "", scene_name=scene_name)
+            request_key = self._scene_save_request_key()
             filepath, _ = QFileDialog.getSaveFileName(
                 self,
                 "Save Scene Slice",
@@ -1102,6 +1139,11 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             )
             if not filepath:
                 return False
+            if request_key != self._scene_save_request_key():
+                raise ValueError('Review changed while choosing a file; retry saving.')
+            _, reason = self._scene_save_gate(verify_source=True)
+            if reason:
+                raise ValueError(reason)
 
             metadata = save_slice_file(
                 filepath=filepath,
@@ -1127,10 +1169,14 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 f"padded={metadata.padded_start:.3f}s~{metadata.padded_end:.3f}s)"
             )
             self.slice_saved.emit(filepath)
+            self._scene_save_feedback = 'Saved current scene'
             return True
         except Exception as e:
+            self._scene_save_feedback = 'Save failed; retry'
             self.append_log(f"[ERROR] Failed to save scene slice: {e}")
             return False
+        finally:
+            self._update_scene_gates()
 
     def save_scene_slice(self):
         self._save_slice()

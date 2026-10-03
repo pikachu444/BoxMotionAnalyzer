@@ -17,6 +17,8 @@ from src.analysis.pipeline.support_cycles import analyze_support_cycle
 from src.analysis.pipeline.scene_trial_record import (validate_trial_record, validate_binding,
     associate, observe_trial, record_reference, validate_record_confirmation, ITEM_KINDS)
 from src.config.config_app import FACE_DEFINITIONS
+from .scene_workflow_state import (PLAN_SPEC, SCHEMA_VERSION, TYPE_BASES, contract,
+                                   empty_history, validate_history, finite)
 
 
 REFERENCE_EDITION = '2018-03'
@@ -61,9 +63,18 @@ def validate_scene_review_json(value, *, start=None, end=None):
     if value is None or value == '':
         return ''
     data = json.loads(value) if isinstance(value, str) else deepcopy(value)
-    if not isinstance(data, dict) or data.get('version') != 1:
+    if not isinstance(data, dict) or type(data.get('version')) is not int or data['version'] != 1:
         raise ValueError('Unsupported scene review metadata.')
+    workflow_contract = contract(data)
+    if workflow_contract:
+        validate_history(data.get('history'))
+        if data.get('type_basis') not in TYPE_BASES:
+            raise ValueError('Invalid scene Type basis.')
+        if any(entry['source_sha256'] != data.get('source_sha256') for entry in data['history']['entries']):
+            raise ValueError('Scene history belongs to another source.')
     candidate = data['candidate']
+    if workflow_contract and not (finite(candidate['start']) and finite(candidate['end'])):
+        raise ValueError('Reviewed scene bounds must be finite capture seconds.')
     a, b = float(candidate['start']), float(candidate['end'])
     if not (math.isfinite(a) and math.isfinite(b) and a <= b):
         raise ValueError('Invalid reviewed scene range.')
@@ -75,11 +86,15 @@ def validate_scene_review_json(value, *, start=None, end=None):
         raise ValueError('Scene review and slice ranges do not match.')
     if not isinstance(data.get('source_sha256'), str) or len(data['source_sha256']) != 64:
         raise ValueError('Scene review needs the capture SHA-256.')
+    if workflow_contract and any(c not in '0123456789abcdef' for c in data['source_sha256']):
+        raise ValueError('Invalid scene review source SHA-256.')
     identity = data['identity']
     if identity.get('ista_type') not in ('Unknown', 'G', 'H'):
         raise ValueError('Invalid scene Type.')
     if not isinstance(identity.get('confirmed'), bool):
         raise ValueError('Invalid scene identity confirmation.')
+    if workflow_contract and identity['confirmed'] and data['type_basis'] not in ('operator', 'test_record'):
+        raise ValueError('Confirmed identity needs an explicit Type basis.')
     if identity['confirmed'] and (not identity.get('scenario_id') or not identity.get('scenario_kind')
                                   or identity['ista_type'] == 'Unknown' or not identity.get('applied_edition')):
         raise ValueError('Confirmed identity needs Type, item, kind and applied edition.')
@@ -157,6 +172,19 @@ class SceneReviewSession:
         self.rows = [self._row(c) for c in result.candidates]
         self.deleted_ids = set()
         self.manual_serial = 0
+        self.type_basis = 'unconfirmed'
+        self.history = empty_history()
+
+    def record_action(self, action, row):
+        snapshot = {key: deepcopy(row[key]) for key in ('id', 'start', 'end', 'decision', 'identity')}
+        snapshot.update(time_basis='capture_seconds', boundary_policy='inclusive-gui-seconds')
+        for key in ('intended_contact', 'record_evidence'):
+            if key in row:
+                snapshot[key] = deepcopy(row[key])
+        self.history['entries'].append(dict(serial=len(self.history['entries'])+1, action=action,
+            source_sha256=self.source_sha256, snapshot=snapshot,
+            context=dict(ista_type=self.ista_type, applied_edition=self.applied_edition,
+                         type_basis=self.type_basis)))
 
     def _row(self, candidate):
         row = asdict(candidate)
@@ -203,14 +231,20 @@ class SceneReviewSession:
         if record == self.trial_record:
             return
         for row in self.rows:
+            self.record_action('test_record_changed', row)
             self._remember_trial_review(row, 'test_record_changed')
         old_context = self.ista_type, self.applied_edition
         self.trial_record = record
         if record:
             if self.ista_type == 'Unknown':
                 self.ista_type = record['ista_type']
+                self.type_basis = 'test_record' if self.ista_type != 'Unknown' else 'unconfirmed'
+            elif record['ista_type'] == self.ista_type and self.type_basis != 'operator':
+                self.type_basis = 'test_record'
             if self.applied_edition is None:
                 self.applied_edition = record['applied_edition']
+        elif self.type_basis == 'test_record':
+            self.type_basis = 'unconfirmed'
         for row in self.rows:
             if old_context != (self.ista_type, self.applied_edition):
                 row.pop('intended_contact', None)
@@ -221,15 +255,25 @@ class SceneReviewSession:
             for row in self.rows:
                 self._identify_row(row, preserve_confirmation=True)
 
-    def set_context(self, ista_type, applied_edition):
+    def set_context(self, ista_type, applied_edition, *, type_basis=None):
+        if ista_type not in ('Unknown', 'G', 'H'):
+            raise ValueError('Invalid scene Type.')
+        basis = type_basis if type_basis is not None else (
+            'unconfirmed' if ista_type == 'Unknown' else 'operator' if ista_type != self.ista_type else self.type_basis)
+        if basis not in TYPE_BASES:
+            raise ValueError('Invalid scene Type basis.')
         applied_edition = applied_edition or None
-        if (ista_type, applied_edition) == (self.ista_type, self.applied_edition):
+        if (ista_type, applied_edition, basis) == (self.ista_type, self.applied_edition, self.type_basis):
             return
-        self.ista_type, self.applied_edition = ista_type, applied_edition
+        contact_context_changed = (ista_type, applied_edition) != (self.ista_type, self.applied_edition)
         for row in self.rows:
+            self.record_action('test_context_changed', row)
             self._remember_trial_review(row, 'test_context_changed')
+        self.ista_type, self.applied_edition, self.type_basis = ista_type, applied_edition, basis
+        for row in self.rows:
             self._reset_identity(row)
-            row.pop('intended_contact', None)
+            if contact_context_changed:
+                row.pop('intended_contact', None)
         self._refresh_trial_links()
 
     def set_decision(self, row_id, decision):
@@ -237,6 +281,7 @@ class SceneReviewSession:
             raise ValueError('Invalid scene review decision.')
         row = self.row(row_id)
         if row['decision'] != decision:
+            self.record_action('decision', row)
             self._remember_trial_review(row, 'review_decision_changed')
             row['decision'] = decision
             if self.trial_record is None:
@@ -249,6 +294,7 @@ class SceneReviewSession:
         """Record operator intent independently of motion or item candidates."""
         row = self.row(row_id)
         if faces is None:
+            self.record_action('intended_contact', row)
             row.pop('intended_contact', None)
             return None
         if row['decision'] != 'include' or row['evidence_status'] != 'current':
@@ -262,10 +308,11 @@ class SceneReviewSession:
             'registration_sha256': registration.fingerprint,
             'ista_type': self.ista_type, 'applied_edition': self.applied_edition,
         }, registration.fingerprint, self.ista_type, self.applied_edition)
+        self.record_action('intended_contact', row)
         row['intended_contact'] = record
         return deepcopy(record)
 
-    def set_range(self, row_id, start, end):
+    def set_range(self, row_id, start, end, *, action='range_edit'):
         start, end = float(start), float(end)
         times = self.result.signals.index
         if not (math.isfinite(start) and math.isfinite(end) and times[0] <= start <= end <= times[-1]):
@@ -273,6 +320,7 @@ class SceneReviewSession:
         row = self.row(row_id)
         if (start, end) == (row['start'], row['end']):
             return
+        self.record_action(action, row)
         self._remember_trial_review(row, 'reviewed_range_changed')
         row.update(start=start, end=end, decision='unreviewed', evidence_status='range_changed', evidence_mode='range')
         if self.trial_record is None:
@@ -286,21 +334,34 @@ class SceneReviewSession:
         self._refresh_trial_links()
 
     def add_range(self, start, end):
+        start, end = float(start), float(end)
+        times = self.result.signals.index
+        if not len(times) or not (math.isfinite(start) and math.isfinite(end) and times[0] <= start <= end <= times[-1]):
+            raise ValueError('Select a finite range inside the capture.')
         self.manual_serial += 1
-        row = deepcopy(self.rows[0]) if self.rows else self._row(self.result.candidates[0])
+        row = self._row(SceneCandidate(f'manual_{self.manual_serial:03d}', start, end, 'unclear', 'unclear'))
         row.update(id=f'manual_{self.manual_serial:03d}', auto_start=None, auto_end=None,
-                   origin='manual', start=float('nan'), end=float('nan'), tags=[],
+                   origin='manual', tags=[], evidence_status='range_changed', evidence_mode='range',
                    evidence_class='unclear', motion='unclear', rotation_deg=None,
                    displacement_mm=None, gravity_episodes=[])
+        row['identity'] = empty_identity(self.ista_type, self.applied_edition)
+        row['motion_geometry'] = {'version': 1, 'status': 'range_changed'}
+        row['support_cycle'] = {'version': 1, 'status': 'range_changed'}
         self.rows.append(row)
-        try:
-            self.set_range(row['id'], start, end)
-        except Exception:
-            self.rows.remove(row)
-            raise
+        self.record_action('add', row)
+        self._refresh_trial_links()
         return row['id']
 
+    def revert_detected_range(self, row_id):
+        row = self.row(row_id)
+        if row['origin'] != 'automatic' or row['auto_start'] is None or row['auto_end'] is None:
+            raise ValueError('Manual scenes have no detected range to restore.')
+        self.set_range(row_id, row['auto_start'], row['auto_end'], action='revert_detected_range')
+        self._recompute_range(row)
+        self._refresh_trial_links()
+
     def remove(self, row_id):
+        self.record_action('remove', self.row(row_id))
         self.deleted_ids.add(row_id)
         self.rows = [r for r in self.rows if r['id'] != row_id]
         self._refresh_trial_links()
@@ -316,6 +377,7 @@ class SceneReviewSession:
         self.result = result
         for row in self.rows:
             if not same_context or version_changed:
+                self.record_action('detection_context_changed', row)
                 self._remember_trial_review(row, 'detection_context_changed')
                 if version_changed:
                     row['previous_review'] = previous_review_snapshot(row, ['detection_version_changed'], self.trial_record)
@@ -441,12 +503,15 @@ class SceneReviewSession:
         return row
 
     def confirm_item(self, row_id, item):
+        if self.type_basis not in ('operator', 'test_record'):
+            raise ValueError('Confirm Type against the test record before confirming an item.')
         self._refresh_trial_links()
         row = self.row(row_id)
         if not self.all_reviewed or row['decision'] != 'include' or item not in row['item_candidates']:
             raise ValueError('Identify an included interval before confirming its item.')
         if self.applied_edition != REFERENCE_EDITION:
             raise ValueError('This catalogue covers the 2018-03 edition. Verify the test record first.')
+        self.record_action('confirm_item', row)
         row['identity'].update(scenario_id=item, scenario_kind=ITEM_KINDS.get(item, 'free_fall'), confirmed=True)
         if self.trial_record is not None:
             if not row['record_evidence']['confirmation_supported']:
@@ -461,6 +526,8 @@ class SceneReviewSession:
         reg = self.result.registration
         data = {
             'version': 1, 'source_sha256': self.source_sha256, 'candidate': row, 'identity': identity,
+            'schema_version': SCHEMA_VERSION, 'plan_spec': PLAN_SPEC,
+            'history': deepcopy(self.history), 'type_basis': self.type_basis,
             'detection': {'version': getattr(self.result, 'version', VERSION), 'settings': asdict(self.result.settings),
                           'registration_sha256': reg.fingerprint if reg else None,
                           'registration': asdict(reg) if reg else None,

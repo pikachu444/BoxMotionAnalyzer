@@ -1,6 +1,8 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-10-02
+Last Reviewed: 2026-10-04
+
+#137 extends the existing scene/workspace flow after FHD mockup approval. Selection and edits retain scoped pan/zoom; source-bound workspaces save the current viewport. Revert restores detected bounds for renewed review. Save current/included counts use the same gate as actual writes; Type basis and edit/decision history persist. Automatic and pending native evidence are recorded in [PUB04 delivery](../../visualization/scene_review_workflow_137.md).
 
 #136의 플립 검토창은 폭 1100 logical px 미만에서 원본/축 미리보기 탭을,
 넓은 창에서는 두 그래프를 나란히 표시한다. 그래프와 pan/zoom 범위·사건별

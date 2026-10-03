@@ -1,0 +1,2546 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "kind": "scene-review-production-render",
+  "code_head": "3a38b496ce2dedd2570479c8a77fef03d78961aa",
+  "working_tree": "modified",
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "matplotlib": "3.10.7",
+    "qt_platform": "windows",
+    "dpr": 1.0,
+    "target_available": [
+      2560,
+      1392
+    ]
+  },
+  "input": {
+    "source_kind": "public-handcrafted-synthetic",
+    "raw_sha256": "fc61614f75c66fc3f98d88cd232fec7c62aaf0281eae1e39f7d002794652c2e5",
+    "path": "tmp\\issue137\\final-production\\input-1791039522251325000\\observations\\public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_.csv",
+    "rows": 601,
+    "time_basis": "capture_seconds",
+    "units": "mm",
+    "expected_capture_interval_s": [
+      0.0,
+      12.0
+    ],
+    "independent_ui_ranges": "0.10+0.5i through 0.35+0.5i inclusive capture seconds"
+  },
+  "mockup_approval": "User approved FHD/minimum mockups on 2026-10-03 before production UI edits.",
+  "states": [
+    {
+      "state": "empty",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            245,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            409,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            409,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            245,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            20
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            471,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            496,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": null,
+      "current_gate": [
+        0,
+        "No scenes"
+      ],
+      "included_gate": [
+        0,
+        "No scenes"
+      ],
+      "range_text": "No scene selected",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        130
+      ],
+      "screenshot": "820x600-empty.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "one",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            245,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            409,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            409,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            245,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            477,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            509,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        1,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        130
+      ],
+      "screenshot": "820x600-one.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "many",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            245,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            409,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            409,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            245,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            477,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            509,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        2,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        130
+      ],
+      "screenshot": "820x600-many.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "edited",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            245,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            409,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            409,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            465,
+            245,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            20
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (1)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            471,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            496,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        0,
+        "Review 1 remaining"
+      ],
+      "included_gate": [
+        1,
+        "Review 1 remaining"
+      ],
+      "range_text": "Edited: 0.14\u20130.3 s    Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        130
+      ],
+      "screenshot": "820x600-edited.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "manual",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            245,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            409,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            409,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            245,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            20
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            471,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            496,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "manual_001",
+      "current_gate": [
+        0,
+        "Review 1 remaining"
+      ],
+      "included_gate": [
+        0,
+        "Review 1 remaining"
+      ],
+      "range_text": "Manual: 0.14\u20130.3 s    No detected range",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        130
+      ],
+      "screenshot": "820x600-manual.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "blocked",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            245,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            409,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            409,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            465,
+            245,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            20
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            471,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            496,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        0,
+        "Review 4 remaining"
+      ],
+      "included_gate": [
+        0,
+        "Review 4 remaining"
+      ],
+      "range_text": "Edited: 0.14\u20130.3 s    Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        130
+      ],
+      "screenshot": "820x600-blocked.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "loading",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Cancel detection",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            245,
+            106,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": false,
+          "visible": false,
+          "rect": [
+            31,
+            409,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            409,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            481,
+            245,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            20
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            471,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            658,
+            496,
+            120,
+            19
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        "Detection running"
+      ],
+      "included_gate": [
+        2,
+        "Detection running"
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        130
+      ],
+      "screenshot": "820x600-loading.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "error",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            245,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            409,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            409,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            245,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            477,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            509,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        2,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        130
+      ],
+      "screenshot": "820x600-error.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "details",
+      "requested_size": [
+        820,
+        600
+      ],
+      "actual_size": [
+        820,
+        600
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            203,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            377,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            351,
+            756,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            203,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            445,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            477,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            658,
+            509,
+            120,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        2,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Operator selection",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        573,
+        88
+      ],
+      "screenshot": "820x600-details.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "empty",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            645,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            869,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            869,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            645,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            905,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            937,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            969,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": null,
+      "current_gate": [
+        0,
+        "No scenes"
+      ],
+      "included_gate": [
+        0,
+        "No scenes"
+      ],
+      "range_text": "No scene selected",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        530
+      ],
+      "screenshot": "1920x1080-empty.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "one",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            645,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            869,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            869,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            645,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            910,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            947,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            984,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        1,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        530
+      ],
+      "screenshot": "1920x1080-one.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "many",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            645,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            869,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            869,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            645,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            910,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            947,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            984,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        2,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        530
+      ],
+      "screenshot": "1920x1080-many.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "edited",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            645,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            869,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            869,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            465,
+            645,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            905,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (1)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            937,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            969,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        0,
+        "Review 1 remaining"
+      ],
+      "included_gate": [
+        1,
+        "Review 1 remaining"
+      ],
+      "range_text": "Edited: 0.14\u20130.3 s    Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        530
+      ],
+      "screenshot": "1920x1080-edited.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "manual",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            645,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            869,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            869,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            645,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            905,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            937,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            969,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "manual_001",
+      "current_gate": [
+        0,
+        "Review 1 remaining"
+      ],
+      "included_gate": [
+        0,
+        "Review 1 remaining"
+      ],
+      "range_text": "Manual: 0.14\u20130.3 s    No detected range",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        530
+      ],
+      "screenshot": "1920x1080-manual.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "blocked",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            645,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            869,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            869,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            465,
+            645,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            905,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (0)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            937,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            969,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        0,
+        "Review 4 remaining"
+      ],
+      "included_gate": [
+        0,
+        "Review 4 remaining"
+      ],
+      "range_text": "Edited: 0.14\u20130.3 s    Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        530
+      ],
+      "screenshot": "1920x1080-blocked.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "loading",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Cancel detection",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            645,
+            106,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": false,
+          "visible": false,
+          "rect": [
+            31,
+            869,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            869,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            481,
+            645,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            905,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            937,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            1575,
+            969,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        "Detection running"
+      ],
+      "included_gate": [
+        2,
+        "Detection running"
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        530
+      ],
+      "screenshot": "1920x1080-loading.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "error",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            645,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": false,
+          "rect": [
+            31,
+            869,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            869,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            645,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            910,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            947,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            984,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        2,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Unconfirmed",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        530
+      ],
+      "screenshot": "1920x1080-error.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "details",
+      "requested_size": [
+        1920,
+        1080
+      ],
+      "actual_size": [
+        1920,
+        1080
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            571,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            761,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            735,
+            1856,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            571,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            910,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            947,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            1575,
+            984,
+            303,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        2,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Operator selection",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1412,
+        456
+      ],
+      "screenshot": "1920x1080-details.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    },
+    {
+      "state": "details",
+      "requested_size": [
+        2560,
+        1392
+      ],
+      "actual_size": [
+        2560,
+        1392
+      ],
+      "buttons": {
+        "detect": {
+          "text": "Detect scenes",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            863,
+            90,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "open_review": {
+          "text": "Open review...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            1073,
+            92,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true,
+          "disclosure": "Details"
+        },
+        "details": {
+          "text": "Details",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            31,
+            1047,
+            2496,
+            22
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "revert": {
+          "text": "Revert detected range",
+          "enabled": false,
+          "visible": true,
+          "rect": [
+            465,
+            863,
+            133,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_current": {
+          "text": "Save current (1)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            2108,
+            1222,
+            410,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "save_included": {
+          "text": "Save included (2)...",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            2108,
+            1259,
+            410,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        },
+        "process": {
+          "text": "Save and Process",
+          "enabled": true,
+          "visible": true,
+          "rect": [
+            2108,
+            1296,
+            410,
+            26
+          ],
+          "inside_window": true,
+          "sufficient_width": true
+        }
+      },
+      "signal": "Vertical speed (mm/s)",
+      "selected_id": "scene_001",
+      "current_gate": [
+        1,
+        ""
+      ],
+      "included_gate": [
+        2,
+        ""
+      ],
+      "range_text": "Detected: 0.1\u20130.35 s",
+      "type_basis": "Type basis: Operator selection",
+      "xlim": [
+        0.0,
+        3.0
+      ],
+      "ylim": [
+        -100.0,
+        100.0
+      ],
+      "plot_canvas_size": [
+        1900,
+        748
+      ],
+      "screenshot": "2560x1392-details.png",
+      "result": "pass",
+      "evidence_kind": "production-widget-render"
+    }
+  ],
+  "result": "pass",
+  "native_status": "not-executed",
+  "measured_calibration": "#104 separate, not assessed"
+}

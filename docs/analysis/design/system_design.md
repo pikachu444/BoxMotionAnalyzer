@@ -1,6 +1,8 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-10-02
+Last Reviewed: 2026-10-04
+
+#137 extends flow/session/workspace with detected/edited bounds, source-bound history and explicit Type basis. Workspace and SceneReview envelopes add schema_version 2 and ISTA6A-PLAN-20261001-v1; nested history/plot_view use schema_version 1. UI and writes share a save gate; viewports are scoped to source/signal/targets. Worker callbacks validate source revision/hash and geometry context. [Implementation and verification](../../visualization/scene_review_workflow_137.md) keep native acceptance distinct. #113 registration integration is excluded by user decision; existing source identity remains validated.
 
 #136의 `MarkerFlipReviewDialog`는 폭에 따라 기존 panel을 탭 또는 병렬 배치로
 옮긴다. layout 변경은 source snapshot·axes·navigation·승인을 다시 만들지 않는다.
