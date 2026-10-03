@@ -4,8 +4,9 @@ Last Reviewed: 2026-10-04
 
 Plan Spec: ISTA6A-PLAN-20261001-v1. Parent: #134.
 Status: approved production implementation and automatic checks are available.
-Independent review found no P0/P1; two P2 corrections are being rechecked.
-PR #148 publication/required CI are pending. Native visual/external input acceptance
+Independent review found no P0/P1; both P2 corrections passed the same reviewer's
+recheck, with no outstanding findings.
+Publication and required CI are tracked in PR #148. Native visual/external input acceptance
 is not executed because window capture/activation failed; #137 remains open.
 
 ## Starting state and scope
@@ -254,10 +255,12 @@ Correction commands (same Windows/Python environment as above):
 - `python -m pytest -q tests/test_processing_window_layout.py tests/test_scene_workflow_state.py tests/test_scene_artifact_io.py --junitxml=tmp/issue137/review-fixes.xml`: 41 passed, including nine independent unit expectations/mismatch negatives and unrecorded operator slice-to-proc history.
 - `python -m pytest -q tests/test_scene_signal_gui.py tests/test_scene_workflow_gui.py tests/test_slice_dimension_provenance_gui.py --junitxml=tmp/issue137/review-gui-fixes.xml`: 32 passed, one new test failed because an unregistered synthetic COM correctly leaves rotation bound unavailable; no production defect. The independent fixture now explicitly declares COM at the box centre.
 - `python -m pytest -q tests/test_scene_signal_gui.py::test_all_observed_derived_views_save_and_reopen_with_declared_units --junitxml=tmp/issue137/review-all-signals.xml`: passed; all nine observed derived signals save/reopen their declared units and expected independent x/y limits.
+- Exact clean corrected commit `be9fd42b26d120741318c1af1c9a178c897d3884`: `python -m pytest -q tests/test_processing_window_layout.py tests/test_scene_workflow_state.py tests/test_scene_artifact_io.py tests/test_scene_signal_gui.py::test_all_observed_derived_views_save_and_reopen_with_declared_units --junitxml=tmp/issue137/corrected-head.xml`: 42 passed, 98.81 s. Production renderer with `--output tmp/issue137/corrected-head-render`: 19 states passed. The committed final screens/manifest are from that clean code head and retain the exact input SHA and environment.
 
 [PR #148](https://github.com/pikachu444/BoxMotionAnalyzer/pull/148) contains the
-English/Korean change and execution summary. Correction recheck and required CI
-must pass before merging; final publication status is available on that PR.
+English/Korean change and execution summary. Independent recheck is complete;
+required CI must pass before merging. Final publication status and the check
+run tied to the published head are available on that PR.
 Native acceptance is the remaining issue follow-up below.
 
 ## Native limitation and remaining acceptance

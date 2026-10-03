@@ -34,4 +34,23 @@ The 98-test clean candidate run, 19 renders and #135 fresh coverage matched
 the supplied evidence. Native visual/external-input acceptance remains
 unexecuted; keep #137 open, #104 separate and #113/#138 onward out of scope.
 
-Same-reviewer correction recheck: pending. No P2 is deferred.
+## Same-reviewer correction recheck
+
+Reviewed `be9fd42b26d120741318c1af1c9a178c897d3884`: both P2 findings
+resolved; no new P0/P1/P2. Read-only in-memory checks confirmed all nine units
+and mismatch rejection. Prior identity/history preservation, repeated geometry
+changes and slice-to-proc tests address the second finding. The CI path test
+preserves full identity while permitting elision. Declaring synthetic COM fixes
+the test availability assumption without production behavior changes.
+
+Recorded 41-pass/32-pass-1-fail/corrected-nine-signal-replay results agreed with
+the report. Final clean corrected-head command additionally passed 42 checks
+(`tmp/issue137/corrected-head.xml`), and 19 renders passed with exact code head,
+environment/Raw identity in [execution.json](final/execution.json). Required CI
+must pass before merging. Native remains unexecuted. No P2 is deferred.
+
+The same reviewer verified the final exact-head records: 42 passed with zero
+failures/errors/skips and 19/19 render states with matching code/environment/Raw
+SHA. Updated FHD edited/Details and 820x600 Details remain consistent with the
+reviewed layout. Local regression/render publication gates are met; required CI
+is still the merge gate. No new findings; native follow-up keeps #137 open.

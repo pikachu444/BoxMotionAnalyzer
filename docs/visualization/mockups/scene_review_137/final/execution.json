@@ -2,8 +2,8 @@
   "schema_version": 1,
   "plan_spec": "ISTA6A-PLAN-20261001-v1",
   "kind": "scene-review-production-render",
-  "code_head": "3a38b496ce2dedd2570479c8a77fef03d78961aa",
-  "working_tree": "modified",
+  "code_head": "be9fd42b26d120741318c1af1c9a178c897d3884",
+  "working_tree": "clean",
   "environment": {
     "platform": "Windows-11-10.0.26200-SP0",
     "python": "3.13.5",
@@ -19,7 +19,7 @@
   "input": {
     "source_kind": "public-handcrafted-synthetic",
     "raw_sha256": "fc61614f75c66fc3f98d88cd232fec7c62aaf0281eae1e39f7d002794652c2e5",
-    "path": "tmp\\issue137\\final-production\\input-1791039522251325000\\observations\\public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_.csv",
+    "path": "tmp\\issue137\\corrected-head-render\\input-1791041476482162700\\observations\\public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_.csv",
     "rows": 601,
     "time_basis": "capture_seconds",
     "units": "mm",
