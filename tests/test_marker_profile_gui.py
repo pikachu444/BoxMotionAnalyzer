@@ -71,6 +71,10 @@ def test_draft_preview_reset_save_reopen_and_apply(app, factory, tmp_path, monke
 @pytest.mark.parametrize('size', [(1920,1080), (820,600)])
 def test_display_gestures_and_resize_preserve_profile_and_2d(app, size):
     dialog=MarkerProfileDialog(virtual_profile_32()); dialog.resize(*size); dialog.show(); settle(app)
+    assert QTest.qWaitForWindowExposed(dialog,2000)
+    # Windows can fit the initial decorated window to the desktop. As in the
+    # delivered #137 harness, request the exact logical client after exposure.
+    dialog.resize(*size); settle(app)
     assert (dialog.width(),dialog.height())==size
     snapshot=dialog.state.document(); axes=dialog.face_axes; labels=tuple(dialog.face_labels)
     scene=dialog.scene; start=scene.rect().center()

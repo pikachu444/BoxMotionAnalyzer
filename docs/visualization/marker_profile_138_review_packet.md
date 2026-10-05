@@ -279,3 +279,32 @@ the [unaltered final report](marker_profile_138_independent_review.md) binds the
 34 source hashes and records exact fresh/reused limits. Required clean-commit
 hosted CI still gates merge; no P2 is deferred. Final publication/CI status is
 recorded in the linked PR. This does not close #138's native follow-up.
+
+## Hosted client-size harness correction
+
+The reviewed production source was committed as
+`2b1a57d7200c89ef723b03506fd1666cda418459` with a clean tracked worktree and
+published in [PR149](https://github.com/pikachu444/BoxMotionAnalyzer/pull/149).
+The [first required CI run](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37388388560)
+passed57 core cases before the FHD gesture test failed: Windows initially fit
+the decorated client to1920×1061 on its1920×1080/DPR1 desktop; the test asserted
+1920×1080 before re-requesting the client after exposure. The dependent public
+summary correctly failed; it is not an additional product finding.
+
+Main added four test lines only: require exposure, then request the exact
+logical client again and settle. This follows delivered#137's existing harness
+and the already-reviewed PUB05 renderer. Strict client/state/button/gesture/2D
+oracles remain unchanged. No product, renderer, semantic/numerical contract,
+baseline, tolerance or user-visible UI changed. Fresh affected QTest passes:
+9 atDPR1 (67.54s),9 atDPR1.25 (42.83s). The unchanged renderer's60 original PNGs
+are reused, not relabeled fresh. These requested logical-client tests do not
+certify decorated-window physical-screen/native visibility.
+
+The [correction RunReport](mockups/marker_profile_138/production/ci_correction_snapshot.json)
+binds the current34 source hashes and sole changed test, original failure,
+exact expected/actual/difference, commands/JUnit, applicable fields and native
+exclusions. Its file SHA256 is
+`adf3b316c59dbcebc98696f12c49d36d6f84938d5a343e6897c47b53ee550815`.
+Same-reviewer [bounded recheck](marker_profile_138_ci_review.md) is APPROVE with
+no P0/P1/P2. It independently passed both requested sizes at both DPRs and
+confirmed all34 hashes unchanged. Clean-commit hosted rerun still gates merge.
