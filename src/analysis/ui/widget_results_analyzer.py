@@ -764,9 +764,15 @@ class WidgetResultsAnalyzer(QWidget):
         file_name = os.path.basename(file_path)
         try:
             candidate = self.data_loader.load_result_csv(file_path)
-        except Exception:
+            from src.utils.artifact_metadata import read_identity
+            from src.utils.marker_profile_identity import artifact_identity
+            identity = read_identity(candidate)
+            marker_identity = artifact_identity(identity.values)
+            if marker_identity is not None and identity.errors:
+                raise ValueError('; '.join(identity.errors))
+        except Exception as error:
             self._restore_active_file_selection()
-            self.log_message.emit('[ERROR] Could not read this result. Choose a saved .proc or result CSV file.')
+            self.log_message.emit(f'[ERROR] Could not read this result: {error}')
             return False
         try:
             candidate = self._prepare_result_data(candidate)
@@ -783,6 +789,8 @@ class WidgetResultsAnalyzer(QWidget):
             self.log_message.emit('[ERROR] Could not display this result. The previous result is still open.')
             return False
         self.log_message.emit(f'[INFO] Loaded {file_name}.')
+        if marker_identity is None:
+            self.log_message.emit('[INFO] Marker semantics unavailable. Individual viewing does not establish profile compatibility.')
         return True
 
     def _activate_result_data(self, candidate, file_path, *, preserve_selection=False):

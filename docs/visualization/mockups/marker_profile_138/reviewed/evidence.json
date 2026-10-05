@@ -1,0 +1,647 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ProfileReviewedMockupEvidence",
+  "utc": "2026-10-04T13:56:20.317754+00:00",
+  "run_id": "reviewed-20261004T135620Z",
+  "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/generate_reviewed_mockups.py"
+  ],
+  "source_sha256": "4ba7091207453dfca205ad62ff41805bc6a0a6d86ff4d2947005c43b85b9097c",
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "qt_platform": "windows",
+    "dpr": 1.0,
+    "windows_scale_percent": 100,
+    "qt_process_scale_percent": 100.0
+  },
+  "input": {
+    "profile_hashes": {
+      "18": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "32": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    },
+    "kind": "public-synthetic-static-geometry",
+    "seed": null,
+    "seed_reason": "Static geometry",
+    "tolerance": null,
+    "tolerance_reason": "Exact geometry invariance; not physical accuracy"
+  },
+  "states": [
+    {
+      "screenshot": "reviewed-18-1920x1080-both.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 4",
+        "Back 3",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 2",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "scroll_position": "both",
+      "selected": "B1",
+      "projected_box_pixels": [
+        340.5564951247252,
+        272.6
+      ],
+      "camera": [
+        20,
+        30
+      ],
+      "canvas3_logical": [
+        1409,
+        405
+      ],
+      "canvas2_logical": [
+        1409,
+        325
+      ],
+      "table_width": 478,
+      "row_height": 26
+    },
+    {
+      "screenshot": "reviewed-18-1280x960-both.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 4",
+        "Back 3",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 2",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "scroll_position": "both",
+      "selected": "B1",
+      "projected_box_pixels": [
+        263.050534165305,
+        210.56
+      ],
+      "camera": [
+        20,
+        30
+      ],
+      "canvas3_logical": [
+        770,
+        339
+      ],
+      "canvas2_logical": [
+        770,
+        271
+      ],
+      "table_width": 477,
+      "row_height": 26
+    },
+    {
+      "screenshot": "reviewed-18-820x600-top.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "scroll_position": "top",
+      "selected": "B1",
+      "projected_box_pixels": [
+        244.26121029635488,
+        195.52000000000007
+      ],
+      "camera": [
+        20,
+        30
+      ],
+      "canvas3_logical": [
+        780,
+        323
+      ],
+      "canvas2_logical": [
+        780,
+        313
+      ],
+      "table_width": 640,
+      "row_height": 26
+    },
+    {
+      "screenshot": "reviewed-18-820x600-bottom.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [
+        "Fit",
+        "Reset view"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "scroll_position": "bottom",
+      "selected": "B1",
+      "projected_box_pixels": [
+        244.26121029635488,
+        195.52000000000007
+      ],
+      "camera": [
+        20,
+        30
+      ],
+      "canvas3_logical": [
+        780,
+        323
+      ],
+      "canvas2_logical": [
+        780,
+        313
+      ],
+      "table_width": 640,
+      "row_height": 26
+    },
+    {
+      "screenshot": "reviewed-32-1920x1080-both.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 11",
+        "Back 12",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 0",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "scroll_position": "both",
+      "selected": "B1",
+      "projected_box_pixels": [
+        336.2553607778036,
+        272.6
+      ],
+      "camera": [
+        20,
+        30
+      ],
+      "canvas3_logical": [
+        1409,
+        405
+      ],
+      "canvas2_logical": [
+        1409,
+        325
+      ],
+      "table_width": 478,
+      "row_height": 26
+    },
+    {
+      "screenshot": "reviewed-overlap-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 11",
+        "Back 12",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 0",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "F3  Front",
+        "B2  Back",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "reviewed-last-row-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 11",
+        "Back 12",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 0",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "reviewed-32-1280x960-both.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 11",
+        "Back 12",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 0",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "scroll_position": "both",
+      "selected": "B1",
+      "projected_box_pixels": [
+        259.7282786697518,
+        210.56
+      ],
+      "camera": [
+        20,
+        30
+      ],
+      "canvas3_logical": [
+        770,
+        339
+      ],
+      "canvas2_logical": [
+        770,
+        271
+      ],
+      "table_width": 477,
+      "row_height": 26
+    },
+    {
+      "screenshot": "reviewed-32-820x600-top.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "scroll_position": "top",
+      "selected": "B1",
+      "projected_box_pixels": [
+        241.1762587647695,
+        195.51999999999998
+      ],
+      "camera": [
+        20,
+        30
+      ],
+      "canvas3_logical": [
+        780,
+        323
+      ],
+      "canvas2_logical": [
+        780,
+        313
+      ],
+      "table_width": 640,
+      "row_height": 26
+    },
+    {
+      "screenshot": "reviewed-32-820x600-bottom.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [
+        "Fit",
+        "Reset view"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "scroll_position": "bottom",
+      "selected": "B1",
+      "projected_box_pixels": [
+        241.1762587647695,
+        195.51999999999998
+      ],
+      "camera": [
+        20,
+        30
+      ],
+      "canvas3_logical": [
+        780,
+        323
+      ],
+      "canvas2_logical": [
+        780,
+        313
+      ],
+      "table_width": 640,
+      "row_height": 26
+    },
+    {
+      "screenshot": "reviewed-invalid-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 4",
+        "Back 3",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 2",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "reviewed-legacy-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 4",
+        "Back 3",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 2",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "reviewed-incompatible-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Front 4",
+        "Back 3",
+        "Right 3",
+        "Left 3",
+        "Top 3",
+        "Bottom 2",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    }
+  ],
+  "interaction": {
+    "status": "pass",
+    "kind": "prototype-QTest-only",
+    "oracle": "M2=[38,-60,-18]/BOTTOM n=[0,-1,0]; rename M2->M9 preserves row selection/camera; F1 21->22 Preview retains applied; Reset restores21; invalid blocks Apply"
+  },
+  "approval_status": "pending",
+  "production_changed": false,
+  "native_status": "not-executed-existing-capture-activation-failure",
+  "experimental_status": "unavailable",
+  "limitations": [
+    "Save/export/worker production contracts are not implemented in this prototype.",
+    "Fit/pick and snapshots demonstrate interaction; GUI acceptance requires user review and native follow-up.",
+    "Compatibility/error text is a UI fixture, not completed production compatibility verification."
+  ],
+  "prior_attempts": [
+    {
+      "status": "failed",
+      "boundary": "prototype-scroll-accessibility-check",
+      "diagnostic": "Inherited capture treated scrolled-away per-plot Fit controls as fixed actions.",
+      "correction": "Record scrolled plot controls separately; still require all fixed actions in view."
+    }
+  ]
+}

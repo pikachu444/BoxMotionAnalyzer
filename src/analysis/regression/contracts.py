@@ -58,8 +58,9 @@ def metric(value=None, status='valid', reason=''):
 
 
 def marker_semantics():
-    # Until #138 supplies its own semantic version, bind this runner to the
-    # existing meanings without changing/migrating any existing profile hash.
+    # Retain #135's historical partial digest for replay, without promoting it
+    # to complete semantics. New files also carry #138's explicit source-bound
+    # marker_profile_identity; missing artifact semantics stays unknown.
     from src.config.config_app import FACE_DEFINITIONS
     from src.simulation.marker_fixtures import FACE_NORMALS
     from src.analysis.pipeline.face_assignment import FACE_MAPS
@@ -208,6 +209,11 @@ def validate_fixture(fixture):
         previous = row
     if fixture['marker_semantics'] != marker_semantics():
         raise ValueError('Stale marker semantics; review #138 integration.')
+    if 'marker_profile_identity' in fixture:
+        from src.utils.marker_profile_identity import validate_identity
+        validate_identity(fixture['marker_profile_identity'])
+        if fixture['marker_profile_identity']['source_profile'] != fixture['marker_profile']:
+            raise ValueError('Stale replay profile semantic identity.')
 
 
 def canonical_pose(origin, rotations, velocity, omega_world, origin_to_center, origin_to_com):

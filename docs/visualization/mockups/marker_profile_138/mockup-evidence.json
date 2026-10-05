@@ -1,0 +1,739 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ProfileMockupEvidence",
+  "run_id": "profile-mockup-20261004T041523Z",
+  "utc": "2026-10-04T04:15:23.637336+00:00",
+  "generator_sha256": "bce589a57eb94e36cafd38ace6738684b60d4d363695521d0a3a744088c4701f",
+  "approval_status": "pending",
+  "code_commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "qt_platform": "windows",
+    "screen_logical": [
+      2560,
+      1440
+    ],
+    "target_available": [
+      2560,
+      1392
+    ],
+    "dpr": 1.0,
+    "effective_qt_scale_percent": 100.0,
+    "system_windows_scale_percent": 100,
+    "scale_basis": "Native Qt platform at OS 100%; separate process QT_SCALE_FACTOR=1 or 1.25. OS settings unchanged."
+  },
+  "input": {
+    "source_kind": "public-handcrafted-synthetic",
+    "seed": null,
+    "seed_reason": "Static geometry UI; no random observation generation.",
+    "hashes": {
+      "18": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "32": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    },
+    "independent_edit": {
+      "marker": "F1",
+      "before_xyz_mm": [
+        21,
+        12,
+        40
+      ],
+      "after_xyz_mm": [
+        22,
+        12,
+        40
+      ]
+    }
+  },
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/generate_mockups.py"
+  ],
+  "states": [
+    {
+      "screenshot": "1920x1080-existing.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Import JSON\u2026",
+        "Generate\u2026",
+        "Cancel",
+        "Open in Step 1"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "1920x1080-entry.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Import JSON\u2026",
+        "Copy\u2026",
+        "Edit\u2026",
+        "Generate\u2026",
+        "Cancel",
+        "Open in Step 1"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "1920x1080-copy.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "copy",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "820x600-copy.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "copy",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "1920x1080-edited.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "edited",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "820x600-edited.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "edited",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "820x600-preview.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "820x600-rules.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "1920x1080-reset.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "reset",
+      "apply_enabled": true,
+      "status": "Draft reset to source. Custom ID retained; Apply is required.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "820x600-reset.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "reset",
+      "apply_enabled": true,
+      "status": "Draft reset to source. Custom ID retained; Apply is required.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "1920x1080-invalid.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "invalid",
+      "apply_enabled": false,
+      "status": "Invalid draft: could not convert string to float: 'not-a-number'",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "820x600-invalid.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "invalid",
+      "apply_enabled": false,
+      "status": "Invalid draft: could not convert string to float: 'not-a-number'",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "1920x1080-legacy.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "legacy",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: meaning unknown (legacy). Comparison blocked."
+    },
+    {
+      "screenshot": "820x600-legacy.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "legacy",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: meaning unknown (legacy). Comparison blocked."
+    },
+    {
+      "screenshot": "1920x1080-incompatible.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "incompatible",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: incompatible. F1 position changed; reprocessing required."
+    },
+    {
+      "screenshot": "820x600-incompatible.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "incompatible",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: incompatible. F1 position changed; reprocessing required."
+    },
+    {
+      "screenshot": "1920x1080-unsupported.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "unsupported",
+      "apply_enabled": false,
+      "status": "Unsupported meaning version. Apply and generation blocked.",
+      "compatibility": "Previous result: unsupported meaning version. Comparison blocked."
+    },
+    {
+      "screenshot": "820x600-unsupported.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "unsupported",
+      "apply_enabled": false,
+      "status": "Unsupported meaning version. Apply and generation blocked.",
+      "compatibility": "Previous result: unsupported meaning version. Comparison blocked."
+    },
+    {
+      "screenshot": "1920x1080-unidentifiable.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "unidentifiable",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Geometry import is allowed. This layout cannot establish a full pose."
+    },
+    {
+      "screenshot": "820x600-unidentifiable.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "unidentifiable",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Geometry import is allowed. This layout cannot establish a full pose."
+    },
+    {
+      "screenshot": "1920x1080-save-error.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "save-error",
+      "apply_enabled": true,
+      "status": "Save failed. Draft and applied profile preserved; retry available.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "820x600-save-error.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "save-error",
+      "apply_enabled": true,
+      "status": "Save failed. Draft and applied profile preserved; retry available.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "1920x1080-applied.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "applied",
+      "apply_enabled": true,
+      "status": "Applied: custom-example-18. Not saved to JSON yet.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "820x600-applied.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "applied",
+      "apply_enabled": true,
+      "status": "Applied: custom-example-18. Not saved to JSON yet.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "1920x1080-example32.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "example32",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "820x600-example32.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "example32",
+      "apply_enabled": true,
+      "status": "Draft ready. Preview and Apply are separate.",
+      "compatibility": "Previous result: compatible with the applied profile"
+    },
+    {
+      "screenshot": "target-screen-edited.png",
+      "logical_size": [
+        2560,
+        1392
+      ],
+      "pixel_size": [
+        2560,
+        1392
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    }
+  ],
+  "interaction": {
+    "status": "pass",
+    "kind": "prototype-QTest-only",
+    "oracle": "F1 [21,12,40] -> [22,12,40]; Preview does not Apply; Reset restores 21 and keeps custom ID",
+    "production_persistence": "not-implemented",
+    "native_input": "not-executed"
+  },
+  "production_changed": false,
+  "native_status": "not-executed",
+  "experimental_status": "unavailable",
+  "limitations": [
+    "Compatibility messages are independent UI fixtures, not executed production policy.",
+    "Prototype QTest is not production persistence/worker or external native input acceptance.",
+    "No profile hash migration, numerical baseline or tolerance approval."
+  ]
+}

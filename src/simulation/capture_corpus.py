@@ -18,6 +18,7 @@ from src.analysis.pipeline.data_loader import DataLoader
 from src.config.config_analysis_ui import get_raw_mode_options
 from .corruption_export import write_observations
 from .marker_fixtures import example_profile, validate_profile
+from src.utils.marker_profile_identity import profile_identity
 
 VERSION = 'public-analytic-corpus-v2'
 SEED = 135001
@@ -215,6 +216,7 @@ def build_corpus(output):
             relative_path=f'{case}/observed.csv', capture_time_field='Time', capture_end_raw_time_s=boundary(times, len(times)),
             marker_profile_id=profile['profile_id'], marker_profile_hash=validate_profile(profile),
             marker_profile=profile, marker_semantics=marker_semantics(), geometry=geometry,
+            marker_profile_identity=profile_identity(profile),
             test_type='H' if case == 'supported_H' else 'G' if case == 'two_drops' else 'Unknown',
             type_source='Explicit test-only motion template, no mass/filename inference',
             flip_decisions=decisions, marker_correction_default='OFF', scene_decisions=scenes,

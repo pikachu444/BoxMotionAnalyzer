@@ -7,7 +7,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from impact_metric_fixtures import make_frame, update_processing, REVIEW, SUMMARY
+from impact_metric_fixtures import make_frame, update_processing, REVIEW, SUMMARY, analytic_profile
+from src.simulation.marker_fixtures import validate_profile
+from src.utils.marker_profile_identity import artifact_fields
 from src.analysis.pipeline.scene_detection import DetectionSettings
 from src.analysis.compare.posture_metrics import calculate_posture_metrics, lowest_corners
 from src.analysis.compare.data_model import ComparisonModel
@@ -33,6 +35,9 @@ def posture_frame(angle=10., source='a' * 64, *, no_impact=False):
             df[('Position', f'C{i+1}', 'P_T' + axis)] = position[:, axis_i] + rotated[i, axis_i]
     for field, value in {'BoxWidthMm': 80., 'BoxHeightMm': 120.}.items():
         df[('Info', 'Artifact', field)] = value
+    profile=analytic_profile((200.,80.,120.))
+    for field,value in dict(artifact_fields(profile),MarkerLayoutHash=validate_profile(profile)).items():
+        df[('Info','Artifact',field)]=value
     def geometry(settings):
         for stage in ('single_pass', 'postprocess'):
             settings[stage]['geometry_mm'] = local.tolist()

@@ -128,9 +128,9 @@ def test_missing_precontact_support_is_not_replaced_with_an_earlier_sample(fault
         if fault == 'failed_pose':
             frame.loc[4, ('Info', 'Pose', 'Source')] = 'OptimizationFailed'
         elif fault == 'face_change':
-            frame.loc[3:, ('Position', 'M1', 'FaceInfo')] = 'BACK'
+            frame.loc[3:, ('Position', 'F1', 'FaceInfo')] = 'BACK'
         elif fault == 'missing_faces':
-            frame = frame.drop(columns=[('Position', 'M1', 'FaceInfo')])
+            frame = frame.drop(columns=[('Position', 'F1', 'FaceInfo')])
         elif fault == 'no_t1':
             frame[(*SUMMARY, 'T1Detected')] = False
         elif fault == 'off_sample_t1':

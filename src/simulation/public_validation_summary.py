@@ -8,6 +8,8 @@ import xml.etree.ElementTree as ET
 # Explicitly inspected engine/observation-to-consumer paths. Pure array, schema,
 # policy and GUI-only checks remain Level 1 even when their fixture is public.
 SYNTHETIC_TESTS = {
+    'test_marker_profile_identity': {'test_ambiguous_producer_parser_pipeline_and_result_roundtrip',
+        'test_declared_layout_support_producer_pipeline_and_result_roundtrip'},
     'test_capture_regression': {
         'test_fresh_full_capture_pipeline_preserves_every_approved_scene',
         'test_deleted_truth_and_changed_labels_leave_actual_processing_equal',

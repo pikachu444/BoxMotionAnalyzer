@@ -271,6 +271,8 @@ def write_sequence(outputdir, case="drops", seed=75001, *, noise_std_mm=0.0):
                 "MarkerLayoutId": profile["profile_id"], "MarkerLayoutHash": validate_profile(profile),
                 "CoordinatePolicy": "world-y-up-box-local-fixed-center-v1",
                 "UnitsPolicy": "bma-mm-s-rotvec-rad-summary-deg-v1", "GeneratorVersion": VERSION}
+    from src.utils.marker_profile_identity import artifact_fields
+    artifact.update(artifact_fields(profile))
     with (root / "observed.csv").open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["Format Version", "1.25", "Length Units", "Millimeters", "Coordinate Space", "Global",

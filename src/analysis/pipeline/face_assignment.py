@@ -12,17 +12,13 @@ from scipy.spatial.distance import pdist
 
 from src.config import config_app, config_analysis
 from src.config.data_columns import FACE_PREFIX_TO_INFO, PoseCols
+from src.config.marker_semantics import FACE_MAPS
 from .marker_flip import (
     MarkerFlipAnalyzer, MarkerFlipHypothesis, MarkerFlipCandidate, local_axis_half_turn,
     marker_triplet_indices, normalize_marker_corrections, _raw_time_values,
 )
 
 HEADER_KEYS = ("type", "name", "id", "parent", "category", "component")
-FACE_MAPS = {
-    "X": {"FRONT": "BACK", "BACK": "FRONT", "TOP": "BOTTOM", "BOTTOM": "TOP"},
-    "Y": {"FRONT": "BACK", "BACK": "FRONT", "LEFT": "RIGHT", "RIGHT": "LEFT"},
-    "Z": {"LEFT": "RIGHT", "RIGHT": "LEFT", "TOP": "BOTTOM", "BOTTOM": "TOP"},
-}
 FACES = frozenset(("FRONT", "BACK", "TOP", "BOTTOM", "LEFT", "RIGHT"))
 POSE_COLUMNS = (PoseCols.POS_X, PoseCols.POS_Y, PoseCols.POS_Z,
                 PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z)

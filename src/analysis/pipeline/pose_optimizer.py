@@ -214,6 +214,19 @@ class PoseOptimizer:
         box_dims = np.array(config_app.BOX_DIMS if box_dims is None else box_dims, dtype=float)
         if box_dims.shape != (3,) or not np.isfinite(box_dims).all() or np.any(box_dims <= 0):
             raise ValueError("Box dimensions must contain three positive finite values.")
+        metadata = df.attrs.get('marker_artifact_metadata')
+        if metadata is not None:
+            from src.utils.marker_profile_identity import artifact_identity, layout_support
+            declared = artifact_identity(metadata)
+            if declared is None or not np.array_equal(box_dims, declared['box_dims_mm']):
+                raise ValueError('Pose geometry conflicts with declared marker source identity.')
+            support = layout_support(declared['source_profile'])['status']
+            if support != 'supported':
+                source = 'AmbiguousGeometry' if support == 'ambiguous' else 'UnidentifiableGeometry'
+                unavailable = pd.DataFrame([_unavailable_pose(index, source) for index in df.index]).set_index(TimeCols.TIME)
+                result = df.copy()
+                for column in unavailable: result[column] = unavailable[column]
+                return result
 
         # Recalculate local corners based on the current box_dims (User Input)
         # This fixes the bug where stale corners (from app launch) were used.

@@ -4,15 +4,20 @@ import pandas as pd
 from src.config.data_columns import TimeCols, PoseCols, DropPostureCols, DropPostureSummaryCols
 from src.analysis.pipeline.artifact_io import add_timeline_context_columns, save_proc_file
 from src.utils.processing_settings import SETTINGS_ATTR
+from src.simulation.marker_fixtures import example_profile, validate_profile
+from src.utils.marker_profile_identity import artifact_fields
 
 
 def identity(**overrides):
+    profile = example_profile()
+    profile.update(profile_id='contract-layout', source='Independent handcrafted unit geometry declaration')
     result = dict(SchemaVersion='1', SourceKind='handcrafted_dummy', ModelId='contract-box',
                   BoxLengthMm=200., BoxWidthMm=120., BoxHeightMm=80.,
                   IstaType='not_applicable', ScenarioId='contract-drop', ScenarioKind='synthetic_test',
-                  MarkerLayoutId='contract-layout', MarkerLayoutHash='a' * 64,
+                  MarkerLayoutId='contract-layout', MarkerLayoutHash=validate_profile(profile),
                   CoordinatePolicy='world-y-up-box-local-fixed-center-v1',
                   UnitsPolicy='bma-mm-s-rotvec-rad-summary-deg-v1', GeneratorVersion='contract-1')
+    result.update(artifact_fields(profile))
     result.update(overrides)
     return result
 

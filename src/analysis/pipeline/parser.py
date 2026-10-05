@@ -23,6 +23,15 @@ class Parser:
         from .face_assignment import face_columns, FACES
         marker_triplet_indices(header_info)
         annotations = face_columns(header_info)
+        from src.utils.marker_profile_identity import artifact_identity
+        declared = artifact_identity(header_info.get('artifact_metadata', {}))
+        if declared is not None:
+            from .marker_flip import marker_triplet_indices
+            from src.config.data_columns import FACE_PREFIX_TO_INFO
+            if {k:v.upper() for k,v in self.face_prefix_map.items()} != {k:v.upper() for k,v in FACE_PREFIX_TO_INFO.items()}:
+                raise ValueError('Parser label policy conflicts with declared marker interpretation.')
+            if set(marker_triplet_indices(header_info)) != {m['label'] for m in declared['bindings']}:
+                raise ValueError('Marker channels conflict with declared semantic identity.')
 
         processed_frames_data = []
         all_marker_identifiers = set()
@@ -137,5 +146,9 @@ class Parser:
         final_df = final_df.dropna(subset=[TimeCols.TIME])
         final_df.set_index(TimeCols.TIME, inplace=True)
         final_df.attrs['removed_records'] = [dict(original_record_index=int(i), reason='invalid_time') for i in removed]
+        if declared is not None:
+            # Preserve declared observation-only identity through normal slicing,
+            # smoothing and pose consumption, without reading evaluator truth.
+            final_df.attrs['marker_artifact_metadata'] = dict(header_info['artifact_metadata'])
 
         return final_df

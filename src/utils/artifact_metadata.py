@@ -12,6 +12,7 @@ FIELDS = (
     'BoxHeightMm', 'IstaType', 'ScenarioId', 'ScenarioKind', 'MarkerLayoutId',
     'MarkerLayoutHash', 'ProcessingSemanticsVersion', 'CoordinatePolicy',
     'UnitsPolicy', 'GeneratorVersion', 'ProcessingSettingsJson',
+    'MarkerProfileIdentityJson', 'MarkerGeometryHash', 'MarkerSemanticsVersion', 'MarkerSemanticsHash',
 )
 DIMENSIONS = ('BoxLengthMm', 'BoxWidthMm', 'BoxHeightMm')
 SOURCE_KINDS = {'real', 'public_external', 'mujoco_synthetic', 'handcrafted_dummy', 'unknown_legacy'}
@@ -118,6 +119,19 @@ class ArtifactIdentity:
         processing_error = validate_processing_record(self.values.get('ProcessingSemanticsVersion'), self.values.get('ProcessingSettingsJson'))
         if processing_error:
             reasons.append(processing_error)
+        from src.utils.marker_profile_identity import artifact_identity, layout_support
+        try:
+            marker = artifact_identity(self.values)
+            if marker is None:
+                reasons.append('Marker semantics: unknown legacy; compatibility/approval cannot be inferred')
+            else:
+                support = layout_support(marker['source_profile'])['status']
+                if support == 'ambiguous':
+                    reasons.append('Marker geometry: explicit assigned-face orientation ambiguity; individual review only')
+                elif support == 'unavailable':
+                    reasons.append('Marker geometry: declared layout fails local pose rank guard; individual review only')
+        except ValueError as error:
+            reasons.append(str(error))
         return list(dict.fromkeys(reasons))
 
 
@@ -147,13 +161,38 @@ def read_identity(df):
 def compatibility_reasons(baseline, candidate):
     reasons = [f'baseline {reason}' for reason in baseline.exclusion_reasons()]
     reasons += [f'file {reason}' for reason in candidate.exclusion_reasons()]
+    equivalent, marker_reasons = marker_equivalence(baseline, candidate)
+    reasons += marker_reasons
     for field in FIELDS:
         # Generator builds may differ if the explicit processing/units/schema contracts match.
         if field == 'GeneratorVersion':
             continue
+        if equivalent and field in {'MarkerLayoutId', 'MarkerLayoutHash', 'MarkerProfileIdentityJson'}:
+            continue
         if baseline.values.get(field) != candidate.values.get(field):
             if field == 'ProcessingSettingsJson':
                 reasons.append('ProcessingSettingsJson: executed settings differ (see declared metadata)')
+            elif field == 'MarkerProfileIdentityJson':
+                reasons.append('MarkerProfileIdentityJson: declared source/geometry/interpretation differs')
             else:
                 reasons.append(f'{field}: mismatch ({baseline.values.get(field)!r} / {candidate.values.get(field)!r})')
     return reasons
+
+
+def marker_equivalence(baseline, candidate):
+    """Complete declarations can distinguish author changes from meanings.
+
+    Source/model/trial/processing checks remain independent. No legacy inference.
+    """
+    from src.utils.marker_profile_identity import artifact_identity
+    try:
+        before, after = artifact_identity(baseline.values), artifact_identity(candidate.values)
+    except ValueError:
+        return False, []
+    if before is None or after is None or baseline.errors or candidate.errors:
+        return False, []
+    keys=('geometry_hash','semantic_hash','policy_hash','observation_mapping_hash')
+    reasons=[]
+    if before['observation_mapping_hash'] != after['observation_mapping_hash']:
+        reasons.append('Marker correspondence: label-to-position mapping differs; reuse needs scoped review')
+    return all(before[key]==after[key] for key in keys), reasons

@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "utc": "2026-10-05T22:45:46.724914+00:00",
+  "base": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "code": {
+    "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+    "dirty": true,
+    "branch": "issue138-marker-profile-semantics",
+    "sha256": {
+      ".github/workflows/public-marker-validation.yml": "479c4e1d17418d16e6c3b2ba1f7bdf4f8507cc45c340320194efbde171718565",
+      "src/analysis/compare/data_model.py": "1af112429ef41d3a10ae0105812afe4f045693135d1bf8daf216490c18d14bcd",
+      "src/analysis/pipeline/data_loader.py": "fa985f822b18a3672e93e2b22ea64887d71c9fbfb775810cd3afc737324d2963",
+      "src/analysis/pipeline/face_assignment.py": "53347f5fa46841a0dd86105934e5d1f0370d941018bb4f08ad58221e43bdbe90",
+      "src/analysis/pipeline/marker_flip.py": "88465c447d3758e584801cf4c8073766de8319adb6a47a444fca5908d5ea9428",
+      "src/analysis/pipeline/parser.py": "07aaa089510d3952fdf79383b4e8763801e53cbe6942f4bd371cde3a821a7257",
+      "src/analysis/pipeline/pipeline_controller.py": "1fc15458b0e5a4697033e3cf0e04567fb2d9f91b5ca9eed46cfc08bc28096a58",
+      "src/analysis/pipeline/pose_optimizer.py": "724b0c76a64e56d4bb7d515b1049e68e02da6dd653ee63f716f15e04dcbb0ae1",
+      "src/analysis/pipeline/scene_detection.py": "2b93fac1573569586d617c1698c310b171618ce9d4069bf9cbf8adc5a4296dba",
+      "src/analysis/regression/contracts.py": "2bb3e2f31517945f9ffe1527e9c2b80eb5a92e4d4d4723b28641a9cdb9b1a28e",
+      "src/analysis/regression/runner.py": "acd97d9269a1f3e5e658bbd62d3994281e9b9ef86b9e39ba9e40b53c39e89bff",
+      "src/analysis/ui/widget_results_analyzer.py": "7d84a9093641b4c6c1ad2de5ecf8611a5ebac63e5c43fc084edb5ba1e9a88a9a",
+      "src/config/marker_semantics.py": "ec04d31e61ba81b6cfdf9db9c9f195fb343cdce210998eaa436eedd8be1ce3fd",
+      "src/simulation/capture_corpus.py": "a7a64f86245cc31054b4d605d7ff7570d96f631d280a89569d7f745a266cdbc3",
+      "src/simulation/corruption_export.py": "42c7a0fc395241dceb96d72d832c21ac4a8a366e3a2014d3e0d418427e86af8f",
+      "src/simulation/marker_corruption.py": "f6051d7affd79a5ed048a27189ac0e0b3f82c47ff9203efe8d3d4846434e2543",
+      "src/simulation/marker_fixtures.py": "783ba50d116e74a56940439042346dcf964488e4e803e0da42d19a355ae1a5d9",
+      "src/simulation/profile_document.py": "3fd9c26511aa3a415c77a97b983859b0912a9400a1ca1dba3d1e5b57a6f53dc0",
+      "src/simulation/profile_semantic_fixtures.py": "a7054e06c316ecd1989e3d15930baee4d1b46256b670ea5bc8e52d0d17c5584d",
+      "src/simulation/profile_validation.py": "db476910d9b5837ab11a873dd850dcef66c7e38a50db53e6c15d1fb0c2c23ebd",
+      "src/simulation/public_validation_summary.py": "517805cbf47008bf0b5c6202e2d49241c7b1408ed1bc27ce5bd82fc2a59d7e4f",
+      "src/simulation/scene_fixtures.py": "0b910f8ff6db85adeca0164c6685eda4b1534f7d8c0f689d8b6ad3e0ba1fd4d0",
+      "src/simulation/ui/marker_export_dialog.py": "2032a4966024c5cd516ec75b7b000ec766eed5dcd97d4a60a253c8ee8baee047",
+      "src/simulation/ui/marker_profile_dialog.py": "e8f6376924a875475b7372c3624a3c6c41b5e03d39ff0a1b7f90b765184722fd",
+      "src/simulation/ui/profile_preview.py": "b0485b71520170641d13db606e0398ed97be8ac6ca22054c6b58dcfefabbbe0c",
+      "src/utils/artifact_metadata.py": "0cb3df5449486f902f1636895f59029214c5014c87ce63c448ef11ff19352380",
+      "src/utils/marker_profile_identity.py": "852d706f884d4929722701aa97df288c53357a95bb03a9a7603e097ed0a25670",
+      "tests/comparison_fixtures.py": "e684c51f649cc43d16f8c5e69634ce14f00e76c306450b5bf2b01f8d2d117219",
+      "tests/impact_metric_fixtures.py": "0458508ae0ae153168a1aceb40fef6301088e8fbe1aa89ba58681c5ac3933904",
+      "tests/test_impact_metrics.py": "fe339c0b7c7095f8a0f6ab3743c5f31de5b04c7a12e94ff5b0104e62fad16771",
+      "tests/test_marker_profile_gui.py": "5cdee3da4089e3465b3bed6071290c7ee0d5a50b9cf9ae57f867c96b0278e93e",
+      "tests/test_marker_profile_identity.py": "b64a8b8051409f88850ba89018bb66558979825854eb0b5af9bb0a4d7225d6bc",
+      "tests/test_posture_comparison.py": "63373564e14c1b21960298d02003c4c2029b5ea1b71426c35a3f77105d3c5e9b",
+      "tests/test_result_file_context.py": "abcb76b7bfdad322355f54868b4b323b3b6d68c847b27030a6717f5fba587af0"
+    }
+  },
+  "environment": {
+    "os": "Windows 11 10.0.26200",
+    "python": "3.13.5",
+    "PySide6": "6.10.1",
+    "numpy": "2.3.5",
+    "pandas": "2.3.3",
+    "scipy": "1.16.3",
+    "matplotlib": "3.10.7",
+    "mujoco": "3.6.0",
+    "os_scale": 100,
+    "physical_desktop": [
+      2560,
+      1440
+    ],
+    "qt_platform": "windows",
+    "qt_process_scales": [
+      1,
+      1.25
+    ]
+  },
+  "tests": [
+    {
+      "file": "required-local.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "1",
+        "skipped": "0",
+        "tests": "570",
+        "time": "713.670",
+        "timestamp": "2026-10-06T06:54:57.726284+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Failed attempt retained",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "required-remainder.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "1",
+        "skipped": "0",
+        "tests": "40",
+        "time": "31.248",
+        "timestamp": "2026-10-06T07:11:44.703660+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Failed attempt retained",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "required-remainder-2.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "632",
+        "time": "1040.868",
+        "timestamp": "2026-10-06T07:15:06.245048+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Command-defined automatic scope",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "compatibility-final.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "176",
+        "time": "286.085",
+        "timestamp": "2026-10-06T07:22:19.625237+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Command-defined automatic scope",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "metric-preservation.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "204",
+        "time": "33.973",
+        "timestamp": "2026-10-06T07:09:56.830809+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Command-defined automatic scope",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "geometry-capture-final.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "107",
+        "time": "199.135",
+        "timestamp": "2026-10-06T07:10:35.947845+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Command-defined automatic scope",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "frozen-core-100.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "1",
+        "skipped": "0",
+        "tests": "39",
+        "time": "9.171",
+        "timestamp": "2026-10-06T07:33:23.700022+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Failed attempt retained",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "frozen-core-recheck-100.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "88",
+        "time": "65.946",
+        "timestamp": "2026-10-06T07:34:08.270425+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Command-defined automatic scope",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "frozen-contract-processing.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "143",
+        "time": "173.108",
+        "timestamp": "2026-10-06T07:35:51.688770+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Command-defined automatic scope",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "frozen-gui-125.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "7",
+        "time": "17.178",
+        "timestamp": "2026-10-06T07:36:05.076665+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Command-defined automatic scope",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    },
+    {
+      "file": "semantic-evidence-level-recheck.xml",
+      "attributes": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "40",
+        "time": "15.340",
+        "timestamp": "2026-10-06T07:44:18.151149+09:00",
+        "hostname": "LAPTOP-LEETAEHO"
+      },
+      "fresh": true,
+      "scope": "Command-defined automatic scope",
+      "input": "Public synthetic/static and deliberately invalid fixtures; see test source",
+      "independent_expected": "Literal coordinates/matrices, analytic centre/objective/residual and UI-state oracles",
+      "actual": "JUnit per-case outcomes; duplicate runs are not summed as unique cases"
+    }
+  ],
+  "command_reference": "docs/visualization/marker_profile_138_review_packet.md",
+  "command_failures": [
+    {
+      "command": "pytest tests/test_marker_profile_identity.py tests/test_public_validation_summary.py",
+      "reason": "Requested summary test module did not exist; exit4, 0 collected. Corrected immediately.",
+      "acceptance": false
+    }
+  ],
+  "inputs": {
+    "kind": "public-synthetic/static; no validated measured dataset",
+    "observation_seed": 74082,
+    "gui_seed": null,
+    "gui_seed_reason": "Literal deterministic geometry",
+    "truth_boundary": "observed_only file-access guard"
+  },
+  "tolerances": {
+    "pose": "Existing public noise-free 0.1 mm / 0.1 degree, 0.4 mm corners; not measured accuracy",
+    "layout": "Existing 1e-8 mm face arithmetic / 1 mm import separation / 1e-6 relative numerical rank",
+    "ui": "Exact client pixels, source/draft/applied equality and structural bounds; no physical tolerance",
+    "invariant": "1e-12 mm centre, 1e-10 mm\u00b2 objective, 1e-12 m analytical template residual: floating arithmetic only"
+  },
+  "native": {
+    "status": "not_executed",
+    "reason": "Retained black-capture/activation failures; current CUA native APIs disabled"
+  },
+  "independent_review": {
+    "status": "pending_production",
+    "reviewer": "profile_ui_review, GPT-6.1 Sol / high, read-only"
+  },
+  "ci": {
+    "status": "pending_required"
+  },
+  "experiment": {
+    "status": "unavailable",
+    "reason": "#104 separate"
+  },
+  "registration": {
+    "status": "not_applicable",
+    "reason": "#113 user registration excluded; static adapter/source binding tested"
+  },
+  "unapplied_fields": {
+    "memory": "No new memory acceptance budget; retained state has explicit bounds",
+    "latency": "No native FPS/latency certification; cooperative timing is not a hard real-time guarantee",
+    "trial_approval": "No automatic trial approval",
+    "baseline_migration": "No baseline rewrite or promotion"
+  },
+  "status": "automatic_scopes_pass_after_retained_failed_attempts",
+  "fresh": true
+}

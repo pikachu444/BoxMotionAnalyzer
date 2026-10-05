@@ -1,0 +1,514 @@
+{
+  "report_version": 1,
+  "source_junit": "C:\\SourceCodes\\BoxMotionAnalyzer\\tmp\\issue138\\review-corrections-core.xml",
+  "public_required": true,
+  "levels": {
+    "unit_contract": {
+      "level": 1,
+      "testcases": [
+        {
+          "name": "tests.test_marker_profile_identity::test_existing_hash_and_whole_layout[example_profile-66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_existing_hash_and_whole_layout[virtual_profile_32-d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_position_semantics_and_correspondence_are_distinct",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_same_face_swap_preserves_center_and_pose_objective",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_existing_static_template_fit_detects_correspondence_without_center_claim",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_edge_face_change_keeps_geometry_and_changes_meaning",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[normals]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[local_frame]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[world_vertical_axis_index]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[analysis_half_turn_rotvecs]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[simulation_half_turns]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[half_turn_face_maps]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[label_prefixes]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[corner_basis]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_actual_shared_constant_change_is_detected",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_literal_coordinate_and_half_turn_contract",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_stale_or_missing_identity_never_succeeds[<lambda>0]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_stale_or_missing_identity_never_succeeds[<lambda>1]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_stale_or_missing_identity_never_succeeds[<lambda>2]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_stale_or_missing_identity_never_succeeds[<lambda>3]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_legacy_unknown_and_compact_artifact_binding",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_actual_comparison_distinguishes_author_mapping_and_legacy",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_collinear_face_allowed_whole_unavailable_distinguished[3]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_collinear_face_allowed_whole_unavailable_distinguished[4]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_collinear_face_allowed_whole_unavailable_distinguished[5]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_full_rank_distinct_orientation_counterexample_is_ambiguous",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_nonfinite_bool_profile_rejected[nan]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_nonfinite_bool_profile_rejected[inf]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_nonfinite_bool_profile_rejected[True]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_copy_edit_preview_apply_reset_roundtrip",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_atomic_save_failure_retry_preserves_all_decisions",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[schema_version-2]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[units-m]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[time_semantics-frame-index]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[revision-True]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[approval_status-approved]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_stale_preview_and_history_blocked",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_unknown_layout_object_cannot_silently_become_legacy",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_declared_source_rejects_conflicting_static_geometry",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_draft_preview_reset_save_reopen_and_apply[example_profile]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_draft_preview_reset_save_reopen_and_apply[virtual_profile_32]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_display_gestures_and_resize_preserve_profile_and_2d[size0]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_display_gestures_and_resize_preserve_profile_and_2d[size1]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_face_drag_pan_zoom_cancel_preserve_canonical_buffers",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_import_saved_applied_with_pending_draft_and_cancel",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_profile_change_cancel_late_worker_results_and_retry",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_export_blocked_reason_and_previous_output_preserved[ambiguous]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_gui::test_export_blocked_reason_and_previous_output_preserved[unavailable]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_collinear_profile_recovery::test_face_only_profile_stays_unavailable_in_pose_solver[3]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_collinear_profile_recovery::test_face_only_profile_stays_unavailable_in_pose_solver[4]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_collinear_profile_recovery::test_face_only_profile_stays_unavailable_in_pose_solver[5]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_artifact_provenance::test_generated_safe_metadata_roundtrip_without_test_truth",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_artifact_provenance::test_whitelist_ignores_truth_and_never_infers_names",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_artifact_provenance::test_nonconstant_metadata_does_not_use_first_row",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_artifact_provenance::test_duplicate_metadata_reports_only_the_actual_duplicate",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_artifact_provenance::test_declared_dimension_mismatch_cannot_be_resaved",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_artifact_provenance::test_opaque_identity_strings_survive_serialized_loading",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_off_does_not_correct_and_smooth_real_half_turn_remains_motion",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_unregistered_relative_references_and_derivatives_do_not_bridge_approval",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_gap_preserves_approval_state_without_filling_pose",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_registered_context_mismatch_is_rejected[dimensions]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_registered_context_mismatch_is_rejected[face]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_registered_context_mismatch_is_rejected[axis]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_registered_context_mismatch_is_rejected[units]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_registered_context_mismatch_is_rejected[space]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_old_corrected_review_requires_recheck_but_unchanged_raw_review_does_not",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_cancel_during_corrected_fit_does_not_mutate_inputs",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_only_affected_ranges_need_version_review_and_constant_unregistered_suffix_keeps_meaning",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_unregistered_gravity_unclear_candidates_still_split_at_relative_reference",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_refresh_recomputes_old_face_blind_evidence_even_after_xx_returns_to_identity",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_declared_stale_marker_semantics_preserves_previous_display",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_switch_redraws_new_file_resets_cursor_and_exports_new_sample",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_checked_and_plotted_metrics_survive_search_and_switch_separately",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_absent_selected_metric_clears_main_and_popup_without_unrequested_fallback",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_initial_default_uses_height_only_when_beta_unavailable[height0-expected0]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_initial_default_uses_height_only_when_beta_unavailable[None-expected1]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_failed_load_missing_file_and_cancel_preserve_active_result",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_invalid_time_does_not_replace_active_physical_time_axis",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_direct_result_csv_open_selects_only_the_validated_csv",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_nonnumeric_metric_rejected_before_replacing_selected_result",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_display_failure_restores_main_popup_and_selected_point",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_result_file_context::test_selecting_empty_folder_clears_every_active_result_context",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        }
+      ],
+      "counts": {
+        "passed": 82,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      }
+    },
+    "synthetic_integration": {
+      "level": 2,
+      "testcases": [
+        {
+          "name": "tests.test_marker_profile_identity::test_declared_layout_support_producer_pipeline_and_result_roundtrip[ambiguous]",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_declared_layout_support_producer_pipeline_and_result_roundtrip[unavailable]",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        },
+        {
+          "name": "tests.test_collinear_profile_recovery::test_public_collinear_face_export_recovers_whole_pose[3]",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        },
+        {
+          "name": "tests.test_collinear_profile_recovery::test_public_collinear_face_export_recovers_whole_pose[4]",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        },
+        {
+          "name": "tests.test_collinear_profile_recovery::test_public_collinear_face_export_recovers_whole_pose[5]",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_registered_full_history_restores_arbitrary_box_pose_and_corners[axes0-final_state0]",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_registered_full_history_restores_arbitrary_box_pose_and_corners[axes1-final_state1]",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_registered_full_history_restores_arbitrary_box_pose_and_corners[axes2-final_state2]",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        },
+        {
+          "name": "tests.test_scene_face_corrections::test_suffix_uses_approval_before_first_saved_sample_and_preserves_payload",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        }
+      ],
+      "counts": {
+        "passed": 9,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      }
+    },
+    "public_external": {
+      "level": 3,
+      "testcases": [],
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "status": "optional-manual",
+      "release_gate_satisfied": false,
+      "meaning": "Public external data requires separate source and scope review."
+    },
+    "internal_real": {
+      "level": 4,
+      "testcases": [],
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "status": "pending",
+      "issue": "#104",
+      "release_gate_satisfied": false,
+      "meaning": "Internal consistency observations; independently calibrated accuracy is pending."
+    }
+  },
+  "unclassified": [],
+  "errors": [],
+  "status": "pass"
+}

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="14" time="39.025" timestamp="2026-10-06T07:53:40.556587+09:00" hostname="LAPTOP-LEETAEHO"><testcase classname="tests.test_marker_profile_gui" name="test_draft_preview_reset_save_reopen_and_apply[example_profile]" time="5.999"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_marker_profile_gui" name="test_draft_preview_reset_save_reopen_and_apply[virtual_profile_32]" time="2.112"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_marker_profile_gui" name="test_display_gestures_and_resize_preserve_profile_and_2d[size0]" time="2.007"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_marker_profile_gui" name="test_display_gestures_and_resize_preserve_profile_and_2d[size1]" time="2.085"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_marker_profile_gui" name="test_face_drag_pan_zoom_cancel_preserve_canonical_buffers" time="0.929"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_marker_profile_gui" name="test_import_saved_applied_with_pending_draft_and_cancel" time="2.515"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_marker_profile_gui" name="test_profile_change_cancel_late_worker_results_and_retry" time="1.597"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_marker_profile_gui" name="test_export_blocked_reason_and_previous_output_preserved[ambiguous]" time="1.166"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_marker_profile_gui" name="test_export_blocked_reason_and_previous_output_preserved[unavailable]" time="1.148"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_generate_preview_and_open_observations_only[None]" time="5.162"><properties><property name="evidence_level" value="synthetic_integration" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_generate_preview_and_open_observations_only[missing]" time="3.006"><properties><property name="evidence_level" value="synthetic_integration" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_generate_preview_and_open_observations_only[flip_180_local_axis]" time="3.107"><properties><property name="evidence_level" value="synthetic_integration" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_import_validation_cancel_overwrite_and_retained_success" time="2.752"><properties><property name="evidence_level" value="unit_contract" /></properties><failure message="assert 1.0 == 1.25&#10; +  where 1.0 = &lt;built-in method devicePixelRatioF of MainApp object at 0x0000021AFC944FC0&gt;()&#10; +    where &lt;built-in method devicePixelRatioF of MainApp object at 0x0000021AFC944FC0&gt; = &lt;src.analysis.app.main_window.MainApp(0x21af7b43300) at 0x0000021AFC944FC0&gt;.devicePixelRatioF">gui = (&lt;PySide6.QtWidgets.QApplication(0x21a81a25740) at 0x0000021AA1637AC0&gt;, &lt;src.simulation.ui.main_window.SimulationUI(0x... 0x0000021AF742EFC0&gt;, &lt;src.simulation.ui.marker_export_dialog.MarkerExportDialog(0x21ac11b40b0) at 0x0000021AFB0E3700&gt;)
+tmp_path = WindowsPath('C:/Users/pikac/AppData/Local/Temp/pytest-of-pikac/pytest-3473/test_import_validation_cancel_0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000021AFA57BDD0&gt;
+
+    def test_import_validation_cancel_overwrite_and_retained_success(gui, tmp_path, monkeypatch):
+        app, window, dialog = gui
+        errors = []
+        monkeypatch.setattr(QMessageBox, 'warning', lambda *a: errors.append(a[2]))
+        profile = copy.deepcopy(example_profile())
+        profile_id = 'custom-example-' + 'long-layout-name-' * 6
+        profile.update(profile_id=profile_id, publication='user-supplied', source='test-declared-coordinates')
+        profile['markers'] = [m for m in profile['markers'] if m['id'] != 'F4']
+        for marker, x in zip([m for m in profile['markers'] if m['face'] == 'FRONT'], (-60., -20., 20.)):
+            marker['xyz_mm'] = [x, 0., 40.]
+        file = tmp_path / 'layout.json'; file.write_text(json.dumps(profile))
+        monkeypatch.setattr(QFileDialog, 'getOpenFileName', lambda *a: (str(file), ''))
+        QTest.mouseClick(dialog.import_button, Qt.LeftButton)
+        assert dialog.profile == profile and dialog.profile_combo.currentText() == 'Imported: ' + profile_id
+        plotted = np.concatenate([np.array(c._offsets3d).T for c in dialog.axes.collections
+                                  if hasattr(c, '_offsets3d')])
+        assert sorted(map(tuple, plotted)) == sorted(tuple(m['xyz_mm']) for m in profile['markers'])
+        file.write_text('[]')
+        QTest.mouseClick(dialog.import_button, Qt.LeftButton)
+        assert errors and dialog.profile == profile
+        monkeypatch.setattr(QFileDialog, 'getOpenFileName', lambda *a: ('', ''))
+        QTest.mouseClick(dialog.import_button, Qt.LeftButton)
+        assert dialog.profile == profile
+        QTest.mouseClick(dialog.dimensions, Qt.LeftButton)
+        # Cancel the actual folder picker, without creating a worker or output.
+        QTimer.singleShot(150, lambda: QApplication.activeModalWidget().reject())
+        QTest.mouseClick(dialog.generate_button, Qt.LeftButton)
+        assert not dialog.busy and not dialog.observed_path
+        monkeypatch.setattr(QFileDialog, 'getExistingDirectory', lambda *a: str(tmp_path))
+        existing = tmp_path / 'synthetic_markers'; existing.mkdir()
+        (existing / 'keep.csv').write_text('old')
+        QTest.mouseClick(dialog.generate_button, Qt.LeftButton)
+        assert not dialog.busy and errors[-1].startswith('Choose a new')
+        assert (existing / 'keep.csv').read_text() == 'old'
+        dialog.output_name.setText('new-' + 'long-output-name-' * 6)
+        QTest.mouseClick(dialog.generate_button, Qt.LeftButton)
+        wait_until(lambda: not dialog.busy)
+        success = dialog.observed_path
+        assert success and dialog.open_button.isEnabled()
+        QApplication.processEvents()
+        assert dialog.width() == 1000 and dialog.height() == 700
+        assert dialog.rect().contains(dialog.open_button.geometry())
+        QTest.mouseClick(dialog.open_button, Qt.LeftButton)
+        analysis = window.analysis_windows[-1]
+        analysis.resize(1510, 800)
+        app.processEvents()
+        assert Path(analysis.original_widget.source_path) == Path(success)
+        assert analysis.original_widget._read_box_dimensions() == (200, 120, 80)
+        assert len(analysis.original_widget.parsed_data) == 63
+        assert all(f'F{i}_X' in analysis.original_widget.parsed_data for i in (1, 2, 3))
+        assert 'F4_X' not in analysis.original_widget.parsed_data
+        assert not analysis.original_widget.confirm_review_dimensions.isChecked()
+        evidence = Path('tmp/issue116'); evidence.mkdir(parents=True, exist_ok=True)
+&gt;       assert analysis.devicePixelRatioF() == 1.25
+E       assert 1.0 == 1.25
+E        +  where 1.0 = &lt;built-in method devicePixelRatioF of MainApp object at 0x0000021AFC944FC0&gt;()
+E        +    where &lt;built-in method devicePixelRatioF of MainApp object at 0x0000021AFC944FC0&gt; = &lt;src.analysis.app.main_window.MainApp(0x21af7b43300) at 0x0000021AFC944FC0&gt;.devicePixelRatioF
+
+tests\test_simulation_marker_export_gui.py:174: AssertionError</failure></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_cancel_and_close_wait_for_running_worker" time="0.628"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase></testsuite></testsuites>

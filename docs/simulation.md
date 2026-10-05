@@ -1,6 +1,8 @@
 # 박스 낙하 시뮬레이션 문서
 
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-06
+
+Marker CSV의 Copy/Edit는 예제 18/32와 custom import를 재사용한다. Preview는 적용과 별개이며 Reset to source는 draft만 초기화한다. Save JSON은 적용본과 미적용 draft·preview·편집 이력을 함께 저장하고, import는 저장한 적용본을 사용한다. 3D 회전·확대·이동과 분리 면 드래그는 표시용으로 원래 mm 좌표를 바꾸지 않는다. [PUB05 계약](analysis/reference/marker_profile_semantics.md)은 기존 결과 호환성과 legacy 제한, native 미실행 범위를 기록한다.
 
 현재 simulation은 WIP이다. #74용 별도 생성기 `src/simulation/marker_fixtures.py`는 실제 `data.time`, 갱신된 body origin/COM/회전을 기록하고 정상 정답과 고장 관측을 분리한다. 기존 GUI의 `data_exporter.py`도 실제 시각·회전을 비파괴적으로 저장하도록 보완했다. 이 직접 `.proc` 출력은 분석 solver를 실행한 결과가 아니며 #74의 독립 관측/정답 경로를 대체하지 않는다. 명세와 실행 방법은 [독립 fixture 계약](analysis/reference/marker_flip_fixture_contract.md), 검증 결과와 한계는 [조사 결과](analysis/reference/marker_flip_review_findings.md)를 따른다. 아래 물리 결과 설명은 실제 실험 정확도 보장이 아니다.
 

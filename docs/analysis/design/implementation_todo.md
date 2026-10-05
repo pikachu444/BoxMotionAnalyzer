@@ -1,12 +1,30 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-10-04
+Last Reviewed: 2026-10-06
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #138 / PUB05 software implementation and automatic review: user approved
+  the final interactive mockup on 2026-10-06. Main implemented geometry/meaning/correspondence
+  identity, Copy/Edit/Reset/Preview/Apply, atomic draft/applied documents and
+  generation guards. Corrected core91, consumer/Compare146, Qt125 editor/export14,
+  final wording50/9 and30 renders per DPR passed. Same-reviewer independent
+  production APPROVE has no remaining P0/P1/P2. Required clean-commit hosted CI
+  gates merge; final CI/publication status is recorded in the linked PR.
+  Existing example hashes and #135 historical baselines remain unchanged.
+  Same-face name swaps do not imply Raw centre/pose changed; mapping-only reuse
+  requires scoped review. See `../reference/marker_profile_semantics.md` and
+  `../../visualization/marker_profile_138.md`.
+- [ ] #138 native follow-up: external Windows capture/activation failed in
+  retained attempts. Verify FHD/820x600 and actual OS125%, visual readability,
+  rotation/pan/zoom/face drag, selection, invalid/legacy/blocked state, native
+  save/error/retry/reopen. Qt process scaling/widget/QTest is separate evidence.
+  #113 registration user feature is excluded; existing static adapter and
+  lineage remain verified. #104 measured validation is separate. Do not start
+  #139 onward or #143 automatically; do not close #138 for unexecuted native.
 - [O] #137 / PUB04 implementation: approved FHD/minimum-window mockup; scoped
   viewport persistence, Revert, shared save counts/gates and Type/edit history.
   Automatic preservation found two regressions; both were corrected and passed
@@ -22,7 +40,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   acceptance. Keep issue open for native checks at 820x600/FHD/target size,
   selection/edit/Revert, signal/pan/zoom, save/dialog/reopen and loading/error.
   #113 registration integration is excluded by user decision; existing source
-  identity remains verified. #104 is separate. Do not start #138 onward.
+  identity remains verified. #104 is separate. This native follow-up does not
+  reopen delivered development or block the authorized #138 scope.
 - [O] #136: Implement the approved narrow graph tabs / wide paired layout,
   filename elision, constrained axis/unit redraw, empty preview and fixed
   calculation Cancel; retain original/context/approval/worker semantics.
@@ -31,9 +50,10 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   findings; evidence is in `../../visualization/marker_review_responsive_layout.md`.
 - [ ] #136: Confirm native Windows 820×600 and target-screen important states.
   Native capture is black and activation/input fails; widget/render/QTest
-  evidence does not satisfy this requirement. Keep issue/PR completion pending.
+  evidence does not satisfy this requirement. Keep native issue completion
+  pending; merged PR #147's development remains delivered.
   #104 measured calibration remains separately pending.
-- [O] #135: Implement source-bound capture replay, fresh production slice/proc/Compare/export regression, additive signatures and full-trajectory guards with independently reviewed public analytic expectations. Six approved scenes freshly processed. See `../reference/capture_regression.md`; final review/CI/publication is recorded in the PR. Only #135 of parent #134 is delivered.
+- [O] #135: Implement source-bound capture replay, fresh production slice/proc/Compare/export regression, additive signatures and full-trajectory guards with independently reviewed public analytic expectations. Six approved scenes freshly processed. See `../reference/capture_regression.md`; final review/CI/publication is recorded in merged PR #146. Its delivery scope was #135 of parent #134; later #136/#137 deliveries are recorded above.
 - [ ] #135 GUI follow-up: New corpus Step1/1.5 native fresh processing, native save chooser and Compare 3-D visual inspection. Step2/Compare load and actual scenario export used six reused fresh outputs; they do not certify these pending paths.
 - [O] #115: Connect the general observation exporter to observed-only review, explicit widget approval, corrected/slice round trips and real Raw reprocessing. Preserve missing rows and report unavailable contact instead of aborting on all-NaN corners. See `../reference/general_export_recovery.md`; final independent review/CI/merge evidence belongs to the PR.
 - [O] #114: Add optional Simulation marker CSV generation with public/imported layout preview, explicit layout dimensions, cancellable worker, new-folder publication and observed-only Step 1 handoff. Direct `.proc` export remains available. See `../../simulation.md` and `../../visualization/synthetic_marker_export_layout.md`; required CI and merge are recorded in the PR.

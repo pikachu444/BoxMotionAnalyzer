@@ -49,7 +49,12 @@ class PipelineController(QObject):
             result = self._execute_result_resampling(gui_config, parsed_data)
         else:
             result = self._execute_analysis_single_pass(gui_config, parsed_data)
-        return self._execute_post_processing(gui_config, result)
+        processed = self._execute_post_processing(gui_config, result)
+        if 'marker_artifact_metadata' in parsed_data.attrs:
+            # Frame analysis rebuilds the table. Retain only the observation
+            # declaration already validated by Parser/PoseOptimizer.
+            processed.attrs['marker_artifact_metadata'] = copy.deepcopy(parsed_data.attrs['marker_artifact_metadata'])
+        return processed
 
     def _apply_box_dimensions_from_config(self, gui_config: dict) -> None:
         box_dims = gui_config.get('box_dimensions')
