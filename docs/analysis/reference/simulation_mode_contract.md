@@ -12,6 +12,15 @@ directory creation. Final affected producer checks passed89; existing marker,
 artifact, capture-regression and scene preservation checks passed265. These are
 scoped software checks, not production UI/native or final #139 acceptance.
 
+The latest review-only UI proposal uses one shared preset-browser/settings/
+preview arrangement. It shows the existing G17 or H12 lists; `single_drop`
+still has one selected planned drop regardless of visible browser row count.
+Preset rows are not experimental repetitions `n`. The lists are current
+uncalibrated configurations, not a verified complete ISTA procedure. G17 hazard
+geometry and H supported/rotation/release behavior remain unimplemented.
+No new engine or reinterpretation of existing output follows from this UI
+proposal; production binding requires the user's #139 mockup approval.
+
 ## Settings and identity
 
 `SimulationModeConfiguration` separates `mode` (`single_drop` or

@@ -1,0 +1,586 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "pub06_mockup_evidence",
+  "fresh": true,
+  "created_at": "2026-10-06T14:23:42.168745+00:00",
+  "source": {
+    "commit": "b4a3da3b1211810b0e4a0a885ca7921fbfd38a20",
+    "tracked_changes": [
+      " M docs/visualization/mockups/simulation_mode_139/generate_mockups.py",
+      " M docs/visualization/simulation_mode_139.md"
+    ],
+    "script_sha256": "6ca44023c4ff3a2ef236e377b5730da12b096d55e0fae0f5dd5165fed7396da3"
+  },
+  "command": [
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+    "docs/visualization/mockups/simulation_mode_139/generate_mockups.py",
+    "--output",
+    "docs/visualization/mockups/simulation_mode_139/ista_reset_fixed125"
+  ],
+  "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+  "fixture": "Current Type G17 and Type H12 preset browsers; G17 hazard and H supported motion unavailable; single executes only one selected preset",
+  "marker_seed": 74082,
+  "simulation_seed": "Not applicable: no simulation executed",
+  "independent_expectations": [
+    "Type G17 ordered preset rows, face3 at row8 and edge3/4 at row1; Type H12, face4 at row1",
+    "Mode round-trip preserves original single controls and preset",
+    "Small controls retain minimum readable height; scrolled preview fully contained",
+    "Busy settings Apply disabled; table and selector agree in both directions"
+  ],
+  "unexecuted": [
+    "Native Windows input",
+    "Actual OS125 display verification",
+    "Production UI binding",
+    "Measured experiment validation"
+  ],
+  "scope": "Review-only mockup; no production execution or native input",
+  "qt_platform": "windows",
+  "qt_scale_factor": "1.25",
+  "screen_dpr": 1.25,
+  "os_scale": "Not inferred from Qt process scale; native OS125 remains separate",
+  "states": [
+    {
+      "state": "default",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "default-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          431
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 1,
+      "preview": {
+        "visible": true,
+        "preset": "01_Edge_3-4",
+        "faces": [
+          3,
+          4
+        ],
+        "euler": [
+          -98.68,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "sequence",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "sequence-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          435
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 17,
+      "preview": {
+        "visible": true,
+        "preset": "08_Face_3_Screen_High",
+        "faces": [
+          3
+        ],
+        "euler": [
+          -180.0,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "edge",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "edge-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          435
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 17,
+      "preview": {
+        "visible": true,
+        "preset": "01_Edge_3-4",
+        "faces": [
+          3,
+          4
+        ],
+        "euler": [
+          -98.68,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "type_h",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "type_h-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          435
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 12,
+      "sequence_steps": 12,
+      "preview": {
+        "visible": true,
+        "preset": "01_Tip_Face_4_Screen",
+        "faces": [
+          4
+        ],
+        "euler": [
+          -180.0,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "physics",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "physics-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          335
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 17,
+      "preview": {
+        "visible": true,
+        "preset": "08_Face_3_Screen_High",
+        "faces": [
+          3
+        ],
+        "euler": [
+          -180.0,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "observation",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "observation-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          408
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 17,
+      "preview": {
+        "visible": true,
+        "preset": "08_Face_3_Screen_High",
+        "faces": [
+          3
+        ],
+        "euler": [
+          -180.0,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "returned",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "returned-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          435
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 1,
+      "preview": {
+        "visible": true,
+        "preset": "03_Edge_4-6",
+        "faces": [
+          4,
+          6
+        ],
+        "euler": [
+          -90.0,
+          -59.49,
+          17.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "invalid",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "invalid-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          435
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 17,
+      "preview": {
+        "visible": true,
+        "preset": "02_Edge_3-6",
+        "faces": [
+          3,
+          6
+        ],
+        "euler": [
+          -180.0,
+          -84.86,
+          90.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "blocked",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "blocked-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          435
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 17,
+      "preview": {
+        "visible": true,
+        "preset": "08_Face_3_Screen_High",
+        "faces": [
+          3
+        ],
+        "euler": [
+          -180.0,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "running",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "running-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          435
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 1,
+      "preview": {
+        "visible": true,
+        "preset": "01_Edge_3-4",
+        "faces": [
+          3,
+          4
+        ],
+        "euler": [
+          -98.68,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "cancelled",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "screenshot": "cancelled-fhd.png",
+      "composition": "One simulation workspace with optional settings and the existing preview",
+      "panels": {
+        "simulation": [
+          430,
+          844
+        ],
+        "settings": [
+          1074,
+          435
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0,
+      "preset_rows": 17,
+      "sequence_steps": 1,
+      "preview": {
+        "visible": true,
+        "preset": "01_Edge_3-4",
+        "faces": [
+          3,
+          4
+        ],
+        "euler": [
+          -98.68,
+          0.0,
+          0.0
+        ],
+        "meaning": "Preset target, not a predicted impact after custom rotation"
+      }
+    },
+    {
+      "state": "single_drop",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "single_drop-820x600.png"
+    },
+    {
+      "state": "single_drop scrolled preview",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "single_drop-preview-820x600.png",
+      "scope": "Same small form scrolled to bottom; readable settings remain above"
+    },
+    {
+      "state": "single_drop profiles",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "single_drop-profiles-820x600.png",
+      "scope": "Forced-size resize stress; default settings height follows active content",
+      "footer_gap": 7
+    },
+    {
+      "state": "robot_sequence",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "robot_sequence-820x600.png"
+    },
+    {
+      "state": "robot_sequence scrolled preview",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "robot_sequence-preview-820x600.png",
+      "scope": "Same small form scrolled to bottom; readable settings remain above"
+    },
+    {
+      "state": "robot_sequence profiles",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "robot_sequence-profiles-820x600.png",
+      "scope": "Forced-size resize stress; default settings height follows active content",
+      "footer_gap": 7
+    }
+  ],
+  "preview_roundtrip": "Passed: select sequence row8 face3/910mm, then restore original single preset and all four controls"
+}

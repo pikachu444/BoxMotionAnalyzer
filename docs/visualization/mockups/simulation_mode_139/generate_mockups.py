@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QPushButton, QTabWidget, QFormLayout, QDoubleSpinBox,
     QTableWidget, QTableWidgetItem, QHeaderView, QLineEdit, QGroupBox, QSpinBox)
@@ -21,14 +21,24 @@ from src.simulation.scenarios import Scenarios
 
 
 class MockSimulation(SimulationUI):
-    def __init__(self, mode='single_drop', state='default'):
+    configuration_changed=Signal()
+
+    def _update_custom_fields_from_scenario(self):
+        super()._update_custom_fields_from_scenario()
+        # Legacy preset/reset updates intentionally block individual controls.
+        # Publish the completed snapshot rather than waiting for those signals.
+        self.configuration_changed.emit()
+
+    def __init__(self, mode='single_drop', state='default', category=None):
         super().__init__()
         self.setWindowTitle('Simulation — #139 mockup')
+        self._single_controls=None
         self.scenario_group=self.drop_combo.parentWidget()
         # Reuse the existing painter and preset target semantics. Detach the
         # preview from the scenario form before any mode hides its controls.
         self.scenario_group.layout().takeRow(self.orientation_preview)
         self.orientation_preview.setParent(None)
+        if category is not None:self.cat_combo.setCurrentIndex(Scenarios.CATEGORIES.index(category))
         row = QHBoxLayout()
         row.addWidget(QLabel('Mode'))
         self.mode = QComboBox()
@@ -47,7 +57,7 @@ class MockSimulation(SimulationUI):
         self.sequence_summary = QGroupBox('Sequence')
         summary = QVBoxLayout(self.sequence_summary)
         self.sequence_drop=QComboBox()
-        self.sequence_drop.addItems(['1   Face 3 — high     100 mm','2   Edge 3–4     150 mm'])
+        self.sequence_drop.addItems([spec.id for spec in Scenarios.get_drop_sequence_specs(self.cat_combo.currentData())])
         summary.addWidget(self.sequence_drop)
         summary.addWidget(QLabel('Edit order and initial pose in Settings…'))
         self.sequence_drop.currentIndexChanged.connect(self._update_orientation_preview)
@@ -83,11 +93,28 @@ class MockSimulation(SimulationUI):
         if not hasattr(self,'mode') or self.mode.currentData()!='robot_sequence':
             return super()._update_orientation_preview()
         index=self.sequence_drop.currentIndex()
-        spec=Scenarios.TYPE_G_SEQUENCES[7 if index==0 else 0]
-        euler=(0.,0.,0.) if index==0 else (0.,35.,0.)
+        category=self.cat_combo.currentData()
+        spec=Scenarios.get_drop_sequence_specs(category)[index]
+        box_size=(self.w_input.value(),self.d_input.value(),self.h_input.value())
+        euler=tuple(round(float(value),2) for value in Scenarios.get_euler_angles(spec,box_size,category))
+        height=Scenarios.calculate_drop_height(category,spec,self.mass_input.value())
+        # Display the configured active row in the same Scenario form. These
+        # read-only robot controls never replace the saved single-drop values.
+        self.drop_combo.blockSignals(True);self.drop_combo.setCurrentIndex(index);self.drop_combo.blockSignals(False)
+        for control,value in zip((self.custom_h_input,self.custom_r_input,self.custom_p_input,self.custom_y_input),
+                (height,*euler)):
+            control.blockSignals(True);control.setValue(value);control.blockSignals(False)
+        self.warning_label.hide()
         self.orientation_preview.set_preview_state(
             (self.w_input.value(),self.d_input.value(),self.h_input.value()),
-            euler,spec,Scenarios.CATEGORIES[0])
+            euler,spec,category)
+
+    def _on_cat_changed(self):
+        super()._on_cat_changed()
+        if hasattr(self,'sequence_drop'):
+            self.sequence_drop.blockSignals(True);self.sequence_drop.clear()
+            self.sequence_drop.addItems([spec.id for spec in Scenarios.get_drop_sequence_specs(self.cat_combo.currentData())])
+            self.sequence_drop.blockSignals(False)
 
     def _fit_form(self):
         # Review the actual content height, not a maximized empty scroll area.
@@ -105,10 +132,21 @@ class MockSimulation(SimulationUI):
 
     def change_mode(self):
         robot = self.mode.currentData() == 'robot_sequence'
-        self.scenario_group.setVisible(not robot)
-        self.sequence_summary.setVisible(robot)
+        if robot and self._single_controls is None:
+            self._single_controls=(self.drop_combo.currentIndex(),tuple(c.value() for c in
+                (self.custom_h_input,self.custom_r_input,self.custom_p_input,self.custom_y_input)))
+        elif not robot and self._single_controls is not None:
+            index,values=self._single_controls
+            self.drop_combo.blockSignals(True);self.drop_combo.setCurrentIndex(index);self.drop_combo.blockSignals(False)
+            for control,value in zip((self.custom_h_input,self.custom_r_input,self.custom_p_input,self.custom_y_input),values):
+                control.blockSignals(True);control.setValue(value);control.blockSignals(False)
+            self._single_controls=None
+            self._check_for_modifications()
+        self.scenario_group.show()
+        self.sequence_summary.hide()
+        for control in (self.cat_combo,self.drop_combo,self.custom_h_input,self.rotation_section):control.setEnabled(not robot)
         self.mode_hint.setText('Configure and save drop order in Settings… Execution is not available yet.' if robot else '')
-        self.mode_hint.setVisible(robot)
+        self.mode_hint.hide()
         for button in (self.run_btn,self.batch_btn,self.marker_btn):
             button.setEnabled(not robot)
             button.setToolTip('Sequence simulation is not implemented.' if robot else '')
@@ -124,6 +162,11 @@ class MockSimulation(SimulationUI):
 class MockProfiles(QWidget):
     def __init__(self, mode='single_drop', invalid=False, source=None):
         super().__init__()
+        self.source=source;self.initial_mode=mode;self.invalid=invalid
+        self._last_mode=mode;self._names={}
+        category=source.cat_combo.currentData() if source else Scenarios.CATEGORIES[0]
+        specs=Scenarios.get_drop_sequence_specs(category)
+        type_name='Type H' if 'Type H' in category else 'Type G'
         self.setWindowTitle('Simulation settings — #139 mockup')
         layout = QVBoxLayout(self)
         top = QHBoxLayout(); top.addWidget(QLabel('Mode'))
@@ -132,33 +175,45 @@ class MockProfiles(QWidget):
         layout.addLayout(top)
         self.tabs = QTabWidget(); layout.addWidget(self.tabs)
         sequence = QWidget(); seq = QVBoxLayout(sequence)
-        names = QFormLayout(); self.name = QLineEdit('Public sequence example' if mode=='robot_sequence' else 'Current single drop')
+        names = QFormLayout(); self.name = QLineEdit(f'Current {type_name} presets' if mode=='robot_sequence' else 'Current single drop')
         names.addRow('Sequence profile',self.name)
-        robot = QComboBox(); robot.addItem('Gripper proxy'); names.addRow('Robot model',robot)
+        robot = QComboBox();self.robot_model=robot; robot.addItem('Gripper proxy'); names.addRow('Robot model',robot)
         robot.setEnabled(mode=='robot_sequence'); seq.addLayout(names)
-        self.table = QTableWidget(2 if mode=='robot_sequence' else 1,5)
+        self.table = QTableWidget(len(specs),6)
         self.table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.table.setHorizontalHeaderLabels(['Preset','Clearance (mm)','Fixed X (°)','Fixed Y (°)','Fixed Z (°)'])
+        self.table.setHorizontalHeaderLabels(['Preset','Clearance (mm)','Fixed X (°)','Fixed Y (°)','Fixed Z (°)','Scope'])
         self.table.setToolTip('Fixed world XYZ in MuJoCo Z-up; extrinsic xyz degrees. Not a marker-local half turn.')
         self.table.horizontalHeader().setSectionResizeMode(0,QHeaderView.Stretch)
-        for c in range(1,5): self.table.horizontalHeader().setSectionResizeMode(c,QHeaderView.ResizeToContents)
-        rows=[['Type G / Face 3 — high','100','0','0','0'],['Type G / Edge 3–4','150','0','35','0']]
+        for c in range(1,6): self.table.horizontalHeader().setSectionResizeMode(c,QHeaderView.ResizeToContents)
+        box_size=(source.w_input.value(),source.d_input.value(),source.h_input.value()) if source else (1578.,930.,142.)
+        mass=source.mass_input.value() if source else 25.
+        self._preset_key=(mode,category,box_size,mass);self._last_active=source.drop_combo.currentIndex() if source else 0
+        rows=[[spec.id.replace('_',' '),f'{Scenarios.calculate_drop_height(category,spec,mass):g}',
+            *[f'{value:.2f}' for value in Scenarios.get_euler_angles(spec,box_size,category)],
+            'Hazard block unavailable' if spec.variant=='hazard_face2' else
+            'Supported motion unavailable' if spec.kind in ('tip','rotational_edge') else 'Free-fall preset'] for spec in specs]
         if mode=='single_drop' and source is not None:
-            rows=[[source.cat_combo.currentText()+' / '+source.drop_combo.currentText(),*[f'{control.value():g}' for control in
-                (source.custom_h_input,source.custom_r_input,source.custom_p_input,source.custom_y_input)]]]
+            active=source.drop_combo.currentIndex()
+            rows[active]=[source.cat_combo.currentText()+' / '+source.drop_combo.currentText(),*[f'{control.value():g}' for control in
+                (source.custom_h_input,source.custom_r_input,source.custom_p_input,source.custom_y_input)],rows[active][-1]]
         for r in range(self.table.rowCount()):
             for c,text in enumerate(rows[r]): self.table.setItem(r,c,QTableWidgetItem(text))
         if invalid:
             self.table.item(1,1).setText('NaN')
             self.table.item(1,1).setBackground(Qt.GlobalColor.yellow)
+        # Both modes show the same preset browser; single execution uses only
+        # the selected row. Extra rows never become extra planned single drops.
+        visible_rows=5
         self.table.setFixedHeight(self.table.horizontalHeader().height()+2*self.table.frameWidth()
-            +sum(self.table.rowHeight(r) for r in range(min(8,self.table.rowCount()))))
+            +visible_rows*self.table.rowHeight(0))
         seq.addWidget(self.table)
         actions=QHBoxLayout()
+        self.order_buttons=[]
         for text in ('Add drop','Remove','Move up','Move down'):
-            button=QPushButton(text); button.setEnabled(mode=='robot_sequence'); actions.addWidget(button)
+            button=QPushButton(text); button.setEnabled(mode=='robot_sequence'); actions.addWidget(button);self.order_buttons.append(button)
         seq.addLayout(actions)
-        seq.addWidget(QLabel('Configure and save drop order. Execution is not available yet.') if mode=='robot_sequence' else QLabel('Optional settings. You can run a single drop directly from Simulation.'))
+        self.sequence_hint=QLabel(f'{len(specs)} preset steps. Sequence execution unavailable (#140).' if mode=='robot_sequence' else f'1 selected / {len(specs)} presets. Run selected preset only.')
+        seq.addWidget(self.sequence_hint)
         self.tabs.addTab(sequence,'Sequence')
         physics=QWidget(); form=QFormLayout(physics)
         form.addRow('Physics profile',QLineEdit('Current physics'))
@@ -189,7 +244,7 @@ class MockProfiles(QWidget):
         fault.addWidget(QLabel('Std'));fault.addWidget(std);form.addRow('Marker fault',fault)
         seed=QSpinBox();seed.setMaximum(2147483647);seed.setValue(74082);form.addRow('Marker seed',seed)
         self.tabs.addTab(observation,'Markers and noise')
-        self.status=QLabel('Drop 2 clearance must be finite. Changes were not applied.' if invalid else 'Profile settings are uncalibrated synthetic inputs.')
+        self.status=QLabel('Drop 2 clearance must be finite. Changes were not applied.' if invalid else 'Current preset plan; ISTA procedure validation is pending.')
         self.status.setWordWrap(True)
         if invalid:self.status.setStyleSheet('color: #a32919;')
         layout.addWidget(self.status)
@@ -206,6 +261,47 @@ class MockProfiles(QWidget):
         self.tabs.currentChanged.connect(self._fit_tab)
         self._fit_tab()
         self.resize(820,self.content_height())
+
+    def refresh(self):
+        if self.source is None:return
+        source=self.source;mode=source.mode.currentData();robot=mode=='robot_sequence'
+        if mode!=self._last_mode:
+            self._names[self._last_mode]=self.name.text()
+            self.name.setText(self._names.get(mode,'Current '+source.cat_combo.currentText()+' presets' if robot else 'Current single drop'))
+            self._last_mode=mode
+        self.mode.setText('Robot sequence' if robot else 'Single drop')
+        self.robot_model.setEnabled(robot)
+        for button in self.order_buttons:button.setEnabled(robot)
+        category=source.cat_combo.currentData();specs=Scenarios.get_drop_sequence_specs(category)
+        box=(source.w_input.value(),source.d_input.value(),source.h_input.value())
+        active=source.sequence_drop.currentIndex() if robot else source.drop_combo.currentIndex()
+        if robot and self.name.text() in ('Current Type G presets','Current Type H presets'):
+            self.name.setText('Current '+source.cat_combo.currentText()+' presets')
+        key=(mode,category,box,source.mass_input.value())
+        # Static preset rows change only with mode/category/geometry/mass.
+        # Ordinary selected-pose edits update the relevant cells in place.
+        rows=range(len(specs)) if key!=self._preset_key else {active,self._last_active}
+        self.table.blockSignals(True);self.table.setRowCount(len(specs))
+        for r in rows:
+            if not 0<=r<len(specs):continue
+            spec=specs[r]
+            values=[spec.id.replace('_',' '),f'{Scenarios.calculate_drop_height(category,spec,source.mass_input.value()):g}',
+                *[f'{value:.2f}' for value in Scenarios.get_euler_angles(spec,box,category)],
+                'Hazard block unavailable' if spec.variant=='hazard_face2' else
+                'Supported motion unavailable' if spec.kind in ('tip','rotational_edge') else 'Free-fall preset']
+            if not robot and r==active:
+                values[1:5]=[f'{control.value():g}' for control in
+                    (source.custom_h_input,source.custom_r_input,source.custom_p_input,source.custom_y_input)]
+            for c,value in enumerate(values):
+                item=self.table.item(r,c)
+                if item is None:self.table.setItem(r,c,QTableWidgetItem(value))
+                elif item.text()!=value:item.setText(value)
+        if self.invalid:
+            self.table.item(1,1).setText('NaN');self.table.item(1,1).setBackground(Qt.GlobalColor.yellow)
+        self.table.selectRow(active);self.table.blockSignals(False)
+        self._preset_key=key;self._last_active=active
+        self.sequence_hint.setText(f'{len(specs)} preset steps. Sequence execution unavailable (#140).' if robot else f'1 selected / {len(specs)} presets. Run selected preset only.')
+        self._fit_tab()
 
     def _fit_tab(self):
         page_height=self.tabs.currentWidget().sizeHint().height()
@@ -235,9 +331,9 @@ def main():
             tracked_changes=subprocess.check_output(['git','status','--short','--untracked-files=no'],cwd=ROOT,text=True).splitlines(),
             script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()),
         command=[sys.executable,*sys.argv],python=sys.version,
-        fixture='Public configured sequence: face3 XYZ0/0/0 and edge3-4 XYZ0/35/0; existing single preset controls',
+        fixture='Current Type G17 and Type H12 preset browsers; G17 hazard and H supported motion unavailable; single executes only one selected preset',
         marker_seed=74082,simulation_seed='Not applicable: no simulation executed',
-        independent_expectations=['Target faces3 vs3/4 and configured XYZ0/35/0',
+        independent_expectations=['Type G17 ordered preset rows, face3 at row8 and edge3/4 at row1; Type H12, face4 at row1',
             'Mode round-trip preserves original single controls and preset',
             'Small controls retain minimum readable height; scrolled preview fully contained',
             'Busy settings Apply disabled; table and selector agree in both directions'],
@@ -245,10 +341,10 @@ def main():
         scope='Review-only mockup; no production execution or native input',qt_platform=app.platformName(),
         qt_scale_factor=os.environ.get('QT_SCALE_FACTOR'),screen_dpr=app.primaryScreen().devicePixelRatio(),
         os_scale='Not inferred from Qt process scale; native OS125 remains separate',states=[])
-    for state,mode,tab in [('default','single_drop',0),('sequence','robot_sequence',0),('edge','robot_sequence',0),('physics','robot_sequence',1),('observation','robot_sequence',2),('returned','single_drop',0),('invalid','robot_sequence',0),('blocked','robot_sequence',0),('running','single_drop',0),('cancelled','single_drop',0)]:
+    for state,mode,tab in [('default','single_drop',0),('sequence','robot_sequence',0),('edge','robot_sequence',0),('type_h','robot_sequence',0),('physics','robot_sequence',1),('observation','robot_sequence',2),('returned','single_drop',0),('invalid','robot_sequence',0),('blocked','robot_sequence',0),('running','single_drop',0),('cancelled','single_drop',0)]:
         board=QWidget();board.setWindowTitle('Simulation — #139 mockup')
         row=QHBoxLayout(board);row.setContentsMargins(10,10,10,10);row.setSpacing(12)
-        main_window=MockSimulation(mode,state);profile=MockProfiles(mode,state=='invalid',main_window);profile.tabs.setCurrentIndex(tab)
+        main_window=MockSimulation(mode,state,Scenarios.CATEGORIES[1] if state=='type_h' else None);profile=MockProfiles(mode,state=='invalid',main_window);profile.tabs.setCurrentIndex(tab)
         if state=='running':profile.setEnabled(False)
         profile.setMinimumWidth(0)
         main_window.setFixedWidth(430)
@@ -259,18 +355,42 @@ def main():
         preview_layout=QVBoxLayout(preview_group)
         preview_layout.addWidget(main_window.orientation_preview)
         right.addWidget(preview_group,1)
-        profile.setVisible(state!='default')
+        profile.show()
         main_window.profiles_button.clicked.connect(lambda checked=False,p=profile:p.setVisible(not p.isVisible()))
         profile.cancel.clicked.connect(profile.hide)
         profile.table.itemSelectionChanged.connect(lambda m=main_window,p=profile:
-            m.sequence_drop.setCurrentIndex(p.table.currentRow()) if m.mode.currentData()=='robot_sequence' and p.table.currentRow()>=0 else None)
-        if mode=='robot_sequence':main_window.sequence_drop.currentIndexChanged.connect(profile.table.selectRow)
-        if mode=='robot_sequence':profile.table.selectRow(1 if state=='edge' else 0)
+            (m.sequence_drop if m.mode.currentData()=='robot_sequence' else m.drop_combo).setCurrentIndex(p.table.currentRow()) if p.table.currentRow()>=0 else None)
+        main_window.sequence_drop.currentIndexChanged.connect(lambda index,m=main_window,p=profile:p.table.selectRow(index) if m.mode.currentData()=='robot_sequence' else None)
+        main_window.drop_combo.currentIndexChanged.connect(lambda index,m=main_window,p=profile:p.table.selectRow(index) if m.mode.currentData()=='single_drop' else None)
+        main_window.configuration_changed.connect(profile.refresh)
+        for signal in (main_window.mode.currentIndexChanged,main_window.cat_combo.currentIndexChanged,
+                main_window.w_input.valueChanged,main_window.d_input.valueChanged,main_window.h_input.valueChanged,
+                main_window.mass_input.valueChanged,main_window.custom_h_input.valueChanged,
+                main_window.custom_r_input.valueChanged,main_window.custom_p_input.valueChanged,main_window.custom_y_input.valueChanged):
+            signal.connect(profile.refresh)
+        if mode=='robot_sequence':profile.table.selectRow(1 if state=='invalid' else 0 if state in ('edge','type_h') else 7)
+        else:profile.table.selectRow(main_window.drop_combo.currentIndex())
         if state=='edge':
+            main_window.sequence_drop.setCurrentIndex(7)
+            assert profile.table.currentRow()==7 and main_window.orientation_preview.sequence_spec.faces==(3,)
             main_window.sequence_drop.setCurrentIndex(0)
-            assert profile.table.currentRow()==0 and main_window.orientation_preview.sequence_spec.faces==(3,)
-            main_window.sequence_drop.setCurrentIndex(1)
-            assert profile.table.currentRow()==1 and main_window.orientation_preview.sequence_spec.faces==(3,4)
+            assert profile.table.currentRow()==0 and main_window.orientation_preview.sequence_spec.faces==(3,4)
+        if state=='default':
+            original=tuple(c.value() for c in (main_window.custom_h_input,main_window.custom_r_input,main_window.custom_p_input,main_window.custom_y_input))
+            main_window.mode.setCurrentIndex(1)
+            assert profile.mode.text()=='Robot sequence' and profile.order_buttons[0].isEnabled()
+            profile.table.selectRow(7)
+            main_window.mode.setCurrentIndex(0)
+            assert profile.mode.text()=='Single drop' and not profile.order_buttons[0].isEnabled()
+            assert tuple(c.value() for c in (main_window.custom_h_input,main_window.custom_r_input,main_window.custom_p_input,main_window.custom_y_input))==original
+            main_window.cat_combo.setCurrentIndex(1)
+            assert profile.table.rowCount()==12 and profile.table.item(0,5).text()=='Supported motion unavailable'
+            main_window.cat_combo.setCurrentIndex(0)
+            main_window.custom_h_input.setValue(123.);main_window.custom_y_input.setValue(17.)
+            assert profile.table.item(0,1).text()=='123' and profile.table.item(0,4).text()=='17'
+            main_window._update_custom_fields_from_scenario()
+            assert profile.table.item(0,1).text()=='460' and profile.table.item(0,4).text()=='0'
+            assert main_window.orientation_preview.euler==(-98.68,0.,0.)
         dpr=app.primaryScreen().devicePixelRatio()
         board.resize(math.ceil(1920/dpr),math.ceil(1080/dpr));board.show();app.processEvents()
         assert main_window.orientation_preview.isVisible(), 'Both modes must retain the preset target preview.'
@@ -281,15 +401,22 @@ def main():
             assert main_window.orientation_preview.sequence_spec.faces==(3,)
         elif state=='edge':
             assert main_window.orientation_preview.sequence_spec.faces==(3,4)
-            assert main_window.orientation_preview.euler==(0.,35.,0.)
-        assert profile.table.viewport().height()>=sum(profile.table.rowHeight(r) for r in range(profile.table.rowCount()))
+        assert profile.table.viewport().height()>=5*profile.table.rowHeight(0)
+        if mode=='robot_sequence':
+            if state=='type_h':
+                assert profile.table.rowCount()==12 and profile.table.item(0,5).text()=='Supported motion unavailable'
+                assert main_window.orientation_preview.sequence_spec.faces==(4,)
+            else:
+                assert profile.table.rowCount()==17
+                assert profile.table.item(16,5).text()=='Hazard block unavailable'
         # Render at original resolution, never upscale a smaller raster.
         pixmap=board.grab();name=f'{state}-fhd.png';assert pixmap.save(str(root/name))
         assert pixmap.width()>=1920 and pixmap.height()>=1080
         report['states'].append(dict(state=state,logical=[board.width(),board.height()],pixels=[pixmap.width(),pixmap.height()],
             dpr=pixmap.devicePixelRatio(),screenshot=name,composition='One simulation workspace with optional settings and the existing preview',
             panels=dict(simulation=[main_window.width(),main_window.height()],settings=[profile.width(),profile.height()]),
-            form_scroll_maximum=main_window.form_scroll.verticalScrollBar().maximum(),table_empty_rows=0,
+            form_scroll_maximum=main_window.form_scroll.verticalScrollBar().maximum(),
+            table_empty_rows=0,preset_rows=profile.table.rowCount(),sequence_steps=profile.table.rowCount() if mode=='robot_sequence' else 1,
             preview=dict(visible=True,preset=main_window.orientation_preview.sequence_spec.id,
                 faces=list(main_window.orientation_preview.sequence_spec.faces),euler=list(main_window.orientation_preview.euler),
                 meaning='Preset target, not a predicted impact after custom rotation')))
@@ -299,13 +426,14 @@ def main():
     roundtrip=MockSimulation()
     original=tuple(c.value() for c in (roundtrip.custom_h_input,roundtrip.custom_r_input,roundtrip.custom_p_input,roundtrip.custom_y_input))
     preset=roundtrip.drop_combo.currentData().id
-    roundtrip.mode.setCurrentIndex(1);roundtrip.sequence_drop.setCurrentIndex(1)
-    assert roundtrip.orientation_preview.sequence_spec.faces==(3,4)
+    roundtrip.mode.setCurrentIndex(1);roundtrip.sequence_drop.setCurrentIndex(7)
+    assert roundtrip.orientation_preview.sequence_spec.faces==(3,)
+    assert roundtrip.custom_h_input.value()==910.
     roundtrip.mode.setCurrentIndex(0)
     assert roundtrip.drop_combo.currentData().id==preset
     assert tuple(c.value() for c in (roundtrip.custom_h_input,roundtrip.custom_r_input,roundtrip.custom_p_input,roundtrip.custom_y_input))==original
     assert roundtrip.orientation_preview.euler==original[1:]
-    report['preview_roundtrip']='Passed: unchanged single settings/preset; sequence row2 target faces3/4 and XYZ0/35/0'
+    report['preview_roundtrip']='Passed: select sequence row8 face3/910mm, then restore original single preset and all four controls'
     roundtrip.orientation_preview.deleteLater();roundtrip.deleteLater()
     for mode in ('single_drop','robot_sequence'):
         window=MockSimulation(mode,'blocked' if mode=='robot_sequence' else 'default')

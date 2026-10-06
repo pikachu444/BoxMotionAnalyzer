@@ -7,14 +7,17 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
-- [ ] #139 / PUB06 in progress: review-only FHD/minimum/Qt125 mockup was refined
-  after first-use comprehension review; same single reviewer found no remaining
-  presentation blocker. Human #139 UI approval is pending. Backend per-mode
+- [ ] #139 / PUB06 in progress: user rejected divergent single/sequence mockups
+  and arbitrary two-step examples. Latest review-only mockup uses a shared
+  preset browser/settings/preview, current G17/H12 plans, and single selected-row
+  semantics. Same reviewer closed dynamic mode/type/value/reset presentation
+  findings; human #139 UI approval remains pending. Backend per-mode
   settings/source history and public/evaluation metadata are implemented;
   core93 and expanded metadata/storage/Compare195 checks passed; interim review
   found five backend defects, corrected with260 passing regressions. Production UI
   binding, job-generation guards, complete integration/CI, final independent
-  review and publication remain pending. See `../reference/simulation_mode_contract.md`
+  review and final publication remain pending (backend checkpoint draft PR150
+  exists). See `../reference/simulation_mode_contract.md`
   and `../../visualization/simulation_mode_139.md`. Native Windows activation
   failed twice; actual OS125/input remains unexecuted. #140/#143 not started;
   #104 measured validation separate; no baseline/tolerance/trial promotion.

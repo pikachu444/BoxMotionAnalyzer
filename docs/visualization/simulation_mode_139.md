@@ -148,6 +148,63 @@ Verified output adds provenance without changing the reviewed composition.
 Human approval and production binding remain pending; no native or
 measured-trial acceptance is claimed.
 
+## Shared layout and full current preset plans
+
+The user rejected the enlarged single-drop preview and divergent mode layout.
+The user also rejected the arbitrary two-step example as a representation of
+ISTA work. These objections supersede the previously reviewed compositions.
+Main retained one common Settings/table/preview arrangement for both modes;
+the same Scenario form stays present. Single mode disables Robot model and
+Add/Remove/Move, with its normal Run paths. Robot Scenario values show the
+active configured step read-only, preserving the original single-control
+snapshot for mode return. The preset browser is shared: Single runs only the
+selected row, not all visible rows. The right preview stays at the same bounded
+size in the two default Sequence views.
+
+Current-plan fixtures reuse the existing Type G17 and Type H12 lists and
+their existing clearance/orientation calculations. They are not asserted to
+be the complete validated ISTA procedure. In particular, G17's hazard geometry
+and Type H supported/tilt/rotation/release motions remain unavailable, as already
+documented in `../simulation.md`. The table identifies these scope limits and
+all Robot sequence execution remains blocked. There is no new scene engine or
+automatic test approval. Type G/H category/standard eligibility and actual
+experimental application remain separate decisions.
+
+`ista_plan150/125` produced17 states each with exit0, including Type H. Original
+FHD sizes remain1920x1080 and logical/DPR pairs1280x720/1.5 and1536x864/1.25.
+The SciPy gimbal-lock warning from existing preset Euler conversion is retained
+in the command result; it is a coordinate representation warning, not a native
+acceptance or failed physical calculation. Both-mode preview, single-value
+round-trip, selection sync, busy Settings gate and small-window controls/scroll
+assertions passed. Preset values are reused for the layout fixture, not copied
+as independent numerical expectations. Independent structural expectations
+are G17/H12 counts, literal face/preset membership and unavailable status.
+Earlier `consistent*` and `full_plan*` originals are retained. The reviewer
+identified two P2 interaction defects: right-side mode state remained initial,
+and category/input edits left stale preset rows. Main added current-source
+refresh for mode/category/geometry/mass and pose changes, guarding both selection
+connections by the current mode. Preset rows/items are reused; only relevant
+source-key changes rebuild all values, and ordinary pose edits update affected
+cells. The invalid fixture now selects its NaN row2 so the error is visible.
+
+Latest originals are `ista_dynamic_final150/125`,17 states each/exit0. The
+default fixture now exercises actual Single-to-Robot-to-Single switching,
+row8 face3/910mm and restoration of the four original single values, Type G
+to H12 and back, and explicit clearance123/XYZ-Z17 updates in the active table
+row. These are independent UI expectations; no production trajectory was used
+as a golden result. The review still found a reset-path P2: original controls
+restored460/Z0 with signals blocked, while the table retained123/Z17. Those
+`ista_dynamic_final*` failure images are preserved. Main emits a completed
+configuration snapshot after the existing preset/reset method, then refreshes
+the table; added post-reset literal table460/Z0 and preview(-98.68,0,0) checks.
+
+Final originals `ista_reset_fixed150/125` each passed17 states/exit0. The same
+reviewer closed both dynamic P2 findings, confirmed reset/preset-change values,
+G/H names/counts and visible NaN row2, and found no additional P0/P1/P2 in the
+corrected mockup scope. Narrow left-column whitespace remains. This review
+does not certify actual user comprehension, native input, Windows OS125 or
+production behavior. Production UI and human mockup approval remain pending.
+
 ## Native state
 
 The computer-use skill initialized @oai/sky and identified exactly one
