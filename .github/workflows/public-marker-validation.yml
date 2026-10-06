@@ -87,6 +87,7 @@ jobs:
           tests/test_marker_flip_artifact_io.py
           tests/test_marker_face_gui_flow.py
           tests/test_simulation_contact_gui.py
+          tests/test_robot_sequence.py
           tests/test_simulation_layout.py
           tests/test_marker_flip_review_dialog.py
           tests/test_marker_review_layout.py

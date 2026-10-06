@@ -2,6 +2,12 @@
 
 Last Reviewed: 2026-10-07
 
+#140 / PUB07 backend checkpoint adds explicit applicability-bound execution
+profiles and a one-state dynamic gripper runner. Existing config-only robot
+profiles stay blocked; production UI binding awaits the new human-reviewed
+mockup and fixture/tolerance approval. Metadata/export reuse the PUB06 paths;
+sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/robot_sequence_contract.md).
+
 #139 / PUB06 reuses the existing simulation producers and adapters. ModeProfiles validates isolated schema1/plan-bound sequence, physics and observation settings with source/edit snapshots. The production GUI captures immutable jobs, adopts only the matching generation after QThread.finished and preserves earlier files/history on cancellation or source changes. Public SimulationMetadataJson propagates through existing artifact/read/write/Compare routes; full release state and corruption truth stay evaluation-only. Robot engine execution remains issue140. [Contract](../reference/simulation_mode_contract.md) records legacy unknown semantics and native/measured verification limits.
 
 #138 adds schema1/plan-bound marker source/geometry/correspondence/meaning identities and atomic ProfileEditorState documents, while retaining original profile hashes and host Artifact SchemaVersion1. Actual producer/reader/Raw/corrected/slice/proc/Compare paths propagate the nested semantic declaration; source/generation guards reject obsolete jobs. Same-face mapping changes do not imply a changed Raw centre/pose. [PUB05 contract](../reference/marker_profile_semantics.md) records scoped compatibility, legacy/migration limits and the excluded #113 user feature.

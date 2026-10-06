@@ -2,6 +2,11 @@
 
 Last Reviewed: 2026-10-07
 
+#140 has a reviewed FHD/narrow UI proposal, shown inline, awaiting human approval.
+Dynamic backend execution profiles are available through explicit APIs on the
+development branch; current production buttons/layout retain PUB06 behavior.
+No whole GUI/native completion is claimed. [Checkpoint](../reference/robot_sequence_contract.md).
+
 #139 / PUB06 adds a shared Simulation mode/settings/target-preview workspace. Single drop stays the default and existing Run/Run all presets/Marker CSV actions are retained. Settings drafts separate Sequence, Physics and Markers and noise, with Open/Save distinct from Use in Simulation/Cancel. Each mode restores its own applied settings. Robot sequence is configuration-only and execution is blocked with the issue140 reason. Synthetic public metadata follows the real producer, saved results and analysis/Compare; no trial approval is inherited. [Mode/source contract and verification limits](../reference/simulation_mode_contract.md) distinguish widget checks from pending native Windows input/OS125.
 
 The approved wide composition keeps Mode/Settings over the left input panel. The existing target preview fills the remaining space below the right settings; it does not have a fixed200 height with an unused lower stretch. Narrow windows retain the separate Settings dialog and scrollable original inputs/preview.

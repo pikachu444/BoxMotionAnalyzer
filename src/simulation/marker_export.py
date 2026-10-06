@@ -72,6 +72,8 @@ def generate_marker_capture(destination, profile, simulation, faults, seed, *, c
         # Preserve the requested snapshot separately; full metadata describes
         # the effective engine geometry rather than pretending it used UI size.
         requested=copy.deepcopy(config)
+        if config['mode']=='robot_sequence' and config['size_mm']!=list(profile['box_dims_mm']):
+            raise ValueError('Robot execution geometry must match the marker layout; explicitly preview/apply the effective dimensions.')
         config['size_mm']=list(profile['box_dims_mm']);validate_config(config)
     elif simulation.get('mode') not in (None,'single_drop'):
         raise ValueError('Explicit simulation mode requires its versioned configuration.')
@@ -81,8 +83,12 @@ def generate_marker_capture(destination, profile, simulation, faults, seed, *, c
     if not target.parent.is_dir():
         raise ValueError('Choose an existing parent folder.')
     checkpoint()
-    engine = MuJoCoEngine(size=profile['box_dims_mm'], mass=simulation['mass'],
-        friction=simulation['friction'], elasticity=simulation['elasticity'], com_offset=simulation['com_offset'])
+    if config is not None and config['mode']=='robot_sequence':
+        from .engine.robot_sequence import RobotSequenceEngine
+        engine=RobotSequenceEngine(config)
+    else:
+        engine = MuJoCoEngine(size=profile['box_dims_mm'], mass=simulation['mass'],
+            friction=simulation['friction'], elasticity=simulation['elasticity'], com_offset=simulation['com_offset'])
     engine.set_initial_state(simulation['height'], simulation['quat'])
     history = engine.run_simulation(show_viewer=False, stop_condition_time=simulation['duration'],
         cancelled=cancelled, progress=lambda t, stop: update(min(80, 80 * t / stop), 'Simulating'))

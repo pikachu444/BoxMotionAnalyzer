@@ -7,6 +7,15 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [ ] #140 / PUB07 ongoing: opt-in dynamic gripper backend and explicit execution
+  profiles are implemented on `issue140-dynamic-robot-sequence`; continuous clock,
+  two releases/pickup/orient, supported H template, independent toggle/coverage
+  controls and actual producer/analysis truth-isolation diagnostics are recorded
+  in `../reference/robot_sequence_contract.md`. Reviewed FHD/narrow proposal was
+  shown; human UI and new synthetic fixture/tolerance approvals are pending.
+  Production UI binding, final independent audit, publication/CI/merge and native
+  confirmation remain open. Existing single-drop and #139 source/history paths
+  stay in production. #141–143 are not started; #104 remains separate.
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
   and stale-worker cancellation are implemented. Original production GUI34 checks
@@ -27,7 +36,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   denied0x80070005. Original failures and Qt evidence are preserved separately.
   See `../reference/simulation_mode_contract.md` and
   `../../visualization/simulation_mode_139.md`. No whole139/native/measured
-  completion claimed. #140/#143 not started; #104 measured validation separate;
+  completion claimed. #140 ongoing; #143 not started; #104 measured validation separate;
   #113 excluded; no baseline/tolerance/trial promotion.
 - [O] #138 / PUB05 software implementation and automatic review: user approved
   the final interactive mockup on 2026-10-06. Main implemented geometry/meaning/correspondence

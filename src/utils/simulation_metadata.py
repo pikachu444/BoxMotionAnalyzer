@@ -12,6 +12,7 @@ from src.utils.marker_profile_identity import envelope, validate_envelope, diges
 
 FIELD = 'SimulationMetadataJson'
 GENERATOR_VERSION = 'pub06-simulation-contract-v1'
+ROBOT_GENERATOR_VERSION = 'pub07-dynamic-gripper-v1'
 COORDINATE_POLICY = 'world-y-up-box-local-fixed-center-v1'
 TRANSFORM = [[1.,0.,0.],[0.,0.,1.],[0.,-1.,0.]]
 UNITS = dict(position='mm',time='s',rotation='rotation-matrix-local-to-world',
@@ -84,10 +85,19 @@ def build_metadata(config,engine,history,*,route,run_id):
     corners=np.asarray([[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],
         [-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]])*np.asarray(size)/2
     initial_position=[0.,0.,step['clearance_mm']-(corners@expected_rotation.T)[:,2].min()]
-    if (times[0]!=0 or not np.allclose(actual_rotation,expected_rotation,rtol=0,atol=1e-12)
+    if config['mode']=='single_drop' and (times[0]!=0 or not np.allclose(actual_rotation,expected_rotation,rtol=0,atol=1e-12)
             or not np.allclose(history[0]['RotationMatrix'],expected_rotation,rtol=0,atol=1e-12)
             or not np.allclose(history[0]['BodyOrigin'],initial_position,rtol=0,atol=1e-9)):
         raise ValueError('Initial recorded release differs from the captured drop settings.')
+    robot=config['mode']=='robot_sequence'
+    if robot:
+        from src.simulation.robot_evaluation import evaluate_sequence
+        if getattr(engine,'config',None)!=config:raise ValueError('Actual sequence source configuration differs.')
+        if getattr(engine,'plan',None)!=config['sequence_profile']['execution_plan']:
+            raise ValueError('Executed plan differs from the captured source configuration.')
+        result=evaluate_sequence(engine.sequence_evidence,config['sequence_profile']['execution_plan'],
+            history=history,configuration_hash=digest(config))
+        if result['status']=='failed':raise ValueError('Sequence continuity/coverage failed: '+str(result['errors']))
     body=mujoco.mj_name2id(engine.model,mujoco.mjtObj.mjOBJ_BODY,'box')
     geometry=mujoco.mj_name2id(engine.model,mujoco.mjtObj.mjOBJ_GEOM,'box_geom')
     floor=mujoco.mj_name2id(engine.model,mujoco.mjtObj.mjOBJ_GEOM,'floor')
@@ -108,9 +118,12 @@ def build_metadata(config,engine,history,*,route,run_id):
         legacy_alias='Position/CoM is body-origin/geocenter; Simulation/InertialCOM is inertial COM')
     seed=config['observation_profile']['corner']['seed'] if route=='direct_proc' else config['observation_profile']['marker']['seed']
     public=_sealed('SimulationSourceMetadata',mode=config['mode'],source=dict(kind='mujoco_synthetic',run_id=run_id),
-        generator=dict(name='mujoco',version=GENERATOR_VERSION,engine_version=mujoco.__version__),
+        generator=dict(name='mujoco',version=ROBOT_GENERATOR_VERSION if robot else GENERATOR_VERSION,engine_version=mujoco.__version__),
         route=route,seed=seed,configuration=configuration,configuration_hash=digest(configuration),
         clock=clock,transforms=transforms,release_state_status='evaluation-only',calibration_status='uncalibrated')
+    if robot:
+        public['execution_status']=engine.sequence_evidence['completion']
+        public['content_hash']=digest({k:v for k,v in public.items() if k!='content_hash'})
     def contact(index):
         return dict(condim=int(engine.model.geom_condim[index]),friction=engine.model.geom_friction[index].tolist(),
             solref=engine.model.geom_solref[index].tolist(),solimp=engine.model.geom_solimp[index].tolist(),
@@ -126,6 +139,9 @@ def build_metadata(config,engine,history,*,route,run_id):
         origin_linear_velocity_world=np.asarray(initial['OriginLinearVelocityWorld']).tolist() if 'OriginLinearVelocityWorld' in initial else None,
         angular_velocity_world=np.asarray(initial['AngularVelocityWorld']).tolist() if 'AngularVelocityWorld' in initial else None,
         angular_velocity_body=np.asarray(initial['AngularVelocityBody']).tolist() if 'AngularVelocityBody' in initial else None)
+    if robot:
+        release.update(status='unavailable',reason='Robot starts supported; actual releases are recorded in evaluation-only sequence_evidence.',
+            origin_linear_velocity_world=None,angular_velocity_world=None,angular_velocity_body=None)
     full=_sealed('SimulationMetadata',public=public,source_configuration=deepcopy(config),
         source_configuration_hash=digest(config),compiled_physics=dict(timestep_s=float(engine.model.opt.timestep),
             gravity_m_s2=engine.model.opt.gravity.tolist(),mass_kg=float(engine.model.body_mass[body]),
@@ -133,6 +149,18 @@ def build_metadata(config,engine,history,*,route,run_id):
             inertia_orientation_wxyz=engine.model.body_iquat[body].tolist(),box=contact(geometry),floor=contact(floor)),
         release_state=release,observation_config=deepcopy(config['observation_profile']),
         truth_access='direct simulation/evaluation only; never analysis input')
+    if robot:
+        full['sequence_evidence']=deepcopy(engine.sequence_evidence)
+        grip=mujoco.mj_name2id(engine.model,mujoco.mjtObj.mjOBJ_BODY,'gripper')
+        geom=mujoco.mj_name2id(engine.model,mujoco.mjtObj.mjOBJ_GEOM,'gripper_geom')
+        drive=mujoco.mj_name2id(engine.model,mujoco.mjtObj.mjOBJ_EQUALITY,'drive')
+        attach=mujoco.mj_name2id(engine.model,mujoco.mjtObj.mjOBJ_EQUALITY,'attachment')
+        full['compiled_physics']['robot']=dict(gripper_mass_kg=float(engine.model.body_mass[grip]),
+            gripper_inertia_kg_m2=engine.model.body_inertia[grip].tolist(),radius_mm=float(engine.model.geom_size[geom,0]*1000),
+            drive_timeconst_s=float(engine.model.eq_solref[drive,0]),attach_timeconst_s=float(engine.model.eq_solref[attach,0]),
+            torque_scale_m=float(engine.model.eq_data[attach,10]),contact_margin_mm=float(engine.model.geom_margin[geometry]*1000),
+            solver_iterations=int(engine.model.opt.iterations))
+        full['content_hash']=digest({k:v for k,v in full.items() if k!='content_hash'})
     validate_full(full)
     return full
 
@@ -143,9 +171,12 @@ def validate_public(value,artifact=None):
     from src.simulation.mode_profiles import MODES,validate_step,number,vector,seed,_text,_profile
     expected={'schema_version','plan_spec','object_type','content_hash','mode','source','generator',
         'route','seed','configuration','configuration_hash','clock','transforms','release_state_status','calibration_status'}
+    robot=value.get('mode')=='robot_sequence'
+    if robot:expected.add('execution_status')
     if set(value)!=expected:raise ValueError('Unexpected simulation source fields; truth is not analysis metadata.')
     if value.get('mode') not in MODES:raise ValueError('Unsupported simulation metadata mode.')
-    if value['mode']!='single_drop':raise ValueError('This generator version cannot declare successful robot sequence output.')
+    if robot and value.get('execution_status') not in ('completed','partial','cancelled','time_limit','failure'):
+        raise ValueError('Invalid sequence execution status.')
     source=value.get('source')
     if (not isinstance(source,dict) or set(source)!={'kind','run_id'} or source.get('kind')!='mujoco_synthetic'
             or not isinstance(source.get('run_id'),str) or not source['run_id'].strip()):
@@ -154,7 +185,7 @@ def validate_public(value,artifact=None):
         raise ValueError('Unsupported simulation route/calibration declaration.')
     generator=value.get('generator')
     if (not isinstance(generator,dict) or set(generator)!={'name','version','engine_version'}
-            or generator.get('name')!='mujoco' or generator.get('version')!=GENERATOR_VERSION):
+            or generator.get('name')!='mujoco' or generator.get('version')!=(ROBOT_GENERATOR_VERSION if robot else GENERATOR_VERSION)):
         raise ValueError('Unsupported simulation generator/version.')
     _text(generator.get('engine_version'),'Engine version')
     if type(value.get('seed')) is not int or not 0<=value['seed']<=2147483647:raise ValueError('Invalid simulation seed.')
@@ -166,7 +197,7 @@ def validate_public(value,artifact=None):
         raise ValueError('Unexpected simulation configuration declaration.')
     number(config.get('requested_duration_s'),'Duration',minimum=.5,maximum=60)
     sequence=config.get('sequence_profile');_profile(sequence,'SimulationSequenceProfile')
-    if set(sequence)!={'schema_version','plan_spec','object_type','profile_id','source','mode','robot_model','steps'}:
+    if set(sequence)-({'execution_plan'} if robot else set())!={'schema_version','plan_spec','object_type','profile_id','source','mode','robot_model','steps'}:
         raise ValueError('Unexpected sequence declaration.')
     if sequence.get('mode')!=value['mode'] or sequence.get('robot_model')!=(None if value['mode']=='single_drop' else 'gripper_proxy'):
         raise ValueError('Simulation sequence/mode mismatch.')
@@ -174,6 +205,10 @@ def validate_public(value,artifact=None):
             or value['mode']=='single_drop' and len(sequence['steps'])!=1):raise ValueError('Planned drops are required for the declared mode.')
     for step in sequence['steps']:validate_step(step)
     if len({step['step_id'] for step in sequence['steps']})!=len(sequence['steps']):raise ValueError('Duplicate planned drop identity.')
+    if robot:
+        from src.simulation.robot_profiles import validate_plan
+        validate_plan(sequence.get('execution_plan'),dict(size_mm=config['size_mm'],
+            sequence_profile=sequence,physics_profile=config['physics_profile']))
     physics=config.get('physics_profile');_profile(physics,'SimulationPhysicsProfile')
     if set(physics)!={'schema_version','plan_spec','object_type','profile_id','source','units','model','mass_kg','friction','contact_damping_control','com_offset_mm'}:
         raise ValueError('Unexpected physics declaration.')
@@ -266,6 +301,11 @@ def validate_full(value):
     _validate_seal(value,'SimulationMetadata')
     public=validate_public(value.get('public'))
     config=value.get('source_configuration');require_executable(config)
+    if config['mode']=='robot_sequence':
+        from src.simulation.robot_evaluation import evaluate_sequence
+        result=evaluate_sequence(value.get('sequence_evidence'),config['sequence_profile']['execution_plan'],configuration_hash=digest(config))
+        if result['status'] in ('failed','unavailable'):raise ValueError('Invalid/missing sequence evidence.')
+        if value['sequence_evidence']['completion']!=public['execution_status']:raise ValueError('Sequence status differs from public output status.')
     requested=value.get('requested_source_configuration')
     if requested is not None:
         require_executable(requested)
@@ -287,6 +327,13 @@ def validate_full(value):
     if compiled['mass_kg']!=config['physics_profile']['mass_kg']:raise ValueError('Compiled mass differs.')
     for field in ('gravity_m_s2','inertia_kg_m2'):vector(compiled.get(field),'Compiled '+field)
     if min(compiled['inertia_kg_m2'])<=0:raise ValueError('Compiled inertia must be positive.')
+    if config['mode']=='robot_sequence':
+        expected=config['sequence_profile']['execution_plan']['physics']
+        actual=compiled.get('robot')
+        if (not isinstance(actual,dict) or set(actual)!=set(expected)
+                or any(not np.allclose(actual[key],expected[key],rtol=0,atol=1e-12) for key in expected)
+                or compiled['timestep_s']!=.002 or compiled['gravity_m_s2']!=[0.,0.,-9.81]):
+            raise ValueError('Compiled dynamic gripper physics differs from its execution profile.')
     quat=np.asarray(compiled.get('inertia_orientation_wxyz'),dtype=float)
     if quat.shape!=(4,) or not np.isfinite(quat).all() or abs(np.linalg.norm(quat)-1)>1e-10:raise ValueError('Invalid compiled inertia orientation.')
     for key in ('box','floor'):

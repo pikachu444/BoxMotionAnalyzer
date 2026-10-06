@@ -2,10 +2,17 @@
 
 Last Reviewed: 2026-10-07
 
+#140 backend development introduces opt-in `RobotSequenceEngine` and explicit
+`RobotExecutionPlan` profiles; existing config-only plans remain blocked. One
+dynamic state runs attach/lift/orient/release/contact/settle/pickup. Production
+UI integration and new fixture/tolerance approvals are pending. Existing default
+single-drop behavior/contact settings and export aliases remain intact.
+[Contract and proposed public diagnostics](analysis/reference/robot_sequence_contract.md).
+
 #139 / PUB06은 기본 Single drop과 선택형 Robot sequence의 설정을 분리한다.
 기존 Run·Run all presets·Marker CSV 경로를 사용하며 두 모드가 같은 설정 탭과
-박스 프리뷰를 공유한다. Robot sequence는 설정 저장까지 가능하며 실행은 #140의
-attach/pickup/release engine이 없다는 사유로 차단한다. 합성 설정과 결과는
+박스 프리뷰를 공유한다. 현재 생산 UI의 Robot sequence는 설정 저장까지 가능하며,
+명시적인 #140 실행 plan을 적용하는 UI가 아직 연결되지 않아 실행을 차단한다. 합성 설정과 결과는
 실제 원시험·반복 수와 구분한다. [mode 계약](analysis/reference/simulation_mode_contract.md),
 [검증과 native 대기 범위](visualization/simulation_mode_139.md)를 참고한다.
 

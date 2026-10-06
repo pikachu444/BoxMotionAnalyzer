@@ -93,7 +93,7 @@ def validate_config(config):
     sequence, physics, observation = (config.get(field) for field in
         ('sequence_profile', 'physics_profile', 'observation_profile'))
     _profile(sequence, 'SimulationSequenceProfile')
-    if set(sequence)!={'schema_version','plan_spec','object_type','profile_id','source','mode','robot_model','steps'}:
+    if set(sequence)-{'execution_plan'}!={'schema_version','plan_spec','object_type','profile_id','source','mode','robot_model','steps'}:
         raise ValueError('Unexpected sequence profile fields.')
     if sequence.get('mode') != mode or sequence.get('robot_model') != (None if mode == 'single_drop' else 'gripper_proxy'):
         raise ValueError('Sequence mode/robot model mismatch.')
@@ -103,6 +103,10 @@ def validate_config(config):
     for step in steps: validate_step(step)
     if len({step['step_id'] for step in steps}) != len(steps):
         raise ValueError('Planned drop IDs must be distinct.')
+    if 'execution_plan' in sequence:
+        if mode != 'robot_sequence': raise ValueError('Single drop cannot contain a robot execution plan.')
+        from .robot_profiles import validate_plan
+        validate_plan(sequence['execution_plan'])
     _profile(physics, 'SimulationPhysicsProfile')
     if set(physics)!={'schema_version','plan_spec','object_type','profile_id','source','units','model','mass_kg','friction','contact_damping_control','com_offset_mm'}:
         raise ValueError('Unexpected physics profile fields.')
@@ -179,7 +183,10 @@ def default_config(mode='single_drop'):
 
 def require_executable(config):
     validate_config(config)
-    if config['mode'] != 'single_drop': raise ValueError(BLOCKED_REASON)
+    if config['mode'] != 'single_drop':
+        if 'execution_plan' not in config['sequence_profile']: raise ValueError(BLOCKED_REASON)
+        from .robot_profiles import validate_plan
+        validate_plan(config['sequence_profile']['execution_plan'],config)
 
 
 class ModeProfiles:

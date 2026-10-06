@@ -1,8 +1,18 @@
-# Simulation mode and output contracts (PUB06)
+# Simulation mode and output contracts (PUB06 / PUB07 checkpoint)
 
 Last Reviewed: 2026-10-07
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. New envelopes use `schema_version: 1`.
+The #140 backend checkpoint adds an explicit, source-bound `RobotExecutionPlan`
+and the opt-in `pub07-dynamic-gripper-v1` producer. Config-only robot profiles
+retain the #139 execution block; they are never silently upgraded. Production
+robot UI execution remains blocked while its mockup approval is pending. The
+new engine, proposed virtual fixtures/tolerances, incomplete-result status and
+evaluation-only transition evidence are described in
+[robot_sequence_contract.md](robot_sequence_contract.md). Neither the backend
+checkpoint nor diagnostic success completes #140 or certifies an ISTA procedure.
+
+The following PUB06 production flow remains the current UI behavior.
 This document describes the backend and production UI bindings. The human approved
 the shared G17/H12 workspace; the same independent reviewer closed all production
 findings. Current CI and publication are tracked in PR150. Native Windows input
@@ -100,10 +110,13 @@ The current routes are `DataExporter.from_engine` → atomic `.proc` export and
 `generate_marker_capture` → `history_to_trajectory` → existing corruption writer
 → staged observed/truth directory publication. With an explicit `mode_config`,
 both validate the captured inputs against the effective engine/observation
-settings. Marker export rejects robot mode before constructing an engine.
+settings. Marker export rejects config-only robot mode before constructing an
+engine. The PUB07 opt-in producer accepts only an explicit applicable execution
+plan, requires matching marker/box geometry, and selects `RobotSequenceEngine`.
 Existing callers without this new configuration retain their original output
 contract; missing historical mode/profile/release semantics remain unknown.
-Production UI passing the new snapshot is a pending integration step.
+Production UI already passes the PUB06 snapshot; its new robot execution-plan
+binding and automatic partial-result retention remain pending #140 integration.
 
 `SimulationMetadata` is the full direct/evaluation record: captured configuration
 and hash, actual compiled timestep/gravity/inertia/contact settings, actual engine
