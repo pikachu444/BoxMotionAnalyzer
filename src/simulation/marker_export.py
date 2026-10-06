@@ -47,6 +47,34 @@ def generate_marker_capture(destination, profile, simulation, faults, seed, *, c
 
     profile, simulation, faults = copy.deepcopy((profile, simulation, faults))
     validate_profile(profile)
+    from .mode_profiles import require_executable,validate_config
+    from src.utils.simulation_metadata import build_metadata
+    from src.utils.marker_profile_identity import profile_identity
+    from uuid import uuid4
+    config=simulation.get('mode_config')
+    if config is not None:
+        require_executable(config)
+        physics=config['physics_profile'];step=config['sequence_profile']['steps'][0]
+        from .scenarios import Scenarios
+        expected_quat=Scenarios.get_orientation_from_euler(*step['fixed_xyz_deg'])
+        if (simulation['mass']!=physics['mass_kg'] or simulation['friction']!=physics['friction']
+                or simulation['elasticity']!=physics['contact_damping_control']
+                or list(simulation['com_offset'])!=physics['com_offset_mm']
+                or simulation['duration']!=config['duration_s'] or simulation['height']!=step['clearance_mm']
+                or not np.allclose(simulation['quat'],expected_quat,rtol=0,atol=1e-14)):
+            raise ValueError('Marker simulation settings differ from the captured configuration.')
+        marker=config['observation_profile']['marker']
+        if marker['profile']!=profile or marker['seed']!=seed or marker['faults']!=faults:
+            raise ValueError('Marker observation settings differ from the captured configuration.')
+        if list(profile['box_dims_mm'])!=config['size_mm'] and not marker['use_layout_box']:
+            raise ValueError('Explicit layout dimensions are required for this marker capture.')
+        # The existing marker path uses layout dimensions by explicit choice.
+        # Preserve the requested snapshot separately; full metadata describes
+        # the effective engine geometry rather than pretending it used UI size.
+        requested=copy.deepcopy(config)
+        config['size_mm']=list(profile['box_dims_mm']);validate_config(config)
+    elif simulation.get('mode') not in (None,'single_drop'):
+        raise ValueError('Explicit simulation mode requires its versioned configuration.')
     target = Path(destination).resolve()
     if target.exists():
         raise FileExistsError('Output already exists. Choose a new folder name.')
@@ -61,11 +89,18 @@ def generate_marker_capture(destination, profile, simulation, faults, seed, *, c
     checkpoint()
     trajectory = history_to_trajectory(history)
     spec = fault_spec(trajectory['time_s'], faults)
+    metadata=None if config is None else build_metadata(config,engine,history,
+        route='marker_csv',run_id=simulation.get('run_id') or str(uuid4()))
+    if metadata is not None:
+        from src.utils.marker_profile_identity import digest
+        metadata['requested_source_configuration']=requested
+        metadata['content_hash']=digest({k:v for k,v in metadata.items() if k!='content_hash'})
     update(85, 'Writing marker observations')
     # This temporary directory is newly owned by this export under the selected
     # parent. Neither cancellation nor cleanup touches an existing result.
     with tempfile.TemporaryDirectory(prefix='.bma-markers-', dir=target.parent) as staging:
-        staged = write_observations(Path(staging) / 'capture', trajectory, profile, spec, seed, cancelled=cancelled)
+        staged = write_observations(Path(staging) / 'capture', trajectory, profile, spec, seed, cancelled=cancelled,
+            simulation_metadata=metadata)
         checkpoint()
         if target.exists():
             raise FileExistsError('Output already exists. Choose a new folder name.')

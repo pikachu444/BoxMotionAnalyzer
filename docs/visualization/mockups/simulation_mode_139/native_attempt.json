@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "PUB06NativeAttempt",
+  "date": "2026-10-07",
+  "scope": "production Windows native input",
+  "fresh": true,
+  "selected_title": "Simulation — #139 production verification",
+  "attempts": [
+    {
+      "action": "launch",
+      "result": "failed",
+      "error": "ModuleNotFoundError: src; native_production.err preserved"
+    },
+    {
+      "action": "corrected launch and enumerate",
+      "result": "window returned"
+    },
+    {
+      "action": "activate selected window",
+      "result": "failed",
+      "error": "GetCursorPos failed: 액세스가 거부되었습니다. (0x80070005)"
+    },
+    {
+      "action": "fresh enumeration/get_window/activation recovery",
+      "result": "failed",
+      "error": "GetCursorPos failed: 액세스가 거부되었습니다. (0x80070005)"
+    }
+  ],
+  "accepted_native_inputs": 0,
+  "accepted_native_screenshots": 0,
+  "actual_os125": "not_verified",
+  "qt_process125": "separate automatic evidence",
+  "remaining": [
+    "native mode/preset/profile and small-window input",
+    "native Settings Open/Save/Apply/Cancel and result preservation",
+    "native Run/Cancel/retry and viewer controls",
+    "native Marker CSV and Step1 input flow",
+    "actual Windows OS125 viewport/input verification"
+  ],
+  "completion": "not_executed_due_to_activation_failure",
+  "measured_accuracy": "not_evaluated; issue104 separate",
+  "issue139": "remain_open; no automatic closure"
+}

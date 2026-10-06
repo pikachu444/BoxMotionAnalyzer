@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub06-production-publication-gui125",
+  "tier": "production-workflow-qt-qtest",
+  "fresh": true,
+  "reused": false,
+  "command": ".venv/Scripts/python.exe -m pytest tests/test_simulation_modes_gui.py tests/test_simulation_layout.py tests/test_simulation_export_gui.py tests/test_simulation_contact_gui.py tests/test_simulation_marker_export_gui.py -q --junitxml=tmp/issue139/publication-gui125.xml",
+  "environment": {
+    "python": "3.13.5",
+    "os": "Windows-11-10.0.26200-SP0",
+    "QT_SCALE_FACTOR": "1.25",
+    "dependencies": {
+      "PySide6": "6.10.1",
+      "mujoco": "3.6.0",
+      "numpy": "2.3.5",
+      "scipy": "1.16.3"
+    }
+  },
+  "code": {
+    "execution_head": "eaf54756f98b66154eff46d7b868e9378bbc8121",
+    "execution_dirty": true,
+    "equivalent_implementation_commit": "6ff4419cc9d358849998f569a9257fac152e912b",
+    "source_sha256": {
+      "src/simulation/ui/main_window.py": "344c0821d80f881f4eeb00f24ceda6da9006b19d1d05518d43fd98ab949d1813",
+      "src/simulation/ui/mode_settings.py": "ce176302cc2e63594e8344095d0fc6683dc6fa31f8f63425f7a7b83aae89fd9c",
+      "src/simulation/ui/marker_export_dialog.py": "8eb5664468a0fa42776679275ba44b82ebf9589326faae9376744539c43c35b9",
+      "tests/test_simulation_modes_gui.py": "0c55f0e3f1f2f0af05b651f2037f7deef0f724b99b801035a26351f5ae951a39",
+      "tests/test_simulation_layout.py": "2c54d9a3e4fd9221134f7e598b7da7f74c411fb5655c3f376486061a52b05bb2",
+      "tests/test_simulation_export_gui.py": "c980845cc25f506b0677a098ef7309d242e89caf4bb1a9e8c6d522f8936c1f46",
+      "tests/test_simulation_contact_gui.py": "69204e97f7cae091fe45bfb69e8348ed378d52655fd2e9724ceb3e0d6e4a068f",
+      "tests/test_simulation_marker_export_gui.py": "c86c78b1e86a5f4d8652c08c9f9b392c0331703f8b0a3bbb4317e15dccf683d9"
+    }
+  },
+  "results": {
+    "tests": 34,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 37.891,
+    "status": "passed"
+  },
+  "input": {
+    "source_kind": "public_synthetic_and_ui_fixtures",
+    "seeds": [
+      0,
+      1234,
+      2468,
+      74082
+    ],
+    "identity": "versioned configs and PUB05 profiles in the fixture source; no measured dataset"
+  },
+  "oracle": {
+    "expectations": [
+      "default single and independent manual123mm/Z17 roundtrip",
+      "G17/H12 counts and declared target faces",
+      "two mode document/Apply/Cancel boundaries",
+      "actual63 timestamps at8ms without resampling",
+      "prior destination retained before cancellation publication, stale queued success tracked without adoption",
+      "natural small control height and complete scrolled preview",
+      "explicit version/nonfinite/robot execution rejection"
+    ],
+    "expected_values": "literal assertions in identified test sources, not copied production output",
+    "tolerances": {
+      "clock_s": 1e-15,
+      "UI_state_and_count": 0
+    },
+    "actual": "all assertions passed; original failed reports retained separately"
+  },
+  "native": {
+    "status": "not_executed",
+    "reason": "GetCursorPos denied twice; Qt process125 does not establish actual OS125"
+  },
+  "experimental_validation": {
+    "status": "not_executed",
+    "reason": "issue104 separate; no verified actual experiment data"
+  },
+  "registration": {
+    "status": "not_applicable",
+    "reason": "issue113 excluded"
+  },
+  "optimizer": {
+    "starts": 0,
+    "reason": "no optimization in this test tier"
+  },
+  "signatures": {
+    "status": "not_applicable",
+    "reason": "software workflow fixtures, no baseline/tolerance promotion"
+  },
+  "independent_review": {
+    "status": "all seven findings corrected and confirmed by same read-only reviewer",
+    "scope": "production software integration only"
+  },
+  "completion": "passed scoped automatic tier; native/full139 remain open",
+  "required_ci": "current status tracked in PR150 checks"
+}

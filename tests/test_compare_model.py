@@ -29,7 +29,7 @@ def test_compatible_baseline_differences_and_time_alignment(tmp_path):
     assert model.baseline_name == first
 
 
-@pytest.mark.parametrize('field', [f for f in FIELDS if f != 'GeneratorVersion'])
+@pytest.mark.parametrize('field', [f for f in FIELDS if f not in {'GeneratorVersion','SimulationMetadataJson'}])
 def test_each_required_field_mismatch_or_missing_excludes(tmp_path, field):
     model = ComparisonModel()
     model.load_file(str(write_proc(tmp_path / 'baseline.proc')))
@@ -41,7 +41,7 @@ def test_each_required_field_mismatch_or_missing_excludes(tmp_path, field):
     assert model.get_summary_differences()[name]['diffs']['BetaAtT1MinusDeg'] is None
 
 
-@pytest.mark.parametrize('field', [f for f in FIELDS if f != 'GeneratorVersion'])
+@pytest.mark.parametrize('field', [f for f in FIELDS if f not in {'GeneratorVersion','SimulationMetadataJson'}])
 def test_single_changed_identity_key_excludes(tmp_path, field):
     model = ComparisonModel()
     model.load_file(str(write_proc(tmp_path / 'baseline.proc')))

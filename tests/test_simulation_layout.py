@@ -9,6 +9,34 @@ from src.simulation.scenarios import Scenarios
 from src.simulation.ui.main_window import OrientationPreviewWidget, SimulationUI
 
 
+def test_wide_workspace_preserves_approved_preview_and_left_mode_controls():
+    app = QApplication.instance() or QApplication([])
+    window = SimulationUI()
+    original = window.profiles.document()
+    window.show()
+    try:
+        for size in ((1280, 720), (1536, 864)):
+            window.resize(*size); QTest.qWait(50); app.processEvents()
+            assert window.right_scroll.isVisible()
+            # The approved layout puts mode controls above the left form and
+            # gives all space below settings to the existing target preview.
+            for control in (window.mode_combo, window.settings_button):
+                rect = control.rect(); rect.moveTopLeft(control.mapTo(window.left_panel, rect.topLeft()))
+                assert window.left_panel.rect().contains(rect)
+            rect = window.preview_group.rect()
+            rect.moveTopLeft(window.preview_group.mapTo(window.right_scroll.viewport(), rect.topLeft()))
+            assert window.right_scroll.viewport().rect().contains(rect)
+            gap = window.right_scroll.viewport().height() - rect.bottom() - 1
+            assert gap <= window.right_layout.contentsMargins().bottom()
+            for control in (window.orientation_preview, window.settings.apply_button):
+                mapped = control.rect(); mapped.moveTopLeft(control.mapTo(window.right_scroll.viewport(), mapped.topLeft()))
+                assert window.right_scroll.viewport().rect().contains(mapped)
+        assert window.orientation_preview.height() > 300
+        assert window.profiles.document() == original
+    finally:
+        window.close(); app.processEvents()
+
+
 def test_small_simulation_form_keeps_run_fixed_and_settings_intact():
     app = QApplication.instance() or QApplication([])
     window = SimulationUI()

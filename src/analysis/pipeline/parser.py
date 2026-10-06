@@ -24,6 +24,8 @@ class Parser:
         marker_triplet_indices(header_info)
         annotations = face_columns(header_info)
         from src.utils.marker_profile_identity import artifact_identity
+        from src.utils.simulation_metadata import artifact_simulation
+        artifact_simulation(header_info.get('artifact_metadata', {}))
         declared = artifact_identity(header_info.get('artifact_metadata', {}))
         if declared is not None:
             from .marker_flip import marker_triplet_indices

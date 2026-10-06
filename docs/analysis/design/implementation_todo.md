@@ -1,12 +1,34 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-10-07
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
+  default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
+  and stale-worker cancellation are implemented. Original production GUI34 checks
+  passed. A user-identified approved-layout regression was restored: left Mode/Settings
+  and expanding target preview. Fresh layout/mode24 checks passed; existing GUI9 passed
+  initially and2 resource-failed cases passed on unchanged-code retry. Original
+  failures, FHD/small-window evidence and review corrections are
+  recorded in the PUB06 documents. Required CI/merge status is tracked in PR150.
+- [ ] #139 / PUB06 native acceptance and full issue closure: human approved the shared G17/H12 settings/target-preview
+  mockup ("이제 좀 낫긴하네 이거로 해봐"). Production mode binding, per-mode
+  settings save/open/Apply/Cancel, robot execution guard, versioned producer
+  metadata and stale-worker cancellation/retry are implemented. Fresh scoped
+  production GUI checks and restored FHD/widget render12 states each at1.5/1.25
+  are recorded separately with failures and retries. Same independent reviewer closed all
+  production findings; required CI/publication are tracked in PR150. The work
+  remains open for native Windows input/viewer/actual OS125 confirmation:
+  fresh production-window activation and recovery failed GetCursorPos access
+  denied0x80070005. Original failures and Qt evidence are preserved separately.
+  See `../reference/simulation_mode_contract.md` and
+  `../../visualization/simulation_mode_139.md`. No whole139/native/measured
+  completion claimed. #140/#143 not started; #104 measured validation separate;
+  #113 excluded; no baseline/tolerance/trial promotion.
 - [O] #138 / PUB05 software implementation and automatic review: user approved
   the final interactive mockup on 2026-10-06. Main implemented geometry/meaning/correspondence
   identity, Copy/Edit/Reset/Preview/Apply, atomic draft/applied documents and

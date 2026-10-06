@@ -2,6 +2,12 @@
 
 Last Reviewed: 2026-10-06
 
+PUB06 appends optional scalar `Info / Artifact / SimulationMetadataJson` with
+nested schema1/plan-bound source, mode, input-profile and actual-time declarations.
+It does not change host SchemaVersion1 or existing aliases. Full direct/evaluation
+metadata is separate; real/legacy artifacts do not acquire inferred mode/profile
+semantics. Production UI binding remains pending; [contract](simulation_mode_contract.md).
+
 #138 appends scalar Info / Artifact columns MarkerProfileIdentityJson, MarkerGeometryHash, MarkerSemanticsVersion and MarkerSemanticsHash. Existing column naming/host SchemaVersion1 remain unchanged; the nested declaration has schema_version1 and ISTA6A-PLAN-20261001-v1. [Identity and legacy policy](marker_profile_semantics.md).
 
 이 문서는 현재 코드 기준의 결과 CSV Multi-Header 규칙을 정리한다.

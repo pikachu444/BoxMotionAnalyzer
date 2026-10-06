@@ -1,0 +1,436 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub06-ui-20261006T154943Z",
+  "utc": "2026-10-06T15:49:43.217933+00:00",
+  "fresh": true,
+  "reused": false,
+  "tier": "production-widget-render",
+  "command": [
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\src\\simulation\\mode_ui_validation.py",
+    "--output",
+    "tmp/issue139/approved-layout-fullclient125"
+  ],
+  "code": {
+    "commit": "0f0ca3e555a2b49c2f8052aa1dd39412db93c17f",
+    "dirty": true,
+    "changed_paths": [
+      "src/simulation/mode_ui_validation.py",
+      "src/simulation/ui/main_window.py",
+      "src/simulation/ui/mode_settings.py",
+      "tests/test_simulation_layout.py",
+      "tests/test_simulation_modes_gui.py"
+    ],
+    "source_sha256": {
+      "src/simulation/mode_ui_validation.py": "a7462c4f8d830cab8803b5ce39fe5a29a64eca96dfa93c18ebba23c80ca3765a",
+      "src/simulation/ui/main_window.py": "9ea60ef46bdbeab15e626b295c7d82db793bcc90bf651ddbece1d45652977f9e",
+      "src/simulation/ui/mode_settings.py": "ce176302cc2e63594e8344095d0fc6683dc6fa31f8f63425f7a7b83aae89fd9c",
+      "tests/test_simulation_layout.py": "2c4bb90b928041668a9d97301e11bcbde709bb824d970cae720a2b51aa1f0534",
+      "tests/test_simulation_modes_gui.py": "0c55f0e3f1f2f0af05b651f2037f7deef0f724b99b801035a26351f5ae951a39"
+    }
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "dependencies": {
+      "PySide6": "6.10.1",
+      "mujoco": "3.6.0",
+      "numpy": "2.3.5",
+      "scipy": "1.16.3"
+    },
+    "platform": "windows",
+    "qt_process_scale": "1.25",
+    "screen_dpr": 1.25,
+    "available_logical": [
+      2048,
+      1114
+    ],
+    "native_os125": "not verified; process scale does not establish OS scale"
+  },
+  "approval": {
+    "mockup": "Human approved latest shared G17/H12 workspace: 이제 좀 낫긴하네 이거로 해봐",
+    "trial": "not_evaluated",
+    "baseline": "no promotion",
+    "tolerance": "no promotion"
+  },
+  "native": {
+    "status": "not_executed",
+    "reason": "Separate native input/OS125 tier; previous activation failures preserved"
+  },
+  "experimental_validation": {
+    "status": "not_executed",
+    "reason": "#104 separate; public fixtures only"
+  },
+  "input": {
+    "source_kind": "public_ui_state_fixture",
+    "seed": 74082,
+    "configuration_hashes": [
+      "5a6cdd43ef5d0abc1adf22d1837b5f7b4e2bb7a2f89acdf8d8b17faec2a22eb8",
+      "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "eb912f22e5eb1e16e2c919f2e314c527c8663c0ae8e868e07b3d5c06ec287b03",
+      "eb912f22e5eb1e16e2c919f2e314c527c8663c0ae8e868e07b3d5c06ec287b03",
+      "eb912f22e5eb1e16e2c919f2e314c527c8663c0ae8e868e07b3d5c06ec287b03",
+      "eb912f22e5eb1e16e2c919f2e314c527c8663c0ae8e868e07b3d5c06ec287b03",
+      "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406"
+    ]
+  },
+  "oracle": "Literal G17/H12 row counts, initial edge(3,4), row8 face3, original manual123mm/Z17 roundtrip; widget bounds are inspected independently of PNG",
+  "signatures": {
+    "status": "not_applicable",
+    "reason": "No numerical optimizer/regression baseline in widget rendering"
+  },
+  "optimizer": {
+    "starts": 0,
+    "reason": "No optimizer invoked"
+  },
+  "registration": {
+    "status": "not_applicable",
+    "reason": "#113 excluded"
+  },
+  "states": [
+    {
+      "name": "single-default",
+      "screenshot": "single-default.png",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "mode": "single_drop",
+      "selected_preset": "01_Edge_3-4",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 1,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        1044,
+        373
+      ],
+      "unused_bottom_logical": 4,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "robot-sequence",
+      "screenshot": "robot-sequence.png",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "mode": "robot_sequence",
+      "selected_preset": "01_Edge_3-4",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 17,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        1044,
+        373
+      ],
+      "unused_bottom_logical": 4,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "robot-face3",
+      "screenshot": "robot-face3.png",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "mode": "robot_sequence",
+      "selected_preset": "08_Face_3_Screen_High",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 17,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        1044,
+        373
+      ],
+      "unused_bottom_logical": 4,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "robot-physics",
+      "screenshot": "robot-physics.png",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "mode": "robot_sequence",
+      "selected_preset": "08_Face_3_Screen_High",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 17,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        1044,
+        469
+      ],
+      "unused_bottom_logical": 4,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "robot-observation",
+      "screenshot": "robot-observation.png",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "mode": "robot_sequence",
+      "selected_preset": "08_Face_3_Screen_High",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 17,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        1044,
+        368
+      ],
+      "unused_bottom_logical": 4,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "robot-invalid",
+      "screenshot": "robot-invalid.png",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "mode": "robot_sequence",
+      "selected_preset": "08_Face_3_Screen_High",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 17,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        1044,
+        373
+      ],
+      "unused_bottom_logical": 4,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "single-returned",
+      "screenshot": "single-returned.png",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "mode": "single_drop",
+      "selected_preset": "01_Edge_3-4",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 1,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        1044,
+        373
+      ],
+      "unused_bottom_logical": 4,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "cancelled-previous",
+      "screenshot": "cancelled-previous.png",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "mode": "single_drop",
+      "selected_preset": "01_Edge_3-4",
+      "scope": "Production result label; public fixture text, no simulated completion claim",
+      "sequence_steps": 1,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        1044,
+        373
+      ],
+      "unused_bottom_logical": 4,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "mode0-820x600",
+      "screenshot": "mode0-820x600.png",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "mode": "single_drop",
+      "selected_preset": "01_Edge_3-4",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 1,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        774,
+        190
+      ],
+      "unused_bottom_logical": null,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "mode0-820x600-preview",
+      "screenshot": "mode0-820x600-preview.png",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "mode": "single_drop",
+      "selected_preset": "01_Edge_3-4",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 1,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        774,
+        190
+      ],
+      "unused_bottom_logical": null,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "mode1-820x600",
+      "screenshot": "mode1-820x600.png",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "mode": "robot_sequence",
+      "selected_preset": "08_Face_3_Screen_High",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 17,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        774,
+        190
+      ],
+      "unused_bottom_logical": null,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    },
+    {
+      "name": "mode1-820x600-preview",
+      "screenshot": "mode1-820x600-preview.png",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "mode": "robot_sequence",
+      "selected_preset": "08_Face_3_Screen_High",
+      "scope": "Production widgets with public state fixture",
+      "sequence_steps": 17,
+      "preset_rows": 17,
+      "preview_meaning": "Preset target, not a predicted contact",
+      "preview_logical": [
+        774,
+        190
+      ],
+      "unused_bottom_logical": null,
+      "expected": "Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution",
+      "actual": "passed",
+      "tolerance": 0,
+      "fresh": true
+    }
+  ],
+  "completion": "passed"
+}

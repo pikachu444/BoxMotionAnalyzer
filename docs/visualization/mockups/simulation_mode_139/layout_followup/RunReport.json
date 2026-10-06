@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub06-approved-layout-restoration",
+  "fresh": true,
+  "reused": false,
+  "tier": "production-widget-qtest",
+  "code": {
+    "execution_head": "0f0ca3e555a2b49c2f8052aa1dd39412db93c17f",
+    "dirty": true,
+    "source_sha256": {
+      "src/simulation/ui/main_window.py": "9ea60ef46bdbeab15e626b295c7d82db793bcc90bf651ddbece1d45652977f9e",
+      "src/simulation/ui/mode_settings.py": "ce176302cc2e63594e8344095d0fc6683dc6fa31f8f63425f7a7b83aae89fd9c",
+      "src/simulation/ui/marker_export_dialog.py": "8eb5664468a0fa42776679275ba44b82ebf9589326faae9376744539c43c35b9",
+      "src/simulation/mode_ui_validation.py": "a7462c4f8d830cab8803b5ce39fe5a29a64eca96dfa93c18ebba23c80ca3765a",
+      "tests/test_simulation_layout.py": "2c4bb90b928041668a9d97301e11bcbde709bb824d970cae720a2b51aa1f0534",
+      "tests/test_simulation_modes_gui.py": "0c55f0e3f1f2f0af05b651f2037f7deef0f724b99b801035a26351f5ae951a39",
+      "tests/test_simulation_export_gui.py": "c980845cc25f506b0677a098ef7309d242e89caf4bb1a9e8c6d522f8936c1f46",
+      "tests/test_simulation_contact_gui.py": "69204e97f7cae091fe45bfb69e8348ed378d52655fd2e9724ceb3e0d6e4a068f",
+      "tests/test_simulation_marker_export_gui.py": "c86c78b1e86a5f4d8652c08c9f9b392c0331703f8b0a3bbb4317e15dccf683d9"
+    }
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "QT_SCALE_FACTOR": "1.25",
+    "dependencies": {
+      "PySide6": "6.10.1",
+      "mujoco": "3.6.0",
+      "numpy": "2.3.5",
+      "scipy": "1.16.3"
+    }
+  },
+  "commands": [
+    ".venv/Scripts/python.exe -m pytest tests/test_simulation_layout.py tests/test_simulation_modes_gui.py -q --junitxml=tmp/issue139/approved-layout125.xml",
+    ".venv/Scripts/python.exe -m pytest tests/test_simulation_export_gui.py tests/test_simulation_contact_gui.py tests/test_simulation_marker_export_gui.py -q --junitxml=tmp/issue139/approved-layout-existing125.xml",
+    ".venv/Scripts/python.exe -m pytest tests/test_simulation_export_gui.py -k \"batch_stops_at_failed_file or simulation_run_save_reopen_actual_gui\" -q --junitxml=tmp/issue139/approved-layout-resource-retry125.xml"
+  ],
+  "input": {
+    "source_kind": "public_synthetic_and_ui_fixture",
+    "seed": 74082,
+    "identity": "existing versioned fixture configs/PUB05 profiles; geometry untouched"
+  },
+  "oracle": {
+    "expected": "Mode/Settings within left panel; preview occupies remaining right height with bottom gap<=configured4logical margin; inputs/Apply/Run visible; applied document unchanged",
+    "actual": "passed",
+    "difference": "no excess bottom gap",
+    "tolerance": "layout margin only, no physical tolerance or numerical baseline"
+  },
+  "executions": [
+    {
+      "report": "approved-layout125.xml",
+      "passed": 24,
+      "failed": 0,
+      "seconds": 19.58
+    },
+    {
+      "report": "approved-layout-existing125.xml",
+      "passed": 9,
+      "failed": 2,
+      "seconds": 39.15,
+      "failures": [
+        "pandas C tokenizer out-of-memory",
+        "Path.resolve WinError1450 system resource shortage"
+      ],
+      "status": "original_failure_preserved"
+    },
+    {
+      "report": "approved-layout-resource-retry125.xml",
+      "passed": 2,
+      "failed": 0,
+      "seconds": 10.33,
+      "reason": "retry only resource-failed cases with unchanged production code"
+    }
+  ],
+  "results": {
+    "status": "all35distinct scoped cases eventually passed across separate executions",
+    "initial_failure_not_promoted": true
+  },
+  "native": {
+    "status": "not_executed",
+    "reason": "existing activation access denied; no native input/actualOS125"
+  },
+  "experimental_validation": {
+    "status": "not_executed",
+    "reason": "#104 separate"
+  },
+  "approval": {
+    "mockup": "restore already human-approved layout; no new design",
+    "baseline": "no promotion",
+    "trial": "not_evaluated",
+    "tolerance": "no promotion"
+  },
+  "not_applicable": {
+    "optimizer": "no optimizer invoked",
+    "registration": "#113 excluded",
+    "engine140": "not implemented"
+  },
+  "reuse": {
+    "prior_metadata_transform_preservation": "reused only unchanged paths; current-head CI still required"
+  }
+}

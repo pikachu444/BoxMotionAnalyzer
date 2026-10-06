@@ -63,6 +63,18 @@ def read_result_frame(path):
             seen_time[col] = values
         keep.append(i)
     df = df.iloc[:, keep]
+    from src.utils.artifact_metadata import read_identity
+    from src.utils.simulation_metadata import FIELD, artifact_simulation,validate_recorded_times
+    simulation_column=('Info','Artifact',FIELD)
+    if any(col==simulation_column for col in df.columns):
+        identity=read_identity(df)
+        if any(error.startswith(FIELD+':') for error in identity.errors):
+            raise ValueError('Simulation metadata must be a single constant declaration.')
+        declaration=artifact_simulation(identity.values)
+        if declaration is not None:
+            times,error=time_values(df)
+            if error:raise ValueError(error)
+            validate_recorded_times(declaration,times,complete=declaration['route']=='direct_proc')
     return df
 
 

@@ -26,7 +26,7 @@ def interval_derivatives(values, times):
 
 class DataExporter:
     def __init__(self, history: list, add_noise=False, noise_std=1.0, *, seed=0,
-                 simulation_settings=None):
+                 simulation_settings=None, simulation_metadata=None):
         self.history = history
         self.add_noise = bool(add_noise)
         self.noise_std = float(noise_std)
@@ -36,11 +36,27 @@ class DataExporter:
             raise ValueError('Noise seed must be a nonnegative integer.')
         self.seed = seed
         self.simulation_settings = copy.deepcopy(simulation_settings or {})
+        self.simulation_metadata = copy.deepcopy(simulation_metadata)
+        if self.simulation_metadata is not None:
+            from src.utils.simulation_metadata import validate_full
+            validate_full(self.simulation_metadata)
 
     @classmethod
     def from_engine(cls, history, engine, params):
         """Record actual configured simulation values, without experiment identity."""
         import mujoco
+        from uuid import uuid4
+        from src.utils.simulation_metadata import build_metadata
+        mode_config = params.get('mode_config')
+        if mode_config is None and params.get('mode') not in (None, 'single_drop'):
+            raise ValueError('Explicit simulation mode requires its versioned configuration.')
+        metadata = None if mode_config is None else build_metadata(mode_config, engine, history,
+            route='direct_proc', run_id=params.get('run_id') or str(uuid4()))
+        if mode_config is not None:
+            corner = mode_config['observation_profile']['corner']
+            if (params['duration'] != mode_config['duration_s'] or params['add_noise'] != corner['enabled']
+                    or params['noise_std'] != corner['std_mm'] or params.get('noise_seed',0) != corner['seed']):
+                raise ValueError('Exporter settings differ from the captured configuration.')
         settings = {
             'size_mm': (np.asarray(engine.size_m) * 2000).tolist(),
             'mass_kg': engine.mass, 'friction': engine.friction,
@@ -52,7 +68,7 @@ class DataExporter:
             'requested_duration_s': params['duration'], 'mujoco_version': mujoco.__version__,
         }
         return cls(history, params['add_noise'], params['noise_std'],
-                   seed=params.get('noise_seed', 0), simulation_settings=settings)
+                   seed=params.get('noise_seed', 0), simulation_settings=settings, simulation_metadata=metadata)
 
     def calculate_derivatives(self):
         """Return new arrays; neither history nor nested arrays are modified."""
@@ -80,8 +96,20 @@ class DataExporter:
             result[entity] = (position, velocity, acceleration)
         return result
 
-    def export_proc_csv(self, filepath: str):
+    def export_proc_csv(self, filepath: str, *, cancelled=None):
+        def checkpoint():
+            if cancelled is not None and cancelled():
+                raise InterruptedError('Simulation export cancelled before publication.')
+        checkpoint()
+        if self.simulation_metadata is not None:
+            declared=self.simulation_metadata['source_configuration']['observation_profile']['corner']
+            if (self.add_noise!=declared['enabled'] or self.noise_std!=declared['std_mm']
+                    or self.seed!=declared['seed'] or self.simulation_metadata['public']['route']!='direct_proc'):
+                raise ValueError('Actual corner export settings differ from simulation metadata.')
         values = self.calculate_derivatives()
+        if self.simulation_metadata is not None:
+            from src.utils.simulation_metadata import validate_history_binding
+            validate_history_binding(self.simulation_metadata,self.history,times=values['time'])
         columns = {(L1.INFO, L2.FRAME, L2.FRAME): np.arange(len(self.history)),
                    (L1.INFO, L2.TIME, L3.TIME): values['time']}
 
@@ -118,6 +146,9 @@ class DataExporter:
         columns[(L1.INFO, 'Simulation', 'ExportVersion')] = EXPORT_VERSION
         columns[(L1.INFO, 'Simulation', 'SettingsJson')] = json.dumps(settings, sort_keys=True, separators=(',', ':'), allow_nan=False)
         columns[(L1.INFO, 'Simulation', 'Representation')] = 'body-pose-truth;noisy-corner-observations' if self.add_noise else 'simulation-truth'
+        if self.simulation_metadata is not None:
+            columns[(L1.INFO, 'Simulation', 'MetadataJson')] = json.dumps(self.simulation_metadata,
+                sort_keys=True,separators=(',',':'),allow_nan=False)
         metadata = normalize_metadata({'SourceKind': 'mujoco_synthetic',
                                        'GeneratorVersion': EXPORT_VERSION,
                                        'CoordinatePolicy': 'world-y-up-box-local-fixed-center-v1',
@@ -129,6 +160,11 @@ class DataExporter:
                 raise ValueError('Simulation dimensions must be three positive finite values.')
             for field, value in zip(['BoxLengthMm', 'BoxWidthMm', 'BoxHeightMm'], size):
                 metadata[field] = float(value)
+        if self.simulation_metadata is not None:
+            from src.utils.simulation_metadata import FIELD,validate_public
+            public=self.simulation_metadata['public']
+            validate_public(public,metadata)
+            metadata[FIELD]=json.dumps(public,sort_keys=True,separators=(',',':'),allow_nan=False)
         for field, value in metadata.items():
             columns[(L1.INFO, 'Artifact', field)] = value
         frame = pd.DataFrame(columns)
@@ -147,6 +183,7 @@ class DataExporter:
                 frame.to_csv(stream, index=False)
                 stream.flush()
                 os.fsync(stream.fileno())
+            checkpoint()
             os.replace(temporary_path, output_path)
         except BaseException as error:
             if temporary_path is not None:

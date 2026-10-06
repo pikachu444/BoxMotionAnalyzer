@@ -1,6 +1,10 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-10-07
+
+#139 / PUB06 adds a shared Simulation mode/settings/target-preview workspace. Single drop stays the default and existing Run/Run all presets/Marker CSV actions are retained. Settings drafts separate Sequence, Physics and Markers and noise, with Open/Save distinct from Use in Simulation/Cancel. Each mode restores its own applied settings. Robot sequence is configuration-only and execution is blocked with the issue140 reason. Synthetic public metadata follows the real producer, saved results and analysis/Compare; no trial approval is inherited. [Mode/source contract and verification limits](../reference/simulation_mode_contract.md) distinguish widget checks from pending native Windows input/OS125.
+
+The approved wide composition keeps Mode/Settings over the left input panel. The existing target preview fills the remaining space below the right settings; it does not have a fixed200 height with an unused lower stretch. Narrow windows retain the separate Settings dialog and scrollable original inputs/preview.
 
 #138 / PUB05 adds Copy/Edit to the existing Marker CSV profile selector. Presets remain immutable; the editor separates source, draft, valid Preview and explicit Apply. The wide preview pairs interactive display-only exploded faces with a 2D face view; small windows use Markers/Preview/Rules tabs. Reset affects only the draft, and saved documents retain pending edits plus the applied profile. [Contract and execution scope](../reference/marker_profile_semantics.md) distinguish legacy compatibility, Qt checks and unexecuted native confirmation.
 

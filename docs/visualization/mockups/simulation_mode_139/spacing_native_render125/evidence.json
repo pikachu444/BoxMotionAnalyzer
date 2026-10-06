@@ -1,0 +1,299 @@
+{
+  "scope": "Review-only mockup; no production execution or native input",
+  "qt_platform": "windows",
+  "qt_scale_factor": "1.25",
+  "screen_dpr": 1.25,
+  "os_scale": "Not inferred from Qt process scale; native OS125 remains separate",
+  "states": [
+    {
+      "state": "default",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "default-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          798
+        ],
+        "settings": [
+          1080,
+          335
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "sequence",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "sequence-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          585
+        ],
+        "settings": [
+          1080,
+          365
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "physics",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "physics-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          585
+        ],
+        "settings": [
+          1080,
+          355
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "observation",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "observation-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          585
+        ],
+        "settings": [
+          1080,
+          428
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "returned",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "returned-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          836
+        ],
+        "settings": [
+          1080,
+          335
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "invalid",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "invalid-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          585
+        ],
+        "settings": [
+          1080,
+          365
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "blocked",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "blocked-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          601
+        ],
+        "settings": [
+          1080,
+          365
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "running",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "running-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          876
+        ],
+        "settings": [
+          1080,
+          335
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "cancelled",
+      "logical": [
+        1920,
+        1080
+      ],
+      "pixels": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "screenshot": "cancelled-fhd.png",
+      "composition": "Two original Qt panels on a review board",
+      "panels": {
+        "simulation": [
+          712,
+          814
+        ],
+        "settings": [
+          1080,
+          335
+        ]
+      },
+      "form_scroll_maximum": 0,
+      "table_empty_rows": 0
+    },
+    {
+      "state": "single_drop",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "single_drop-820x600.png"
+    },
+    {
+      "state": "single_drop profiles",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "single_drop-profiles-820x600.png",
+      "scope": "Forced-size resize stress; default settings height follows active content",
+      "footer_gap": 7
+    },
+    {
+      "state": "robot_sequence",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "robot_sequence-820x600.png"
+    },
+    {
+      "state": "robot_sequence profiles",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "screenshot": "robot_sequence-profiles-820x600.png",
+      "scope": "Forced-size resize stress; default settings height follows active content",
+      "footer_gap": 7
+    }
+  ]
+}
