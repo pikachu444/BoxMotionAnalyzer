@@ -4,6 +4,10 @@ import json
 import os
 from pathlib import Path
 import sys
+import math
+import hashlib
+import subprocess
+from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT))
@@ -13,12 +17,18 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QPushButton, QTabWidget, QFormLayout, QDoubleSpinBox,
     QTableWidget, QTableWidgetItem, QHeaderView, QLineEdit, QGroupBox, QSpinBox)
 from src.simulation.ui.main_window import SimulationUI
+from src.simulation.scenarios import Scenarios
 
 
 class MockSimulation(SimulationUI):
     def __init__(self, mode='single_drop', state='default'):
         super().__init__()
         self.setWindowTitle('Simulation — #139 mockup')
+        self.scenario_group=self.drop_combo.parentWidget()
+        # Reuse the existing painter and preset target semantics. Detach the
+        # preview from the scenario form before any mode hides its controls.
+        self.scenario_group.layout().takeRow(self.orientation_preview)
+        self.orientation_preview.setParent(None)
         row = QHBoxLayout()
         row.addWidget(QLabel('Mode'))
         self.mode = QComboBox()
@@ -36,9 +46,11 @@ class MockSimulation(SimulationUI):
         self.layout.insertWidget(self.layout.count()-2, self.result)
         self.sequence_summary = QGroupBox('Sequence')
         summary = QVBoxLayout(self.sequence_summary)
-        summary.addWidget(QLabel('1   Face 3 — high     100 mm'))
-        summary.addWidget(QLabel('2   Edge 3–4            150 mm'))
+        self.sequence_drop=QComboBox()
+        self.sequence_drop.addItems(['1   Face 3 — high     100 mm','2   Edge 3–4     150 mm'])
+        summary.addWidget(self.sequence_drop)
         summary.addWidget(QLabel('Edit order and initial pose in Settings…'))
+        self.sequence_drop.currentIndexChanged.connect(self._update_orientation_preview)
         self.form_layout.insertWidget(1, self.sequence_summary)
         self.sequence_summary.hide()
         self.cancel_run = QPushButton('Cancel')
@@ -63,13 +75,26 @@ class MockSimulation(SimulationUI):
             for button in (self.run_btn,self.batch_btn,self.marker_btn): button.setEnabled(False)
         elif state == 'blocked':
             self.result.setText('Sequence simulation is not implemented. Previous results are preserved.')
+        self.result.setVisible(bool(self.result.text()))
+        self.layout.addStretch()
         self._fit_form()
+
+    def _update_orientation_preview(self):
+        if not hasattr(self,'mode') or self.mode.currentData()!='robot_sequence':
+            return super()._update_orientation_preview()
+        index=self.sequence_drop.currentIndex()
+        spec=Scenarios.TYPE_G_SEQUENCES[7 if index==0 else 0]
+        euler=(0.,0.,0.) if index==0 else (0.,35.,0.)
+        self.orientation_preview.set_preview_state(
+            (self.w_input.value(),self.d_input.value(),self.h_input.value()),
+            euler,spec,Scenarios.CATEGORIES[0])
 
     def _fit_form(self):
         # Review the actual content height, not a maximized empty scroll area.
         # A smaller window keeps scrolling; the primary actions stay reachable.
         self.form_layout.activate()
         height=self.form_layout.sizeHint().height()+2*self.form_scroll.frameWidth()
+        self.form_scroll.widget().setMinimumHeight(self.form_layout.sizeHint().height())
         self.form_scroll.setMaximumHeight(height)
         self.layout.setAlignment(Qt.AlignTop)
 
@@ -80,7 +105,7 @@ class MockSimulation(SimulationUI):
 
     def change_mode(self):
         robot = self.mode.currentData() == 'robot_sequence'
-        self.drop_combo.parentWidget().setVisible(not robot)
+        self.scenario_group.setVisible(not robot)
         self.sequence_summary.setVisible(robot)
         self.mode_hint.setText('Configure and save drop order in Settings… Execution is not available yet.' if robot else '')
         self.mode_hint.setVisible(robot)
@@ -88,6 +113,7 @@ class MockSimulation(SimulationUI):
             button.setEnabled(not robot)
             button.setToolTip('Sequence simulation is not implemented.' if robot else '')
         self.result.setText('')
+        self._update_orientation_preview()
         self._fit_form()
 
     def closeEvent(self,event):
@@ -173,7 +199,7 @@ class MockProfiles(QWidget):
         buttons.addStretch()
         self.apply=QPushButton('Use in Simulation'); self.apply.setEnabled(not invalid);buttons.addWidget(self.apply)
         self.apply.setToolTip('Use these settings in Simulation. This does not save a file or run a simulation.')
-        buttons.addWidget(QPushButton('Cancel'));layout.addLayout(buttons)
+        self.cancel=QPushButton('Cancel');buttons.addWidget(self.cancel);layout.addLayout(buttons)
         layout.addStretch()
         self.setMinimumWidth(820)
         layout.setAlignment(Qt.AlignTop)
@@ -203,35 +229,106 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--output',required=True);parser.add_argument('--interactive',action='store_true');args=parser.parse_args()
     root=Path(args.output);root.mkdir(parents=True,exist_ok=True)
     app=QApplication.instance() or QApplication([])
-    report=dict(scope='Review-only mockup; no production execution or native input',qt_platform=app.platformName(),
+    report=dict(schema_version=1,plan_spec='ISTA6A-PLAN-20261001-v1',
+        object_type='pub06_mockup_evidence',fresh=True,created_at=datetime.now(timezone.utc).isoformat(),
+        source=dict(commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+            tracked_changes=subprocess.check_output(['git','status','--short','--untracked-files=no'],cwd=ROOT,text=True).splitlines(),
+            script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()),
+        command=[sys.executable,*sys.argv],python=sys.version,
+        fixture='Public configured sequence: face3 XYZ0/0/0 and edge3-4 XYZ0/35/0; existing single preset controls',
+        marker_seed=74082,simulation_seed='Not applicable: no simulation executed',
+        independent_expectations=['Target faces3 vs3/4 and configured XYZ0/35/0',
+            'Mode round-trip preserves original single controls and preset',
+            'Small controls retain minimum readable height; scrolled preview fully contained',
+            'Busy settings Apply disabled; table and selector agree in both directions'],
+        unexecuted=['Native Windows input','Actual OS125 display verification','Production UI binding','Measured experiment validation'],
+        scope='Review-only mockup; no production execution or native input',qt_platform=app.platformName(),
         qt_scale_factor=os.environ.get('QT_SCALE_FACTOR'),screen_dpr=app.primaryScreen().devicePixelRatio(),
         os_scale='Not inferred from Qt process scale; native OS125 remains separate',states=[])
-    for state,mode,tab in [('default','single_drop',0),('sequence','robot_sequence',0),('physics','robot_sequence',1),('observation','robot_sequence',2),('returned','single_drop',0),('invalid','robot_sequence',0),('blocked','robot_sequence',0),('running','single_drop',0),('cancelled','single_drop',0)]:
-        board=QWidget();board.setWindowTitle('#139 — profile review')
-        row=QHBoxLayout(board);row.setContentsMargins(30,40,30,40);row.setSpacing(24)
+    for state,mode,tab in [('default','single_drop',0),('sequence','robot_sequence',0),('edge','robot_sequence',0),('physics','robot_sequence',1),('observation','robot_sequence',2),('returned','single_drop',0),('invalid','robot_sequence',0),('blocked','robot_sequence',0),('running','single_drop',0),('cancelled','single_drop',0)]:
+        board=QWidget();board.setWindowTitle('Simulation — #139 mockup')
+        row=QHBoxLayout(board);row.setContentsMargins(10,10,10,10);row.setSpacing(12)
         main_window=MockSimulation(mode,state);profile=MockProfiles(mode,state=='invalid',main_window);profile.tabs.setCurrentIndex(tab)
-        for title,widget,weight in [('Simulation',main_window,2),('Settings…',profile,3)]:
-            group=QGroupBox(title);layout=QVBoxLayout(group);layout.addWidget(widget)
-            group.setFixedHeight(widget.content_height()+42)
-            row.addWidget(group,weight,Qt.AlignTop)
-        board.resize(1920,1080);board.show();app.processEvents()
-        assert main_window.form_scroll.verticalScrollBar().maximum()==0, 'Natural-height form must show all collapsed controls.'
+        if state=='running':profile.setEnabled(False)
+        profile.setMinimumWidth(0)
+        main_window.setFixedWidth(430)
+        row.addWidget(main_window)
+        right=QVBoxLayout();row.addLayout(right,1)
+        right.addWidget(profile)
+        preview_group=QGroupBox('Preset target')
+        preview_layout=QVBoxLayout(preview_group)
+        preview_layout.addWidget(main_window.orientation_preview)
+        right.addWidget(preview_group,1)
+        profile.setVisible(state!='default')
+        main_window.profiles_button.clicked.connect(lambda checked=False,p=profile:p.setVisible(not p.isVisible()))
+        profile.cancel.clicked.connect(profile.hide)
+        profile.table.itemSelectionChanged.connect(lambda m=main_window,p=profile:
+            m.sequence_drop.setCurrentIndex(p.table.currentRow()) if m.mode.currentData()=='robot_sequence' and p.table.currentRow()>=0 else None)
+        if mode=='robot_sequence':main_window.sequence_drop.currentIndexChanged.connect(profile.table.selectRow)
+        if mode=='robot_sequence':profile.table.selectRow(1 if state=='edge' else 0)
+        if state=='edge':
+            main_window.sequence_drop.setCurrentIndex(0)
+            assert profile.table.currentRow()==0 and main_window.orientation_preview.sequence_spec.faces==(3,)
+            main_window.sequence_drop.setCurrentIndex(1)
+            assert profile.table.currentRow()==1 and main_window.orientation_preview.sequence_spec.faces==(3,4)
+        dpr=app.primaryScreen().devicePixelRatio()
+        board.resize(math.ceil(1920/dpr),math.ceil(1080/dpr));board.show();app.processEvents()
+        assert main_window.orientation_preview.isVisible(), 'Both modes must retain the preset target preview.'
+        assert main_window.orientation_preview.sequence_spec.faces, 'Preview must retain a target highlight.'
+        if state=='running':assert not profile.apply.isEnabled(), 'Busy state must block all settings application paths.'
+        assert preview_group.rect().contains(main_window.orientation_preview.geometry()), 'Preview must stay inside its panel.'
+        if state=='sequence':
+            assert main_window.orientation_preview.sequence_spec.faces==(3,)
+        elif state=='edge':
+            assert main_window.orientation_preview.sequence_spec.faces==(3,4)
+            assert main_window.orientation_preview.euler==(0.,35.,0.)
         assert profile.table.viewport().height()>=sum(profile.table.rowHeight(r) for r in range(profile.table.rowCount()))
         # Render at original resolution, never upscale a smaller raster.
         pixmap=board.grab();name=f'{state}-fhd.png';assert pixmap.save(str(root/name))
         assert pixmap.width()>=1920 and pixmap.height()>=1080
         report['states'].append(dict(state=state,logical=[board.width(),board.height()],pixels=[pixmap.width(),pixmap.height()],
-            dpr=pixmap.devicePixelRatio(),screenshot=name,composition='Two original Qt panels on a review board',
+            dpr=pixmap.devicePixelRatio(),screenshot=name,composition='One simulation workspace with optional settings and the existing preview',
             panels=dict(simulation=[main_window.width(),main_window.height()],settings=[profile.width(),profile.height()]),
-            form_scroll_maximum=main_window.form_scroll.verticalScrollBar().maximum(),table_empty_rows=0))
+            form_scroll_maximum=main_window.form_scroll.verticalScrollBar().maximum(),table_empty_rows=0,
+            preview=dict(visible=True,preset=main_window.orientation_preview.sequence_spec.id,
+                faces=list(main_window.orientation_preview.sequence_spec.faces),euler=list(main_window.orientation_preview.euler),
+                meaning='Preset target, not a predicted impact after custom rotation')))
         board.close();board.deleteLater();app.processEvents()
+    # Independent round-trip expectation: the original single controls and
+    # preset remain unchanged while selecting a different sequence preview.
+    roundtrip=MockSimulation()
+    original=tuple(c.value() for c in (roundtrip.custom_h_input,roundtrip.custom_r_input,roundtrip.custom_p_input,roundtrip.custom_y_input))
+    preset=roundtrip.drop_combo.currentData().id
+    roundtrip.mode.setCurrentIndex(1);roundtrip.sequence_drop.setCurrentIndex(1)
+    assert roundtrip.orientation_preview.sequence_spec.faces==(3,4)
+    roundtrip.mode.setCurrentIndex(0)
+    assert roundtrip.drop_combo.currentData().id==preset
+    assert tuple(c.value() for c in (roundtrip.custom_h_input,roundtrip.custom_r_input,roundtrip.custom_p_input,roundtrip.custom_y_input))==original
+    assert roundtrip.orientation_preview.euler==original[1:]
+    report['preview_roundtrip']='Passed: unchanged single settings/preset; sequence row2 target faces3/4 and XYZ0/35/0'
+    roundtrip.orientation_preview.deleteLater();roundtrip.deleteLater()
     for mode in ('single_drop','robot_sequence'):
-        window=MockSimulation(mode,'blocked' if mode=='robot_sequence' else 'default');window.resize(820,600);window.show();app.processEvents()
+        window=MockSimulation(mode,'blocked' if mode=='robot_sequence' else 'default')
+        window.form_layout.insertWidget(window.form_layout.count()-1,window.orientation_preview)
+        window._fit_form()
+        window.resize(820,600);window.show();app.processEvents()
+        for control in (window.w_input,window.d_input,window.h_input,window.mass_input,window.duration_input):
+            assert control.height()>=control.minimumSizeHint().height(), 'Small-window fields must retain readable height.'
+        if mode=='single_drop':
+            for control in (window.cat_combo,window.drop_combo,window.custom_h_input):
+                assert control.height()>=control.minimumSizeHint().height(), 'Single-drop controls must retain readable height.'
         for button in (window.run_btn,window.batch_btn,window.marker_btn):
             rectangle=button.rect();rectangle.moveTopLeft(button.mapTo(window,rectangle.topLeft()))
             assert window.rect().contains(rectangle), 'Primary action must remain inside the small window.'
         pixmap=window.grab();name=f'{mode}-820x600.png';pixmap.save(str(root/name))
         report['states'].append(dict(state=mode,logical=[window.width(),window.height()],pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),screenshot=name))
+        window.form_scroll.verticalScrollBar().setValue(window.form_scroll.verticalScrollBar().maximum());app.processEvents()
+        preview_rect=window.orientation_preview.rect()
+        preview_rect.moveTopLeft(window.orientation_preview.mapTo(window.form_scroll.viewport(),preview_rect.topLeft()))
+        assert window.form_scroll.viewport().rect().contains(preview_rect), 'Small-window scrolling must expose the complete preview.'
+        pixmap=window.grab();name=f'{mode}-preview-820x600.png';pixmap.save(str(root/name))
+        report['states'].append(dict(state=mode+' scrolled preview',logical=[window.width(),window.height()],pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),screenshot=name,
+            scope='Same small form scrolled to bottom; readable settings remain above'))
         window.close();window.deleteLater();app.processEvents()
         source=MockSimulation(mode)
         profile=MockProfiles(mode,source=source);profile.resize(820,600);profile.show();app.processEvents()
@@ -243,11 +340,14 @@ def main():
         report['states'].append(dict(state=mode+' profiles',logical=[profile.width(),profile.height()],pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),screenshot=name,
             scope='Forced-size resize stress; default settings height follows active content',footer_gap=apply_top-status_bottom))
         profile.close();profile.deleteLater();app.processEvents()
+        source.orientation_preview.deleteLater()
         source.deleteLater()
     (root/'evidence.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps(dict(states=len(report['states']),dpr=report['screen_dpr'])))
     if args.interactive:
-        window=MockSimulation();window.resize(820,600);window.show()
+        window=MockSimulation()
+        window.form_layout.insertWidget(window.form_layout.count()-1,window.orientation_preview);window._fit_form()
+        window.resize(820,600);window.show()
         profile=MockProfiles(source=window)
         window.profiles_button.clicked.connect(profile.show)
         app.exec()

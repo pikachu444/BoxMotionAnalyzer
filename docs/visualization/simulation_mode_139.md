@@ -97,6 +97,57 @@ Fresh commands: with QT_QPA_PLATFORM unset, set QT_SCALE_FACTOR to1 or1.25;
 review-only script/document changed after HEAD91ab5ed; no production numerical
 or UI implementation changed, so backend checks were not repeated for spacing.
 
+## Rejected composition and restored preset preview
+
+The user rejected the spacing correction: the dominant blank review board
+remained, and Robot sequence had lost the existing box target image. The prior
+review covered panel-internal gaps but missed these two user-visible defects;
+its presentation conclusion is not acceptance of this rejected composition.
+The old originals and review record remain preserved.
+
+Main replaced the two-window canvas with one review-only simulation workspace:
+controls on the left, optional Settings above the existing preview on the right.
+Single drop starts with Settings closed. The existing OrientationPreviewWidget
+is detached from the Scenario group's visibility before switching modes; it
+remains visible in Robot sequence. Selecting the ordered drop updates its
+existing preset target highlight and configured XYZ. No painter, physical
+coordinate transform, marker editor or execution engine was redesigned.
+Orange means the preset target, not a predicted impact after manual rotation.
+
+Latest originals: `workspace_final150/` and `workspace_final125/`. The primary
+window is1280x720 logical /1920x1080 actual /Qt process DPR1.5. The second is
+1536x864 logical /1920x1080 actual /Qt process DPR1.25. These are fresh direct
+Qt renders, not enlarged rasters and not proof of Windows OS125. Each command
+uses the same script, QT_QPA_PLATFORM unset, the corresponding QT_SCALE_FACTOR
+and --output directory; both exited0 with14 states. The added edge state shows
+row2, faces3/4 and configuredXYZ0/35/0. Assertions also verify both-mode preview
+visibility and panel bounds, complete fixture rows, single-mode fields/preset
+unchanged after a mode round-trip, and820x600 primary-action bounds. The small
+main-window stress fixture retains the preview in its scrolling form.
+
+The initial `workspace150/` attempt is retained separately. The reviewer found
+three P2 regressions in `workspace_final150/125`: compressed small-window
+fields, enabled Settings while running, and one-way active-drop selection.
+Main corrected them by attaching the small preview before first show and
+preserving natural form minimum height, gating the whole busy Settings form,
+and connecting selector-to-table as well as table-to-selector. Original
+`workspace_corrected150/125` commands exited1 on the new minimum-height
+assertion (preview attachment after show used a stale size hint); those partial
+outputs are retained. Corrected `workspace_reviewed150/125` passed16 states.
+
+Latest preserved originals are `workspace_verified150/125`,16 states each;
+these add schema1/plan/source commit/dirty paths/script hash/UTC/command/input
+and independent expectations to evidence.json. A separate small-window bottom
+scroll image exposes the complete preview while the first image keeps numeric
+and preset controls readable. Single/all mode round-trip, row-selection
+synchronization and busy gate are software fixture checks. The same reviewer
+closed all three P2 corrections on the reviewed originals/code and found no
+additional P0/P1/P2 within the revised mockup scope. The narrow left column
+still has spare space; the review does not claim all whitespace disappeared.
+Verified output adds provenance without changing the reviewed composition.
+Human approval and production binding remain pending; no native or
+measured-trial acceptance is claimed.
+
 ## Native state
 
 The computer-use skill initialized @oai/sky and identified exactly one
