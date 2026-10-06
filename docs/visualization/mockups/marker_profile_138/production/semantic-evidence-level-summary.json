@@ -1,0 +1,259 @@
+{
+  "report_version": 1,
+  "source_junit": "C:\\SourceCodes\\BoxMotionAnalyzer\\tmp\\issue138\\semantic-evidence-level-recheck.xml",
+  "public_required": true,
+  "levels": {
+    "unit_contract": {
+      "level": 1,
+      "testcases": [
+        {
+          "name": "tests.test_marker_profile_identity::test_existing_hash_and_whole_layout[example_profile-66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_existing_hash_and_whole_layout[virtual_profile_32-d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_position_semantics_and_correspondence_are_distinct",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_same_face_swap_preserves_center_and_pose_objective",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_existing_static_template_fit_detects_correspondence_without_center_claim",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_edge_face_change_keeps_geometry_and_changes_meaning",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[normals]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[local_frame]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[world_vertical_axis_index]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[analysis_half_turn_rotvecs]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[simulation_half_turns]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[half_turn_face_maps]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[label_prefixes]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_fixed_meanings_participate_in_identity[corner_basis]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_actual_shared_constant_change_is_detected",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_literal_coordinate_and_half_turn_contract",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_stale_or_missing_identity_never_succeeds[<lambda>0]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_stale_or_missing_identity_never_succeeds[<lambda>1]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_stale_or_missing_identity_never_succeeds[<lambda>2]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_stale_or_missing_identity_never_succeeds[<lambda>3]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_legacy_unknown_and_compact_artifact_binding",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_actual_comparison_distinguishes_author_mapping_and_legacy",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_collinear_face_allowed_whole_unavailable_distinguished[3]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_collinear_face_allowed_whole_unavailable_distinguished[4]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_collinear_face_allowed_whole_unavailable_distinguished[5]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_full_rank_distinct_orientation_counterexample_is_ambiguous",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_nonfinite_bool_profile_rejected[nan]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_nonfinite_bool_profile_rejected[inf]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_nonfinite_bool_profile_rejected[True]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_copy_edit_preview_apply_reset_roundtrip",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_atomic_save_failure_retry_preserves_all_decisions",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[schema_version-2]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[units-m]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[time_semantics-frame-index]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[revision-True]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_invalid_contract_blocked[approval_status-approved]",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_document_stale_preview_and_history_blocked",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_unknown_layout_object_cannot_silently_become_legacy",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        },
+        {
+          "name": "tests.test_marker_profile_identity::test_declared_source_rejects_conflicting_static_geometry",
+          "status": "passed",
+          "evidence_level": "unit_contract"
+        }
+      ],
+      "counts": {
+        "passed": 39,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      }
+    },
+    "synthetic_integration": {
+      "level": 2,
+      "testcases": [
+        {
+          "name": "tests.test_marker_profile_identity::test_ambiguous_producer_parser_pipeline_and_result_roundtrip",
+          "status": "passed",
+          "evidence_level": "synthetic_integration"
+        }
+      ],
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      }
+    },
+    "public_external": {
+      "level": 3,
+      "testcases": [],
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "status": "optional-manual",
+      "release_gate_satisfied": false,
+      "meaning": "Public external data requires separate source and scope review."
+    },
+    "internal_real": {
+      "level": 4,
+      "testcases": [],
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "status": "pending",
+      "issue": "#104",
+      "release_gate_satisfied": false,
+      "meaning": "Internal consistency observations; independently calibrated accuracy is pending."
+    }
+  },
+  "unclassified": [],
+  "errors": [],
+  "status": "pass"
+}

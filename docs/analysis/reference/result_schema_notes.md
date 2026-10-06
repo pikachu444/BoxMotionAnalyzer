@@ -1,6 +1,8 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-10-04
+Last Reviewed: 2026-10-06
+
+#138 adds Info/Artifact MarkerProfileIdentityJson, MarkerGeometryHash, MarkerSemanticsVersion and MarkerSemanticsHash. The nested schema1/plan-bound source declaration preserves original layout hashes and is transported through corrected/slice/proc. Missing legacy meanings remain unknown and cannot enter compatible aggregation. [Marker identity contract](marker_profile_semantics.md) defines geometry, label correspondence and fixed interpretation separately.
 
 ## 1. 목적
 #135 회귀 출력은 `Info / Source / OriginalRecordIndex`, `Info / CaptureReplay / Json`과 slice SceneReview capture_replay를 additive로 보존한다. 원본 record는 Time 오류 제거 전에 고정하며 저장 후 source/fixture/config/geometry 및 원본 행·시계를 정확 대조한다. 기존 결과에 추정값을 채우지 않는다. 공통 scalar Time 파싱과 proc round_trip 읽기로 원본 시계 정밀도를 보존한다. [전체 계약](capture_regression.md)을 참고한다.

@@ -1,0 +1,381 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ProfileStackedMockupEvidence",
+  "utc": "2026-10-04T12:46:35.270279+00:00",
+  "run_id": "stacked-20261004T124635Z",
+  "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "source_sha256": "e0e58cfa61b60217c8bdf6e7755b0f2fd1b3548b4bff2b512fc8f13b2df20015",
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/generate_stacked_mockups.py",
+    "--output",
+    "docs/visualization/mockups/marker_profile_138/stacked125"
+  ],
+  "dependency_sha256": {
+    "generate_preview_options.py": "e03044add83b2d653a3a88522ee5394bbc946f0c9d44407d17ac991ef389d018",
+    "generate_mockups.py": "bce589a57eb94e36cafd38ace6738684b60d4d363695521d0a3a744088c4701f"
+  },
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "qt_platform": "windows",
+    "dpr": 1.25,
+    "windows_scale_percent": 100,
+    "qt_process_scale_percent": 125.0
+  },
+  "input": {
+    "profile_hashes": {
+      "18": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "32": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    },
+    "source_kind": "public-synthetic-static-geometry",
+    "seed": null,
+    "seed_reason": "Deterministic static geometry",
+    "numeric_tolerance": null,
+    "tolerance_reason": "Exact geometry/hash invariance; display diagnostics, not pose accuracy"
+  },
+  "states": [
+    {
+      "screenshot": "stacked-18-1920x1080-both.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "face": "BACK",
+      "selected": "B1",
+      "scroll_position": "both",
+      "scroll_range": [
+        0,
+        0
+      ],
+      "label_box_collisions": 0,
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3"
+      ]
+    },
+    {
+      "screenshot": "stacked-18-820x600-top.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "face": "BACK",
+      "selected": "B1",
+      "scroll_position": "top",
+      "scroll_range": [
+        0,
+        255
+      ],
+      "label_box_collisions": 0,
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3"
+      ]
+    },
+    {
+      "screenshot": "stacked-18-820x600-bottom.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "face": "BACK",
+      "selected": "B1",
+      "scroll_position": "bottom",
+      "scroll_range": [
+        0,
+        255
+      ],
+      "label_box_collisions": 0,
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3"
+      ]
+    },
+    {
+      "screenshot": "stacked-32-1920x1080-both.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "face": "BACK",
+      "selected": "B1",
+      "scroll_position": "both",
+      "scroll_range": [
+        0,
+        0
+      ],
+      "label_box_collisions": 0,
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10",
+        "B11",
+        "B12"
+      ]
+    },
+    {
+      "screenshot": "stacked-32-820x600-top.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "face": "BACK",
+      "selected": "B1",
+      "scroll_position": "top",
+      "scroll_range": [
+        0,
+        255
+      ],
+      "label_box_collisions": 0,
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10",
+        "B11",
+        "B12"
+      ]
+    },
+    {
+      "screenshot": "stacked-32-820x600-bottom.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "face": "BACK",
+      "selected": "B1",
+      "scroll_position": "bottom",
+      "scroll_range": [
+        0,
+        255
+      ],
+      "label_box_collisions": 0,
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10",
+        "B11",
+        "B12"
+      ]
+    },
+    {
+      "screenshot": "stacked-invalid-820x600.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "stacked-legacy-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    },
+    {
+      "screenshot": "stacked-incompatible-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    }
+  ],
+  "interaction": {
+    "status": "pass",
+    "kind": "prototype-QTest-only",
+    "independent_expectations": "3D axes above 2D axes; small-window scrollbar reaches bottom; M2=[38,-60,-18]/BOTTOM; F1 21->22; Preview preserves applied; Reset restores21; invalid blocks Apply"
+  },
+  "approval_status": "pending",
+  "production_changed": false,
+  "native_status": "not-executed-existing-capture-activation-failure",
+  "experimental_status": "unavailable",
+  "limitations": [
+    "At 820x600 the preview scrolls vertically; fixed actions remain accessible.",
+    "Compatibility/error states are UI fixtures, not implemented production checks.",
+    "No production export/persistence/worker or physical validation acceptance."
+  ],
+  "prior_attempts": [
+    {
+      "status": "render-revised",
+      "boundary": "small-window-viewport",
+      "diagnostic": "Initial 660px canvas clipped portions of each plot in the small viewport.",
+      "correction": "Use a 500px minimum canvas and interplot spacing; keep scroll and fixed actions."
+    }
+  ]
+}

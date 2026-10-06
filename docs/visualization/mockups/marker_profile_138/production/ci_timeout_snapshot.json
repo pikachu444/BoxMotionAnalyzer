@@ -1,0 +1,443 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub05-ci-budget-20261006T003544Z",
+  "utc": "2026-10-06T00:35:44.352008+00:00",
+  "kst": "2026-10-06T09:35:44.352008+09:00",
+  "tier": "hosted-execution-budget",
+  "status": "needs_review",
+  "reason": "Observed required job timeout; preserved checks need a full new-head hosted run",
+  "code": {
+    "commit": "13b81b6edce163fbbe5864995c4e6761221d7819",
+    "dirty": true,
+    "sha256": {
+      ".github/workflows/public-marker-validation.yml": "ba16f3d0a525423feb9dcafcdb619a7578cb543fbd3afa415f1b28aae0e901fa",
+      "src/analysis/compare/data_model.py": "1af112429ef41d3a10ae0105812afe4f045693135d1bf8daf216490c18d14bcd",
+      "src/analysis/pipeline/data_loader.py": "fa985f822b18a3672e93e2b22ea64887d71c9fbfb775810cd3afc737324d2963",
+      "src/analysis/pipeline/face_assignment.py": "53347f5fa46841a0dd86105934e5d1f0370d941018bb4f08ad58221e43bdbe90",
+      "src/analysis/pipeline/marker_flip.py": "88465c447d3758e584801cf4c8073766de8319adb6a47a444fca5908d5ea9428",
+      "src/analysis/pipeline/parser.py": "07aaa089510d3952fdf79383b4e8763801e53cbe6942f4bd371cde3a821a7257",
+      "src/analysis/pipeline/pipeline_controller.py": "1fc15458b0e5a4697033e3cf0e04567fb2d9f91b5ca9eed46cfc08bc28096a58",
+      "src/analysis/pipeline/pose_optimizer.py": "bfed8ef4241212b1356f9951890af473f3ea603a25320d4e9515bf96c8c86315",
+      "src/analysis/pipeline/scene_detection.py": "2b93fac1573569586d617c1698c310b171618ce9d4069bf9cbf8adc5a4296dba",
+      "src/analysis/regression/contracts.py": "2bb3e2f31517945f9ffe1527e9c2b80eb5a92e4d4d4723b28641a9cdb9b1a28e",
+      "src/analysis/regression/runner.py": "acd97d9269a1f3e5e658bbd62d3994281e9b9ef86b9e39ba9e40b53c39e89bff",
+      "src/analysis/ui/widget_results_analyzer.py": "7d84a9093641b4c6c1ad2de5ecf8611a5ebac63e5c43fc084edb5ba1e9a88a9a",
+      "src/config/marker_semantics.py": "ec04d31e61ba81b6cfdf9db9c9f195fb343cdce210998eaa436eedd8be1ce3fd",
+      "src/simulation/capture_corpus.py": "a7a64f86245cc31054b4d605d7ff7570d96f631d280a89569d7f745a266cdbc3",
+      "src/simulation/corruption_export.py": "42c7a0fc395241dceb96d72d832c21ac4a8a366e3a2014d3e0d418427e86af8f",
+      "src/simulation/marker_corruption.py": "f6051d7affd79a5ed048a27189ac0e0b3f82c47ff9203efe8d3d4846434e2543",
+      "src/simulation/marker_fixtures.py": "783ba50d116e74a56940439042346dcf964488e4e803e0da42d19a355ae1a5d9",
+      "src/simulation/profile_document.py": "3fd9c26511aa3a415c77a97b983859b0912a9400a1ca1dba3d1e5b57a6f53dc0",
+      "src/simulation/profile_semantic_fixtures.py": "eb848218ae340cede80828a9259f5544c250a63f96346d10552cb390a249dccc",
+      "src/simulation/profile_validation.py": "b3a3caf97befc3d8d49d3c559b545039c85077990c51606ada9c55434e884a73",
+      "src/simulation/public_validation_summary.py": "8b76a10a4d84ba6e68a1cfb870fc191343f2a1ef5e717c7cb1d7a85c19f96ecc",
+      "src/simulation/scene_fixtures.py": "0b910f8ff6db85adeca0164c6685eda4b1534f7d8c0f689d8b6ad3e0ba1fd4d0",
+      "src/simulation/ui/marker_export_dialog.py": "4960693c84a1cb4956f1838643244a427cb2cf19f04fa7d5d375892e63a40335",
+      "src/simulation/ui/marker_profile_dialog.py": "e8f6376924a875475b7372c3624a3c6c41b5e03d39ff0a1b7f90b765184722fd",
+      "src/simulation/ui/profile_preview.py": "b0485b71520170641d13db606e0398ed97be8ac6ca22054c6b58dcfefabbbe0c",
+      "src/utils/artifact_metadata.py": "51e971f8494ce1eedafe95ffa90db9fe36c1f4a9e75a6b3a84bbaf029a174ccf",
+      "src/utils/marker_profile_identity.py": "6e775b8752a7d69da8d3d8bf48f2337c38485a81bdc50163fa5e11435a4f0555",
+      "tests/comparison_fixtures.py": "e684c51f649cc43d16f8c5e69634ce14f00e76c306450b5bf2b01f8d2d117219",
+      "tests/impact_metric_fixtures.py": "0458508ae0ae153168a1aceb40fef6301088e8fbe1aa89ba58681c5ac3933904",
+      "tests/test_impact_metrics.py": "fe339c0b7c7095f8a0f6ab3743c5f31de5b04c7a12e94ff5b0104e62fad16771",
+      "tests/test_marker_profile_gui.py": "33ad3de6169a80a57bb8f8d48deaf1ab01b82a0ca3b019afa286f6839fffc063",
+      "tests/test_marker_profile_identity.py": "083da8e2b0219f24caa03721077d652b542c015b81d883025e22ae3ad3aa1202",
+      "tests/test_posture_comparison.py": "63373564e14c1b21960298d02003c4c2029b5ea1b71426c35a3f77105d3c5e9b",
+      "tests/test_result_file_context.py": "abcb76b7bfdad322355f54868b4b323b3b6d68c847b27030a6717f5fba587af0"
+    },
+    "base": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+    "changed_since_review": [
+      ".github/workflows/public-marker-validation.yml"
+    ]
+  },
+  "schema_versions": {
+    "profile_identity": 1,
+    "profile_document": 1,
+    "artifact": 1,
+    "manifest": null,
+    "decision": null,
+    "signature": null
+  },
+  "source": {
+    "run_url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37389680715",
+    "head": "13b81b6edce163fbbe5864995c4e6761221d7819",
+    "executed_merge_commit": "f85e31963334965090e1a168a3ba308135a54685",
+    "executed_render_dirty": true,
+    "dirty_reason": "Original report has no path list; new read-only before/after git diagnostics will record exact paths, without assuming a clean execution tree"
+  },
+  "environment": {
+    "os": "Windows-2025Server-10.0.26100-SP0",
+    "python": "3.13.15",
+    "pyside": "6.11.2",
+    "qt_platform": "windows",
+    "dpr": 1.25,
+    "available_logical": [
+      1536,
+      826
+    ],
+    "os_scale": "not inferred from QT_SCALE_FACTOR; local Windows setting separately recorded",
+    "dependencies": {
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "mujoco": "3.6.0",
+      "PySide6": "6.11.2"
+    }
+  },
+  "input": {
+    "kind": "Existing unchanged public static/synthetic fixtures and commands",
+    "identity": "Original source/seed/geometry in retained per-case CI RunReports",
+    "seed": null,
+    "seed_reason": "Mixed command scopes; original per-case reports preserve seeds"
+  },
+  "first_difference_boundary": {
+    "command": "Check independently specified continuity challenges",
+    "expected": "Complete required job",
+    "actual": "Cancelled 11 seconds into final continuity command at 45-minute job limit",
+    "annotation": "The job has exceeded the maximum execution time of 45m0s",
+    "units": "job minutes",
+    "old_limit": 45,
+    "new_limit": 60,
+    "application_performance_budget_changed": false,
+    "numerical_tolerance_changed": false
+  },
+  "commands": {
+    "core": "1231 passed and 11 subtests passed, 1151.65s; original1242-case JUnit has no failure/error/skip",
+    "gui": "All125% lanes completed; PUB05 editor9 and renderer30 passed",
+    "public_observation": "All explicit cases and negative controls passed; command completed14m49s",
+    "continuity": "Cancelled after11s; not passed",
+    "static_delta": "Exact normalized text comparison PASS; original commands/inputs/actions/conditions preserved"
+  },
+  "original_run": {
+    "conclusion": "cancelled",
+    "createdAt": "2026-10-05T23:38:56Z",
+    "headSha": "13b81b6edce163fbbe5864995c4e6761221d7819",
+    "jobs": [
+      {
+        "completedAt": "2026-10-06T00:24:12Z",
+        "conclusion": "cancelled",
+        "databaseId": 112031530122,
+        "name": "synthetic-integration",
+        "startedAt": "2026-10-05T23:39:02Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-05T23:39:04Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-05T23:39:03Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-05T23:39:13Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 2,
+            "startedAt": "2026-10-05T23:39:04Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-05T23:39:18Z",
+            "conclusion": "success",
+            "name": "Prepare the Windows software OpenGL driver",
+            "number": 3,
+            "startedAt": "2026-10-05T23:39:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-05T23:39:22Z",
+            "conclusion": "success",
+            "name": "Configure the hosted desktop for the release viewport",
+            "number": 4,
+            "startedAt": "2026-10-05T23:39:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-05T23:39:33Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065",
+            "number": 5,
+            "startedAt": "2026-10-05T23:39:22Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-05T23:41:06Z",
+            "conclusion": "success",
+            "name": "Install application and test dependencies",
+            "number": 6,
+            "startedAt": "2026-10-05T23:39:33Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-05T23:41:06Z",
+            "conclusion": "success",
+            "name": "Verify the physical Qt desktop before running GUI checks",
+            "number": 7,
+            "startedAt": "2026-10-05T23:41:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-05T23:42:49Z",
+            "conclusion": "success",
+            "name": "Preserve scene review and render PUB04 at 125 percent",
+            "number": 8,
+            "startedAt": "2026-10-05T23:41:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:02:03Z",
+            "conclusion": "success",
+            "name": "Check public geometry, correction, persistence and Qt workflow",
+            "number": 9,
+            "startedAt": "2026-10-05T23:42:49Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:02:18Z",
+            "conclusion": "success",
+            "name": "Generate marker observations and open Step 1 at 125 percent",
+            "number": 10,
+            "startedAt": "2026-10-06T00:02:03Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:02:55Z",
+            "conclusion": "success",
+            "name": "Verify PUB05 editing and render approved production profiles at 125 percent",
+            "number": 11,
+            "startedAt": "2026-10-06T00:02:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:03:58Z",
+            "conclusion": "success",
+            "name": "Inspect original motion during marker review at 125 percent",
+            "number": 12,
+            "startedAt": "2026-10-06T00:02:55Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:04:23Z",
+            "conclusion": "success",
+            "name": "Inspect responsive marker review labels and controls at 125 percent",
+            "number": 13,
+            "startedAt": "2026-10-06T00:03:58Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:04:40Z",
+            "conclusion": "success",
+            "name": "Verify metric variants in the real comparison GUI at 125 percent",
+            "number": 14,
+            "startedAt": "2026-10-06T00:04:23Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:06:45Z",
+            "conclusion": "success",
+            "name": "Review vertical motion and preserve scene signals at 125 percent",
+            "number": 15,
+            "startedAt": "2026-10-06T00:04:40Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:07:11Z",
+            "conclusion": "success",
+            "name": "Compare repeated posture and public pipeline output at 125 percent",
+            "number": 16,
+            "startedAt": "2026-10-06T00:06:45Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:07:51Z",
+            "conclusion": "success",
+            "name": "Check comparison reference labels and shared guide at 125 percent",
+            "number": 17,
+            "startedAt": "2026-10-06T00:07:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:07:54Z",
+            "conclusion": "success",
+            "name": "Check incomplete pose rows without inferring contact",
+            "number": 18,
+            "startedAt": "2026-10-06T00:07:51Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:08:07Z",
+            "conclusion": "success",
+            "name": "Verify bounded marker review and real cancellation at 125 percent",
+            "number": 19,
+            "startedAt": "2026-10-06T00:07:54Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:09:05Z",
+            "conclusion": "success",
+            "name": "Replay retained public results in the release GUI at 125 percent",
+            "number": 20,
+            "startedAt": "2026-10-06T00:08:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:09:05Z",
+            "conclusion": "success",
+            "name": "Summarize required public evidence levels",
+            "number": 21,
+            "startedAt": "2026-10-06T00:09:05Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:23:54Z",
+            "conclusion": "success",
+            "name": "Compare independent truth with public observation cases",
+            "number": 22,
+            "startedAt": "2026-10-06T00:09:05Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:24:05Z",
+            "conclusion": "cancelled",
+            "name": "Check independently specified continuity challenges",
+            "number": 23,
+            "startedAt": "2026-10-06T00:23:54Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:24:08Z",
+            "conclusion": "success",
+            "name": "Preserve public validation evidence",
+            "number": 24,
+            "startedAt": "2026-10-06T00:24:05Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:24:08Z",
+            "conclusion": "skipped",
+            "name": "Post Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065",
+            "number": 47,
+            "startedAt": "2026-10-06T00:24:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:24:10Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "number": 48,
+            "startedAt": "2026-10-06T00:24:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-06T00:24:10Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 49,
+            "startedAt": "2026-10-06T00:24:10Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37389680715/job/112031530122"
+      }
+    ],
+    "updatedAt": "2026-10-06T00:24:13Z"
+  },
+  "original_annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/pikachu444/BoxMotionAnalyzer/blob/13b81b6edce163fbbe5864995c4e6761221d7819/.github",
+      "start_line": 1,
+      "start_column": null,
+      "end_line": 1,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "",
+      "message": "The job has exceeded the maximum execution time of 45m0s",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/pikachu444/BoxMotionAnalyzer/blob/13b81b6edce163fbbe5864995c4e6761221d7819/.github",
+      "start_line": 2,
+      "start_column": null,
+      "end_line": 2,
+      "end_column": null,
+      "annotation_level": "warning",
+      "title": "",
+      "message": "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11d5960a326750d5838078e36cf38b85af677262, actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065, actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/pikachu444/BoxMotionAnalyzer/blob/13b81b6edce163fbbe5864995c4e6761221d7819/.github",
+      "start_line": 55,
+      "start_column": null,
+      "end_line": 55,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "",
+      "message": "The operation was canceled.",
+      "raw_details": ""
+    }
+  ],
+  "original_core": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "1242",
+    "time": "1151.547",
+    "timestamp": "2026-10-05T23:42:50.101285+00:00",
+    "hostname": "runnervmfi6oq"
+  },
+  "coverage": {
+    "loaded": 27,
+    "approved": 0,
+    "fresh": 27,
+    "reused": 0,
+    "failed": 1,
+    "unexecuted": 1,
+    "meaning": "Job steps, not additive unique test cases; cancelled required job remains unsuccessful"
+  },
+  "renderer": {
+    "status": "reused_unchanged",
+    "reason": "New workflow budget only; existing source/pixels unchanged. Hosted renderer30 was fresh in the retained run."
+  },
+  "independent_review": {
+    "status": "pending_bounded",
+    "reviewer": "Existing profile_ui_review, GPT-6.1 Sol/high, read-only"
+  },
+  "ci": {
+    "status": "required_new_head"
+  },
+  "native": {
+    "status": "not_executed",
+    "reason": "Retained native capture/activation limitations"
+  },
+  "experiment": {
+    "status": "unavailable",
+    "reason": "#104 separate"
+  },
+  "automatic_status": "incomplete_due_to_job_timeout",
+  "fresh": true,
+  "cache_origin": "Original downloaded hosted artifacts, not rerun/reclassified as a passed job",
+  "duration_s": 2710,
+  "peak_memory_bytes": null,
+  "optimizer_calls": null,
+  "exit_code": null,
+  "exception": null,
+  "traceback": null,
+  "tolerance_version": null,
+  "unapplied_fields": {
+    "optimizer_memory": "Original per-case reports retain calls; no aggregate memory certification",
+    "raw_manifest_decision_signature": "Aggregate workflow boundary; individual captured inputs retain their own contracts",
+    "tolerance": "No experimental/application tolerance change; workflow timeout is an execution scheduling limit",
+    "native": "Logical client and Qt process scale are separate from external native/actual OS125% acceptance",
+    "exit_code": "GitHub cancellation annotation, not a product assertion exit code",
+    "parser_attempt": "PyYAML is not installed locally; initial parser invocation exited before validation. Exact text proof passed; hosted parser remains authoritative"
+  }
+}

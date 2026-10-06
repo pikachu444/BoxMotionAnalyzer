@@ -15,10 +15,25 @@ from scipy.spatial.transform import Rotation
 from src.analysis.pipeline.scene_detection import Registration
 from src.config.config_app import FACE_DEFINITIONS
 from src.utils.processing_settings import processing_record
+from src.simulation.marker_fixtures import validate_profile
+from src.utils.marker_profile_identity import artifact_fields
 
 
 SUMMARY = ('Analysis', 'DropPostureSummary')
 REVIEW = ('Info', 'SceneReview', 'Json')
+
+
+def analytic_profile(dimensions=(200.,120.,80.)):
+    """Geometry declared before metric execution, independent of saved outputs."""
+    coordinates=[('F1','FRONT',[17,13,40]),('F2','FRONT',[-53,-28,40]),
+        ('B1','BACK',[-44,26,-40]),('B2','BACK',[38,-19,-40]),
+        ('R1','RIGHT',[100,11,-7]),('L1','LEFT',[-100,-17,24]),
+        ('T1','TOP',[32,60,9]),('M1','BOTTOM',[-25,-60,-11])]
+    return dict(profile_id='analytic-layout',profile_version='1',units='mm',origin='box-geometric-center',
+        dimension_policy='absolute-mm',box_dims_mm=list(dimensions),
+        publication='public-analytical-unit-fixture-not-real-validation',source='Explicit independent geometry before metric evaluation',
+        license='same as repository source code',markers=[dict(id=label,face=face,
+            xyz_mm=(np.asarray(xyz)*np.asarray(dimensions)/[200.,120.,80.]).tolist()) for label,face,xyz in coordinates])
 
 
 def make_frame(*, times=None, t1=.040, impact=.048, velocity=(3., -4., 0.), omega=(0., 0., 2.),
@@ -36,7 +51,7 @@ def make_frame(*, times=None, t1=.040, impact=.048, velocity=(3., -4., 0.), omeg
     data = {('Info', 'Time', 'Time'): times,
             ('Info', 'Frame', 'Frame'): np.arange(len(times)),
             ('Info', 'Pose', 'Source'): ['Optimized'] * len(times),
-            ('Position', 'M1', 'FaceInfo'): ['FRONT'] * len(times),
+            ('Position', 'F1', 'FaceInfo'): ['FRONT'] * len(times),
             (*SUMMARY, 'T1MinusTimeSec'): t1, (*SUMMARY, 'T1Detected'): True,
             (*SUMMARY, 'FirstImpactTimeSec'): impact, (*SUMMARY, 'ImpactDetected'): True,
             (*SUMMARY, 'ContactState'): 'ImpactEvent', (*SUMMARY, 'FirstImpactContact'): '{C1,C2}',
@@ -67,15 +82,15 @@ def make_frame(*, times=None, t1=.040, impact=.048, velocity=(3., -4., 0.), omeg
     artifact = dict(SchemaVersion='1', SourceKind='handcrafted_dummy', ModelId='analytic-box',
         BoxLengthMm=200., BoxWidthMm=120., BoxHeightMm=80., IstaType=ista_type if ista_type != 'Unknown' else None,
         ScenarioId=effective_id, ScenarioKind='free_fall' if confirmed else None,
-        MarkerLayoutId='analytic-layout', MarkerLayoutHash='b' * 64,
+        MarkerLayoutId='analytic-layout', MarkerLayoutHash=validate_profile(analytic_profile()),
         ProcessingSemanticsVersion=version, ProcessingSettingsJson=settings_text,
         CoordinatePolicy='world-y-up-box-local-fixed-center-v1', UnitsPolicy='bma-mm-s-rotvec-rad-summary-deg-v1',
         GeneratorVersion='analytical-contract-1')
+    artifact.update(artifact_fields(analytic_profile()))
     for key, value in artifact.items():
         data[('Info', 'Artifact', key)] = value
     if review:
-        profile = {'units': 'mm', 'origin': 'box-geometric-center', 'box_dims_mm': dims,
-                   'markers': [{'id': f'M{i+1}', 'xyz_mm': corner} for i, corner in enumerate(corners[:4])]}
+        profile = analytic_profile()
         registration = Registration(profile, registration_floor_y_mm, 1., com_offset)
         payload = {
             'version': 1, 'source_sha256': source_sha256,

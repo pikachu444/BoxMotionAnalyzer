@@ -197,6 +197,16 @@ def detect_scenes(header, raw, parsed, *, registration=None, settings=None, canc
     count = np.isfinite(points).all(axis=2).sum(axis=1)
     if registration:
         registration.validate()
+        from src.utils.marker_profile_identity import artifact_identity
+        declared = artifact_identity(header.get('artifact_metadata', {}))
+        if declared is not None:
+            source = declared['source_profile']
+            lookup = {m['id']: m for m in source['markers']}
+            if (not np.array_equal(np.asarray(registration.profile['box_dims_mm'],float),source['box_dims_mm']) or
+                    any(m['id'] not in lookup or not np.array_equal(np.asarray(m['xyz_mm'], float),
+                        np.asarray(lookup[m['id']]['xyz_mm'], float)) or
+                        ('face' in m and m['face'] != lookup[m['id']]['face']) for m in registration.profile['markers'])):
+                raise ValueError('Static scene geometry conflicts with declared marker source identity.')
     from .scene_face_corrections import approved_face_states, CORRECTED_VERSION
     face_states, face_boundaries = approved_face_states(header, times, ids, registration)
     relative_breaks = face_boundaries if registration is None else np.zeros(len(times), dtype=bool)

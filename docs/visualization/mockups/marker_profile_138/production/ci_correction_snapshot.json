@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub05-ci-exposure-20261005T233458Z",
+  "utc": "2026-10-05T23:34:58.954067+00:00",
+  "kst": "2026-10-06T08:34:58.954067+09:00",
+  "tier": "widget-QTest",
+  "status": "needs_review",
+  "reason": "Fresh affected checks pass; bounded independent correction review and clean-head CI required",
+  "code": {
+    "commit": "2b1a57d7200c89ef723b03506fd1666cda418459",
+    "dirty": true,
+    "sha256": {
+      ".github/workflows/public-marker-validation.yml": "479c4e1d17418d16e6c3b2ba1f7bdf4f8507cc45c340320194efbde171718565",
+      "src/analysis/compare/data_model.py": "1af112429ef41d3a10ae0105812afe4f045693135d1bf8daf216490c18d14bcd",
+      "src/analysis/pipeline/data_loader.py": "fa985f822b18a3672e93e2b22ea64887d71c9fbfb775810cd3afc737324d2963",
+      "src/analysis/pipeline/face_assignment.py": "53347f5fa46841a0dd86105934e5d1f0370d941018bb4f08ad58221e43bdbe90",
+      "src/analysis/pipeline/marker_flip.py": "88465c447d3758e584801cf4c8073766de8319adb6a47a444fca5908d5ea9428",
+      "src/analysis/pipeline/parser.py": "07aaa089510d3952fdf79383b4e8763801e53cbe6942f4bd371cde3a821a7257",
+      "src/analysis/pipeline/pipeline_controller.py": "1fc15458b0e5a4697033e3cf0e04567fb2d9f91b5ca9eed46cfc08bc28096a58",
+      "src/analysis/pipeline/pose_optimizer.py": "bfed8ef4241212b1356f9951890af473f3ea603a25320d4e9515bf96c8c86315",
+      "src/analysis/pipeline/scene_detection.py": "2b93fac1573569586d617c1698c310b171618ce9d4069bf9cbf8adc5a4296dba",
+      "src/analysis/regression/contracts.py": "2bb3e2f31517945f9ffe1527e9c2b80eb5a92e4d4d4723b28641a9cdb9b1a28e",
+      "src/analysis/regression/runner.py": "acd97d9269a1f3e5e658bbd62d3994281e9b9ef86b9e39ba9e40b53c39e89bff",
+      "src/analysis/ui/widget_results_analyzer.py": "7d84a9093641b4c6c1ad2de5ecf8611a5ebac63e5c43fc084edb5ba1e9a88a9a",
+      "src/config/marker_semantics.py": "ec04d31e61ba81b6cfdf9db9c9f195fb343cdce210998eaa436eedd8be1ce3fd",
+      "src/simulation/capture_corpus.py": "a7a64f86245cc31054b4d605d7ff7570d96f631d280a89569d7f745a266cdbc3",
+      "src/simulation/corruption_export.py": "42c7a0fc395241dceb96d72d832c21ac4a8a366e3a2014d3e0d418427e86af8f",
+      "src/simulation/marker_corruption.py": "f6051d7affd79a5ed048a27189ac0e0b3f82c47ff9203efe8d3d4846434e2543",
+      "src/simulation/marker_fixtures.py": "783ba50d116e74a56940439042346dcf964488e4e803e0da42d19a355ae1a5d9",
+      "src/simulation/profile_document.py": "3fd9c26511aa3a415c77a97b983859b0912a9400a1ca1dba3d1e5b57a6f53dc0",
+      "src/simulation/profile_semantic_fixtures.py": "eb848218ae340cede80828a9259f5544c250a63f96346d10552cb390a249dccc",
+      "src/simulation/profile_validation.py": "b3a3caf97befc3d8d49d3c559b545039c85077990c51606ada9c55434e884a73",
+      "src/simulation/public_validation_summary.py": "8b76a10a4d84ba6e68a1cfb870fc191343f2a1ef5e717c7cb1d7a85c19f96ecc",
+      "src/simulation/scene_fixtures.py": "0b910f8ff6db85adeca0164c6685eda4b1534f7d8c0f689d8b6ad3e0ba1fd4d0",
+      "src/simulation/ui/marker_export_dialog.py": "4960693c84a1cb4956f1838643244a427cb2cf19f04fa7d5d375892e63a40335",
+      "src/simulation/ui/marker_profile_dialog.py": "e8f6376924a875475b7372c3624a3c6c41b5e03d39ff0a1b7f90b765184722fd",
+      "src/simulation/ui/profile_preview.py": "b0485b71520170641d13db606e0398ed97be8ac6ca22054c6b58dcfefabbbe0c",
+      "src/utils/artifact_metadata.py": "51e971f8494ce1eedafe95ffa90db9fe36c1f4a9e75a6b3a84bbaf029a174ccf",
+      "src/utils/marker_profile_identity.py": "6e775b8752a7d69da8d3d8bf48f2337c38485a81bdc50163fa5e11435a4f0555",
+      "tests/comparison_fixtures.py": "e684c51f649cc43d16f8c5e69634ce14f00e76c306450b5bf2b01f8d2d117219",
+      "tests/impact_metric_fixtures.py": "0458508ae0ae153168a1aceb40fef6301088e8fbe1aa89ba58681c5ac3933904",
+      "tests/test_impact_metrics.py": "fe339c0b7c7095f8a0f6ab3743c5f31de5b04c7a12e94ff5b0104e62fad16771",
+      "tests/test_marker_profile_gui.py": "33ad3de6169a80a57bb8f8d48deaf1ab01b82a0ca3b019afa286f6839fffc063",
+      "tests/test_marker_profile_identity.py": "083da8e2b0219f24caa03721077d652b542c015b81d883025e22ae3ad3aa1202",
+      "tests/test_posture_comparison.py": "63373564e14c1b21960298d02003c4c2029b5ea1b71426c35a3f77105d3c5e9b",
+      "tests/test_result_file_context.py": "abcb76b7bfdad322355f54868b4b323b3b6d68c847b27030a6717f5fba587af0"
+    },
+    "base": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+    "changed_since_review": [
+      "tests/test_marker_profile_gui.py"
+    ]
+  },
+  "original_review_snapshot_sha256": "885938ece6635e5ba7e15e2be49cdebe592acfb57f0461b0f30bec3340b90f69",
+  "environment": {
+    "os": "Windows11",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "qt_platform": "windows",
+    "qt_process_scales": [
+      1,
+      1.25
+    ],
+    "local_physical_desktop": [
+      2560,
+      1440
+    ],
+    "local_os_scale": 100,
+    "hosted_first_physical_desktop": [
+      1920,
+      1080
+    ],
+    "hosted_first_dpr": 1
+  },
+  "input": {
+    "kind": "public-static",
+    "source": "example18 and public-virtual-box32",
+    "seed": null,
+    "seed_reason": "Literal geometry; no random observation",
+    "profile_hashes": [
+      "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    ]
+  },
+  "first_difference_boundary": {
+    "run": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37388388560",
+    "commit": "2b1a57d7200c89ef723b03506fd1666cda418459",
+    "command": "Required workflow core pytest list; unchanged",
+    "test": "test_display_gestures_and_resize_preserve_profile_and_2d[size0]",
+    "expected": [
+      1920,
+      1080
+    ],
+    "actual": [
+      1920,
+      1061
+    ],
+    "difference": [
+      0,
+      -19
+    ],
+    "units": "logical pixels",
+    "tolerance": 0,
+    "passed": 57,
+    "failed": 1,
+    "cause": "Windows initial decorated-window fitting; harness did not re-request client size after exposure",
+    "correction": "Four test lines only: wait for exposure, resize exact requested logical client, settle; all strict oracles retained"
+  },
+  "schema_versions": {
+    "profile_identity": 1,
+    "profile_document": 1,
+    "artifact": 1,
+    "manifest": null,
+    "decision": null,
+    "signature": null
+  },
+  "commands": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_marker_profile_gui.py --junitxml=tmp/issue138/ci-harness-100.xml",
+      "qt_scale": 1,
+      "result": "pass",
+      "cases": 9,
+      "duration_s": 67.52,
+      "fresh": true,
+      "reused": false,
+      "evidence": "ci-harness-100.xml",
+      "expected": "Exact requested logical client, unchanged document/2D/gesture/action assertions",
+      "actual": "9 pass, no failures/errors/skips",
+      "difference": null,
+      "tolerance": "Exact UI assertions; no physical tolerance"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_marker_profile_gui.py --junitxml=tmp/issue138/ci-harness-125.xml",
+      "qt_scale": 1.25,
+      "result": "pass",
+      "cases": 9,
+      "duration_s": 42.819,
+      "fresh": true,
+      "reused": false,
+      "evidence": "ci-harness-125.xml",
+      "expected": "Exact requested logical client, unchanged document/2D/gesture/action assertions",
+      "actual": "9 pass, no failures/errors/skips",
+      "difference": null,
+      "tolerance": "Exact UI assertions; no physical tolerance"
+    }
+  ],
+  "coverage": {
+    "loaded": 18,
+    "approved": 0,
+    "fresh": 18,
+    "reused": 0,
+    "failed": 0,
+    "unexecuted": 0
+  },
+  "cache_origin": "Fresh Qt processes at each DPR; duplicated cases are not additive unique semantic coverage",
+  "renderer": {
+    "status": "reused_unchanged",
+    "reason": "Renderer/editor/viewport hashes unchanged; original60 PNGs remain bound to exact reviewed renderer source"
+  },
+  "independent_review": {
+    "status": "pending_bounded",
+    "reviewer": "profile_ui_review, GPT-6.1 Sol / high, existing read-only reviewer"
+  },
+  "ci": {
+    "status": "pending_new_head",
+    "failed_original_run": 37388388560
+  },
+  "native": {
+    "status": "not_executed",
+    "reason": "External capture/activation failure and disabled native APIs"
+  },
+  "experiment": {
+    "status": "unavailable",
+    "reason": "#104 separate"
+  },
+  "automatic_status": "pass",
+  "fresh": true,
+  "duration_s": null,
+  "peak_memory_bytes": null,
+  "optimizer_calls": 0,
+  "exit_code": 0,
+  "exception": null,
+  "traceback": null,
+  "tolerance_version": null,
+  "unapplied_fields": {
+    "duration": "Separate process durations in original JUnit; not summed as wall time",
+    "peak_memory": "No new memory acceptance budget; unchanged bounded production state was reviewed",
+    "raw_manifest_decision_signature": "Static widget fixture, not capture processing; full input geometry and prior source binding preserved",
+    "measured_tolerance": "No physical tolerance or baseline changes/approvals",
+    "physical_visibility": "Requested logical client tests and original widget PNGs do not certify full decorated native screen visibility",
+    "exception_traceback": "None in fresh corrected local commands; original first-failure JUnit retains traceback"
+  }
+}

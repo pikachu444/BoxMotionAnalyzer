@@ -29,6 +29,8 @@ class DataLoader:
         header_info['export_metadata'] = dict(zip(metadata_row[::2], metadata_row[1::2]))
         header_info['source_rows'] = list(csv.reader(lines[:2]))
         header_info['artifact_metadata'] = metadata_from_source_rows(header_info['source_rows'])
+        from src.utils.marker_profile_identity import artifact_identity
+        artifact_identity(header_info['artifact_metadata'])  # Declared unsupported/stale meanings block; legacy stays unknown.
         has_annotations = any(kind == 'Marker Annotation' for kind in header_info['type'])
         if has_annotations or 'Corrected Source File' in lines[0] or 'Slice File' in lines[0]:
             from .artifact_io import read_corrected_source_metadata, read_slice_metadata

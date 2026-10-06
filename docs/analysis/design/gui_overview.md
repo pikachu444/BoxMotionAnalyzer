@@ -1,6 +1,8 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-10-04
+Last Reviewed: 2026-10-06
+
+#138 / PUB05 adds Copy/Edit to the existing Marker CSV profile selector. Presets remain immutable; the editor separates source, draft, valid Preview and explicit Apply. The wide preview pairs interactive display-only exploded faces with a 2D face view; small windows use Markers/Preview/Rules tabs. Reset affects only the draft, and saved documents retain pending edits plus the applied profile. [Contract and execution scope](../reference/marker_profile_semantics.md) distinguish legacy compatibility, Qt checks and unexecuted native confirmation.
 
 #137 extends the existing scene/workspace flow after FHD mockup approval. Selection and edits retain scoped pan/zoom; source-bound workspaces save the current viewport. Revert restores detected bounds for renewed review. Save current/included counts use the same gate as actual writes; Type basis and edit/decision history persist. Automatic and pending native evidence are recorded in [PUB04 delivery](../../visualization/scene_review_workflow_137.md).
 

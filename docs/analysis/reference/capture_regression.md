@@ -1,6 +1,8 @@
 # Capture regression (#135)
 
-Last Reviewed: 2026-10-02
+Last Reviewed: 2026-10-06
+
+#138 binds full marker_profile_identity in newly generated fixtures to observed artifact metadata and actual consumer meanings. Existing legacy-face-assignment-v3 partial digest and approved baseline/fixture bytes are retained; missing complete semantics is not promoted to compatible or approved. [PUB05 contract](marker_profile_semantics.md) also distinguishes the existing static #135 geometry adapter from the user-excluded #113 registration feature.
 
 ## Scope
 

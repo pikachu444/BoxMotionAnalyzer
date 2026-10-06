@@ -1,0 +1,426 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ProfileFocus3DMockupEvidence",
+  "utc": "2026-10-04T08:28:23.756191+00:00",
+  "run_id": "focus3d-20261004T082823Z",
+  "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "source_sha256": "356c26ea87a7d039e64cb2e4753d9b56b5a8483a42241222df9de179b06deb6f",
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/generate_focus3d_mockups.py",
+    "--output",
+    "docs/visualization/mockups/marker_profile_138/focus3d125"
+  ],
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "qt_platform": "windows",
+    "dpr": 1.25,
+    "logical_screen": [
+      2048,
+      1152
+    ],
+    "windows_scale_percent": 100,
+    "qt_process_scale_percent": 125.0
+  },
+  "input": {
+    "profile_hashes": {
+      "18": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "32": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    },
+    "source_kind": "public-synthetic-static-geometry",
+    "seed": null,
+    "seed_reason": "Deterministic static geometry",
+    "numeric_tolerance": null,
+    "tolerance_reason": "Exact geometry/hash invariance; display collision count, not pose accuracy"
+  },
+  "states": [
+    {
+      "screenshot": "B3D-18-1920x1080-3d.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "camera": "3D angle",
+      "face": "BACK",
+      "selected": "B1",
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3"
+      ],
+      "label_box_collisions": 0,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "B3D-18-820x600-3d.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "camera": "3D angle",
+      "face": "BACK",
+      "selected": "B1",
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3"
+      ],
+      "label_box_collisions": 0,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "B3D-18-1920x1080-face.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "camera": "Face aligned",
+      "face": "BACK",
+      "selected": "B1",
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3"
+      ],
+      "label_box_collisions": 0,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "B3D-18-820x600-face.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "camera": "Face aligned",
+      "face": "BACK",
+      "selected": "B1",
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3"
+      ],
+      "label_box_collisions": 0,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "B3D-32-1920x1080-3d.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "camera": "3D angle",
+      "face": "BACK",
+      "selected": "B1",
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10",
+        "B11",
+        "B12"
+      ],
+      "label_box_collisions": 0,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "B3D-32-820x600-3d.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "camera": "3D angle",
+      "face": "BACK",
+      "selected": "B1",
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10",
+        "B11",
+        "B12"
+      ],
+      "label_box_collisions": 0,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "B3D-32-1920x1080-face.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        2400,
+        1350
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "camera": "Face aligned",
+      "face": "BACK",
+      "selected": "B1",
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10",
+        "B11",
+        "B12"
+      ],
+      "label_box_collisions": 0,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "B3D-32-820x600-face.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "camera": "Face aligned",
+      "face": "BACK",
+      "selected": "B1",
+      "face_labels": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9",
+        "B10",
+        "B11",
+        "B12"
+      ],
+      "label_box_collisions": 0,
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "B3D-820x600-invalid.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    }
+  ],
+  "interaction": {
+    "status": "pass",
+    "kind": "prototype-QTest-only",
+    "independent_expectations": "M2=[38,-60,-18]/BOTTOM normal [0,-1,0]; six fixed face normals; equal XYZ display scale (relative arithmetic tolerance 1e-12); F1 21->22; Preview preserves applied; Reset restores21; invalid blocks Apply"
+  },
+  "approval_status": "pending",
+  "production_changed": false,
+  "native_status": "not-executed-existing-capture-activation-failure",
+  "experimental_status": "unavailable",
+  "limitations": [
+    "Face points/labels are screen overlays, not physical occlusion evidence.",
+    "Outside face cameras can reverse a screen axis; all coordinates retain local XYZ.",
+    "Prototype only: no production export, persistence or worker acceptance."
+  ],
+  "prior_attempts": [
+    {
+      "status": "failed",
+      "boundary": "small-window-label-overlap",
+      "actual": 2,
+      "correction": "Set box aspect after Y-up camera, match XYZ ranges; rerender without moving marker coordinates."
+    }
+  ]
+}

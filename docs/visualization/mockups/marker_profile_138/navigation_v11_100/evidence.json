@@ -1,0 +1,780 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "InteractiveProfileMockupEvidence",
+  "utc": "2026-10-05T15:51:31.208106+00:00",
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/generate_navigation_mockups.py",
+    "--output",
+    "docs/visualization/mockups/marker_profile_138/navigation_v11_100"
+  ],
+  "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "source_sha256": "39850a771dd92d3d0706dd788ad5dc3ad1da1acb0c34aae57a9b654d4b27a643",
+  "viewport_sha256": "f4192d9e479f84605b9eeff6a75f4ed113638dc332ee812c251decd8795c0b90",
+  "dependency_sha256": {
+    "generate_reviewed_mockups.py": "e3da9c8d9d5a8177e120ba92f29763ae98ed7c667304eb9a8aa09a506e88b6af",
+    "generate_mockups.py": "bce589a57eb94e36cafd38ace6738684b60d4d363695521d0a3a744088c4701f",
+    "generate_preview_options.py": "e03044add83b2d653a3a88522ee5394bbc946f0c9d44407d17ac991ef389d018"
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "qt_platform": "windows",
+    "os_scale_percent": 100,
+    "qt_process_dpr": 1.0
+  },
+  "input": {
+    "kind": "public-synthetic-static-geometry",
+    "profile_hashes": {
+      "18": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "32": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    },
+    "seed": null,
+    "seed_reason": "Static public geometry; deterministic gestures",
+    "units": "mm",
+    "time_semantics": "static-no-recorded-time"
+  },
+  "native_status": "not-executed-existing-capture-activation-error",
+  "production_changed": false,
+  "tolerances": [
+    {
+      "value": 1e-09,
+      "units": "logical-pixels-per-projected-unit",
+      "reason": "Float64 arithmetic comparison of equal affine scales; no physical accuracy tolerance"
+    },
+    {
+      "value": 0.015,
+      "units": "dimensionless-view-offset-ratio",
+      "reason": "Integer-pixel QTest pointer rounding; original source equality remains exact"
+    }
+  ],
+  "limitations": [
+    "Qt render/QTest only; actual OS125% and external native input/capture unexecuted.",
+    "Public synthetic geometry only; no validated real experimental data or accuracy approval.",
+    "Production semantic compatibility, persistence/export/worker/CI remain unimplemented.",
+    "During gestures ordinary ID names temporarily omitted, requested Names mode retained.",
+    "Placement work cooperatively slices at8ms with one bounded vector step overrun;100ms total target with same caveat.",
+    "Performance samples are bounded Qt event-to-paint/CPU records, not native latency or achievedFPS."
+  ],
+  "user_approval": "pending-new-interaction",
+  "independent_review": "pending",
+  "states": [
+    {
+      "screenshot": "navigation-32-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "diagnostics": {
+        "names": 32,
+        "requested_names": "All",
+        "limited": false,
+        "badge_collisions": 0,
+        "badge_marker_occlusions": 0,
+        "marker_disk_overlap_pairs": [],
+        "equal_projection_scale_delta": 2.2737367544323206e-13,
+        "title_marker_occlusions": 0,
+        "title_badge_collisions": 0,
+        "cache_entries": 1,
+        "stats": {
+          "paints": 5,
+          "solve_starts": 2,
+          "cancelled_solves": 1,
+          "stale_results": 0,
+          "max_slice_ms": 9.7873,
+          "max_cache_entries": 1,
+          "pending_jobs_max": 1,
+          "last_solve_ms": 45.6974,
+          "last_missing_ids": []
+        }
+      },
+      "source_hash": "b9df58d256475fd2ed3461dcd4a8bd6245480775248946756c1c649c3c8fde3a",
+      "source_geometry_unchanged": true,
+      "production": false,
+      "navigation": {
+        "status": "pass",
+        "kind": "Qt-widget-navigation-and-bounds",
+        "source_difference": 0,
+        "motion": {
+          "paint": {
+            "samples": 30,
+            "median_ms": 6.5448,
+            "p95_ms": 8.30024,
+            "max_ms": 8.5298,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "input_to_paint": {
+            "samples": 29,
+            "median_ms": 6.9909,
+            "p95_ms": 8.82148,
+            "max_ms": 9.1114,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "layout_solver_starts_during_motion": 0,
+          "same_2d_axes": true,
+          "retained_widget_and_buffers": true
+        },
+        "cache_capacity": 8,
+        "eviction_exercised": true,
+        "diagnostic_sample_capacity": 256,
+        "selected_cache_key_exercised": true,
+        "selection_layouts": 32,
+        "native": false,
+        "normal_axis_degeneracy": "front at0/0/0 unchanged view",
+        "view_only": true
+      }
+    },
+    {
+      "screenshot": "navigation-32-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "diagnostics": {
+        "names": 32,
+        "requested_names": "All",
+        "limited": false,
+        "badge_collisions": 0,
+        "badge_marker_occlusions": 0,
+        "marker_disk_overlap_pairs": [],
+        "equal_projection_scale_delta": 4.547473508864641e-13,
+        "title_marker_occlusions": 0,
+        "title_badge_collisions": 0,
+        "cache_entries": 1,
+        "stats": {
+          "paints": 5,
+          "solve_starts": 2,
+          "cancelled_solves": 1,
+          "stale_results": 0,
+          "max_slice_ms": 9.0081,
+          "max_cache_entries": 1,
+          "pending_jobs_max": 1,
+          "last_solve_ms": 44.5679,
+          "last_missing_ids": []
+        }
+      },
+      "source_hash": "b9df58d256475fd2ed3461dcd4a8bd6245480775248946756c1c649c3c8fde3a",
+      "source_geometry_unchanged": true,
+      "production": false,
+      "navigation": {
+        "status": "pass",
+        "kind": "Qt-widget-navigation-and-bounds",
+        "source_difference": 0,
+        "motion": {
+          "paint": {
+            "samples": 30,
+            "median_ms": 7.67695,
+            "p95_ms": 9.786135,
+            "max_ms": 10.0788,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "input_to_paint": {
+            "samples": 29,
+            "median_ms": 8.5911,
+            "p95_ms": 10.957199999999998,
+            "max_ms": 11.1911,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "layout_solver_starts_during_motion": 0,
+          "same_2d_axes": true,
+          "retained_widget_and_buffers": true
+        },
+        "cache_capacity": 8,
+        "eviction_exercised": true,
+        "diagnostic_sample_capacity": 256,
+        "selected_cache_key_exercised": true,
+        "selection_layouts": 32,
+        "native": false,
+        "normal_axis_degeneracy": "front at0/0/0 unchanged view",
+        "view_only": true
+      }
+    },
+    {
+      "screenshot": "navigation-32-820x600.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "diagnostics": {
+        "names": 32,
+        "requested_names": "All",
+        "limited": false,
+        "badge_collisions": 0,
+        "badge_marker_occlusions": 0,
+        "marker_disk_overlap_pairs": [],
+        "equal_projection_scale_delta": 4.547473508864641e-13,
+        "title_marker_occlusions": 0,
+        "title_badge_collisions": 0,
+        "cache_entries": 1,
+        "stats": {
+          "paints": 4,
+          "solve_starts": 2,
+          "cancelled_solves": 1,
+          "stale_results": 0,
+          "max_slice_ms": 10.6587,
+          "max_cache_entries": 1,
+          "pending_jobs_max": 1,
+          "last_solve_ms": 68.4992,
+          "last_missing_ids": []
+        }
+      },
+      "source_hash": "b9df58d256475fd2ed3461dcd4a8bd6245480775248946756c1c649c3c8fde3a",
+      "source_geometry_unchanged": true,
+      "production": false,
+      "navigation": {
+        "status": "pass",
+        "kind": "Qt-widget-navigation-and-bounds",
+        "source_difference": 0,
+        "motion": {
+          "paint": {
+            "samples": 30,
+            "median_ms": 7.0466,
+            "p95_ms": 8.442404999999999,
+            "max_ms": 8.8353,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "input_to_paint": {
+            "samples": 29,
+            "median_ms": 7.3386,
+            "p95_ms": 8.70736,
+            "max_ms": 9.1136,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "layout_solver_starts_during_motion": 0,
+          "same_2d_axes": true,
+          "retained_widget_and_buffers": true
+        },
+        "cache_capacity": 8,
+        "eviction_exercised": true,
+        "diagnostic_sample_capacity": 256,
+        "selected_cache_key_exercised": true,
+        "selection_layouts": 32,
+        "native": false,
+        "normal_axis_degeneracy": "front at0/0/0 unchanged view",
+        "view_only": true
+      }
+    },
+    {
+      "screenshot": "navigation-32-820x600-bottom.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [
+        "Fit",
+        "Reset view"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "small-bottom",
+      "source_hash": "b9df58d256475fd2ed3461dcd4a8bd6245480775248946756c1c649c3c8fde3a"
+    },
+    {
+      "screenshot": "navigation-32-820x600-invalid.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "small-invalid-B2Y",
+      "applied_unchanged": true
+    },
+    {
+      "screenshot": "navigation-18-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "diagnostics": {
+        "names": 18,
+        "requested_names": "All",
+        "limited": false,
+        "badge_collisions": 0,
+        "badge_marker_occlusions": 0,
+        "marker_disk_overlap_pairs": [],
+        "equal_projection_scale_delta": 2.2737367544323206e-13,
+        "title_marker_occlusions": 0,
+        "title_badge_collisions": 0,
+        "cache_entries": 1,
+        "stats": {
+          "paints": 4,
+          "solve_starts": 2,
+          "cancelled_solves": 1,
+          "stale_results": 0,
+          "max_slice_ms": 8.947,
+          "max_cache_entries": 1,
+          "pending_jobs_max": 1,
+          "last_solve_ms": 13.5683,
+          "last_missing_ids": []
+        }
+      },
+      "source_hash": "fffd06343246196ae6ce50bfa71a244a3b91ea8d76e56d4a6b02349bb1b6565b",
+      "source_geometry_unchanged": true,
+      "production": false,
+      "navigation": {
+        "status": "pass",
+        "kind": "Qt-widget-navigation-and-bounds",
+        "source_difference": 0,
+        "motion": {
+          "paint": {
+            "samples": 30,
+            "median_ms": 5.501150000000001,
+            "p95_ms": 6.873444999999999,
+            "max_ms": 7.3475,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "input_to_paint": {
+            "samples": 29,
+            "median_ms": 5.8612,
+            "p95_ms": 7.377159999999999,
+            "max_ms": 7.7913,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "layout_solver_starts_during_motion": 0,
+          "same_2d_axes": true,
+          "retained_widget_and_buffers": true
+        },
+        "cache_capacity": 8,
+        "eviction_exercised": true,
+        "diagnostic_sample_capacity": 256,
+        "selected_cache_key_exercised": true,
+        "selection_layouts": 18,
+        "native": false,
+        "normal_axis_degeneracy": "front at0/0/0 unchanged view",
+        "view_only": true
+      }
+    },
+    {
+      "screenshot": "navigation-18-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "diagnostics": {
+        "names": 18,
+        "requested_names": "All",
+        "limited": false,
+        "badge_collisions": 0,
+        "badge_marker_occlusions": 0,
+        "marker_disk_overlap_pairs": [],
+        "equal_projection_scale_delta": 4.547473508864641e-13,
+        "title_marker_occlusions": 0,
+        "title_badge_collisions": 0,
+        "cache_entries": 1,
+        "stats": {
+          "paints": 4,
+          "solve_starts": 2,
+          "cancelled_solves": 1,
+          "stale_results": 0,
+          "max_slice_ms": 9.5657,
+          "max_cache_entries": 1,
+          "pending_jobs_max": 1,
+          "last_solve_ms": 23.931,
+          "last_missing_ids": []
+        }
+      },
+      "source_hash": "fffd06343246196ae6ce50bfa71a244a3b91ea8d76e56d4a6b02349bb1b6565b",
+      "source_geometry_unchanged": true,
+      "production": false,
+      "navigation": {
+        "status": "pass",
+        "kind": "Qt-widget-navigation-and-bounds",
+        "source_difference": 0,
+        "motion": {
+          "paint": {
+            "samples": 30,
+            "median_ms": 7.273949999999999,
+            "p95_ms": 9.124514999999997,
+            "max_ms": 9.6331,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "input_to_paint": {
+            "samples": 29,
+            "median_ms": 8.2721,
+            "p95_ms": 10.147919999999997,
+            "max_ms": 10.8018,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "layout_solver_starts_during_motion": 0,
+          "same_2d_axes": true,
+          "retained_widget_and_buffers": true
+        },
+        "cache_capacity": 8,
+        "eviction_exercised": true,
+        "diagnostic_sample_capacity": 256,
+        "selected_cache_key_exercised": true,
+        "selection_layouts": 18,
+        "native": false,
+        "normal_axis_degeneracy": "front at0/0/0 unchanged view",
+        "view_only": true
+      }
+    },
+    {
+      "screenshot": "navigation-18-820x600.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "diagnostics": {
+        "names": 18,
+        "requested_names": "All",
+        "limited": false,
+        "badge_collisions": 0,
+        "badge_marker_occlusions": 0,
+        "marker_disk_overlap_pairs": [],
+        "equal_projection_scale_delta": 4.547473508864641e-13,
+        "title_marker_occlusions": 0,
+        "title_badge_collisions": 0,
+        "cache_entries": 1,
+        "stats": {
+          "paints": 4,
+          "solve_starts": 2,
+          "cancelled_solves": 1,
+          "stale_results": 0,
+          "max_slice_ms": 9.5677,
+          "max_cache_entries": 1,
+          "pending_jobs_max": 1,
+          "last_solve_ms": 18.0224,
+          "last_missing_ids": []
+        }
+      },
+      "source_hash": "fffd06343246196ae6ce50bfa71a244a3b91ea8d76e56d4a6b02349bb1b6565b",
+      "source_geometry_unchanged": true,
+      "production": false,
+      "navigation": {
+        "status": "pass",
+        "kind": "Qt-widget-navigation-and-bounds",
+        "source_difference": 0,
+        "motion": {
+          "paint": {
+            "samples": 30,
+            "median_ms": 6.18035,
+            "p95_ms": 7.403255,
+            "max_ms": 8.2104,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "input_to_paint": {
+            "samples": 29,
+            "median_ms": 6.3913,
+            "p95_ms": 7.61192,
+            "max_ms": 8.4235,
+            "kind": "Qt-widget-event-to-paint-CPU-wall-clock",
+            "native": false
+          },
+          "layout_solver_starts_during_motion": 0,
+          "same_2d_axes": true,
+          "retained_widget_and_buffers": true
+        },
+        "cache_capacity": 8,
+        "eviction_exercised": true,
+        "diagnostic_sample_capacity": 256,
+        "selected_cache_key_exercised": true,
+        "selection_layouts": 18,
+        "native": false,
+        "normal_axis_degeneracy": "front at0/0/0 unchanged view",
+        "view_only": true
+      }
+    },
+    {
+      "screenshot": "navigation-18-820x600-bottom.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [
+        "Fit",
+        "Reset view"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "small-bottom",
+      "source_hash": "fffd06343246196ae6ce50bfa71a244a3b91ea8d76e56d4a6b02349bb1b6565b"
+    },
+    {
+      "screenshot": "navigation-18-820x600-invalid.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "state": "small-invalid-B2Y",
+      "applied_unchanged": true
+    }
+  ],
+  "edges": {
+    "status": "pass",
+    "kind": "Qt-QTest-gesture-and-fallback-boundaries",
+    "native": false,
+    "expected": "Middle click keeps selected row; unrelated release/press keeps captured left gesture; zoom.3/.5 all32 actual badges avoid each other and other leaders",
+    "limited_views": 2,
+    "fallback_badges": 56,
+    "selected_layouts": 64,
+    "source_difference": 0
+  },
+  "gestures": {
+    "status": "pass",
+    "kind": "Qt-QTest-widget-gestures",
+    "expected": "M2canonical[38,-60,-18]/display[38,-200,-18]; front-only+.2display ratio; no camera change; deferred canonical click; Escape restores start; pan[40,25]; wheel increases zoom; source/draft/applied unchanged",
+    "pointer_rounding_tolerance": {
+      "value": 0.015,
+      "units": "dimensionless-display-ratio",
+      "reason": "QTest integer-pixel rounding; no physical accuracy tolerance"
+    },
+    "native": false,
+    "metrics": {
+      "names": 18,
+      "requested_names": "All",
+      "limited": false,
+      "badge_collisions": 0,
+      "badge_marker_occlusions": 0,
+      "marker_disk_overlap_pairs": [],
+      "equal_projection_scale_delta": 2.2737367544323206e-13,
+      "title_marker_occlusions": 0,
+      "title_badge_collisions": 0,
+      "cache_entries": 1,
+      "stats": {
+        "paints": 188,
+        "solve_starts": 29,
+        "cancelled_solves": 1,
+        "stale_results": 0,
+        "max_slice_ms": 15.5677,
+        "max_cache_entries": 8,
+        "pending_jobs_max": 1,
+        "last_solve_ms": 23.0368,
+        "last_missing_ids": []
+      }
+    }
+  },
+  "profile_changes": {
+    "status": "pass",
+    "kind": "Qt-editor-preview-source-revision",
+    "expected": "F1X21->22 Preview; F1->F9 Preview; previous placement cancelled; view retained; invalidB2Y blocks Preview/Save/Apply; Reset restores canonical18; applied exact unchanged",
+    "stale_results_applied": 0,
+    "native": false
+  }
+}

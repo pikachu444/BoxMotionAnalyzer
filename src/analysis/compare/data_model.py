@@ -6,7 +6,7 @@ import pandas as pd
 
 from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.pipeline.artifact_io import _sha256_file
-from src.utils.artifact_metadata import read_identity, compatibility_reasons, SOURCE_KINDS, FIELDS
+from src.utils.artifact_metadata import read_identity, compatibility_reasons, marker_equivalence, SOURCE_KINDS, FIELDS
 from src.utils.result_time import timeline_from_frame, segmented_series
 from src.visualization.data_handler import DataHandler
 from src.analysis.compare.impact_metrics import calculate_impact_metrics, METRICS, MetricValue
@@ -365,7 +365,10 @@ class ComparisonModel:
         baseline, candidate = self.identities[self.baseline_name], self.identities[name]
         reasons = [f'{label} {reason}' for label, identity in (('baseline', baseline), ('file', candidate))
                    for reason in identity.exclusion_reasons() if reason not in missing]
+        equivalent, marker_reasons = marker_equivalence(baseline,candidate)
+        reasons += marker_reasons
         for field in FIELDS:
+            if equivalent and field in {'MarkerLayoutId','MarkerLayoutHash','MarkerProfileIdentityJson'}: continue
             if field not in optional | {'GeneratorVersion'} and baseline.values.get(field) != candidate.values.get(field):
                 reasons.append(f'{field}: mismatch in local contact comparison')
         for label, key in (('baseline', self.baseline_name), ('file', name)):

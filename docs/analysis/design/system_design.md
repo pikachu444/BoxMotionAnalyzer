@@ -1,6 +1,8 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-10-04
+Last Reviewed: 2026-10-06
+
+#138 adds schema1/plan-bound marker source/geometry/correspondence/meaning identities and atomic ProfileEditorState documents, while retaining original profile hashes and host Artifact SchemaVersion1. Actual producer/reader/Raw/corrected/slice/proc/Compare paths propagate the nested semantic declaration; source/generation guards reject obsolete jobs. Same-face mapping changes do not imply a changed Raw centre/pose. [PUB05 contract](../reference/marker_profile_semantics.md) records scoped compatibility, legacy/migration limits and the excluded #113 user feature.
 
 #137 extends flow/session/workspace with detected/edited bounds, source-bound history and explicit Type basis. Workspace and SceneReview envelopes add schema_version 2 and ISTA6A-PLAN-20261001-v1; nested history/plot_view use schema_version 1. UI and writes share a save gate; viewports are scoped to source/signal/targets. Worker callbacks validate source revision/hash and geometry context. [Implementation and verification](../../visualization/scene_review_workflow_137.md) keep native acceptance distinct. #113 registration integration is excluded by user decision; existing source identity remains validated.
 

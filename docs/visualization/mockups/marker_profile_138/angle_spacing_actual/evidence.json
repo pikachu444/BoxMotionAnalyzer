@@ -1,0 +1,2033 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ExplodedAngleSpacingRenderEvidence",
+  "utc": "2026-10-05T11:36:08.980670+00:00",
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/compare_exploded_angles.py",
+    "--output",
+    "docs/visualization/mockups/marker_profile_138/angle_spacing_actual",
+    "--candidate",
+    "baseline:20:30:0:0.75",
+    "--candidate",
+    "A-rotation:25:65:30:0.75",
+    "--candidate",
+    "B-balanced:25:50:30:1",
+    "--candidate",
+    "C-more-gap:25:50:30:1.25"
+  ],
+  "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "source_sha256": "74df9b693297259b27bb37447aaa8d7c633a40d7cb814c895d98bd3d15fa1d38",
+  "input": {
+    "kind": "public-synthetic-static-geometry",
+    "profile_hashes": {
+      "18": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "32": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    },
+    "seed": null,
+    "seed_reason": "Deterministic static geometry",
+    "physical_tolerance": null,
+    "physical_tolerance_reason": "Only display projection; source equality is exact"
+  },
+  "production_changed": false,
+  "user_approval": "pending",
+  "native_status": "not-executed-existing-capture-activation-error",
+  "states": [
+    {
+      "screenshot": "baseline-32-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "baseline",
+      "camera": [
+        20.0,
+        30.0,
+        0.0
+      ],
+      "radius_ratio": 0.75,
+      "canvas3_logical": [
+        770,
+        341
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 2,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [
+          [
+            "F2",
+            "L1"
+          ],
+          [
+            "B7",
+            "R2"
+          ]
+        ],
+        "face_overlap_percent": 5.94,
+        "minimum_face_area_px2": 2560.2,
+        "central_box_span_px": [
+          176.8,
+          143.3
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 32,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12",
+          "L1",
+          "L2",
+          "L3",
+          "R1",
+          "R2",
+          "R3",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          180.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -180.0
+        ],
+        "RIGHT": [
+          75.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -75.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          135.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -135.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "baseline-32-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "baseline",
+      "camera": [
+        20.0,
+        30.0,
+        0.0
+      ],
+      "radius_ratio": 0.75,
+      "canvas3_logical": [
+        1409,
+        407
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 1,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [
+          [
+            "B7",
+            "R2"
+          ]
+        ],
+        "face_overlap_percent": 5.94,
+        "minimum_face_area_px2": 3770.7,
+        "central_box_span_px": [
+          214.5,
+          173.9
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 32,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12",
+          "L1",
+          "L2",
+          "L3",
+          "R1",
+          "R2",
+          "R3",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          180.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -180.0
+        ],
+        "RIGHT": [
+          75.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -75.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          135.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -135.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "baseline-18-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "baseline",
+      "camera": [
+        20.0,
+        30.0,
+        0.0
+      ],
+      "radius_ratio": 0.75,
+      "canvas3_logical": [
+        770,
+        341
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 7.25,
+        "minimum_face_area_px2": 3295.6,
+        "central_box_span_px": [
+          182.2,
+          145.9
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 18,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "B2",
+          "B3",
+          "R1",
+          "R2",
+          "R3",
+          "L1",
+          "L2",
+          "L3",
+          "T1",
+          "T2",
+          "T3",
+          "M1",
+          "M2"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          110.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -110.0
+        ],
+        "RIGHT": [
+          50.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -50.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          90.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -90.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "baseline-18-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "baseline",
+      "camera": [
+        20.0,
+        30.0,
+        0.0
+      ],
+      "radius_ratio": 0.75,
+      "canvas3_logical": [
+        1409,
+        407
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 7.25,
+        "minimum_face_area_px2": 4853.8,
+        "central_box_span_px": [
+          221.2,
+          177.0
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 18,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "B2",
+          "B3",
+          "R1",
+          "R2",
+          "R3",
+          "L1",
+          "L2",
+          "L3",
+          "T1",
+          "T2",
+          "T3",
+          "M1",
+          "M2"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          110.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -110.0
+        ],
+        "RIGHT": [
+          50.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -50.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          90.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -90.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "A-rotation-32-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "A-rotation",
+      "camera": [
+        25.0,
+        65.0,
+        30.0
+      ],
+      "radius_ratio": 0.75,
+      "canvas3_logical": [
+        770,
+        341
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 2,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 4734.6,
+        "central_box_span_px": [
+          200.6,
+          149.5
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 32,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12",
+          "L1",
+          "L2",
+          "L3",
+          "R1",
+          "R2",
+          "R3",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          180.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -180.0
+        ],
+        "RIGHT": [
+          75.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -75.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          135.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -135.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "A-rotation-32-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "A-rotation",
+      "camera": [
+        25.0,
+        65.0,
+        30.0
+      ],
+      "radius_ratio": 0.75,
+      "canvas3_logical": [
+        1409,
+        407
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 6973.1,
+        "central_box_span_px": [
+          243.4,
+          181.4
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 32,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12",
+          "L1",
+          "L2",
+          "L3",
+          "R1",
+          "R2",
+          "R3",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          180.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -180.0
+        ],
+        "RIGHT": [
+          75.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -75.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          135.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -135.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "A-rotation-18-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "A-rotation",
+      "camera": [
+        25.0,
+        65.0,
+        30.0
+      ],
+      "radius_ratio": 0.75,
+      "canvas3_logical": [
+        770,
+        341
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 1,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 6007.0,
+        "central_box_span_px": [
+          208.8,
+          157.3
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 18,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "B2",
+          "B3",
+          "R1",
+          "R2",
+          "R3",
+          "L1",
+          "L2",
+          "L3",
+          "T1",
+          "T2",
+          "T3",
+          "M1",
+          "M2"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          110.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -110.0
+        ],
+        "RIGHT": [
+          50.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -50.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          90.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -90.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "A-rotation-18-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "A-rotation",
+      "camera": [
+        25.0,
+        65.0,
+        30.0
+      ],
+      "radius_ratio": 0.75,
+      "canvas3_logical": [
+        1409,
+        407
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 8847.1,
+        "central_box_span_px": [
+          253.4,
+          190.9
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 18,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "B2",
+          "B3",
+          "R1",
+          "R2",
+          "R3",
+          "L1",
+          "L2",
+          "L3",
+          "T1",
+          "T2",
+          "T3",
+          "M1",
+          "M2"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          110.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -110.0
+        ],
+        "RIGHT": [
+          50.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -50.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          90.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -90.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "B-balanced-32-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "B-balanced",
+      "camera": [
+        25.0,
+        50.0,
+        30.0
+      ],
+      "radius_ratio": 1.0,
+      "canvas3_logical": [
+        770,
+        341
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 3267.6,
+        "central_box_span_px": [
+          185.7,
+          112.8
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 32,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12",
+          "L1",
+          "L2",
+          "L3",
+          "R1",
+          "R2",
+          "R3",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          255.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -255.0
+        ],
+        "RIGHT": [
+          150.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -150.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          210.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -210.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "B-balanced-32-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "B-balanced",
+      "camera": [
+        25.0,
+        50.0,
+        30.0
+      ],
+      "radius_ratio": 1.0,
+      "canvas3_logical": [
+        1409,
+        407
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 4812.5,
+        "central_box_span_px": [
+          225.4,
+          136.9
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 32,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12",
+          "L1",
+          "L2",
+          "L3",
+          "R1",
+          "R2",
+          "R3",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          255.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -255.0
+        ],
+        "RIGHT": [
+          150.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -150.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          210.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -210.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "B-balanced-18-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "B-balanced",
+      "camera": [
+        25.0,
+        50.0,
+        30.0
+      ],
+      "radius_ratio": 1.0,
+      "canvas3_logical": [
+        770,
+        341
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.03,
+        "minimum_face_area_px2": 4071.7,
+        "central_box_span_px": [
+          187.8,
+          118.7
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 18,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "B2",
+          "B3",
+          "R1",
+          "R2",
+          "R3",
+          "L1",
+          "L2",
+          "L3",
+          "T1",
+          "T2",
+          "T3",
+          "M1",
+          "M2"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          160.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -160.0
+        ],
+        "RIGHT": [
+          100.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -100.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          140.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -140.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "B-balanced-18-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "B-balanced",
+      "camera": [
+        25.0,
+        50.0,
+        30.0
+      ],
+      "radius_ratio": 1.0,
+      "canvas3_logical": [
+        1409,
+        407
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.03,
+        "minimum_face_area_px2": 5996.8,
+        "central_box_span_px": [
+          227.9,
+          144.0
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 18,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "B2",
+          "B3",
+          "R1",
+          "R2",
+          "R3",
+          "L1",
+          "L2",
+          "L3",
+          "T1",
+          "T2",
+          "T3",
+          "M1",
+          "M2"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          160.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -160.0
+        ],
+        "RIGHT": [
+          100.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -100.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          140.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -140.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "C-more-gap-32-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "C-more-gap",
+      "camera": [
+        25.0,
+        50.0,
+        30.0
+      ],
+      "radius_ratio": 1.25,
+      "canvas3_logical": [
+        770,
+        341
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 4,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 2200.9,
+        "central_box_span_px": [
+          152.4,
+          92.6
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 32,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12",
+          "L1",
+          "L2",
+          "L3",
+          "R1",
+          "R2",
+          "R3",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          330.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -330.0
+        ],
+        "RIGHT": [
+          225.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -225.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          285.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -285.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "C-more-gap-32-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (11)",
+        "Back (12)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (0)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "C-more-gap",
+      "camera": [
+        25.0,
+        50.0,
+        30.0
+      ],
+      "radius_ratio": 1.25,
+      "canvas3_logical": [
+        1409,
+        407
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 3241.5,
+        "central_box_span_px": [
+          185.0,
+          112.3
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 32,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "B9",
+          "B10",
+          "B11",
+          "B12",
+          "L1",
+          "L2",
+          "L3",
+          "R1",
+          "R2",
+          "R3",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          330.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -330.0
+        ],
+        "RIGHT": [
+          225.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -225.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          285.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -285.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "C-more-gap-18-1280x960.png",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "pixel_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "C-more-gap",
+      "camera": [
+        25.0,
+        50.0,
+        30.0
+      ],
+      "radius_ratio": 1.25,
+      "canvas3_logical": [
+        770,
+        341
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 1,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 2775.5,
+        "central_box_span_px": [
+          155.1,
+          98.0
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 18,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "B2",
+          "B3",
+          "R1",
+          "R2",
+          "R3",
+          "L1",
+          "L2",
+          "L3",
+          "T1",
+          "T2",
+          "T3",
+          "M1",
+          "M2"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          210.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -210.0
+        ],
+        "RIGHT": [
+          150.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -150.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          190.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -190.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "screenshot": "C-more-gap-18-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Front (4)",
+        "Back (3)",
+        "Right (3)",
+        "Left (3)",
+        "Top (3)",
+        "Bottom (2)",
+        "Pan",
+        "Zoom",
+        "Fit",
+        "Fit",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel",
+        "Preview"
+      ],
+      "scrolled_plot_buttons": [],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "candidate": "C-more-gap",
+      "camera": [
+        25.0,
+        50.0,
+        30.0
+      ],
+      "radius_ratio": 1.25,
+      "canvas3_logical": [
+        1409,
+        407
+      ],
+      "metrics": {
+        "cross_face_pairs_under_14px": 0,
+        "same_face_pairs_under_14px": 0,
+        "cross_pairs": [],
+        "face_overlap_percent": 0.0,
+        "minimum_face_area_px2": 4087.7,
+        "central_box_span_px": [
+          188.2,
+          118.9
+        ]
+      },
+      "labels": {
+        "mode": "All",
+        "label_count": 18,
+        "label_ids": [
+          "B1",
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "B2",
+          "B3",
+          "R1",
+          "R2",
+          "R3",
+          "L1",
+          "L2",
+          "L3",
+          "T1",
+          "T2",
+          "T3",
+          "M1",
+          "M2"
+        ],
+        "label_bbox_collisions": 0,
+        "label_badges_clipped": 0,
+        "side_fallbacks": 0,
+        "note": "Measured bbox checks are not a human readability/leader-line-crossing acceptance."
+      },
+      "source_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "display_offsets": {
+        "FRONT": [
+          0.0,
+          0.0,
+          210.0
+        ],
+        "BACK": [
+          0.0,
+          0.0,
+          -210.0
+        ],
+        "RIGHT": [
+          150.0,
+          0.0,
+          0.0
+        ],
+        "LEFT": [
+          -150.0,
+          0.0,
+          0.0
+        ],
+        "TOP": [
+          0.0,
+          190.0,
+          0.0
+        ],
+        "BOTTOM": [
+          0.0,
+          -190.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "environment": {
+    "qt_platform": "windows",
+    "dpr": 1.0,
+    "windows_scale_percent": 100,
+    "qt_process_scale_percent": 100.0
+  },
+  "independent_expected": "Literal recorded example hashes; exact unchanged canonical marker positions; same source mm readout. Zero ID badge bbox overlaps/clipping.",
+  "result": "pass",
+  "fresh": true,
+  "limitations": [
+    "Projected proximity and polygon overlap diagnostics do not certify human label/leader readability.",
+    "Qt render only; no native acceptance, production implementation or user approval."
+  ]
+}

@@ -114,6 +114,12 @@ def production_capture(raw_path, fixture, case_output):
         raise ValueError('Geometry/profile dimensions mismatch.')
     from src.utils.artifact_metadata import DIMENSIONS, validate_declared_dimensions
     declared = header['artifact_metadata']
+    if 'marker_profile_identity' in fixture:
+        from src.utils.marker_profile_identity import artifact_identity
+        actual = artifact_identity(declared)
+        expected = fixture['marker_profile_identity']
+        if actual is None or any(actual[key] != expected[key] for key in ('profile_hash', 'geometry_hash', 'observation_mapping_hash', 'semantic_hash', 'policy_hash')):
+            raise ValueError('Raw/replay marker semantic source identity mismatch.')
     validate_declared_dimensions(declared, fixture['geometry']['box_dims_mm'])
     required_identity = dict(SchemaVersion='1', SourceKind='handcrafted_dummy',
         MarkerLayoutId=fixture['marker_profile_id'], MarkerLayoutHash=fixture['marker_profile_hash'],

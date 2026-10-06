@@ -1,0 +1,671 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "PrototypeNavigationCostProbe",
+  "utc": "2026-10-05T13:11:32.406820+00:00",
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/measure_navigation_cost.py",
+    "--output",
+    "docs/visualization/mockups/marker_profile_138/navigation_cost_v2_100"
+  ],
+  "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "source_sha256": "a5908a4fe3bb05bb88a75606609c0f28ff700a08c7385b9a9a38f00bb0299fa8",
+  "dependency_sha256": {
+    "finalize_exploded_visibility.py": "f987039755f51a50288d581a167a5e3821c187c11bc28c786b317a25890b8e46",
+    "compare_exploded_angles.py": "66d7ca1a2a14585c0601dda0b94f8d31549db1cfe4af9cfb9dab11ee0d256224",
+    "generate_exploded_mockups.py": "a4794f132337d781d529186737d4000c5a6a679e57cc200fa244f4ead9f423c1",
+    "generate_marker_id_options.py": "300231e066de83be1d922e287f7555fa1d41f5bb254e2388fbc3bbc0023a2590",
+    "generate_reviewed_mockups.py": "e3da9c8d9d5a8177e120ba92f29763ae98ed7c667304eb9a8aa09a506e88b6af",
+    "generate_preview_options.py": "e03044add83b2d653a3a88522ee5394bbc946f0c9d44407d17ac991ef389d018",
+    "generate_mockups.py": "bce589a57eb94e36cafd38ace6738684b60d4d363695521d0a3a744088c4701f"
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "matplotlib": "3.10.7",
+    "qt_platform": "windows",
+    "qt_process_dpr": 1.0,
+    "windows_os_scale_percent": 100
+  },
+  "input": {
+    "kind": "public-synthetic-static-geometry",
+    "profile_hashes": {
+      "18": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "32": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    },
+    "seed": null,
+    "seed_reason": "Deterministic static public geometry",
+    "units": "mm",
+    "frame": "box-local-geometric-center",
+    "time_semantics": "static-no-timeline"
+  },
+  "expected": {
+    "source_equality": "exact canonical public fixture; draft/preview/applied unchanged",
+    "cached_solver_calls": 0,
+    "redraw_solver_calls": 0,
+    "uncached_solver_calls": 1
+  },
+  "timing_units": "ms-per-synchronous-Python-call",
+  "timing_threshold": null,
+  "timing_threshold_reason": "Measurement only; no performance acceptance budget approved",
+  "tolerance": null,
+  "tolerance_reason": "Exact source equality; timing is a measured distribution",
+  "native_status": "not-executed-existing-capture-activation-error",
+  "production_changed": false,
+  "status": "measured-only",
+  "fresh": true,
+  "states": [
+    {
+      "example": "32",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "canvas_pixel_size": [
+        770.0,
+        341.0
+      ],
+      "profile_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "camera": [
+        25,
+        50,
+        30
+      ],
+      "radius_ratio": 1,
+      "measurements": {
+        "existing_artists_redraw": {
+          "samples": [
+            {
+              "elapsed_ms": 161.3005,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 196.8414,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 188.1281,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 173.7885,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 163.0155,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 194.3602,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 176.5678,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 167.6308,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 158.6881,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 189.5095,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 156.8951,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 161.1291,
+              "draw": 1,
+              "layout_solver": 0
+            }
+          ],
+          "median_ms": 170.70965,
+          "min_ms": 156.8951,
+          "max_ms": 196.8414,
+          "p95_ms": 195.47673999999998,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        },
+        "cached_names_overlay": {
+          "samples": [
+            {
+              "elapsed_ms": 463.1126,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 584.5302,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 600.5608,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 544.6933,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 549.8701,
+              "draw": 4,
+              "layout_solver": 0
+            }
+          ],
+          "median_ms": 549.8701,
+          "min_ms": 463.1126,
+          "max_ms": 600.5608,
+          "p95_ms": 597.35468,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        },
+        "uncached_names_layout": {
+          "samples": [
+            {
+              "elapsed_ms": 4440.0032,
+              "draw": 7,
+              "layout_solver": 1
+            },
+            {
+              "elapsed_ms": 4772.842,
+              "draw": 7,
+              "layout_solver": 1
+            },
+            {
+              "elapsed_ms": 4724.1026,
+              "draw": 7,
+              "layout_solver": 1
+            }
+          ],
+          "median_ms": 4724.1026,
+          "min_ms": 4440.0032,
+          "max_ms": 4772.842,
+          "p95_ms": 4767.968059999999,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        }
+      },
+      "source_difference": 0
+    },
+    {
+      "example": "32",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "canvas_pixel_size": [
+        1409.0,
+        407.0
+      ],
+      "profile_hash": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0",
+      "camera": [
+        25,
+        50,
+        30
+      ],
+      "radius_ratio": 1,
+      "measurements": {
+        "existing_artists_redraw": {
+          "samples": [
+            {
+              "elapsed_ms": 188.9537,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 198.8447,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 192.0251,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 188.2917,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 177.8232,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 166.7903,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 166.075,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 184.9777,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 183.0323,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 181.817,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 161.4672,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 198.4444,
+              "draw": 1,
+              "layout_solver": 0
+            }
+          ],
+          "median_ms": 184.005,
+          "min_ms": 161.4672,
+          "max_ms": 198.8447,
+          "p95_ms": 198.624535,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        },
+        "cached_names_overlay": {
+          "samples": [
+            {
+              "elapsed_ms": 549.2633,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 573.7265,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 582.2261,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 533.6733,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 521.8271,
+              "draw": 4,
+              "layout_solver": 0
+            }
+          ],
+          "median_ms": 549.2633,
+          "min_ms": 521.8271,
+          "max_ms": 582.2261,
+          "p95_ms": 580.52618,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        },
+        "uncached_names_layout": {
+          "samples": [
+            {
+              "elapsed_ms": 1991.0741,
+              "draw": 6,
+              "layout_solver": 1
+            },
+            {
+              "elapsed_ms": 2279.4702,
+              "draw": 6,
+              "layout_solver": 1
+            },
+            {
+              "elapsed_ms": 2219.8883,
+              "draw": 6,
+              "layout_solver": 1
+            }
+          ],
+          "median_ms": 2219.8883,
+          "min_ms": 1991.0741,
+          "max_ms": 2279.4702,
+          "p95_ms": 2273.5120100000004,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        }
+      },
+      "source_difference": 0
+    },
+    {
+      "example": "18",
+      "logical_size": [
+        1280,
+        960
+      ],
+      "dpr": 1.0,
+      "canvas_pixel_size": [
+        770.0,
+        341.0
+      ],
+      "profile_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "camera": [
+        25,
+        50,
+        30
+      ],
+      "radius_ratio": 1,
+      "measurements": {
+        "existing_artists_redraw": {
+          "samples": [
+            {
+              "elapsed_ms": 126.874,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 126.5031,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 122.3043,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 111.1313,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 111.7837,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 127.6617,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 118.6787,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 117.0841,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 116.7289,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 132.177,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 91.6543,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 87.2094,
+              "draw": 1,
+              "layout_solver": 0
+            }
+          ],
+          "median_ms": 117.88140000000001,
+          "min_ms": 87.2094,
+          "max_ms": 132.177,
+          "p95_ms": 129.69358499999998,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        },
+        "cached_names_overlay": {
+          "samples": [
+            {
+              "elapsed_ms": 332.9844,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 365.1983,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 329.2274,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 408.1674,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 356.7999,
+              "draw": 4,
+              "layout_solver": 0
+            }
+          ],
+          "median_ms": 356.7999,
+          "min_ms": 329.2274,
+          "max_ms": 408.1674,
+          "p95_ms": 399.57358,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        },
+        "uncached_names_layout": {
+          "samples": [
+            {
+              "elapsed_ms": 1317.7898,
+              "draw": 6,
+              "layout_solver": 1
+            },
+            {
+              "elapsed_ms": 1276.6957,
+              "draw": 6,
+              "layout_solver": 1
+            },
+            {
+              "elapsed_ms": 1308.9539,
+              "draw": 6,
+              "layout_solver": 1
+            }
+          ],
+          "median_ms": 1308.9539,
+          "min_ms": 1276.6957,
+          "max_ms": 1317.7898,
+          "p95_ms": 1316.90621,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        }
+      },
+      "source_difference": 0
+    },
+    {
+      "example": "18",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "canvas_pixel_size": [
+        1409.0,
+        407.0
+      ],
+      "profile_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "camera": [
+        25,
+        50,
+        30
+      ],
+      "radius_ratio": 1,
+      "measurements": {
+        "existing_artists_redraw": {
+          "samples": [
+            {
+              "elapsed_ms": 109.2092,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 111.1667,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 134.3391,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 134.6841,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 120.2974,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 131.2664,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 111.9944,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 108.1174,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 113.9627,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 108.162,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 129.4639,
+              "draw": 1,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 109.9414,
+              "draw": 1,
+              "layout_solver": 0
+            }
+          ],
+          "median_ms": 112.97855,
+          "min_ms": 108.1174,
+          "max_ms": 134.6841,
+          "p95_ms": 134.49435,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        },
+        "cached_names_overlay": {
+          "samples": [
+            {
+              "elapsed_ms": 404.944,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 291.3244,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 288.7672,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 274.7159,
+              "draw": 4,
+              "layout_solver": 0
+            },
+            {
+              "elapsed_ms": 331.169,
+              "draw": 4,
+              "layout_solver": 0
+            }
+          ],
+          "median_ms": 291.3244,
+          "min_ms": 274.7159,
+          "max_ms": 404.944,
+          "p95_ms": 390.189,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        },
+        "uncached_names_layout": {
+          "samples": [
+            {
+              "elapsed_ms": 1272.2322,
+              "draw": 6,
+              "layout_solver": 1
+            },
+            {
+              "elapsed_ms": 1256.348,
+              "draw": 6,
+              "layout_solver": 1
+            },
+            {
+              "elapsed_ms": 1303.1768,
+              "draw": 6,
+              "layout_solver": 1
+            }
+          ],
+          "median_ms": 1272.2322,
+          "min_ms": 1256.348,
+          "max_ms": 1303.1768,
+          "p95_ms": 1300.08234,
+          "p95_note": "Descriptive quantile of this small sample, not an acceptance bound"
+        }
+      },
+      "source_difference": 0
+    }
+  ],
+  "prior_attempts": [
+    {
+      "output": "navigation_cost_100/evidence.json",
+      "status": "work-count-invalid-timing-descriptive-only",
+      "reason": "Read-only reviewer found redraw action captured original bound method before instrumentation; redraw count incorrectly0 instead of1. Fixed dynamic method lookup and assert; original timing samples retained without work-count acceptance."
+    }
+  ],
+  "limitations": [
+    "Not input-to-display latency or achieved interactive FPS.",
+    "No free rotation/pan/zoom or face drag tested here.",
+    "Current prototype synchronous draw cost; no production performance acceptance.",
+    "Qt125% is a process override, not an actual OS125% native test.",
+    "Constructor/startup excluded from timed samples; no real experimental dataset."
+  ]
+}

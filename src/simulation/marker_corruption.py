@@ -242,6 +242,8 @@ def _apply_corruption(truth_trajectory, marker_profile, corruption_spec, seed):
         'rotation_matrix_tolerance': ROTATION_TOLERANCE,
         'events': events, 'expected_approval': False, 'expected_recommendation': None,
     }
+    from src.utils.marker_profile_identity import profile_identity, PLAN_SPEC
+    manifest.update(plan_spec=PLAN_SPEC, marker_profile_identity=profile_identity(profile))
     return {'frame': frame, 'time_s': times, 'body_origin_mm': origins, 'rotation_matrix': rotations,
             'com_mm': com, 'truth_markers': truth_markers,
             'physical_markers': physical, 'rigid_body_markers': observations['rigid_body_markers'],

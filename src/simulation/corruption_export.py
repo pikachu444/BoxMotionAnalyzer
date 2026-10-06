@@ -55,6 +55,8 @@ def _write_observed(path, result, profile, *, include_physical=True, cancelled=N
         'UnitsPolicy': 'bma-mm-s-rotvec-rad-summary-deg-v1',
         'GeneratorVersion': 'marker-corruption-' + version,
     }
+    from src.utils.marker_profile_identity import artifact_fields
+    artifact.update(artifact_fields(profile))
     with path.open('x', newline='', encoding='utf-8') as stream:
         writer = csv.writer(stream)
         writer.writerow(['Format Version', '1.25', 'Length Units', 'Millimeters',

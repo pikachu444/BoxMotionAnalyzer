@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ProfileLayoutComparisonEvidence",
+  "utc": "2026-10-04T13:06:24.724788+00:00",
+  "fresh": true,
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/measure_compact_layout.py"
+  ],
+  "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "source_sha256": "818bc20b71d7cc9a4794e2d0571334d27ecbf1206e46b22ad06203929a55b4d8",
+  "dpr": 1.0,
+  "input": {
+    "example": "32",
+    "box_dims_mm": [
+      300,
+      180,
+      90
+    ],
+    "geometry_kind": "public-virtual",
+    "seed": null,
+    "seed_reason": "Static geometry"
+  },
+  "records": [
+    {
+      "layout": "prior",
+      "projected_box_pixels": [
+        218.3942714340418,
+        177.05079334708307
+      ],
+      "table_width_logical": 852,
+      "display_xyz_scale_ratio": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "layout": "compact",
+      "projected_box_pixels": [
+        358.9050354388259,
+        244.29599999999988
+      ],
+      "table_width_logical": 518,
+      "display_xyz_scale_ratio": [
+        1.0,
+        1.0000000000000002,
+        1.0000000000000002
+      ]
+    }
+  ],
+  "independent_expected_scale_ratio": [
+    1,
+    1,
+    1
+  ],
+  "relative_tolerance": 1e-12,
+  "tolerance_units": "dimensionless",
+  "tolerance_reason": "Float64 aspect normalization arithmetic only; not pose accuracy",
+  "result": "pass",
+  "native_status": "not-executed"
+}

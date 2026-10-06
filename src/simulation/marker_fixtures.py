@@ -17,14 +17,14 @@ from pathlib import Path
 import mujoco
 import numpy as np
 from scipy.spatial.transform import Rotation
+from scipy.spatial import cKDTree
 
 from .engine.mujoco_engine import MuJoCoEngine
 from src.utils.artifact_metadata import metadata_json, RAW_KEY
+from src.config.marker_semantics import FACE_NORMALS, HALF_TURNS
 
 VERSION = '1.4'
 WORLD_TO_ANALYSIS = np.array([[1., 0., 0.], [0., 0., 1.], [0., -1., 0.]])
-HALF_TURNS = {'X': np.diag([1., -1., -1.]), 'Y': np.diag([-1., 1., -1.]),
-              'Z': np.diag([-1., -1., 1.])}
 DIMENSIONS = (200., 120., 80.)
 # Declared explicitly before running production analysis; never fitted to it.
 EXAMPLE_MARKERS = (
@@ -36,8 +36,6 @@ EXAMPLE_MARKERS = (
     ('T1', 'TOP', (7, 60, -9)), ('T2', 'TOP', (-45, 60, 23)), ('T3', 'TOP', (51, 60, 18)),
     ('M1', 'BOTTOM', (-12, -60, 25)), ('M2', 'BOTTOM', (38, -60, -18)),
 )
-FACE_NORMALS = {'FRONT': (0, 0, 1), 'BACK': (0, 0, -1), 'RIGHT': (1, 0, 0),
-                'LEFT': (-1, 0, 0), 'TOP': (0, 1, 0), 'BOTTOM': (0, -1, 0)}
 CASES = ('healthy', 'x', 'y', 'z', 'xx', 'xy', 'gap', 'gap_x', 'freeze_reconnect',
          'genuine_rotation', 'noise', 'unsupported_90', 'unsupported_arbitrary', 'low_coverage')
 MOTIONS = ('free_fall', 'face', 'edge', 'corner')
@@ -76,6 +74,16 @@ def virtual_profile_32():
 
 
 def validate_profile(profile):
+    if not isinstance(profile, dict):
+        raise ValueError('Profile must be a JSON object.')
+    if 'object_type' in profile:
+        raise ValueError('Unsupported layout object_type; load supported profile documents explicitly.')
+    if any(key in profile for key in ('semantic_version', 'semantics', 'semantic_policy')):
+        raise ValueError('Explicit semantics require a supported MarkerProfileDocument, not a legacy layout field.')
+    if 'schema_version' in profile or 'plan_spec' in profile:
+        from src.utils.marker_profile_identity import PLAN_SPEC
+        if type(profile.get('schema_version')) is not int or profile['schema_version'] != 1 or profile.get('plan_spec') != PLAN_SPEC:
+            raise ValueError('Unsupported profile schema/plan_spec.')
     for key in ('profile_id', 'profile_version', 'publication', 'source', 'license'):
         if not isinstance(profile.get(key), str) or not profile[key].strip():
             raise ValueError(f'Profile requires {key}.')
@@ -91,6 +99,9 @@ def validate_profile(profile):
     if not ids or any(not isinstance(mid, str) or not mid.strip() for mid in ids) or len(set(ids)) != len(ids):
         raise ValueError('Marker IDs must be unique.')
     xyz = np.asarray([m['xyz_mm'] for m in markers], dtype=float)
+    if any(isinstance(value, bool) for value in profile['box_dims_mm']) or any(
+            isinstance(value, bool) for marker in markers for value in marker['xyz_mm']):
+        raise ValueError('Boolean values are not marker coordinates or dimensions.')
     if xyz.shape != (len(markers), 3) or not np.isfinite(xyz).all():
         raise ValueError('Invalid marker coordinates.')
     for marker, point in zip(markers, xyz):
@@ -98,15 +109,15 @@ def validate_profile(profile):
             raise ValueError('Unknown assigned face.')
         # The current production raw reader uses these label prefixes. Reject
         # incompatible custom labels instead of silently analyzing another face.
-        label_face = {'F': 'FRONT', 'B': 'BACK', 'R': 'RIGHT', 'L': 'LEFT',
-                      'T': 'TOP', 'M': 'BOTTOM'}.get(marker['id'][:1].upper())
+        from src.config.data_columns import FACE_PREFIX_TO_INFO
+        prefix = marker['id'][:2] if marker['id'].startswith(('FA', 'BA')) else marker['id'][:1]
+        label_face = FACE_PREFIX_TO_INFO.get(prefix.upper(), '').upper()
         if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*', marker['id']) or label_face != marker['face']:
             raise ValueError('Marker ID must follow the production face-prefix convention.')
         normal = np.asarray(FACE_NORMALS[marker['face']])
         if (np.abs(point) > dims / 2 + 1e-8).any() or not np.isclose(point @ normal, dims[np.flatnonzero(normal)[0]] / 2, atol=1e-8, rtol=0):
             raise ValueError('Marker lies outside its assigned face.')
-    distances = np.linalg.norm(xyz[:, None] - xyz[None, :], axis=-1)
-    np.fill_diagonal(distances, np.inf)
+    distances = cKDTree(xyz).query(xyz, k=2)[0][:, 1]
     if (distances < 1.).any():
         raise ValueError('Markers must be separated by at least 1 mm.')
     # One face may be collinear while other observed faces constrain the pose.
@@ -123,6 +134,9 @@ def load_profile(path=None, *, example='18'):
     if example not in ('18', '32'):
         raise ValueError('Unknown public example.')
     profile = (virtual_profile_32() if example == '32' else example_profile()) if path is None else json.loads(Path(path).read_text(encoding='utf-8-sig'))
+    if isinstance(profile, dict) and profile.get('object_type') == 'MarkerProfileDocument':
+        from .profile_document import read_document
+        return copy.deepcopy(read_document(path).applied)
     validate_profile(profile)
     return profile
 
@@ -270,6 +284,8 @@ def make_case(case_id, *, seed=74082, profile=None, motion='free_fall'):
                 'recommendation_contract': 'conditional-continuity-v1', 'expected_approval': False,
                 'pose_tolerances': {'position_mm': .1, 'rotation_deg': .1},
                 'truth_note': 'Body origin is the analysis pose origin. COM remains separate.'}
+    from src.utils.marker_profile_identity import profile_identity, PLAN_SPEC
+    manifest.update(plan_spec=PLAN_SPEC, marker_profile_identity=profile_identity(profile))
     return manifest, times, origins, com, rotations, truth_markers, observed
 
 
@@ -310,6 +326,8 @@ def write_case(directory, case_id, *, seed=74082, profile=None, motion='free_fal
             'UnitsPolicy': 'bma-mm-s-rotvec-rad-summary-deg-v1',
             'GeneratorVersion': VERSION,
         }
+        from src.utils.marker_profile_identity import artifact_fields
+        artifact.update(artifact_fields(profile))
         writer.writerow(['Format Version', '1.25', 'Length Units', 'Millimeters', 'Coordinate Space', 'Global',
                          'Source Kind', 'mujoco_synthetic', 'Generator Version', VERSION,
                          RAW_KEY, metadata_json(artifact)])

@@ -10,13 +10,13 @@ from scipy.optimize import linear_sum_assignment
 from scipy.spatial.transform import Rotation as R
 
 from src.config.data_columns import PoseCols, RawMarkerCols, RigidBodyCols, TimeCols, SourceCols
+from src.config.marker_semantics import LOCAL_HALF_TURN_ROTVECS
 
 
 SUPPORTED_LOCAL_AXES = ("X", "Y", "Z")
 MARKER_FLIP_ALGORITHM_VERSION = "2.0"
 MARKER_FLIP_GATE_VERSION = "2026-09-02.1"
 
-_AXIS_INDEX = {"X": 0, "Y": 1, "Z": 2}
 _NO_CORRECTION = "NONE"
 
 MarkerPermutation = tuple[tuple[str, str], ...]
@@ -165,9 +165,7 @@ def local_axis_half_turn(axis: str) -> R:
     normalized_axis = str(axis).strip().upper()
     if normalized_axis not in SUPPORTED_LOCAL_AXES:
         raise ValueError(f"Unsupported marker correction axis: {axis!r}")
-    rotvec = np.zeros(3, dtype=float)
-    rotvec[_AXIS_INDEX[normalized_axis]] = np.pi
-    return R.from_rotvec(rotvec)
+    return R.from_rotvec(LOCAL_HALF_TURN_ROTVECS[normalized_axis])
 
 
 def _normalize_permutation(value: object) -> MarkerPermutation:

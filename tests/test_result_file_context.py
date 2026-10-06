@@ -56,6 +56,21 @@ def _select_point(widget, time):
     widget.on_result_plot_click(SimpleNamespace(inaxes=widget.plot_manager.ax, xdata=time))
 
 
+def test_declared_stale_marker_semantics_preserves_previous_display(widget, results, tmp_path):
+    from comparison_fixtures import write_proc
+    import json
+    assert widget.load_result_file(str(results.a))
+    previous=widget.result_data; path=write_proc(tmp_path/'stale.proc')
+    df=pd.read_csv(path,header=[0,1,2],float_precision='round_trip')
+    column=('Info','Artifact','MarkerProfileIdentityJson')
+    value=json.loads(df[column].iloc[0]); value['policy_version']='unsupported-future'
+    df[column]=json.dumps(value); df.to_csv(path,index=False)
+    messages=[]; widget.log_message.connect(messages.append)
+    assert not widget.load_result_file(str(path))
+    assert widget.result_data is previous and widget.current_result_file==str(results.a)
+    assert any('stale' in message.lower() or 'unsupported' in message.lower() for message in messages)
+
+
 def _assert_curve(manager, times, values):
     assert len(manager.ax.lines) == 1
     np.testing.assert_allclose(manager.ax.lines[0].get_xdata(), times)

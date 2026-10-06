@@ -1,5 +1,8 @@
 """Optional synthetic observations, separate from direct simulation results."""
 import copy
+import csv
+import json
+from itertools import islice
 from pathlib import Path
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
@@ -11,6 +14,10 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
 
 from src.simulation.marker_fixtures import load_profile, draw_profile
 from src.simulation.marker_export import generate_marker_capture
+from src.simulation.profile_document import read_document
+from src.utils.marker_profile_identity import profile_identity, validate_identity, compatibility, artifact_identity, layout_support
+from src.utils.artifact_metadata import metadata_from_source_rows
+from .marker_profile_dialog import MarkerProfileDialog
 from src.utils.qt_sections import CollapsibleSection
 
 
@@ -23,11 +30,19 @@ class MarkerExportWorker(QThread):
     def __init__(self, destination, profile, simulation, faults, seed, parent=None):
         super().__init__(parent)
         self.arguments = copy.deepcopy((destination, profile, simulation, faults, seed))
+        self.profile_identity = profile_identity(profile)
 
     def run(self):
         try:
             path = generate_marker_capture(*self.arguments, cancelled=self.isInterruptionRequested,
                                            progress=self.progress.emit)
+            with open(path, encoding='utf-8-sig', newline='') as stream:
+                declared = artifact_identity(metadata_from_source_rows(list(islice(csv.reader(stream), 2))))
+            if declared is None or declared['source_profile'] != self.arguments[1]:
+                raise ValueError('Exported marker source identity does not match this job.')
+            validate_identity(self.profile_identity)
+            if self.isInterruptionRequested():
+                raise InterruptedError()
         except InterruptedError:
             self.cancelled.emit()
         except Exception as error:
@@ -45,6 +60,12 @@ class MarkerExportDialog(QDialog):
         self.original_size = tuple(box_size)
         self.profile = None
         self.imported_profile = None
+        self.imported_document = None
+        self.result_identity = None
+        self.result_compatibility = None
+        self._generation = 0
+        self._cancel_reason = None
+        self._layout_block_reason = None
         self.worker = None
         self.observed_path = None
         self.close_requested = False
@@ -65,6 +86,8 @@ class MarkerExportDialog(QDialog):
         row.addWidget(self.profile_combo, 1)
         self.import_button = QPushButton('Import JSON…')
         row.addWidget(self.import_button)
+        self.copy_button = QPushButton('Copy…'); self.edit_button = QPushButton('Edit…')
+        row.addWidget(self.copy_button); row.addWidget(self.edit_button)
         form.addLayout(row)
         self.dimensions = QCheckBox()
         self.dimensions.setToolTip('Use these absolute layout dimensions for this export. Simulation controls are preserved.')
@@ -136,6 +159,8 @@ class MarkerExportDialog(QDialog):
         self.profile_combo.currentIndexChanged.connect(self._select_profile)
         self.dimensions.toggled.connect(self._update_actions)
         self.import_button.clicked.connect(self._import_profile)
+        self.copy_button.clicked.connect(lambda:self._edit_profile(copy_source=True))
+        self.edit_button.clicked.connect(lambda:self._edit_profile(copy_source=False))
         self.kind.currentIndexChanged.connect(self._fault_controls)
         self.generate_button.clicked.connect(self.generate)
         self.cancel_button.clicked.connect(self.cancel)
@@ -148,6 +173,8 @@ class MarkerExportDialog(QDialog):
         return self.worker is not None
 
     def _select_profile(self):
+        if self.busy:
+            self._cancel_job('Profile changed. Previous results are preserved.')
         selected = self.profile_combo.currentData()
         self.profile = copy.deepcopy(self.imported_profile) if selected == 'custom' else load_profile(example=selected)
         dims = tuple(self.profile['box_dims_mm'])
@@ -158,26 +185,54 @@ class MarkerExportDialog(QDialog):
         self.axes.legend(loc='upper left', bbox_to_anchor=(-.55, 1.))
         self.axes.set_title('Box-local marker layout')
         self.canvas.draw_idle()
+        self._update_compatibility()
         self._update_actions()
+
+    def _update_compatibility(self):
+        if self.observed_path is None: return
+        self.result_compatibility = compatibility(self.result_identity, profile_identity(self.profile))
+        self.status.setText('Previous output: '+self.result_compatibility['status']+' with this profile.')
+        self.status.setToolTip(' '.join(self.result_compatibility['reasons'])+
+            ' Open uses the output’s own declared profile; no review or trial approval is inherited.')
+
+    def _set_custom(self, profile, document=None, *, imported=False):
+        self.imported_profile = copy.deepcopy(profile); self.imported_document = copy.deepcopy(document)
+        index = self.profile_combo.findData('custom')
+        label = ('Imported: ' if imported else 'Custom: ')+profile['profile_id']
+        if index < 0:
+            self.profile_combo.addItem(label, 'custom'); index = self.profile_combo.count()-1
+        else: self.profile_combo.setItemText(index, label)
+        if self.profile_combo.currentIndex() == index: self._select_profile()
+        else: self.profile_combo.setCurrentIndex(index)
+
+    def _edit_profile(self, *, copy_source):
+        if self.busy: return
+        original_identity = profile_identity(self.profile)
+        document = self.imported_document if self.profile_combo.currentData() == 'custom' and not copy_source else None
+        # Presets are immutable; Edit on a preset follows the same copy route.
+        editor = MarkerProfileDialog(self.profile, document=document,
+            copy_source=copy_source or self.profile_combo.currentData() != 'custom',
+            previous_result_identity=self.result_identity, parent=self)
+        try:
+            if editor.exec() == QDialog.Accepted:
+                if profile_identity(self.profile) != original_identity:
+                    self.status.setText('Source changed while editing. This Apply was not adopted.')
+                    return
+                self._set_custom(editor.state.applied, editor.state.document())
+        finally: editor.deleteLater()
 
     def _import_profile(self):
         path, _ = QFileDialog.getOpenFileName(self, 'Import marker layout', '', 'JSON files (*.json)')
         if not path:
             return
         try:
+            value = json.loads(Path(path).read_text(encoding='utf-8-sig'))
+            document = read_document(path).document() if isinstance(value, dict) and value.get('object_type') == 'MarkerProfileDocument' else None
             profile = load_profile(path)
         except (OSError, ValueError, KeyError, TypeError, AttributeError, IndexError) as error:
             QMessageBox.warning(self, 'Invalid layout', str(error))
             return
-        self.imported_profile = profile
-        index = self.profile_combo.findData('custom')
-        if index < 0:
-            self.profile_combo.addItem('Imported: ' + profile['profile_id'], 'custom')
-            index = self.profile_combo.count() - 1
-        else:
-            self.profile_combo.setItemText(index, 'Imported: ' + profile['profile_id'])
-        self.profile_combo.setCurrentIndex(index)
-        self._select_profile()
+        self._set_custom(profile, document, imported=True)
 
     def _fault_controls(self):
         kind = self.kind.currentData()
@@ -191,14 +246,26 @@ class MarkerExportDialog(QDialog):
         self.seed.setEnabled(kind == 'gaussian_noise')
 
     def _update_actions(self):
+        support = layout_support(self.profile)
+        reason = support['reason'] if support['status'] != 'supported' else None
         self.controls.setEnabled(not self.busy)
-        self.generate_button.setEnabled(not self.busy and self.dimensions.isChecked())
+        self.generate_button.setEnabled(not self.busy and self.dimensions.isChecked() and reason is None)
+        self.generate_button.setToolTip(reason or '')
         self.cancel_button.setEnabled(self.busy)
         self.open_button.setEnabled(not self.busy and self.observed_path is not None)
+        if not self.busy:
+            if reason:
+                self.status.setText(reason)
+            elif self.status.text() == self._layout_block_reason:
+                self.status.setText('Choose a layout and generate observations.')
+        self._layout_block_reason = reason
 
     def generate(self):
         if self.busy or not self.dimensions.isChecked():
             return
+        support = layout_support(self.profile)
+        if support['status'] != 'supported':
+            self.status.setText(support['reason']); return
         name = self.output_name.text().strip()
         if not name or name in ('.', '..') or any(c in name for c in '<>:"/\\|?*') or name.endswith(('.', ' ')):
             QMessageBox.warning(self, 'Output folder', 'Enter a new folder name without path separators.')
@@ -213,29 +280,48 @@ class MarkerExportDialog(QDialog):
         faults = dict(kind=self.kind.currentData(), channel=self.channel.currentData(),
             start=self.start.value(), end=self.end.value(), axis=self.axis.currentText(), std_mm=self.std.value())
         self.worker = MarkerExportWorker(destination, self.profile, self.simulation, faults, self.seed.value(), self)
-        self.worker.progress.connect(self._progress)
-        self.worker.ready.connect(self._ready)
-        self.worker.failed.connect(self._failed)
-        self.worker.cancelled.connect(lambda: self.status.setText('Cancelled. Previous results are preserved.'))
-        self.worker.finished.connect(self._finished)
+        worker = self.worker; self._generation += 1; generation = self._generation; self._cancel_reason = None
+        worker.progress.connect(lambda value, text:self._job_event(worker, generation, self._progress, value, text))
+        worker.ready.connect(lambda path:self._job_event(worker, generation, self._ready, path))
+        worker.failed.connect(lambda message:self._job_event(worker, generation, self._failed, message))
+        worker.cancelled.connect(lambda:self._cancelled(worker))
+        worker.finished.connect(lambda:self._finished(worker))
         self.progress.setValue(0); self.progress.show()
         self.status.setText('Generating synthetic marker observations…')
         self._update_actions()
         self.worker.start()
+
+    def _job_event(self, worker, generation, callback, *args):
+        if self.worker is not worker or generation != self._generation or self._cancel_reason is not None:
+            return
+        callback(*args)
+
+    def _cancelled(self, worker):
+        if self.worker is worker:
+            self.status.setText(self._cancel_reason or 'Cancelled. Previous results are preserved.')
 
     def _progress(self, value, text):
         self.progress.setValue(value)
         self.status.setText(text)
 
     def _ready(self, path):
+        try:
+            validate_identity(self.worker.profile_identity)
+            if self.worker.profile_identity != profile_identity(self.profile):
+                raise ValueError('Stale profile result rejected.')
+        except ValueError as error:
+            self._failed(str(error)); return
         self.observed_path = path
+        self.result_identity = copy.deepcopy(self.worker.profile_identity)
+        self.result_compatibility = compatibility(self.result_identity, profile_identity(self.profile))
         self.status.setText('Ready: ' + Path(path).parent.name + '/observed.csv')
         self.status.setToolTip(path)
 
     def _failed(self, message):
         self.status.setText('Export failed: ' + message)
 
-    def _finished(self):
+    def _finished(self, completed):
+        if self.worker is not completed: return
         worker, self.worker = self.worker, None
         worker.deleteLater()
         self.progress.hide()
@@ -244,10 +330,14 @@ class MarkerExportDialog(QDialog):
             self.reject()
 
     def cancel(self):
+        self._cancel_job('Cancelled. Previous results are preserved.')
+
+    def _cancel_job(self, reason):
         if self.worker is not None:
+            self._generation += 1; self._cancel_reason = reason
             self.worker.requestInterruption()
             self.cancel_button.setEnabled(False)
-            self.status.setText('Cancelling…')
+            self.status.setText('Cancelling… '+reason)
 
     def _open(self):
         if not self.busy and self.observed_path is not None:

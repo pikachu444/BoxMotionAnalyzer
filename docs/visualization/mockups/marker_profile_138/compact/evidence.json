@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ProfileCompactMockupEvidence",
+  "run_id": "compact-20261004T130522Z",
+  "utc": "2026-10-04T13:05:22.861005+00:00",
+  "commit": "1f654faddd44eedf7ff6e807d85f5e08559f8b13",
+  "dirty": true,
+  "command": [
+    "docs/visualization/mockups/marker_profile_138/generate_compact_mockups.py"
+  ],
+  "source_sha256": "8da146840a8be935adc636a28880fa3607161c9220520e2ba444286761dbc886",
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.5",
+    "pyside": "6.10.1",
+    "qt_platform": "windows",
+    "dpr": 1.0,
+    "windows_scale_percent": 100,
+    "qt_process_scale_percent": 100.0
+  },
+  "input": {
+    "profile_hashes": {
+      "18": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+      "32": "d5405f1cf434c924070033748b4ca1e4661f10e190369d8f0bb0aac75fc97ff0"
+    },
+    "kind": "public-synthetic-static-geometry",
+    "seed": null,
+    "seed_reason": "Static layout",
+    "numeric_tolerance": null,
+    "tolerance_reason": "Exact geometry/hash invariance; display fit is not physical accuracy"
+  },
+  "states": [
+    {
+      "screenshot": "compact-18-1920x1080-both.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "scroll_position": "both",
+      "face": "BACK",
+      "selected": "B1",
+      "label_box_collisions": 0,
+      "fit_zoom": 1.445136310798602,
+      "projected_box_size_pixels": [
+        359.52446299001184,
+        244.29599999999994
+      ],
+      "fit_target_pixels": [
+        72.915,
+        452.115,
+        655.0350000000001,
+        254.47500000000002
+      ],
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "compact-18-820x600-top.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "scroll_position": "top",
+      "face": "BACK",
+      "selected": "B1",
+      "label_box_collisions": 0,
+      "fit_zoom": 1.288955830770105,
+      "projected_box_size_pixels": [
+        223.22375538823786,
+        151.6799999999999
+      ],
+      "fit_target_pixels": [
+        52.300000000000004,
+        328.40000000000003,
+        351.70000000000005,
+        157.99999999999994
+      ],
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "compact-18-820x600-bottom.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "18",
+      "scroll_position": "bottom",
+      "face": "BACK",
+      "selected": "B1",
+      "label_box_collisions": 0,
+      "fit_zoom": 1.288955830770105,
+      "projected_box_size_pixels": [
+        223.22375538823786,
+        151.6799999999999
+      ],
+      "fit_target_pixels": [
+        52.300000000000004,
+        328.40000000000003,
+        351.70000000000005,
+        157.99999999999994
+      ],
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "compact-32-1920x1080-both.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "scroll_position": "both",
+      "face": "BACK",
+      "selected": "B1",
+      "label_box_collisions": 0,
+      "fit_zoom": 1.450752167557345,
+      "projected_box_size_pixels": [
+        358.9050354388259,
+        244.29599999999988
+      ],
+      "fit_target_pixels": [
+        72.915,
+        452.115,
+        655.0350000000001,
+        254.47500000000002
+      ],
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "compact-32-820x600-top.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "scroll_position": "top",
+      "face": "BACK",
+      "selected": "B1",
+      "label_box_collisions": 0,
+      "fit_zoom": 1.293964764017345,
+      "projected_box_size_pixels": [
+        222.83916140813236,
+        151.68
+      ],
+      "fit_target_pixels": [
+        52.300000000000004,
+        328.40000000000003,
+        351.70000000000005,
+        157.99999999999994
+      ],
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "compact-32-820x600-bottom.png",
+      "logical_size": [
+        820,
+        600
+      ],
+      "pixel_size": [
+        820,
+        600
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true,
+      "example": "32",
+      "scroll_position": "bottom",
+      "face": "BACK",
+      "selected": "B1",
+      "label_box_collisions": 0,
+      "fit_zoom": 1.293964764017345,
+      "projected_box_size_pixels": [
+        222.83916140813236,
+        151.68
+      ],
+      "fit_target_pixels": [
+        52.300000000000004,
+        328.40000000000003,
+        351.70000000000005,
+        157.99999999999994
+      ],
+      "normal": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "screenshot": "compact-legacy-1920x1080.png",
+      "logical_size": [
+        1920,
+        1080
+      ],
+      "pixel_size": [
+        1920,
+        1080
+      ],
+      "dpr": 1.0,
+      "visible_buttons": [
+        "Copy preset",
+        "Preview draft",
+        "Reset view",
+        "Reset to source",
+        "Save JSON\u2026",
+        "Apply",
+        "Cancel"
+      ],
+      "evidence_kind": "Qt-widget-render-preapproval",
+      "fresh": true
+    }
+  ],
+  "interaction": {
+    "status": "pass",
+    "kind": "prototype-QTest-only",
+    "independent_expectations": "M2=[38,-60,-18]/BOTTOM normal [0,-1,0] stays unchanged when viewing FRONT; F1 21->22; Preview retains applied; Reset restores21; invalid blocks Apply"
+  },
+  "approval_status": "pending",
+  "production_changed": false,
+  "native_status": "not-executed-existing-capture-activation-failure",
+  "experimental_status": "unavailable",
+  "limitations": [
+    "Face cards and meaning inspector are mockup-only read-only fixture displays.",
+    "The 3D fit changes display zoom/clipping only, not local coordinates or proportions.",
+    "Small window scrolls; production persistence/export/worker/native acceptance remains pending."
+  ],
+  "prior_attempts": [
+    {
+      "status": "failed",
+      "boundary": "display-fit-bounds",
+      "diagnostic": "Size-only fit did not center the projected box within its rectangular target.",
+      "correction": "Center the projected box and retain a display margin; no geometry change."
+    }
+  ]
+}

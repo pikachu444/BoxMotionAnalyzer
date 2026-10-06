@@ -1,6 +1,8 @@
 # CSV Multi-Header 스키마 (v3)
 
-Last Reviewed: 2026-09-13
+Last Reviewed: 2026-10-06
+
+#138 appends scalar Info / Artifact columns MarkerProfileIdentityJson, MarkerGeometryHash, MarkerSemanticsVersion and MarkerSemanticsHash. Existing column naming/host SchemaVersion1 remain unchanged; the nested declaration has schema_version1 and ISTA6A-PLAN-20261001-v1. [Identity and legacy policy](marker_profile_semantics.md).
 
 이 문서는 현재 코드 기준의 결과 CSV Multi-Header 규칙을 정리한다.
 
