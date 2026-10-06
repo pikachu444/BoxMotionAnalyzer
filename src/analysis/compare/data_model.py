@@ -369,8 +369,13 @@ class ComparisonModel:
         reasons += marker_reasons
         for field in FIELDS:
             if equivalent and field in {'MarkerLayoutId','MarkerLayoutHash','MarkerProfileIdentityJson'}: continue
-            if field not in optional | {'GeneratorVersion'} and baseline.values.get(field) != candidate.values.get(field):
+            if field not in optional | {'GeneratorVersion','SimulationMetadataJson'} and baseline.values.get(field) != candidate.values.get(field):
                 reasons.append(f'{field}: mismatch in local contact comparison')
+        from src.utils.simulation_metadata import compatibility_reasons as simulation_compatibility
+        try:
+            reasons += simulation_compatibility(baseline.values,candidate.values)
+        except (ValueError,TypeError,KeyError) as error:
+            reasons.append('Simulation metadata: '+str(error))
         for label, key in (('baseline', self.baseline_name), ('file', name)):
             if self.timelines[key].reason:
                 reasons.append(f'{label} {self.timelines[key].reason}')

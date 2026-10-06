@@ -106,6 +106,8 @@ jobs:
           tests/test_processing_semantics.py
           tests/test_slice_dimension_provenance_gui.py
           tests/test_simulation_export.py
+          tests/test_simulation_mode_profiles.py
+          tests/test_simulation_metadata.py
           tests/test_simulation_export_gui.py
           tests/test_simulation_marker_export.py
           tests/test_scene_fixtures.py
@@ -137,6 +139,8 @@ jobs:
           tests/test_raw_data_processing.py
           tests/test_capture_regression.py
           --junitxml=tmp/public-marker-results.xml
+      - name: Verify PUB06 mode contracts and independent transforms
+        run: python -m src.simulation.mode_validation --output tmp/issue139/contracts
       - name: Generate marker observations and open Step 1 at 125 percent
         env:
           QT_SCALE_FACTOR: '1.25'

@@ -2,6 +2,13 @@
 
 Last Reviewed: 2026-10-06
 
+PUB06 backend adds optional `Info / Artifact / SimulationMetadataJson` for
+sealed public mode/settings/source/time/frame declarations. Full release pose,
+velocity and fault settings stay in direct `Info / Simulation / MetadataJson`
+or the separate marker evaluation manifest. Corrected/slice/proc and Compare
+carry only the public artifact field. Missing legacy semantics remain unknown;
+production UI binding is pending. See [mode contract](simulation_mode_contract.md).
+
 #138 adds Info/Artifact MarkerProfileIdentityJson, MarkerGeometryHash, MarkerSemanticsVersion and MarkerSemanticsHash. The nested schema1/plan-bound source declaration preserves original layout hashes and is transported through corrected/slice/proc. Missing legacy meanings remain unknown and cannot enter compatible aggregation. [Marker identity contract](marker_profile_semantics.md) defines geometry, label correspondence and fixed interpretation separately.
 
 ## 1. 목적

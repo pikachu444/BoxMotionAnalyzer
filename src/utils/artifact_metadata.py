@@ -13,6 +13,7 @@ FIELDS = (
     'MarkerLayoutHash', 'ProcessingSemanticsVersion', 'CoordinatePolicy',
     'UnitsPolicy', 'GeneratorVersion', 'ProcessingSettingsJson',
     'MarkerProfileIdentityJson', 'MarkerGeometryHash', 'MarkerSemanticsVersion', 'MarkerSemanticsHash',
+    'SimulationMetadataJson',
 )
 DIMENSIONS = ('BoxLengthMm', 'BoxWidthMm', 'BoxHeightMm')
 SOURCE_KINDS = {'real', 'public_external', 'mujoco_synthetic', 'handcrafted_dummy', 'unknown_legacy'}
@@ -61,7 +62,10 @@ def normalize_metadata(value=None, *, new=False):
 
 
 def metadata_json(value=None):
-    return json.dumps(normalize_metadata(value, new=True), sort_keys=True, separators=(',', ':'), allow_nan=False)
+    result=normalize_metadata(value, new=True)
+    from src.utils.simulation_metadata import artifact_simulation
+    artifact_simulation(result)
+    return json.dumps(result, sort_keys=True, separators=(',', ':'), allow_nan=False)
 
 
 def metadata_from_source_rows(rows):
@@ -81,6 +85,8 @@ def metadata_from_source_rows(rows):
 def add_artifact_columns(df, value=None):
     result = df.copy()
     metadata = normalize_metadata(value, new=True)
+    from src.utils.simulation_metadata import artifact_simulation
+    artifact_simulation(metadata)
     for field in FIELDS:
         result[FLAT_PREFIX + field] = metadata[field]
     return result
@@ -99,6 +105,10 @@ class ArtifactIdentity:
         reasons = list(self.errors)
         for field in FIELDS:
             value = self.values.get(field)
+            if field == 'SimulationMetadataJson':
+                # Legacy/real sources never acquire a mode by guessing. Existing
+                # eligibility remains governed by their original declarations.
+                continue
             if field == 'GeneratorVersion' and self.source_kind not in {'mujoco_synthetic', 'handcrafted_dummy'}:
                 continue
             if value is None or value == '':
@@ -132,6 +142,11 @@ class ArtifactIdentity:
                     reasons.append('Marker geometry: declared layout fails local pose rank guard; individual review only')
         except ValueError as error:
             reasons.append(str(error))
+        from src.utils.simulation_metadata import artifact_simulation
+        try:
+            artifact_simulation(self.values)
+        except (ValueError,TypeError,KeyError) as error:
+            reasons.append('Simulation metadata: '+str(error))
         return list(dict.fromkeys(reasons))
 
 
@@ -165,7 +180,7 @@ def compatibility_reasons(baseline, candidate):
     reasons += marker_reasons
     for field in FIELDS:
         # Generator builds may differ if the explicit processing/units/schema contracts match.
-        if field == 'GeneratorVersion':
+        if field in {'GeneratorVersion','SimulationMetadataJson'}:
             continue
         if equivalent and field in {'MarkerLayoutId', 'MarkerLayoutHash', 'MarkerProfileIdentityJson'}:
             continue
@@ -176,6 +191,11 @@ def compatibility_reasons(baseline, candidate):
                 reasons.append('MarkerProfileIdentityJson: declared source/geometry/interpretation differs')
             else:
                 reasons.append(f'{field}: mismatch ({baseline.values.get(field)!r} / {candidate.values.get(field)!r})')
+    from src.utils.simulation_metadata import compatibility_reasons as simulation_compatibility
+    try:
+        reasons += simulation_compatibility(baseline.values,candidate.values)
+    except (ValueError,TypeError,KeyError) as error:
+        reasons.append('Simulation metadata: '+str(error))
     return reasons
 
 

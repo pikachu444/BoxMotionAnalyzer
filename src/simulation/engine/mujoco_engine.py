@@ -232,6 +232,13 @@ class MuJoCoEngine:
         frame_data['BodyOrigin'] = body_pos.copy()
         frame_data['COM'] = (self.data.xipos[body_id] * 1000.0).copy()
         frame_data['RotationMatrix'] = self.data.xmat[body_id].reshape(3, 3).copy()
+        if not history:
+            # Free-joint translation is world-frame; rotation is body-frame.
+            # Capture instantaneous release values once, never finite-difference
+            # export aliases and never additional arrays in every sample.
+            frame_data['OriginLinearVelocityWorld'] = self.data.qvel[:3].copy() * 1000.0
+            frame_data['AngularVelocityBody'] = self.data.qvel[3:6].copy()
+            frame_data['AngularVelocityWorld'] = frame_data['RotationMatrix'] @ frame_data['AngularVelocityBody']
         quaternion = self.data.xquat[body_id].copy()
         quaternion /= np.linalg.norm(quaternion)
         if history and np.dot(quaternion, history[-1]['QuaternionWXYZ']) < 0:

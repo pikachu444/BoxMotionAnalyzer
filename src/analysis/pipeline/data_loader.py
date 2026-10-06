@@ -31,6 +31,8 @@ class DataLoader:
         header_info['artifact_metadata'] = metadata_from_source_rows(header_info['source_rows'])
         from src.utils.marker_profile_identity import artifact_identity
         artifact_identity(header_info['artifact_metadata'])  # Declared unsupported/stale meanings block; legacy stays unknown.
+        from src.utils.simulation_metadata import artifact_simulation
+        simulation_declaration=artifact_simulation(header_info['artifact_metadata'])
         has_annotations = any(kind == 'Marker Annotation' for kind in header_info['type'])
         if has_annotations or 'Corrected Source File' in lines[0] or 'Slice File' in lines[0]:
             from .artifact_io import read_corrected_source_metadata, read_slice_metadata
@@ -90,6 +92,12 @@ class DataLoader:
 
         # Validate Raw Data Structure immediately
         self.validate_raw_data(raw_df)
+        if simulation_declaration is not None:
+            from src.utils.simulation_metadata import validate_recorded_times
+            from src.utils.result_time import recorded_seconds
+            times=recorded_seconds(raw_df.iloc[:,1]).to_numpy(dtype=float)
+            validate_recorded_times(simulation_declaration,times,
+                complete='Slice File' not in lines[0] and 'Corrected Source File' not in lines[0])
 
         header_info['component'] = component_header
         if has_annotations:

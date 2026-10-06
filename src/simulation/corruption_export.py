@@ -39,7 +39,7 @@ def _checkpoint(cancelled):
         raise InterruptedError('Marker export cancelled.')
 
 
-def _write_observed(path, result, profile, *, include_physical=True, cancelled=None):
+def _observation_artifact(result,profile,simulation_metadata=None):
     source = result['manifest']['source_kind']
     version = str(result['manifest']['generator_version'])
     artifact = {
@@ -57,6 +57,18 @@ def _write_observed(path, result, profile, *, include_physical=True, cancelled=N
     }
     from src.utils.marker_profile_identity import artifact_fields
     artifact.update(artifact_fields(profile))
+    if simulation_metadata is not None:
+        from src.utils.simulation_metadata import FIELD,validate_public
+        from src.utils.artifact_metadata import normalize_metadata
+        artifact=normalize_metadata(artifact,new=True)
+        public=simulation_metadata['public'];validate_public(public,artifact)
+        artifact[FIELD]=json.dumps(public,sort_keys=True,separators=(',',':'),allow_nan=False)
+    return artifact
+
+
+def _write_observed(path, result, profile, *, include_physical=True, cancelled=None, simulation_metadata=None, artifact=None):
+    artifact=_observation_artifact(result,profile,simulation_metadata) if artifact is None else artifact
+    source=artifact['SourceKind']
     with path.open('x', newline='', encoding='utf-8') as stream:
         writer = csv.writer(stream)
         writer.writerow(['Format Version', '1.25', 'Length Units', 'Millimeters',
@@ -113,7 +125,7 @@ def _write_truth(root, result, profile, cancelled=None):
                 writer.writerow([int(result['frame'][i]), float(time), marker['id'], *point])
 
 
-def write_observations(directory, truth_trajectory, marker_profile, corruption_spec, seed=74082, *, cancelled=None):
+def write_observations(directory, truth_trajectory, marker_profile, corruption_spec, seed=74082, *, cancelled=None, simulation_metadata=None):
     """Validate first; create a new output directory without replacing any file.
 
     A complete export has its manifest written last. An I/O failure may leave a
@@ -121,14 +133,38 @@ def write_observations(directory, truth_trajectory, marker_profile, corruption_s
     """
     _checkpoint(cancelled)
     result = apply_corruption(truth_trajectory, marker_profile, corruption_spec, seed)
+    if simulation_metadata is not None:
+        from src.utils.simulation_metadata import validate_full,validate_recorded_times
+        from src.simulation.marker_export import fault_spec
+        validate_full(simulation_metadata)
+        declaration=simulation_metadata['public']
+        clock=declaration['clock']
+        validate_recorded_times(declaration,result['time_s'],complete=True)
+        marker=simulation_metadata['source_configuration']['observation_profile']['marker']
+        if marker_profile!=marker['profile'] or corruption_spec!=fault_spec(result['time_s'],marker['faults']):
+            raise ValueError('Actual marker profile/corruption settings differ from simulation metadata.')
+        release=simulation_metadata['release_state']
+        transform=np.asarray(declaration['transforms']['engine_to_output_world'])
+        for field,key in (('body_origin_mm','body_origin_mm'),('com_mm','com_mm'),('rotation_matrix','rotation_matrix')):
+            expected=transform@np.asarray(release[field]);actual=result[key]
+            if actual is None or not np.allclose(actual[0],expected,rtol=0,atol=1e-9):
+                raise ValueError('Marker trajectory release differs from simulation metadata.')
+        if (declaration['route']!='marker_csv' or declaration['seed']!=seed
+                or clock['samples']!=len(result['time_s']) or clock['first_s']!=float(result['time_s'][0])
+                or clock['last_s']!=float(result['time_s'][-1])):
+            raise ValueError('Simulation metadata does not describe these observations.')
     _checkpoint(cancelled)
     # Hash only validated input values. No input path or event oracle is embedded
     # in the production CSV, and no real-data class is manufactured by this API.
     input_hashes = {'trajectory': _input_digest(truth_trajectory),
                     'profile': _input_digest(marker_profile), 'spec': _input_digest(corruption_spec)}
+    # Preflight the actual public host before owning any output path. Reuse the
+    # validated declaration in the writer rather than recomputing identities.
+    artifact=_observation_artifact(result,marker_profile,simulation_metadata)
     root = Path(directory).resolve()
     root.mkdir(parents=True, exist_ok=False)
-    _write_observed(root / 'observed.csv', result, marker_profile, cancelled=cancelled)
+    _write_observed(root / 'observed.csv', result, marker_profile, cancelled=cancelled,
+        simulation_metadata=simulation_metadata,artifact=artifact)
     _write_truth(root, result, marker_profile, cancelled)
     _checkpoint(cancelled)
     manifest = dict(result['manifest'])
@@ -139,6 +175,8 @@ def write_observations(directory, truth_trajectory, marker_profile, corruption_s
         observed_contract='Separate Marker physical positions and Rigid Body Marker solved constraints. '
                           'Physical faults do not model a Motive solver response.',
         completion='complete')
+    if simulation_metadata is not None:
+        manifest['simulation_metadata']=simulation_metadata
     with (root / 'observed.synthetic.json').open('x', encoding='utf-8') as stream:
         json.dump(manifest, stream, indent=2, allow_nan=False)
         stream.write('\n')

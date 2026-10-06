@@ -892,6 +892,13 @@ def save_proc_file(filepath: str, processed_df: pd.DataFrame) -> None:
         processed_df['Artifact_ProcessingSemanticsVersion'] = version
         processed_df['Artifact_ProcessingSettingsJson'] = settings
     export_df = convert_to_multi_header(processed_df)
+    from src.utils.simulation_metadata import FIELD,artifact_simulation
+    from src.utils.artifact_metadata import read_identity
+    if any(col==('Info','Artifact',FIELD) for col in export_df.columns):
+        identity=read_identity(export_df)
+        if any(error.startswith(FIELD+':') for error in identity.errors):
+            raise ValueError('Simulation metadata must be a single constant declaration.')
+        artifact_simulation(identity.values)
     target_path = Path(filepath).resolve()
     temporary_path = None
     try:
