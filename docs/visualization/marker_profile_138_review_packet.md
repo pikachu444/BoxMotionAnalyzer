@@ -308,3 +308,43 @@ exclusions. Its file SHA256 is
 Same-reviewer [bounded recheck](marker_profile_138_ci_review.md) is APPROVE with
 no P0/P1/P2. It independently passed both requested sizes at both DPRs and
 confirmed all34 hashes unchanged. Clean-commit hosted rerun still gates merge.
+
+## Hosted execution-budget correction
+
+The [second required run](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37389680715)
+at committed head `13b81b6edce163fbbe5864995c4e6761221d7819` exceeded its45-minute
+job limit. GitHub's exact annotation is "The job has exceeded the maximum
+execution time of 45m0s". Core1231 and
+11 subtests passed (original JUnit1242, zero failures/errors/skips); all125%
+GUI lanes, PUB05 editor9/render30, release replay, public summary and all
+observation CLI cases/negative controls completed successfully. The final
+continuity command was cancelled after11s. The job remains unsuccessful;
+cancelled continuity is not a pass. No product assertion failed in this run.
+
+Main changes only the workflow's job limit45→60 and adds two read-only Git
+commit/status/changed-path dumps before/after validation. Exact normalized text
+comparison confirms every previous command/input/action/condition is retained.
+PyYAML is unavailable locally; the failed parser invocation is recorded and
+is not represented as a parser pass. Hosted parsing and a full new-head run
+remain required. No numerical/physical tolerance, application performance
+budget, trial, baseline, product or renderer changes are made.
+
+The retained hosted renderer actually executed merge-ref
+`f85e31963334965090e1a168a3ba308135a54685` and reported `dirty=true`; it did not
+record changed paths. This is not relabeled a clean execution tree. New Git
+diagnostics record the paths without deleting outputs or assuming their cause.
+Hosted environment: Windows2025Server, Python3.13.15, PySide6.11.2,
+NumPy2.5.3/pandas3.0.6/SciPy1.18.1/Matplotlib3.11.2/MuJoCo3.6.0; QtDPR1.25,
+available logical desktop1536×826. This remains widget/process evidence.
+
+[Budget correction RunReport](mockups/marker_profile_138/production/ci_timeout_snapshot.json)
+SHA256 `e2ab619b291bd440f60a9086419f52846a50421aea1c096418ff9fe71f6d07a9`
+binds all34 current source hashes and the sole changed workflow. Original
+`ci-second-*` artifacts retain the partial outcomes. Previous product/geometry/
+semantic/UI/PNG evidence is reused unchanged, not rerun for a workflow limit.
+Both source-state diagnostics use `git status --porcelain --untracked-files=all`
+to list individual untracked files as well as tracked paths. This resolves the
+same reviewer's P2 directory-summary note without changing validation.
+Same-reviewer [bounded recheck](marker_profile_138_ci_budget_review.md) is APPROVE;
+the P2 is resolved and no P0/P1/P2 remains within this workflow-only scope.
+Successful full hosted CI on the new committed head still gates merge.

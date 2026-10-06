@@ -16,7 +16,7 @@ concurrency:
 jobs:
   synthetic-integration:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       # QOpenGLWidget-backed PyVistaQt needs a real Windows Qt platform.
       # The setup action below installs Mesa software OpenGL for the runner.
@@ -44,6 +44,11 @@ jobs:
           cache: pip
       - name: Install application and test dependencies
         run: python -m pip install -r requirements.txt pytest mujoco==3.6.0
+      - name: Record source state before automatic validation
+        run: |
+          git rev-parse HEAD
+          git status --porcelain --untracked-files=all
+          git diff --name-only
       - name: Verify the physical Qt desktop before running GUI checks
         run: >-
           python -c "import json; from pathlib import Path; from PySide6.QtGui import QGuiApplication;
@@ -202,6 +207,12 @@ jobs:
           }
       - name: Check independently specified continuity challenges
         run: python -m src.simulation.continuity_fixtures --output tmp/ci-continuity
+      - name: Record source state after automatic validation
+        if: always()
+        run: |
+          git rev-parse HEAD
+          git status --porcelain --untracked-files=all
+          git diff --name-only
       - name: Preserve public validation evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
