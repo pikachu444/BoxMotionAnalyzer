@@ -99,6 +99,12 @@ The historical mockup generator and its original screenshots were executed at
 requires that historical source checkout; current production evidence uses
 `src.simulation.mode_ui_validation` instead.
 
+Final combined production GUI suite34 passed in37.89s after the event corrections:
+`tmp/issue139/publication-gui125.xml`, recorded in the committed
+`mockups/simulation_mode_139/workflow_RunReport.json`. The report binds the dirty
+execution source to implementation commit6ff4419 and source hashes. This overlaps
+prior scoped counts; they are not summed. Required PR CI remains a separate gate.
+
 ## Start and preservation
 
 Start branch `issue138-marker-profile-semantics` at

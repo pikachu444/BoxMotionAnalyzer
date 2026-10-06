@@ -7,7 +7,12 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
-- [ ] #139 / PUB06: human approved the shared G17/H12 settings/target-preview
+- [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
+  default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
+  and stale-worker cancellation are implemented. Final production GUI34 checks
+  passed; original FHD/small-window evidence and all seven review corrections are
+  recorded in the PUB06 documents. Required CI/merge status is tracked in PR150.
+- [ ] #139 / PUB06 native acceptance and full issue closure: human approved the shared G17/H12 settings/target-preview
   mockup ("이제 좀 낫긴하네 이거로 해봐"). Production mode binding, per-mode
   settings save/open/Apply/Cancel, robot execution guard, versioned producer
   metadata and stale-worker cancellation/retry are implemented. Fresh scoped
