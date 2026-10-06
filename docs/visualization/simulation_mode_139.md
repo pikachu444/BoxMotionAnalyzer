@@ -6,6 +6,37 @@ Plan Spec: ISTA6A-PLAN-20261001-v1
 
 ## Current production checkpoint (2026-10-07)
 
+Latest originals are `mockups/simulation_mode_139/production_restored125` and
+`production_restored150` (12 states each), superseding the earlier `production125/150`
+for layout acceptance. The user correctly identified that the prior production
+target box had become smaller and an empty lower panel had appeared. Production
+had incorrectly fixed the preview group to200logical plus a trailing stretch,
+and moved Mode/Settings above the whole workspace. Main restored the already
+approved composition: Mode/Settings in the left panel and expanding preview below
+the right settings. The painter, actual coordinates, profile identity and engine
+inputs are unchanged. Corrected1920x1080 originals were shown inline; the same
+reviewer confirmed the composition restoration and no new inspected clipping.
+
+Fresh layout/mode24 tests passed in19.58s (`layout_followup/approved-layout125.xml`).
+The existing export/contact/marker GUI suite initially had9 passes and2 resource
+failures (pandas out-of-memory, WinError1450 Path.resolve); both failed tests
+passed in10.33s on unchanged-code retry. Original failure and retry XML are
+retained in `layout_followup`. These are distinct executions, not a claim that
+the initial11-test invocation passed. Independent layout assertions require
+Mode/Settings inside the left panel, FHD controls/preview wholly inside the
+viewport and remaining bottom gap no larger than the configured4logical margin.
+
+PR CI [37487613060](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37487613060)
+passed all1319 broad tests, then failed the new FHD render because Windows
+constrained the first shown client to1920x1061. The original failed image/log/
+RunReport remain locally under `tmp/issue139/ci-37487613060-evidence` and in that
+run's uploaded artifact. The render fixture now reasserts requested client size
+after show/settle, matching existing scene/profile render fixtures; original pixel
+size assertions remain enforced, without raster resizing. It also records available
+logical screen size. Fresh corrected125/150 renders each passed12 states.
+Current-head required CI/merge remains authoritative in PR150. Native Windows
+input/viewer/actual OS125 and full139 acceptance remain outstanding.
+
 The user approved `ista_reset_fixed150/ista_reset_fixed125` with "이제 좀 낫긴하네
 이거로 해봐" before production edits. The earlier paragraphs below are retained
 checkpoint history, including rejected designs and failed evidence; their pending

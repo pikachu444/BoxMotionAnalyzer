@@ -9,15 +9,18 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 ## TODO List
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
-  and stale-worker cancellation are implemented. Final production GUI34 checks
-  passed; original FHD/small-window evidence and all seven review corrections are
+  and stale-worker cancellation are implemented. Original production GUI34 checks
+  passed. A user-identified approved-layout regression was restored: left Mode/Settings
+  and expanding target preview. Fresh layout/mode24 checks passed; existing GUI9 passed
+  initially and2 resource-failed cases passed on unchanged-code retry. Original
+  failures, FHD/small-window evidence and review corrections are
   recorded in the PUB06 documents. Required CI/merge status is tracked in PR150.
 - [ ] #139 / PUB06 native acceptance and full issue closure: human approved the shared G17/H12 settings/target-preview
   mockup ("이제 좀 낫긴하네 이거로 해봐"). Production mode binding, per-mode
   settings save/open/Apply/Cancel, robot execution guard, versioned producer
   metadata and stale-worker cancellation/retry are implemented. Fresh scoped
-  production GUI tests28 passed at Qt process1.25; production FHD/widget
-  render12 states each at1.5/1.25 passed. Same independent reviewer closed all
+  production GUI checks and restored FHD/widget render12 states each at1.5/1.25
+  are recorded separately with failures and retries. Same independent reviewer closed all
   production findings; required CI/publication are tracked in PR150. The work
   remains open for native Windows input/viewer/actual OS125 confirmation:
   fresh production-window activation and recovery failed GetCursorPos access

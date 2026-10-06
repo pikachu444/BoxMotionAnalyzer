@@ -352,12 +352,13 @@ class SimulationUI(QWidget):
         self.mode_combo = QComboBox(); self.mode_combo.addItem('Single drop', 'single_drop'); self.mode_combo.addItem('Robot sequence', 'robot_sequence')
         mode_row.addWidget(self.mode_combo, 1)
         self.settings_button = QPushButton('Settings…'); mode_row.addWidget(self.settings_button)
-        self.layout.insertLayout(1, mode_row)
         self.drop_combo.parentWidget().layout().takeRow(self.orientation_preview)
         self.orientation_preview.setParent(None)
+        self.layout.removeWidget(self.experimental_label)
         self.layout.removeWidget(self.form_scroll); self.layout.removeItem(buttons); self.layout.removeWidget(self.progress_bar)
         self.workspace = QHBoxLayout(); self.layout.addLayout(self.workspace, 1)
         self.left_panel = QWidget(); left = QVBoxLayout(self.left_panel); left.setContentsMargins(0, 0, 0, 0)
+        left.addWidget(self.experimental_label); left.addLayout(mode_row)
         left.addWidget(self.form_scroll, 1); left.addLayout(buttons); left.addWidget(self.progress_bar)
         self.cancel_run = QPushButton('Cancel'); self.cancel_run.clicked.connect(self.cancel_simulation); self.cancel_run.hide(); left.addWidget(self.cancel_run)
         self.result_label = QLabel(); self.result_label.setWordWrap(True); self.result_label.setTextFormat(Qt.PlainText); self.result_label.hide(); left.addWidget(self.result_label)
@@ -369,7 +370,7 @@ class SimulationUI(QWidget):
         right.addWidget(self.settings)
         preview = QGroupBox('Preset target'); preview_layout = QVBoxLayout(preview); preview_layout.addWidget(self.orientation_preview)
         self.orientation_preview.setMinimumHeight(160)
-        preview.setFixedHeight(200); right.addWidget(preview); right.addStretch()
+        preview.setMinimumHeight(200); right.addWidget(preview, 1)
         self.right_scroll.setWidget(right_widget); self.workspace.addWidget(self.right_scroll, 2)
         self.preview_group = preview; self.preview_layout = preview_layout; self.right_layout = right
         self.settings_dialog = None; self._narrow = False

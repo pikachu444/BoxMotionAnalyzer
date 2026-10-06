@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="11" time="39.136" timestamp="2026-10-07T00:45:43.639915+09:00" hostname="LAPTOP-LEETAEHO"><testcase classname="tests.test_simulation_export_gui" name="test_cancel_actual_save_dialog_does_not_start_worker[False]" time="2.422"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_simulation_export_gui" name="test_cancel_actual_save_dialog_does_not_start_worker[True]" time="1.087"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_simulation_export_gui" name="test_worker_write_failure_restores_controls_and_retry" time="1.760"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_simulation_export_gui" name="test_batch_stops_at_failed_file_and_keeps_completed_outputs" time="1.408"><properties><property name="evidence_level" value="unit_contract" /></properties><failure message="ValueError: 결과 파일을 읽는 중 오류가 발생했습니다: Error tokenizing data. C error: out of memory">self = &lt;src.analysis.pipeline.data_loader.DataLoader object at 0x000002D422C4A350&gt;
+filepath = 'C:\\Users\\pikac\\AppData\\Local\\Temp\\pytest-of-pikac\\pytest-3522\\test_batch_stops_at_failed_fil0\\TypeG_01_Edge_3-4.proc'
+
+    def load_result_csv(self, filepath: str) -&gt; pd.DataFrame:
+        """
+        분석 완료 후 Export된 멀티헤더 결과 파일을 읽어 DataFrame으로 반환합니다.
+        """
+        try:
+            # 멀티헤더(3줄)를 올바르게 읽기 위해 header=[0, 1, 2] 옵션을 사용합니다.
+&gt;           df = indexed_result(read_result_frame(filepath))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src\analysis\pipeline\data_loader.py:145: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\utils\result_time.py:50: in read_result_frame
+    df = pd.read_csv(path, header=[0, 1, 2], converters=converters, float_precision='round_trip')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pandas\io\parsers\readers.py:1026: in read_csv
+    return _read(filepath_or_buffer, kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pandas\io\parsers\readers.py:620: in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pandas\io\parsers\readers.py:1620: in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pandas\io\parsers\readers.py:1898: in _make_engine
+    return mapping[engine](f, **self.options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pandas\io\parsers\c_parser_wrapper.py:93: in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pandas/_libs/parsers.pyx:574: in pandas._libs.parsers.TextReader.__cinit__
+    ???
+pandas/_libs/parsers.pyx:663: in pandas._libs.parsers.TextReader._get_header
+    ???
+pandas/_libs/parsers.pyx:874: in pandas._libs.parsers.TextReader._tokenize_rows
+    ???
+pandas/_libs/parsers.pyx:891: in pandas._libs.parsers.TextReader._check_tokenize_status
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+&gt;   ???
+E   pandas.errors.ParserError: Error tokenizing data. C error: out of memory
+
+pandas/_libs/parsers.pyx:2061: ParserError
+
+During handling of the above exception, another exception occurred:
+
+saving_window = (&lt;PySide6.QtWidgets.QApplication(0x2d4200ac1b0) at 0x000002D422CB2B80&gt;, &lt;src.simulation.ui.main_window.SimulationUI(0x2d423f152f0) at 0x000002D427B5B880&gt;)
+tmp_path = WindowsPath('C:/Users/pikac/AppData/Local/Temp/pytest-of-pikac/pytest-3522/test_batch_stops_at_failed_fil0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000002D422C33E30&gt;
+
+    def test_batch_stops_at_failed_file_and_keeps_completed_outputs(saving_window, tmp_path, monkeypatch):
+        from src.simulation.scenarios import Scenarios
+        from src.simulation import data_exporter
+        _, window = saving_window
+        sequences = Scenarios.get_drop_sequence_specs(window.cat_combo.currentData())
+        # Use the real batch list; failure at its second export must stop the list.
+        first = tmp_path / f'TypeG_{sequences[0].id}.proc'
+        second = tmp_path / f'TypeG_{sequences[1].id}.proc'
+        second.write_bytes(b'previous second result')
+        messages = []
+        monkeypatch.setattr(QFileDialog, 'getExistingDirectory', lambda *args: str(tmp_path))
+        monkeypatch.setattr(QMessageBox, 'critical', lambda *args: messages.append(('error', args[2])))
+        monkeypatch.setattr(QMessageBox, 'information', lambda *args: messages.append(('success', args[2])))
+        replace = data_exporter.os.replace
+        completed = []
+    
+        def fail_second(source, destination):
+            if Path(destination) == second:
+                raise PermissionError('injected second destination lock')
+            replace(source, destination)
+            completed.append((Path(destination), Path(destination).read_bytes()))
+    
+        monkeypatch.setattr(data_exporter.os, 'replace', fail_second)
+        QTest.mouseClick(window.batch_btn, Qt.LeftButton)
+        wait_for_message(messages)
+        assert window.thread.wait(5000)
+        QTest.qWait(50)
+        assert messages == [('error', 'Simulation Failed: injected second destination lock')]
+        assert len(completed) == 1 and completed[0] == (first, first.read_bytes())
+&gt;       assert len(DataLoader().load_result_csv(str(first))) == 63
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_simulation_export_gui.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;src.analysis.pipeline.data_loader.DataLoader object at 0x000002D422C4A350&gt;
+filepath = 'C:\\Users\\pikac\\AppData\\Local\\Temp\\pytest-of-pikac\\pytest-3522\\test_batch_stops_at_failed_fil0\\TypeG_01_Edge_3-4.proc'
+
+    def load_result_csv(self, filepath: str) -&gt; pd.DataFrame:
+        """
+        분석 완료 후 Export된 멀티헤더 결과 파일을 읽어 DataFrame으로 반환합니다.
+        """
+        try:
+            # 멀티헤더(3줄)를 올바르게 읽기 위해 header=[0, 1, 2] 옵션을 사용합니다.
+            df = indexed_result(read_result_frame(filepath))
+    
+            print(f"[DataLoader INFO] Result file loaded successfully from {filepath}")
+            return df
+        except FileNotFoundError:
+            raise FileNotFoundError(f"결과 파일을 찾을 수 없습니다: {filepath}")
+        except Exception as e:
+&gt;           raise ValueError(f"결과 파일을 읽는 중 오류가 발생했습니다: {e}")
+E           ValueError: 결과 파일을 읽는 중 오류가 발생했습니다: Error tokenizing data. C error: out of memory
+
+src\analysis\pipeline\data_loader.py:152: ValueError</failure></testcase><testcase classname="tests.test_simulation_export_gui" name="test_simulation_run_save_reopen_actual_gui" time="0.002"><properties><property name="evidence_level" value="unit_contract" /></properties><failure message="OSError: [WinError 1450] 시스템 리소스가 부족하기 때문에 요청한 서비스를 완성할 수 없습니다: 'C:\\SourceCodes\\BoxMotionAnalyzer\\tmp\\issue81_gui'">path = 'C:\\SourceCodes\\BoxMotionAnalyzer\\tmp\\issue81_gui'
+
+&gt;   ???
+E   OSError: [WinError 1450] 시스템 리소스가 부족하기 때문에 요청한 서비스를 완성할 수 없습니다: 'C:\\SourceCodes\\BoxMotionAnalyzer\\tmp\\issue81_gui'
+
+&lt;frozen ntpath&gt;:738: OSError
+
+During handling of the above exception, another exception occurred:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000002D42B564380&gt;
+
+    def test_simulation_run_save_reopen_actual_gui(monkeypatch):
+        app=QApplication.instance() or QApplication([])
+        app.setAttribute(Qt.ApplicationAttribute.AA_DontUseNativeDialogs,True)
+&gt;       evidence=Path('tmp/issue81_gui').resolve()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_simulation_export_gui.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Program Files\Python313\Lib\pathlib\_local.py:670: in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen ntpath&gt;:750: in realpath
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\SourceCodes\\BoxMotionAnalyzer\\tmp\\issue81_gui'
+ignored_error = &lt;class 'OSError'&gt;
+
+&gt;   ???
+E   OSError: [WinError 1450] 시스템 리소스가 부족하기 때문에 요청한 서비스를 완성할 수 없습니다: 'C:\\SourceCodes\\BoxMotionAnalyzer\\tmp\\issue81_gui'
+
+&lt;frozen ntpath&gt;:675: OSError</failure></testcase><testcase classname="tests.test_simulation_contact_gui" name="test_contact_damping_controls_in_production_window" time="0.571"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_generate_preview_and_open_observations_only[None]" time="7.580"><properties><property name="evidence_level" value="synthetic_integration" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_generate_preview_and_open_observations_only[missing]" time="3.182"><properties><property name="evidence_level" value="synthetic_integration" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_generate_preview_and_open_observations_only[flip_180_local_axis]" time="4.240"><properties><property name="evidence_level" value="synthetic_integration" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_import_validation_cancel_overwrite_and_retained_success" time="4.211"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase><testcase classname="tests.test_simulation_marker_export_gui" name="test_cancel_and_close_wait_for_running_worker" time="1.107"><properties><property name="evidence_level" value="unit_contract" /></properties></testcase></testsuite></testsuites>

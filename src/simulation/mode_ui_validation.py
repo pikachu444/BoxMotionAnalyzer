@@ -31,6 +31,7 @@ def main():
             source_sha256={path: hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in sorted(set(sources)) if Path(path).is_file()}),
         environment=dict(os=platform.platform(), python=platform.python_version(), dependencies={name: version(name) for name in ('PySide6', 'mujoco', 'numpy', 'scipy')},
             platform=app.platformName(), qt_process_scale=os.environ.get('QT_SCALE_FACTOR'), screen_dpr=dpr,
+            available_logical=[app.primaryScreen().availableGeometry().width(), app.primaryScreen().availableGeometry().height()],
             native_os125='not verified; process scale does not establish OS scale'),
         approval=dict(mockup='Human approved latest shared G17/H12 workspace: 이제 좀 낫긴하네 이거로 해봐', trial='not_evaluated', baseline='no promotion', tolerance='no promotion'),
         native=dict(status='not_executed', reason='Separate native input/OS125 tier; previous activation failures preserved'),
@@ -41,8 +42,13 @@ def main():
         optimizer=dict(starts=0, reason='No optimizer invoked'),
         registration=dict(status='not_applicable', reason='#113 excluded'), states=[], completion='running')
     def capture(window, name, small=False, scope='Production widgets with public state fixture'):
-        window.resize(820, 600) if small else window.resize(math.ceil(1920/dpr), math.ceil(1080/dpr))
+        target = (820, 600) if small else (math.ceil(1920/dpr), math.ceil(1080/dpr))
+        window.resize(*target)
         window.show(); QTest.qWait(50); app.processEvents()
+        # Windows may constrain the initial client size to the work area while
+        # showing a decorated window. Reassert the requested widget size, as the
+        # existing profile/scene render fixtures do; this is not native capture.
+        window.resize(*target); QTest.qWait(50); app.processEvents()
         if small and name.endswith('preview'):
             window.form_scroll.ensureWidgetVisible(window.orientation_preview); app.processEvents()
             rect = window.orientation_preview.rect(); rect.moveTopLeft(window.orientation_preview.mapTo(window.form_scroll.viewport(), rect.topLeft()))
@@ -54,18 +60,24 @@ def main():
             assert control.visibleRegion().contains(control.rect()), 'Primary actions must remain reachable.'
         if not small:
             assert window.right_scroll.isVisible()
+            preview_rect = window.preview_group.rect()
+            preview_rect.moveTopLeft(window.preview_group.mapTo(window.right_scroll.viewport(), preview_rect.topLeft()))
+            unused_bottom = window.right_scroll.viewport().height() - preview_rect.bottom() - 1
+            assert unused_bottom <= window.right_layout.contentsMargins().bottom(), 'The preview must consume the remaining workspace, as approved, rather than leave a blank lower panel.'
             if window.settings.tabs.currentIndex() == 0:
                 assert window.settings.table.viewport().height() >= 5*window.settings.table.rowHeight(0), 'Five preset rows must actually be visible.'
             for control in (window.orientation_preview, window.settings.apply_button):
                 rect = control.rect(); rect.moveTopLeft(control.mapTo(window.right_scroll.viewport(), rect.topLeft()))
                 assert window.right_scroll.viewport().rect().contains(rect), 'Preview and Apply must fit without scrolling in the FHD workspace.'
         pixmap = window.grab(); path = root/(name+'.png'); assert pixmap.save(str(path))
-        if not small: assert pixmap.width() >= 1920 and pixmap.height() >= 1080
+        if not small: assert pixmap.width() >= 1920 and pixmap.height() >= 1080, (target, window.size(), pixmap.size(), dpr)
         report['states'].append(dict(name=name, screenshot=path.name, logical=[window.width(), window.height()],
             pixels=[pixmap.width(), pixmap.height()], dpr=pixmap.devicePixelRatio(), mode=window.profiles.mode,
             selected_preset=window.orientation_preview.sequence_spec.id, scope=scope,
             sequence_steps=len(window.profiles.configs[window.profiles.mode]['sequence_profile']['steps']),
             preset_rows=window.settings.table.rowCount(), preview_meaning='Preset target, not a predicted contact',
+            preview_logical=[window.orientation_preview.width(), window.orientation_preview.height()],
+            unused_bottom_logical=None if small else unused_bottom,
             expected='Actions inside viewport; preview visible; G17 or H12 browser, no phantom robot execution', actual='passed', tolerance=0, fresh=True))
         report['input']['configuration_hashes'].append(digest(window.profiles.configs[window.profiles.mode]))
     window = SimulationUI()
