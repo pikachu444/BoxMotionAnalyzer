@@ -63,6 +63,20 @@ class MockSimulation(SimulationUI):
             for button in (self.run_btn,self.batch_btn,self.marker_btn): button.setEnabled(False)
         elif state == 'blocked':
             self.result.setText('Sequence simulation is not implemented. Previous results are preserved.')
+        self._fit_form()
+
+    def _fit_form(self):
+        # Review the actual content height, not a maximized empty scroll area.
+        # A smaller window keeps scrolling; the primary actions stay reachable.
+        self.form_layout.activate()
+        height=self.form_layout.sizeHint().height()+2*self.form_scroll.frameWidth()
+        self.form_scroll.setMaximumHeight(height)
+        self.layout.setAlignment(Qt.AlignTop)
+
+    def content_height(self):
+        self._fit_form()
+        form_height=self.form_layout.sizeHint().height()+2*self.form_scroll.frameWidth()
+        return self.layout.sizeHint().height()-self.form_scroll.sizeHint().height()+form_height
 
     def change_mode(self):
         robot = self.mode.currentData() == 'robot_sequence'
@@ -74,6 +88,7 @@ class MockSimulation(SimulationUI):
             button.setEnabled(not robot)
             button.setToolTip('Sequence simulation is not implemented.' if robot else '')
         self.result.setText('')
+        self._fit_form()
 
     def closeEvent(self,event):
         # Review-only states have no live worker and must not inherit its close gate.
@@ -89,14 +104,14 @@ class MockProfiles(QWidget):
         self.mode = QLabel('Single drop' if mode=='single_drop' else 'Robot sequence')
         top.addWidget(self.mode,1)
         layout.addLayout(top)
-        self.tabs = QTabWidget(); layout.addWidget(self.tabs,1)
+        self.tabs = QTabWidget(); layout.addWidget(self.tabs)
         sequence = QWidget(); seq = QVBoxLayout(sequence)
         names = QFormLayout(); self.name = QLineEdit('Public sequence example' if mode=='robot_sequence' else 'Current single drop')
         names.addRow('Sequence profile',self.name)
         robot = QComboBox(); robot.addItem('Gripper proxy'); names.addRow('Robot model',robot)
         robot.setEnabled(mode=='robot_sequence'); seq.addLayout(names)
         self.table = QTableWidget(2 if mode=='robot_sequence' else 1,5)
-        self.table.setMaximumHeight(220)
+        self.table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.table.setHorizontalHeaderLabels(['Preset','Clearance (mm)','Fixed X (°)','Fixed Y (°)','Fixed Z (°)'])
         self.table.setToolTip('Fixed world XYZ in MuJoCo Z-up; extrinsic xyz degrees. Not a marker-local half turn.')
         self.table.horizontalHeader().setSectionResizeMode(0,QHeaderView.Stretch)
@@ -110,13 +125,14 @@ class MockProfiles(QWidget):
         if invalid:
             self.table.item(1,1).setText('NaN')
             self.table.item(1,1).setBackground(Qt.GlobalColor.yellow)
+        self.table.setFixedHeight(self.table.horizontalHeader().height()+2*self.table.frameWidth()
+            +sum(self.table.rowHeight(r) for r in range(min(8,self.table.rowCount()))))
         seq.addWidget(self.table)
         actions=QHBoxLayout()
         for text in ('Add drop','Remove','Move up','Move down'):
             button=QPushButton(text); button.setEnabled(mode=='robot_sequence'); actions.addWidget(button)
         seq.addLayout(actions)
         seq.addWidget(QLabel('Configure and save drop order. Execution is not available yet.') if mode=='robot_sequence' else QLabel('Optional settings. You can run a single drop directly from Simulation.'))
-        seq.addStretch()
         self.tabs.addTab(sequence,'Sequence')
         physics=QWidget(); form=QFormLayout(physics)
         form.addRow('Physics profile',QLineEdit('Current physics'))
@@ -158,6 +174,23 @@ class MockProfiles(QWidget):
         self.apply=QPushButton('Use in Simulation'); self.apply.setEnabled(not invalid);buttons.addWidget(self.apply)
         self.apply.setToolTip('Use these settings in Simulation. This does not save a file or run a simulation.')
         buttons.addWidget(QPushButton('Cancel'));layout.addLayout(buttons)
+        layout.addStretch()
+        self.setMinimumWidth(820)
+        layout.setAlignment(Qt.AlignTop)
+        self.tabs.currentChanged.connect(self._fit_tab)
+        self._fit_tab()
+        self.resize(820,self.content_height())
+
+    def _fit_tab(self):
+        page_height=self.tabs.currentWidget().sizeHint().height()
+        self.tabs.setFixedHeight(page_height+self.tabs.tabBar().sizeHint().height()+4)
+
+    def content_height(self):
+        # Preferred size follows the active tab, without stretching short forms
+        # to the longest tab. Larger user windows still retain a visible footer.
+        self._fit_tab()
+        self.layout().activate()
+        return self.layout().sizeHint().height()
 
     def edit_marker(self):
         from src.simulation.ui.marker_profile_dialog import MarkerProfileDialog
@@ -175,27 +208,40 @@ def main():
         os_scale='Not inferred from Qt process scale; native OS125 remains separate',states=[])
     for state,mode,tab in [('default','single_drop',0),('sequence','robot_sequence',0),('physics','robot_sequence',1),('observation','robot_sequence',2),('returned','single_drop',0),('invalid','robot_sequence',0),('blocked','robot_sequence',0),('running','single_drop',0),('cancelled','single_drop',0)]:
         board=QWidget();board.setWindowTitle('#139 — profile review')
-        row=QHBoxLayout(board);row.setContentsMargins(30,30,30,30);row.setSpacing(24)
+        row=QHBoxLayout(board);row.setContentsMargins(30,40,30,40);row.setSpacing(24)
         main_window=MockSimulation(mode,state);profile=MockProfiles(mode,state=='invalid',main_window);profile.tabs.setCurrentIndex(tab)
         for title,widget,weight in [('Simulation',main_window,2),('Settings…',profile,3)]:
             group=QGroupBox(title);layout=QVBoxLayout(group);layout.addWidget(widget)
-            if title=='Settings…':group.setMaximumHeight(620)
-            row.addWidget(group,weight,Qt.AlignTop if title=='Settings…' else Qt.AlignmentFlag(0))
+            group.setFixedHeight(widget.content_height()+42)
+            row.addWidget(group,weight,Qt.AlignTop)
         board.resize(1920,1080);board.show();app.processEvents()
+        assert main_window.form_scroll.verticalScrollBar().maximum()==0, 'Natural-height form must show all collapsed controls.'
+        assert profile.table.viewport().height()>=sum(profile.table.rowHeight(r) for r in range(profile.table.rowCount()))
         # Render at original resolution, never upscale a smaller raster.
         pixmap=board.grab();name=f'{state}-fhd.png';assert pixmap.save(str(root/name))
         assert pixmap.width()>=1920 and pixmap.height()>=1080
-        report['states'].append(dict(state=state,logical=[board.width(),board.height()],pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),screenshot=name,composition='Two original Qt panels on a review board'))
+        report['states'].append(dict(state=state,logical=[board.width(),board.height()],pixels=[pixmap.width(),pixmap.height()],
+            dpr=pixmap.devicePixelRatio(),screenshot=name,composition='Two original Qt panels on a review board',
+            panels=dict(simulation=[main_window.width(),main_window.height()],settings=[profile.width(),profile.height()]),
+            form_scroll_maximum=main_window.form_scroll.verticalScrollBar().maximum(),table_empty_rows=0))
         board.close();board.deleteLater();app.processEvents()
     for mode in ('single_drop','robot_sequence'):
         window=MockSimulation(mode,'blocked' if mode=='robot_sequence' else 'default');window.resize(820,600);window.show();app.processEvents()
+        for button in (window.run_btn,window.batch_btn,window.marker_btn):
+            rectangle=button.rect();rectangle.moveTopLeft(button.mapTo(window,rectangle.topLeft()))
+            assert window.rect().contains(rectangle), 'Primary action must remain inside the small window.'
         pixmap=window.grab();name=f'{mode}-820x600.png';pixmap.save(str(root/name))
         report['states'].append(dict(state=mode,logical=[window.width(),window.height()],pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),screenshot=name))
         window.close();window.deleteLater();app.processEvents()
         source=MockSimulation(mode)
         profile=MockProfiles(mode,source=source);profile.resize(820,600);profile.show();app.processEvents()
+        apply_top=profile.apply.mapTo(profile,profile.apply.rect().topLeft()).y()
+        status_bottom=profile.status.mapTo(profile,profile.status.rect().bottomLeft()).y()
+        assert 0 <= apply_top-status_bottom <= 20, 'Footer must stay next to profile content.'
+        assert profile.rect().contains(profile.apply.geometry()), 'Apply must remain inside the small window.'
         pixmap=profile.grab();name=f'{mode}-profiles-820x600.png';pixmap.save(str(root/name))
-        report['states'].append(dict(state=mode+' profiles',logical=[profile.width(),profile.height()],pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),screenshot=name))
+        report['states'].append(dict(state=mode+' profiles',logical=[profile.width(),profile.height()],pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),screenshot=name,
+            scope='Forced-size resize stress; default settings height follows active content',footer_gap=apply_top-status_bottom))
         profile.close();profile.deleteLater();app.processEvents()
         source.deleteLater()
     (root/'evidence.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')

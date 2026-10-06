@@ -56,6 +56,47 @@ The first combined render command exited1 after the DPR1 files were written;
 separate DPR1.25 rerun completed13 states successfully. This is recorded as a
 render invocation result, not native acceptance or production behavior.
 
+## Spacing correction after user feedback
+
+The user questioned excess whitespace. Main reduced the review-only sequence
+table to its visible rows (up to8 before scrolling), moved sequence actions
+directly underneath, fitted the main form to its actual content and fitted the
+Settings panel to its active tab. The FHD board no longer stretches the main
+panel to the entire1080-pixel height. Empty space outside panel borders is the
+review canvas, not application content. Production UI is still unchanged.
+
+Initial `spacing100/spacing125` clipped the single-drop preview because the
+default QScrollArea size hint capped the preferred viewport. Those failed
+inspection images are preserved. `spacing_verified100/spacing_verified125`
+use the actual form-layout height and produced13 states each. Original FHD
+PNG1920x1080/DPR1 and2400x1350/DPR1.25; standalone820x600 logical windows remain.
+Structural assertions passed: no FHD scrolling for collapsed controls, complete
+fixture table rows visible, and three primary buttons inside the small window.
+Their evidence.json also records each actual panel's logical width/height.
+The reviewer found one P3 remaining: forced820x600 Sequence settings separated
+the content from the footer by270–300 logical pixels. Main capped the active
+tab height, removed internal stretching and kept the footer next to the content.
+The default Settings height now follows the active content. Forced820x600 is a
+separate resize stress case with spare space below all actions.
+
+`spacing_compact100/spacing_compact125` used the offscreen platform and rendered
+unreadable fonts; these failed visual attempts remain preserved. Final Windows
+Qt platform renders are `spacing_native_render100/spacing_native_render125`
+(the folder name does not denote native input acceptance). Each invocation
+produced13 states with original dimensions as above. Footer-gap assertions
+also passed at both process scales. Same-reviewer presentation recheck closed
+the P3: status-to-footer gap is7 logical pixels at both process scales and in
+both modes; spare space below the actions does not separate the workflow.
+No new clipping or button-access issue was found in FHD Sequence/Physics/
+Markers and noise, invalid/cancelled/running images. This does not certify native
+input, OS125 scaling, production behavior or human mockup approval.
+
+Fresh commands: with QT_QPA_PLATFORM unset, set QT_SCALE_FACTOR to1 or1.25;
+`.venv/Scripts/python.exe docs/visualization/mockups/simulation_mode_139/generate_mockups.py --output docs/visualization/mockups/simulation_mode_139/spacing_native_render100`
+(use the125 output folder for1.25). Both exit0,13 states each. Only the
+review-only script/document changed after HEAD91ab5ed; no production numerical
+or UI implementation changed, so backend checks were not repeated for spacing.
+
 ## Native state
 
 The computer-use skill initialized @oai/sky and identified exactly one
