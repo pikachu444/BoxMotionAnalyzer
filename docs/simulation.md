@@ -1,13 +1,27 @@
 # 박스 낙하 시뮬레이션 문서
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-10-07
 
-#139 / PUB06 backend은 mode별 sequence·physics·observation 설정 문서와
-직접 export/Marker CSV의 공개 metadata·평가용 metadata 분리를 구현 중이다.
-기존 단일 낙하 수치·alias는 보존하며 robot_sequence 실행은 차단한다.
-Production UI 연결은 새 목업 승인 후 진행한다. 현재 계약과 legacy·시간·
-좌표 의미는 [mode 계약](analysis/reference/simulation_mode_contract.md),
-검증·native 미실행 상태는 [진행 기록](visualization/simulation_mode_139.md)에 있다.
+#139 / PUB06은 기본 Single drop과 선택형 Robot sequence의 설정을 분리한다.
+기존 Run·Run all presets·Marker CSV 경로를 사용하며 두 모드가 같은 설정 탭과
+박스 프리뷰를 공유한다. Robot sequence는 설정 저장까지 가능하며 실행은 #140의
+attach/pickup/release engine이 없다는 사유로 차단한다. 합성 설정과 결과는
+실제 원시험·반복 수와 구분한다. [mode 계약](analysis/reference/simulation_mode_contract.md),
+[검증과 native 대기 범위](visualization/simulation_mode_139.md)를 참고한다.
+
+`Settings…`의 Sequence·Physics·Markers and noise는 실행에 사용할 입력을 편집한다.
+Open/Save settings는 파일을 읽고 저장하며, `Use in Simulation`으로 적용한다.
+Cancel은 적용 전 변경을 되돌린다. 작은 창에서는 Settings를 별도 창으로 열고
+기존 입력·박스 프리뷰를 스크롤로 확인한다. 모드 왕복은 각 모드의 적용한 설정을
+복원한다. Single drop 표의 여러 프리셋은 탐색 목록이며 선택한 한 행만 실행한다.
+Robot sequence의 순서 편집은 전체 계획 설정이며 연속 실행 성공을 뜻하지 않는다.
+이 프리셋 목록을 검증된 완전한 ISTA 절차로 보증하지 않는다.
+
+Run/Run all presets는 시작 시 설정을 복사한다. Cancel 후 worker가 종료되어야
+재시도할 수 있고, 실패·취소·입력 변경은 이전 출력과 기록을 유지한다.
+설정을 바꾸면 이전 결과를 현재 설정의 결과로 표시하지 않는다. 생성한 `.proc`와
+Marker CSV에는 versioned mode/profile·실제 engine clock·source metadata가 붙어
+저장·재열기·분석/Compare까지 전달된다. 없는 legacy 선언을 추정해서 채우지 않는다.
 
 Marker CSV의 Copy/Edit는 예제 18/32와 custom import를 재사용한다. Preview는 적용과 별개이며 Reset to source는 draft만 초기화한다. Save JSON은 적용본과 미적용 draft·preview·편집 이력을 함께 저장하고, import는 저장한 적용본을 사용한다. 3D 회전·확대·이동과 분리 면 드래그는 표시용으로 원래 mm 좌표를 바꾸지 않는다. [PUB05 계약](analysis/reference/marker_profile_semantics.md)은 기존 결과 호환성과 legacy 제한, native 미실행 범위를 기록한다.
 
@@ -24,7 +38,7 @@ GUI의 Run과 Run all presets는 `.proc`를 직접 내보낸다. `Marker CSV…`
 
 ### Simulation에서 마커 관측 생성 (#114)
 
-`Marker CSV…`를 누르면 현재 거리·초기 회전·질량·COM·접촉 설정·기간을 복사한 창이 열린다. 공개 18/32마커 예제 또는 기존 형식의 JSON 배치를 선택하고 로컬 XYZ·면별 마커를 확인한다. 배치는 절대 mm 좌표이며 Simulation 치수에 맞춰 자동 확대하지 않는다. 치수가 다르면 `Use layout box`를 선택해야 생성할 수 있고, 원래 Simulation 값은 유지된다. 가져온 배치는 Imported로 구분한다. 배치 편집이나 별도 등록 절차는 없다.
+`Marker CSV…`를 누르면 현재 거리·초기 회전·질량·COM·접촉 설정·기간을 복사한 창이 열린다. 공개 18/32마커 예제 또는 기존 형식의 JSON 배치를 선택하고 로컬 XYZ·면별 마커를 확인한다. 배치는 절대 mm 좌표이며 Simulation 치수에 맞춰 자동 확대하지 않는다. 치수가 다르면 `Use layout box`를 선택해야 생성할 수 있고, 원래 Simulation 값은 유지된다. 가져온 배치는 Imported로 구분한다. Copy/Edit로 배치를 편집할 수 있으며 별도 사용자 등록 절차는 없다.
 
 `Faults`의 기본값은 None이다. 누락, 로컬 XYZ 반회전, 독립 Gaussian 잡음을 기존 생성 API로 지정할 수 있다. 반회전은 시작 시각부터 끝까지 solved 채널에 적용한다. 누락과 잡음은 시작 이상·끝 미만 구간이며 실제 기록 시각으로 표본을 선택한다. 정지로 조기 종료한 기록을 벗어나는 지정은 오류로 알린다. Physical 채널의 변화는 Step 1 solved 그래프를 바꾸지 않는다. 잡음 seed로 관측을 재현할 수 있지만 실측 오차 분포를 뜻하지 않는다. 직접 `.proc`의 코너 잡음 옵션은 이 관측에 적용하지 않는다.
 

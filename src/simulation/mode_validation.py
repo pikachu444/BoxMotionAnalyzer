@@ -39,7 +39,7 @@ def main():
         environment=dict(os=platform.platform(),python=platform.python_version(),
             dependencies={name:version(name) for name in ('numpy','pandas','scipy','mujoco','PySide6')}),
         schema_versions=dict(mode_profiles=1,simulation_metadata=1,artifact=1),
-        approval=dict(mockup='pending human confirmation',trial='not_evaluated',baseline='no promotion',tolerance='no physical tolerance approval'),
+        approval=dict(mockup='Human approved shared G17/H12 workspace on 2026-10-06',trial='not_evaluated',baseline='no promotion',tolerance='no physical tolerance approval'),
         native=dict(status='not_executed',reason='Windows activation failed; no native input or actual OS125 evidence'),
         experimental_validation=dict(status='not_executed',reason='#104 separate; no verified experimental dataset'),
         registration=dict(status='not_applicable',reason='#113 excluded by user; existing source lineage retained'),

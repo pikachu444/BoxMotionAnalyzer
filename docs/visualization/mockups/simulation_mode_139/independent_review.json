@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "IndependentReviewRecord",
+  "date": "2026-10-07",
+  "reviewer": "existing GPT-6.1 Sol / High read-only reviewer",
+  "base": "d2e7656403b740da22d631f2ab8df6e100231ff1",
+  "committed_head": "eaf54756f98b66154eff46d7b868e9378bbc8121",
+  "dirty_review": true,
+  "source_sha256": {
+    "src/simulation/ui/main_window.py": "344c0821d80f881f4eeb00f24ceda6da9006b19d1d05518d43fd98ab949d1813",
+    "src/simulation/ui/mode_settings.py": "ce176302cc2e63594e8344095d0fc6683dc6fa31f8f63425f7a7b83aae89fd9c",
+    "src/simulation/ui/marker_export_dialog.py": "8eb5664468a0fa42776679275ba44b82ebf9589326faae9376744539c43c35b9",
+    "src/simulation/mode_ui_validation.py": "a4410ec55992325f3c69cf963150be30e03e78f1c7b3e642afe12441017584db",
+    "tests/test_simulation_modes_gui.py": "0c55f0e3f1f2f0af05b651f2037f7deef0f724b99b801035a26351f5ae951a39"
+  },
+  "mode": "read-only; no test execution, edits or extra agents",
+  "original_findings": [
+    "P2 Single row selection discards draft and changes live before Apply",
+    "P2 loaded category/mode selection searches unrelated live preset",
+    "P2 Robot Apply/Cancel active row and preview mismatch",
+    "P2 small controls/preview clipped",
+    "P2 invalid row not visible or localized",
+    "P2 same-Robot loaded size uses live geometry",
+    "P2 active numeric edit lacks automatic preview update"
+  ],
+  "resolution": "all seven confirmed corrected by the same reviewer",
+  "remaining_software_publication_blockers": [],
+  "excluded_acceptance": [
+    "required CI",
+    "native input",
+    "actual Windows OS125",
+    "whole issue139 completion",
+    "measured experiment accuracy"
+  ],
+  "statement": "No remaining P0/P1/P2 publication blockers in inspected production integration scope; reviewer verified stored reports without executing tests."
+}

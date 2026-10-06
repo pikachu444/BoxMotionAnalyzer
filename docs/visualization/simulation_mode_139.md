@@ -1,8 +1,103 @@
 # Simulation mode contract — PUB06
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-10-07
 
 Plan Spec: ISTA6A-PLAN-20261001-v1
+
+## Current production checkpoint (2026-10-07)
+
+The user approved `ista_reset_fixed150/ista_reset_fixed125` with "이제 좀 낫긴하네
+이거로 해봐" before production edits. The earlier paragraphs below are retained
+checkpoint history, including rejected designs and failed evidence; their pending
+approval/UI statements describe those earlier checkpoints.
+
+Production now uses one mode/settings/target-preview layout. Single keeps its
+existing controls/default execution; Robot preserves its separate ordered plan
+and explicitly blocks execution. Open/Save are drafts/storage; Use applies and
+Cancel restores. Narrow Settings applies/closes or cancels without replacing the
+main form. Run/Run all presets/Marker CSV use captured configurations, metadata,
+cancellation and generation gates. Existing marker editor and truth separation
+are reused. Previous result files/history remain available after settings changes.
+
+Fresh command with QT_SCALE_FACTOR=1.25:
+`.venv/Scripts/python.exe -m pytest tests/test_simulation_modes_gui.py tests/test_simulation_layout.py tests/test_simulation_export_gui.py tests/test_simulation_contact_gui.py tests/test_simulation_marker_export_gui.py -q --junitxml=tmp/issue139/ui-production-final125.xml`.
+Result28 passed in34.10s. This includes complete current G17 batch, Run/export/
+reload, Save/Open/Apply/Cancel, isolated mode roundtrip, finite/version/robot gates,
+real thread cancellation/stale source/mode/retry and existing failed writer/second
+batch file preservation/actual file-picker/Step1 lineage flows. Subsequent narrow
+dialog close/tooltips and review corrections passed the scoped follow-up checks
+recorded below.
+
+Original production renders `tmp/issue139/production-settled150/` and
+`production-settled125/`:12 states each, exit0. FHD PNG1920x1080 uses logical
+1280x720 at process DPR1.5 or1536x864 at1.25; small logical820x600 uses original
+1230x900/1025x750. Both default Single/Robot originals were shown inline. The
+render script checks five visible table rows and viewport bounds of Apply/preview.
+No raster enlargement. Process125 is not actual Windows OS125 evidence.
+Fresh independent transform/storage RunReport:
+`python -m src.simulation.mode_validation --output tmp/issue139/contracts-production`,
+exit0. Source/dirty paths/hashes, environment, literal expectations, actual values,
+seed and software bounds remain in the RunReports. Earlier passed backend reports
+are reused only for unaffected scopes; overlapping counts are not summed.
+
+New original failure records remain: ui-layout-first.xml (cramped small form),
+ui-marker-first.xml (a125-required fixture invoked at1.0), ui-mode-first.xml
+(Parser/time fixture mistakes plus Cancel incorrectly reenabled on mode load),
+ui-mode-corrected.xml (wrong fixture Time constant), production-first150
+(clipped preview, inadequate visibleRegion-only check), production-fit150/125
+(table header-only height derived before row insertion), production-visible150 /
+production-compact150 (real viewport catches fit failure). Corrected reports are
+separate; no original baseline/tolerance was altered or promoted.
+
+Native production launch initially failed import-path initialization
+(`tmp/issue139/native_production.err`); corrected script/process was enumerated
+as `Simulation — #139 production verification`. Native activation failed
+`GetCursorPos failed: 액세스가 거부되었습니다. (0x80070005)` and one recovery with
+fresh inventory/window selection failed identically. No native screenshot/input
+was accepted. Native source/mode/profile/save/dialog/Run/Cancel/viewer/marker/Step1
+input and actual Windows OS125 remain unexecuted. Existing older failures are
+preserved. Whole139 is not marked complete or automatically closed; #140 is not
+started. Same read-only reviewer closed the production findings; required CI and
+publication are tracked in PR150. No measured accuracy or real-data claim follows from
+these public software fixtures.
+
+### Independent production review and corrections
+
+The same GPT-6.1 Sol/High reviewer found no P0/P1 and five P2s: row selection
+silently reset draft inputs; loaded H/mode selection searched live G; Robot
+Apply/Cancel preview differed from selected row; small controls/preview clipped;
+invalid row2 was not shown. Main corrected all five. Single row selection now
+previews its own draft without applying; Apply/Cancel resynchronize active state.
+Loaded categories use their own source; active rows are per mode. Invalid cells
+identify Drop/clearance/XYZ, focus/scroll and retain a named previous valid preview.
+Layout invalidation/refitting preserves natural small-control heights and complete
+scrolled preview. Same reviewer confirmed all five corrections, then found two
+related P2s: loaded Robot size used live geometry, and active numeric edits lacked
+automatic preview updates. Main corrected both and added signal-path tests. The
+same reviewer closed all seven findings with no remaining software P0/P1/P2
+publication blockers. Native/OS125/whole139/required CI are outside that conclusion.
+
+QT_SCALE_FACTOR1.25 correction suite (`tests/test_simulation_modes_gui.py`
+and `tests/test_simulation_layout.py`)22 passed in21.67s at
+`tmp/issue139/review-ui-corrections-fixed125.xml`; final targeted guards9 passed
+in6.23s at `review-ui-final-guards125.xml`. Counts overlap previous28.
+Original correction failure `review-ui-corrections125.xml` retains the finding
+that the first correction reused Single's active row for Robot; it was corrected
+with per-mode active rows while preserving the independent expected first edge.
+Final originals are committed under `mockups/simulation_mode_139/production125`
+and `production150`,12 states each with RunReports. These supersede the earlier
+settled renders for small-window acceptance. `native_attempt.json` records the
+failed native recovery and precise follow-up scope without unrelated app data.
+
+Final production mode event checks20 passed in17.25s at
+`tmp/issue139/review-ui-events-final125.xml`. This includes loaded Robot size and
+active-row edit/Cancel events without manually invoking the update callback.
+Native/OS125 remains unexecuted; no whole139 completion or closure is claimed.
+Required CI and merge status are authoritative in [PR150](https://github.com/pikachu444/BoxMotionAnalyzer/pull/150).
+The historical mockup generator and its original screenshots were executed at
+`eaf54756f98b66154eff46d7b868e9378bbc8121` before production binding. Reproduction
+requires that historical source checkout; current production evidence uses
+`src.simulation.mode_ui_validation` instead.
 
 ## Start and preservation
 

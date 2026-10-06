@@ -53,6 +53,7 @@ class MarkerExportWorker(QThread):
 
 class MarkerExportDialog(QDialog):
     open_observations = Signal(str)
+    settings_captured = Signal(object)
 
     def __init__(self, simulation, box_size, parent=None):
         super().__init__(parent)
@@ -69,6 +70,7 @@ class MarkerExportDialog(QDialog):
         self.worker = None
         self.observed_path = None
         self.close_requested = False
+        self.source_stale = False
         self.setWindowTitle('Synthetic marker CSV')
         self.resize(1000, 700)
         self.setMinimumSize(820, 600)
@@ -167,6 +169,21 @@ class MarkerExportDialog(QDialog):
         self.open_button.clicked.connect(self._open)
         self._select_profile()
         self._fault_controls()
+        config = self.simulation.get('mode_config')
+        if config is not None:
+            from src.simulation.mode_profiles import require_executable
+            require_executable(config)
+            marker = config['observation_profile']['marker']
+            # Retain the PUB05 editor document and its pending/applied identity.
+            profile = marker['profile']
+            example = next((key for key in ('18', '32') if profile == load_profile(example=key)), None)
+            if example is None: self._set_custom(profile, marker['document'])
+            else: self.profile_combo.setCurrentIndex(self.profile_combo.findData(example))
+            self.dimensions.setChecked(marker['use_layout_box'] or tuple(profile['box_dims_mm']) == self.original_size)
+            self.seed.setValue(marker['seed']); fault = marker['faults']
+            self.kind.setCurrentIndex(self.kind.findData(fault['kind'])); self.channel.setCurrentIndex(self.channel.findData(fault['channel']))
+            self.axis.setCurrentText(fault['axis']); self.start.setValue(fault['start']); self.end.setValue(fault['end']); self.std.setValue(fault['std_mm'])
+            self._fault_controls()
 
     @property
     def busy(self):
@@ -249,7 +266,7 @@ class MarkerExportDialog(QDialog):
         support = layout_support(self.profile)
         reason = support['reason'] if support['status'] != 'supported' else None
         self.controls.setEnabled(not self.busy)
-        self.generate_button.setEnabled(not self.busy and self.dimensions.isChecked() and reason is None)
+        self.generate_button.setEnabled(not self.busy and not self.source_stale and self.dimensions.isChecked() and reason is None)
         self.generate_button.setToolTip(reason or '')
         self.cancel_button.setEnabled(self.busy)
         self.open_button.setEnabled(not self.busy and self.observed_path is not None)
@@ -261,7 +278,7 @@ class MarkerExportDialog(QDialog):
         self._layout_block_reason = reason
 
     def generate(self):
-        if self.busy or not self.dimensions.isChecked():
+        if self.busy or self.source_stale or not self.dimensions.isChecked():
             return
         support = layout_support(self.profile)
         if support['status'] != 'supported':
@@ -279,7 +296,17 @@ class MarkerExportDialog(QDialog):
             return
         faults = dict(kind=self.kind.currentData(), channel=self.channel.currentData(),
             start=self.start.value(), end=self.end.value(), axis=self.axis.currentText(), std_mm=self.std.value())
-        self.worker = MarkerExportWorker(destination, self.profile, self.simulation, faults, self.seed.value(), self)
+        simulation = copy.deepcopy(self.simulation)
+        if simulation.get('mode_config') is not None:
+            from src.simulation.mode_profiles import require_executable
+            marker = simulation['mode_config']['observation_profile']['marker']
+            marker.update(profile=copy.deepcopy(self.profile), identity=profile_identity(self.profile),
+                document=copy.deepcopy(self.imported_document) if self.profile_combo.currentData() == 'custom' else None,
+                faults=faults, seed=self.seed.value(), use_layout_box=self.dimensions.isChecked())
+            try: require_executable(simulation['mode_config'])
+            except ValueError as error: self.status.setText(str(error)); return
+            self.settings_captured.emit(copy.deepcopy(marker))
+        self.worker = MarkerExportWorker(destination, self.profile, simulation, faults, self.seed.value(), self)
         worker = self.worker; self._generation += 1; generation = self._generation; self._cancel_reason = None
         worker.progress.connect(lambda value, text:self._job_event(worker, generation, self._progress, value, text))
         worker.ready.connect(lambda path:self._job_event(worker, generation, self._ready, path))

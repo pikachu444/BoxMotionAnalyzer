@@ -1,14 +1,15 @@
 import os
 import sys
 from pathlib import Path
+from copy import deepcopy
 import numpy as np
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QLineEdit, QComboBox, QPushButton, QDoubleSpinBox, QCheckBox,
     QGroupBox, QFormLayout, QMessageBox, QFileDialog, QProgressBar,
-    QScrollArea, QSizePolicy
+    QScrollArea, QSizePolicy, QDialog
 )
-from PySide6.QtCore import Qt, QThread, Signal, QPointF, QSize
+from PySide6.QtCore import Qt, QThread, Signal, QPointF, QSize, QTimer
 from PySide6.QtGui import QColor, QBrush, QPainter, QPen, QPolygonF
 from scipy.spatial.transform import Rotation as R
 
@@ -17,6 +18,8 @@ from src.simulation.engine import MuJoCoEngine
 from src.simulation.scenarios import Scenarios
 from src.simulation.data_exporter import DataExporter
 from src.utils.qt_sections import CollapsibleSection
+from src.simulation.mode_profiles import ModeProfiles, require_executable, BLOCKED_REASON, drop_step
+from .mode_settings import ModeSettings, preset_steps
 
 
 class OrientationPreviewWidget(QWidget):
@@ -236,11 +239,12 @@ def simulation_error_message(error):
 class SimulationThread(QThread):
     finished_signal = Signal(str)
     error_signal = Signal(str)
+    cancelled_signal = Signal()
 
     def __init__(self, engine, params, filepath):
         super().__init__()
         self.engine = engine
-        self.params = params
+        self.params = deepcopy(params)
         self.filepath = filepath
 
     def run(self):
@@ -249,14 +253,17 @@ class SimulationThread(QThread):
             self.engine.set_initial_state(self.params['height'], self.params['quat'])
 
             # 2. Run headless (viewer is disabled in thread to prevent GLFW crash)
-            history = self.engine.run_simulation(show_viewer=False, stop_condition_time=self.params['duration'])
+            history = self.engine.run_simulation(show_viewer=False, stop_condition_time=self.params['duration'],
+                cancelled=self.isInterruptionRequested)
 
             # 3. Export
             exporter = DataExporter.from_engine(history, self.engine, self.params)
-            output_path = exporter.export_proc_csv(self.filepath)
+            output_path = exporter.export_proc_csv(self.filepath, cancelled=self.isInterruptionRequested)
 
             self.finished_signal.emit(output_path)
 
+        except InterruptedError:
+            self.cancelled_signal.emit()
         except Exception as e:
             self.error_signal.emit(simulation_error_message(e))
 
@@ -271,7 +278,7 @@ class SimulationUI(QWidget):
         # Keep the worker and batch queue alive until their completion/error
         # callbacks have restored the controls, including the gap between jobs.
         if ((isinstance(worker, QThread) and worker.isRunning())
-                or not self.run_btn.isEnabled()):
+                or getattr(self, '_busy', False)):
             event.ignore()
             return
         super().closeEvent(event)
@@ -279,7 +286,15 @@ class SimulationUI(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Simulation")
-        self.resize(500, 600)
+        self.resize(1280, 720)
+        self.profiles = ModeProfiles()
+        self._loading = True
+        self._busy = False
+        self._generation = 0
+        self.result_history = []
+        self.previous_result = None
+        self.result_current = False
+        self._robot_initialized = False
         self.marker_dialog = None
         self.analysis_windows = []
 
@@ -326,17 +341,230 @@ class SimulationUI(QWidget):
         self.progress_bar.setRange(0, 100)
         self.progress_bar.hide()
         self.layout.addWidget(self.progress_bar)
+        self._init_mode_workspace(btn_layout)
+        self._loading = False
+        for control in self._value_controls(): control.valueChanged.connect(self._configuration_changed)
+        for control in (self.noise_cb, self.viewer_cb): control.toggled.connect(self._configuration_changed)
+        self._configuration_changed()
+
+    def _init_mode_workspace(self, buttons):
+        mode_row = QHBoxLayout(); mode_row.addWidget(QLabel('Mode'))
+        self.mode_combo = QComboBox(); self.mode_combo.addItem('Single drop', 'single_drop'); self.mode_combo.addItem('Robot sequence', 'robot_sequence')
+        mode_row.addWidget(self.mode_combo, 1)
+        self.settings_button = QPushButton('Settings…'); mode_row.addWidget(self.settings_button)
+        self.layout.insertLayout(1, mode_row)
+        self.drop_combo.parentWidget().layout().takeRow(self.orientation_preview)
+        self.orientation_preview.setParent(None)
+        self.layout.removeWidget(self.form_scroll); self.layout.removeItem(buttons); self.layout.removeWidget(self.progress_bar)
+        self.workspace = QHBoxLayout(); self.layout.addLayout(self.workspace, 1)
+        self.left_panel = QWidget(); left = QVBoxLayout(self.left_panel); left.setContentsMargins(0, 0, 0, 0)
+        left.addWidget(self.form_scroll, 1); left.addLayout(buttons); left.addWidget(self.progress_bar)
+        self.cancel_run = QPushButton('Cancel'); self.cancel_run.clicked.connect(self.cancel_simulation); self.cancel_run.hide(); left.addWidget(self.cancel_run)
+        self.result_label = QLabel(); self.result_label.setWordWrap(True); self.result_label.setTextFormat(Qt.PlainText); self.result_label.hide(); left.addWidget(self.result_label)
+        left.addStretch()
+        self.left_panel.setMaximumWidth(430); self.workspace.addWidget(self.left_panel, 1)
+        self.settings = ModeSettings(self)
+        self.right_scroll = QScrollArea(); self.right_scroll.setWidgetResizable(True)
+        right_widget = QWidget(); right = QVBoxLayout(right_widget); right.setContentsMargins(4, 4, 4, 4)
+        right.addWidget(self.settings)
+        preview = QGroupBox('Preset target'); preview_layout = QVBoxLayout(preview); preview_layout.addWidget(self.orientation_preview)
+        self.orientation_preview.setMinimumHeight(160)
+        preview.setFixedHeight(200); right.addWidget(preview); right.addStretch()
+        self.right_scroll.setWidget(right_widget); self.workspace.addWidget(self.right_scroll, 2)
+        self.preview_group = preview; self.preview_layout = preview_layout; self.right_layout = right
+        self.settings_dialog = None; self._narrow = False
+        self._action_tooltips = {button: button.toolTip() for button in (self.run_btn, self.batch_btn, self.marker_btn)}
+        self.settings_button.clicked.connect(self._show_settings)
+        self.mode_combo.currentIndexChanged.connect(self._switch_mode)
+        self.settings.applied.connect(self._apply_profiles)
+        self.settings.selected.connect(self._select_settings_step)
+        self.settings.cancel_button.clicked.connect(lambda: self.settings_dialog.reject() if self.settings_dialog else None)
+        for section in (self.rotation_section, self.physics_section, self.noise_section):
+            section.button.toggled.connect(lambda *_: QTimer.singleShot(0, self._fit_form))
+        self._fit_form()
+
+    def _fit_form(self):
+        self.form_layout.invalidate()
+        self.form_layout.activate()
+        height = self.form_layout.sizeHint().height()
+        self.form_scroll.widget().setMinimumHeight(height)
+        self.form_scroll.setMaximumHeight(height+2*self.form_scroll.frameWidth())
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'preview_group'): self._adapt_layout()
+
+    def _adapt_layout(self):
+        narrow = self.width() < 1050
+        if narrow == self._narrow: return
+        self._narrow = narrow
+        if narrow:
+            self.orientation_preview.setMinimumHeight(180)
+            self.preview_layout.removeWidget(self.orientation_preview)
+            self.form_layout.insertWidget(self.form_layout.count()-1, self.orientation_preview)
+            self.right_scroll.hide(); self.left_panel.setMaximumWidth(16777215)
+        else:
+            self.orientation_preview.setMinimumHeight(160)
+            self.form_layout.removeWidget(self.orientation_preview); self.preview_layout.addWidget(self.orientation_preview)
+            self.right_scroll.show(); self.left_panel.setMaximumWidth(430)
+        self._fit_form()
+        QTimer.singleShot(0, self._fit_form)
+
+    def _show_settings(self):
+        if not self._narrow:
+            self.right_scroll.ensureWidgetVisible(self.settings); self.settings.tabs.setFocus(); return
+        if self.settings_dialog is not None: self.settings_dialog.raise_(); return
+        dialog = QDialog(self); dialog.setWindowTitle('Simulation settings'); dialog.resize(820, 600)
+        layout = QVBoxLayout(dialog); scroll = QScrollArea(); scroll.setWidgetResizable(True)
+        self.right_layout.removeWidget(self.settings); scroll.setWidget(self.settings); layout.addWidget(scroll)
+        self.settings_dialog = dialog
+        def restore(_):
+            if dialog.result() == QDialog.Rejected: self.settings.cancel_settings()
+            scroll.takeWidget(); self.right_layout.insertWidget(0, self.settings)
+            self.settings_dialog = None; dialog.deleteLater()
+        dialog.finished.connect(restore); dialog.open()
+
+    def _value_controls(self):
+        return (self.w_input, self.d_input, self.h_input, self.mass_input, self.friction_input,
+            self.elasticity_input, self.com_x, self.com_y, self.com_z, self.custom_h_input,
+            self.custom_r_input, self.custom_p_input, self.custom_y_input, self.duration_input, self.noise_std_input)
+
+    def _capture_config(self):
+        config = deepcopy(self.profiles.configs[self.profiles.mode])
+        config['size_mm'] = [self.w_input.value(), self.d_input.value(), self.h_input.value()]
+        physics = config['physics_profile']
+        physics.update(mass_kg=self.mass_input.value(), friction=self.friction_input.value(),
+            contact_damping_control=self.elasticity_input.value(), com_offset_mm=[self.com_x.value(), self.com_y.value(), self.com_z.value()])
+        config.update(duration_s=self.duration_input.value(), show_viewer=self.viewer_cb.isChecked())
+        config['observation_profile']['corner'].update(enabled=self.noise_cb.isChecked(), std_mm=self.noise_std_input.value())
+        if config['mode'] == 'single_drop':
+            old = config['sequence_profile']['steps'][0]
+            config['sequence_profile']['steps'] = [drop_step(self.cat_combo.currentData(), self.drop_combo.currentData().id,
+                self.custom_h_input.value(), [self.custom_r_input.value(), self.custom_p_input.value(), self.custom_y_input.value()], step_id=old['step_id'])]
+        return config
+
+    def _configuration_changed(self, *_):
+        if self._loading: return
+        config = self._capture_config()
+        if config != self.profiles.configs[self.profiles.mode]:
+            self._invalidate_result('Settings changed. Previous results are preserved.')
+            try: self.profiles.set_config(config)
+            except ValueError as error: self.settings.status.setText(str(error)); return
+        self.settings.reset(self.profiles)
+        self._fit_form()
+
+    def _invalidate_result(self, message, *, marker_source_changed=True):
+        self.result_current = False
+        dialog = self.marker_dialog
+        if marker_source_changed and dialog is not None:
+            dialog.source_stale = True
+            if dialog.busy: dialog.cancel()
+            dialog.status.setText('Simulation source changed. Reopen Marker CSV to use the current settings.')
+            dialog._update_actions()
+        if self._busy: self.cancel_simulation(message)
+        elif self.previous_result:
+            self.result_label.setText(message+' Previous result: '+self.previous_result); self.result_label.show()
+
+    def _switch_mode(self):
+        if self._loading: return
+        self._configuration_changed()
+        target = self.mode_combo.currentData()
+        if target == self.profiles.mode: return
+        if target == 'robot_sequence' and not self._robot_initialized:
+            config = deepcopy(self.profiles.configs[target]); current = self.profiles.configs['single_drop']
+            config['size_mm'] = deepcopy(current['size_mm']); config['physics_profile'] = deepcopy(current['physics_profile'])
+            config['sequence_profile']['steps'] = preset_steps(self.cat_combo.currentData(), config['size_mm'], config['physics_profile']['mass_kg'])
+            self.profiles.set_config(config); self._robot_initialized = True
+        self._invalidate_result('Mode changed. Previous results are preserved.')
+        self.profiles.switch(target); self._load_config()
+
+    def _load_config(self):
+        self._loading = True
+        config = self.profiles.configs[self.profiles.mode]; physics = config['physics_profile']; corner = config['observation_profile']['corner']
+        for control, value in zip(self._value_controls(), [*config['size_mm'], physics['mass_kg'], physics['friction'], physics['contact_damping_control'],
+                *physics['com_offset_mm'], *([config['sequence_profile']['steps'][0]['clearance_mm'], *config['sequence_profile']['steps'][0]['fixed_xyz_deg']]), config['duration_s'], corner['std_mm']]):
+            control.blockSignals(True); control.setValue(value); control.blockSignals(False)
+        self.noise_cb.setChecked(corner['enabled']); self.viewer_cb.setChecked(config['show_viewer'])
+        self.mode_combo.setCurrentIndex(self.mode_combo.findData(self.profiles.mode))
+        self._display_step(config['sequence_profile']['steps'][0])
+        self._loading = False
+        self.settings.reset(self.profiles); self._set_busy(self._busy)
+
+    def _display_step(self, step):
+        self.cat_combo.blockSignals(True); self.cat_combo.setCurrentIndex(self.cat_combo.findData(step['category'])); self.cat_combo.blockSignals(False)
+        self.drop_combo.blockSignals(True); self.drop_combo.clear()
+        for spec in Scenarios.get_drop_sequence_specs(step['category']):
+            text = spec.id.replace('_', ' ').replace('RotationalEdge', 'Rotational edge').replace('BottomLong', 'bottom long').replace('BottomShort', 'bottom short').replace('MostCritical DefaultFace6', 'critical face 6 default')
+            self.drop_combo.addItem(text, spec); self.drop_combo.setItemData(self.drop_combo.count()-1, spec.id, Qt.ToolTipRole)
+        index = next(i for i in range(self.drop_combo.count()) if self.drop_combo.itemData(i).id == step['preset_id'])
+        self.drop_combo.setCurrentIndex(index); self.drop_combo.blockSignals(False)
+        self.drop_combo.setToolTip(step['preset_id'])
+        for control, value in zip((self.custom_h_input, self.custom_r_input, self.custom_p_input, self.custom_y_input), [step['clearance_mm'], *step['fixed_xyz_deg']]):
+            control.blockSignals(True); control.setValue(value); control.blockSignals(False)
+        spec = self.drop_combo.currentData()
+        self.base_h = Scenarios.calculate_drop_height(step['category'], spec, self.mass_input.value())
+        self.base_r, self.base_p, self.base_y = Scenarios.get_euler_angles(spec,
+            (self.w_input.value(), self.d_input.value(), self.h_input.value()), category=step['category'])
+        self._check_for_modifications(); self._update_orientation_preview()
+
+    def _select_settings_step(self, step):
+        if self._busy: return
+        if step is None:
+            self.preview_group.setTitle('Previous valid preview'); return
+        draft = self.settings.draft.configs[self.settings.draft.mode]
+        # Selecting a draft row previews it; it never applies or discards draft
+        # physics/observation fields or searches an unrelated live category.
+        if self.profiles.mode == self.settings.draft.mode == 'robot_sequence':
+            self._display_step(step)
+        spec = next(spec for spec in Scenarios.get_drop_sequence_specs(step['category']) if spec.id == step['preset_id'])
+        self.orientation_preview.set_preview_state(tuple(draft['size_mm']), tuple(step['fixed_xyz_deg']), spec, step['category'])
+        live = self.profiles.configs[self.profiles.mode]
+        applied = self.profiles.mode == self.settings.draft.mode and step in live['sequence_profile']['steps'] and draft['size_mm'] == live['size_mm']
+        self.preview_group.setTitle('Preset target' if applied else 'Settings preview')
+        self._fit_form()
+
+    def _apply_profiles(self, state):
+        if self._busy: return
+        self._invalidate_result('Settings applied. Previous results are preserved.')
+        # Keep the current edit chain when adopting a separately loaded draft.
+        # The imported document remains an explicit source snapshot in memory.
+        self.settings_sources = getattr(self, 'settings_sources', []) + [state.document()]
+        for config in state.configs.values(): self.profiles.set_config(config)
+        self.profiles.switch(state.mode); self._robot_initialized = True; self._load_config()
+        if self.settings_dialog is not None: self.settings_dialog.accept()
+
+    def _set_busy(self, busy):
+        self._busy = busy; robot = self.profiles.mode == 'robot_sequence'
+        self.mode_combo.setEnabled(not busy); self.settings_button.setEnabled(not busy)
+        self.form_scroll.setEnabled(not busy); self.settings.setEnabled(not busy)
+        for control in (self.cat_combo, self.drop_combo, self.custom_h_input, self.rotation_section): control.setEnabled(not busy and not robot)
+        for button in (self.run_btn, self.batch_btn, self.marker_btn):
+            button.setEnabled(not busy and not robot); button.setToolTip(BLOCKED_REASON if robot else self._action_tooltips[button])
+        self.progress_bar.setVisible(busy); self.cancel_run.setVisible(busy)
+        self.cancel_run.setEnabled(busy and getattr(self, '_cancel_message', None) is None)
+        if not busy: self.settings.select_row()
+
+    def cancel_simulation(self, message='Cancelled. Previous results are preserved.'):
+        if not self._busy: return
+        self._generation += 1; self._cancel_message = message; self.cancel_run.setEnabled(False)
+        self.result_label.setText('Cancelling…'+(' Previous result: '+self.previous_result if self.previous_result else '')); self.result_label.show()
+        worker = self.__dict__.get('thread')
+        if isinstance(worker, QThread) and worker.isRunning(): worker.requestInterruption()
+
+    def _execution_config(self):
+        config = self._capture_config(); require_executable(config); return config
 
     def open_marker_export(self):
-        if not self.run_btn.isEnabled():
-            return
+        if self._busy: return
+        try: config = self._execution_config()
+        except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
         from src.simulation.ui.marker_export_dialog import MarkerExportDialog
         simulation = dict(mass=self.mass_input.value(), friction=self.friction_input.value(),
             elasticity=self.elasticity_input.value(),
             com_offset=(self.com_x.value(), self.com_y.value(), self.com_z.value()),
             height=self.custom_h_input.value(), duration=self.duration_input.value(),
             quat=Scenarios.get_orientation_from_euler(self.custom_r_input.value(),
-                self.custom_p_input.value(), self.custom_y_input.value()))
+                self.custom_p_input.value(), self.custom_y_input.value()), mode_config=config)
         self.marker_dialog = MarkerExportDialog(simulation,
             (self.w_input.value(), self.d_input.value(), self.h_input.value()), self)
         # Window modality preserves the captured Simulation inputs until close.
@@ -344,7 +572,13 @@ class SimulationUI(QWidget):
         self.marker_dialog.setAttribute(Qt.WA_DeleteOnClose)
         self.marker_dialog.finished.connect(lambda _: setattr(self, 'marker_dialog', None))
         self.marker_dialog.open_observations.connect(self._open_marker_observations)
+        self.marker_dialog.settings_captured.connect(self._marker_settings_captured)
         self.marker_dialog.show()
+
+    def _marker_settings_captured(self, marker):
+        config = self._capture_config(); config['observation_profile']['marker'] = deepcopy(marker)
+        self.profiles.set_config(config); self._invalidate_result('Observation settings changed. Previous results are preserved.', marker_source_changed=False)
+        self.settings.reset(self.profiles)
 
     def _open_marker_observations(self, filepath):
         from src.analysis.app.main_window import MainApp
@@ -522,6 +756,8 @@ class SimulationUI(QWidget):
         self._update_custom_fields_from_scenario()
 
     def _update_custom_fields_from_scenario(self):
+        if hasattr(self, 'settings') and self.profiles.mode == 'robot_sequence' and not self._loading:
+            self._update_orientation_preview(); self._configuration_changed(); return
         cat = self.cat_combo.currentData()
         if self.drop_combo.count() == 0:
             return
@@ -558,6 +794,7 @@ class SimulationUI(QWidget):
         self.custom_p_input.blockSignals(False)
         self.custom_y_input.blockSignals(False)
         self._update_orientation_preview()
+        if hasattr(self, 'settings'): self._configuration_changed()
 
     def _check_for_modifications(self):
         """Checks if current spinbox values deviate from the standard scenario base values."""
@@ -624,162 +861,134 @@ class SimulationUI(QWidget):
         form.addRow("", self.viewer_cb)
         self.form_layout.addWidget(group)
 
+    @staticmethod
+    def _params(config, *, viewer=None):
+        step = config['sequence_profile']['steps'][0]
+        corner = config['observation_profile']['corner']
+        return dict(height=step['clearance_mm'], quat=Scenarios.get_orientation_from_euler(*step['fixed_xyz_deg']),
+            add_noise=corner['enabled'], noise_std=corner['std_mm'], noise_seed=corner['seed'],
+            show_viewer=config['show_viewer'] if viewer is None else viewer,
+            duration=config['duration_s'], mode_config=deepcopy(config))
+
+    @staticmethod
+    def _engine(config):
+        physics = config['physics_profile']
+        return MuJoCoEngine(size=tuple(config['size_mm']), mass=physics['mass_kg'],
+            friction=physics['friction'], elasticity=physics['contact_damping_control'], com_offset=tuple(physics['com_offset_mm']))
+
     def run_simulation(self):
-        # 1. Gather Params
-        size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
-        mass = self.mass_input.value()
-        friction = self.friction_input.value()
-        elasticity = self.elasticity_input.value()
-
-        # Always use the values from the spinboxes, because _update_custom_fields_from_scenario
-        # ensures they are correctly populated based on the selection or custom user input.
-        height = self.custom_h_input.value()
-        quat = Scenarios.get_orientation_from_euler(
-            self.custom_r_input.value(),
-            self.custom_p_input.value(),
-            self.custom_y_input.value()
-        )
-
-        params = {
-            'height': height,
-            'quat': quat,
-            'add_noise': self.noise_cb.isChecked(),
-            'noise_std': self.noise_std_input.value(),
-            'show_viewer': self.viewer_cb.isChecked(),
-            'duration': self.duration_input.value()
-        }
-
-        com_offset = (self.com_x.value(), self.com_y.value(), self.com_z.value())
-
-        # 2. Select Output File
-        filepath, _ = QFileDialog.getSaveFileName(
-            self, "Save Simulation Data", str(Path("data") / "sim_data.proc"), "PROC Files (*.proc)"
-        )
-        if not filepath:
-            return
-
-        # 3. Setup Engine
-        self.run_btn.setEnabled(False)
-        self.batch_btn.setEnabled(False)
-        self.marker_btn.setEnabled(False)
-        self.progress_bar.show()
-
-        engine = MuJoCoEngine(size=size, mass=mass, friction=friction, elasticity=elasticity, com_offset=com_offset)
-
-        # 4. Run Simulation
+        if self._busy: return
+        try: self._execution_config()
+        except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
+        filepath, _ = QFileDialog.getSaveFileName(self, 'Save Simulation Data', str(Path('data') / 'sim_data.proc'), 'PROC Files (*.proc)')
+        if not filepath: return
+        try:
+            config = self._execution_config(); params = self._params(config); engine = self._engine(config)
+        except Exception as error: self.on_sim_error(simulation_error_message(error)); return
+        self._job_config = deepcopy(config)
+        self._generation += 1; generation = self._generation; self._cancel_message = None
+        self._set_busy(True); self.progress_bar.setRange(0, 100); self.progress_bar.setValue(0)
+        self.result_label.setText('Running…'+(' Previous result: '+self.previous_result if self.previous_result else '')); self.result_label.show()
         if params['show_viewer']:
-            # Run in main thread because mujoco.viewer (GLFW) MUST run on the main thread
+            # GLFW stays on the main thread. Engine checkpoints dispatch Cancel
+            # and then test the captured generation before stepping/publishing.
             try:
                 engine.set_initial_state(params['height'], params['quat'])
-                history = engine.run_simulation(show_viewer=True, stop_condition_time=params['duration'])
-
+                history = engine.run_simulation(show_viewer=True, stop_condition_time=params['duration'],
+                    cancelled=lambda: generation != self._generation, progress=lambda *_: QApplication.processEvents())
                 exporter = DataExporter.from_engine(history, engine, params)
-                output_path = exporter.export_proc_csv(filepath)
+                output = exporter.export_proc_csv(filepath, cancelled=lambda: generation != self._generation)
+                self._set_busy(False)
+                if generation == self._generation: self.on_sim_finished(output)
+                else: self._show_cancelled()
+            except InterruptedError: self._set_busy(False); self._show_cancelled()
+            except Exception as error: self.on_sim_error(simulation_error_message(error))
+        else: self._start_worker(engine, params, filepath, batch=False)
 
-                self.on_sim_finished(output_path)
-            except Exception as e:
-                self.on_sim_error(simulation_error_message(e))
-        else:
-            # Run headless in background thread
-            self.thread = SimulationThread(engine, params, filepath)
-            self.thread.finished_signal.connect(self.on_sim_finished)
-            self.thread.error_signal.connect(self.on_sim_error)
-            self.thread.start()
+    def _start_worker(self, engine, params, filepath, *, batch):
+        self._job_config = deepcopy(params['mode_config'])
+        worker = SimulationThread(engine, params, filepath); self.thread = worker; self._active_worker = worker
+        generation = self._generation
+        outcome = dict(kind='cancelled', value=None)
+        # Do not restore controls or replace a running QThread from its custom
+        # result signal: it has not exited yet. Adopt only on QThread.finished.
+        worker.finished_signal.connect(lambda path: outcome.update(kind='success', value=path))
+        worker.error_signal.connect(lambda error: outcome.update(kind='error', value=error))
+        worker.cancelled_signal.connect(lambda: outcome.update(kind='cancelled', value=None))
+        worker.finished.connect(lambda: self._worker_finished(worker, generation, outcome, batch))
+        worker.start()
+
+    def _worker_finished(self, worker, generation, outcome, batch):
+        if self._active_worker is not worker: return
+        self._active_worker = None
+        if generation != self._generation:
+            self.result_history.append(dict(status='stale', path=outcome['value'] if outcome['kind'] == 'success' else None,
+                config=deepcopy(worker.params['mode_config']), reason=self._cancel_message))
+            self._set_busy(False); self._show_cancelled(); return
+        if outcome['kind'] == 'success':
+            if batch: self._on_batch_step_finished(outcome['value'])
+            else: self.on_sim_finished(outcome['value'])
+        elif outcome['kind'] == 'error': self.on_sim_error(outcome['value'])
+        else: self._set_busy(False); self._show_cancelled()
+
+    def _show_cancelled(self):
+        self.result_label.setText((self._cancel_message or 'Cancelled. Previous results are preserved.')+
+            (' Previous result: '+self.previous_result if self.previous_result else ''))
+        self.result_label.show()
 
     def run_batch_simulation(self):
-        cat = self.cat_combo.currentData()
-        sequences = Scenarios.get_drop_sequence_specs(cat)
-
-        if not sequences:
-            return
-
-        dir_path = QFileDialog.getExistingDirectory(self, "Select Directory to Save Batch Data", str(Path("data")))
-        if not dir_path:
-            return
-
-        self.run_btn.setEnabled(False)
-        self.batch_btn.setEnabled(False)
-        self.marker_btn.setEnabled(False)
-        self.progress_bar.setRange(0, len(sequences))
-        self.progress_bar.setValue(0)
-        self.progress_bar.show()
-
-        self._batch_sequences = sequences
-        self._batch_current_idx = 0
-        self._batch_dir = dir_path
-        self._batch_cat = cat
-        self._batch_success_paths = []
-
+        if self._busy: return
+        try: self._execution_config()
+        except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
+        directory = QFileDialog.getExistingDirectory(self, 'Select Directory to Save Batch Data', str(Path('data')))
+        if not directory: return
+        try: self._batch_config = self._execution_config()
+        except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
+        self._batch_cat = self._batch_config['sequence_profile']['steps'][0]['category']
+        self._batch_sequences = Scenarios.get_drop_sequence_specs(self._batch_cat)
+        self._batch_current_idx = 0; self._batch_dir = directory; self._batch_success_paths = []
+        self._generation += 1; self._cancel_message = None; self._set_busy(True)
+        self.progress_bar.setRange(0, len(self._batch_sequences)); self.progress_bar.setValue(0)
         self._run_next_batch_sequence()
 
     def _run_next_batch_sequence(self):
-        if self._batch_current_idx >= len(self._batch_sequences):
-            self._on_batch_completed()
-            return
+        if self._batch_current_idx >= len(self._batch_sequences): self._on_batch_completed(); return
+        spec = self._batch_sequences[self._batch_current_idx]; config = deepcopy(self._batch_config)
+        physics = config['physics_profile']; category = self._batch_cat
+        # Preserve legacy batch full precision; no GUI rounding/resampling.
+        angles = Scenarios.get_euler_angles(spec, config['size_mm'], category=category)
+        config['sequence_profile']['steps'] = [drop_step(category, spec.id,
+            Scenarios.calculate_drop_height(category, spec, physics['mass_kg']), [float(v) for v in angles])]
+        config['show_viewer'] = False
+        prefix = 'TypeG' if 'Type G' in category else 'TypeH'
+        name = spec.id.replace(' ', '').replace('/', '_').replace('[Low]', '').replace('[High]', '')
+        filepath = str(Path(self._batch_dir) / f'{prefix}_{name}.proc')
+        try: self._start_worker(self._engine(config), self._params(config, viewer=False), filepath, batch=True)
+        except Exception as error: self.on_sim_error(simulation_error_message(error))
 
-        seq_spec = self._batch_sequences[self._batch_current_idx]
-        seq_name = seq_spec.id
-        mass = self.mass_input.value()
-        box_size = (self.w_input.value(), self.d_input.value(), self.h_input.value())
-
-        height = Scenarios.calculate_drop_height(self._batch_cat, seq_spec, mass)
-        roll, pitch, yaw = Scenarios.get_euler_angles(seq_spec, box_size, category=self._batch_cat)
-        quat = Scenarios.get_orientation_from_euler(roll, pitch, yaw)
-
-        params = {
-            'height': height,
-            'quat': quat,
-            'add_noise': self.noise_cb.isChecked(),
-            'noise_std': self.noise_std_input.value(),
-            'show_viewer': False, # Force headless for batch
-            'duration': self.duration_input.value()
-        }
-
-        com_offset = (self.com_x.value(), self.com_y.value(), self.com_z.value())
-
-        type_prefix = "TypeG" if "Type G" in self._batch_cat else "TypeH"
-        clean_seq_name = seq_name.replace(" ", "").replace("/", "_").replace("[Low]", "").replace("[High]", "")
-        file_name = f"{type_prefix}_{clean_seq_name}.proc"
-        filepath = str(Path(self._batch_dir) / file_name)
-
-        engine = MuJoCoEngine(
-            size=box_size, mass=mass,
-            friction=self.friction_input.value(),
-            elasticity=self.elasticity_input.value(),
-            com_offset=com_offset
-        )
-
-        self.thread = SimulationThread(engine, params, filepath)
-        self.thread.finished_signal.connect(self._on_batch_step_finished)
-        self.thread.error_signal.connect(self.on_sim_error)
-        self.thread.start()
+    def _remember_result(self, path):
+        self.previous_result = path
+        config = self._job_config
+        self.result_current = config == self._capture_config()
+        self.result_history.append(dict(status='produced', path=path, config=deepcopy(config)))
+        self.result_label.setText('Previous result: '+path); self.result_label.show()
 
     def _on_batch_step_finished(self, output_path):
-        self._batch_success_paths.append(output_path)
-        self._batch_current_idx += 1
-        self.progress_bar.setValue(self._batch_current_idx)
-        self._run_next_batch_sequence()
+        self._remember_result(output_path); self._batch_success_paths.append(output_path); self._batch_current_idx += 1
+        self.progress_bar.setValue(self._batch_current_idx); self._run_next_batch_sequence()
 
     def _on_batch_completed(self):
-        self.run_btn.setEnabled(True)
-        self.batch_btn.setEnabled(True)
-        self.marker_btn.setEnabled(True)
-        self.progress_bar.hide()
-        QMessageBox.information(self, "Batch Success", f"Successfully generated {len(self._batch_success_paths)} files in:\n{self._batch_dir}")
+        self._set_busy(False)
+        QMessageBox.information(self, 'Batch Success', f'Successfully generated {len(self._batch_success_paths)} files in:\n{self._batch_dir}')
 
     def on_sim_finished(self, output_path):
-        self.run_btn.setEnabled(True)
-        self.batch_btn.setEnabled(True)
-        self.marker_btn.setEnabled(True)
-        self.progress_bar.hide()
-        QMessageBox.information(self, "Success", f"Simulation completed and saved to:\n{output_path}\n\nYou can now load this in Data Analysis.")
+        self._remember_result(output_path); self._set_busy(False)
+        QMessageBox.information(self, 'Success', f'Simulation completed and saved to:\n{output_path}\n\nYou can now load this in Data Analysis.')
 
     def on_sim_error(self, err_msg):
-        self.run_btn.setEnabled(True)
-        self.batch_btn.setEnabled(True)
-        self.marker_btn.setEnabled(True)
-        self.progress_bar.hide()
-        QMessageBox.critical(self, "Error", err_msg)
+        self._set_busy(False)
+        self.result_label.setText('Failed. Previous results are preserved.'+(' Previous result: '+self.previous_result if self.previous_result else '')); self.result_label.show()
+        QMessageBox.critical(self, 'Error', err_msg)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

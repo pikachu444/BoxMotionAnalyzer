@@ -1,10 +1,12 @@
 # Simulation mode and output contracts (PUB06)
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-10-07
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. New envelopes use `schema_version: 1`.
-This document describes the implemented backend contract. Production UI binding,
-human mockup approval, final integration review and publication remain pending.
+This document describes the backend and production UI bindings. The human approved
+the shared G17/H12 workspace; the same independent reviewer closed all production
+findings. Current CI and publication are tracked in PR150. Native Windows input
+and actual OS125 remain unexecuted.
 
 The same independent reviewer confirmed correction of all backend findings,
 including quaternion/release binding and preflight geometry checks before output
@@ -18,8 +20,48 @@ still has one selected planned drop regardless of visible browser row count.
 Preset rows are not experimental repetitions `n`. The lists are current
 uncalibrated configurations, not a verified complete ISTA procedure. G17 hazard
 geometry and H supported/rotation/release behavior remain unimplemented.
-No new engine or reinterpretation of existing output follows from this UI
-proposal; production binding requires the user's #139 mockup approval.
+No new engine or reinterpretation of existing output follows from this UI.
+The user approved this proposal before production binding.
+
+## Production user flow
+
+The default is Single drop. The shared settings tabs separate Sequence, Physics,
+and Markers and noise; the existing target preview remains visible in both modes.
+Single displays the current category browser; selecting a Settings row previews
+the draft without applying or discarding other draft fields. Use in Simulation
+applies the selection before Run; the existing main controls show applied inputs.
+Robot initializes an ordered current-category plan, supports order/pose editing,
+and disables Run/Run all presets/Marker CSV with the issue140 execution reason.
+Programmatic calls are also blocked before file pickers or engine construction.
+G17 hazard and H supported-motion rows disclose their unavailable scope.
+
+Open settings loads a draft for review. Save settings validates and atomically
+stores both mode configurations, source snapshots and edit history, without
+applying or running them. Use in Simulation applies; Cancel or rejection of the
+small Settings dialog restores applied settings. Applying a loaded draft keeps
+the current source/edit chain. Marker layout editing/import uses PUB05 documents.
+Window width below1050 uses the existing scroll form/preview and a Settings
+window; wide windows share the bounded preview and five visible preset rows.
+Static preset geometry is reused until category/size/mass changes; existing table
+items are updated instead of rebuilding the table on each input edit.
+
+Headless jobs capture immutable parameters and versioned configuration. Only the
+matching job generation can adopt a result, after QThread.finished. Source/mode
+changes invalidate status and request cancellation; Cancel remains unavailable
+until the worker exits. Export checks cancellation before atomic publication.
+Batch snapshots shared inputs once, retains each completed file on a later
+failure, and records each preset's actual configuration. Viewer stays on the
+main thread and dispatches Cancel at engine checkpoints. Previous result paths
+and their configuration snapshots remain traceable in the window; output files
+retain their own public declaration on reload. A stale successfully written
+result is retained in history without becoming the current result.
+
+Marker CSV copies the applied observation settings and retains its own source
+snapshot. Generate explicitly captures current dialog layout/fault/seed/dimension
+choices and passes their declaration to the actual producer. A subsequent parent
+source change cancels a running marker job and requires reopening for a retry.
+Opening a previous observed.csv uses that file's own identities and metadata;
+truth files remain outside the analysis route.
 
 ## Settings and identity
 
