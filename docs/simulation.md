@@ -5,14 +5,17 @@ Last Reviewed: 2026-10-07
 #140 backend development introduces opt-in `RobotSequenceEngine` and explicit
 `RobotExecutionPlan` profiles; existing config-only plans remain blocked. One
 dynamic state runs attach/lift/orient/release/contact/settle/pickup. Production
-UI integration and new fixture/tolerance approvals are pending. Existing default
+UI binds editable plan Preview/Apply, Run/Marker CSV, actual progress and incomplete
+history retention. Separate new UI and fixture/tolerance approval questions remain
+pending. Existing default
 single-drop behavior/contact settings and export aliases remain intact.
 [Contract and proposed public diagnostics](analysis/reference/robot_sequence_contract.md).
 
 #139 / PUB06은 기본 Single drop과 선택형 Robot sequence의 설정을 분리한다.
 기존 Run·Run all presets·Marker CSV 경로를 사용하며 두 모드가 같은 설정 탭과
-박스 프리뷰를 공유한다. 현재 생산 UI의 Robot sequence는 설정 저장까지 가능하며,
-명시적인 #140 실행 plan을 적용하는 UI가 아직 연결되지 않아 실행을 차단한다. 합성 설정과 결과는
+박스 프리뷰를 공유한다. Robot sequence는 취급 방식·부착면·실행 범위를 선택하고
+Preview 후 Use in Simulation으로 명시적인 #140 실행 plan을 적용해 연속 실행한다.
+실행 plan이 없는 기존 설정은 실행을 차단한다. 합성 설정과 결과는
 실제 원시험·반복 수와 구분한다. [mode 계약](analysis/reference/simulation_mode_contract.md),
 [검증과 native 대기 범위](visualization/simulation_mode_139.md)를 참고한다.
 
@@ -21,7 +24,9 @@ Open/Save settings는 파일을 읽고 저장하며, `Use in Simulation`으로 �
 Cancel은 적용 전 변경을 되돌린다. 작은 창에서는 Settings를 별도 창으로 열고
 기존 입력·박스 프리뷰를 스크롤로 확인한다. 모드 왕복은 각 모드의 적용한 설정을
 복원한다. Single drop 표의 여러 프리셋은 탐색 목록이며 선택한 한 행만 실행한다.
-Robot sequence의 순서 편집은 전체 계획 설정이며 연속 실행 성공을 뜻하지 않는다.
+Robot sequence는 목록의 순서·위치·자세를 수정할 수 있다. 전체 계획과 선택 항목,
+불러온 일부 선택을 구분하며, 설정 변경 후에는 Preview를 다시 확인한다.
+G17 hazard는 실행할 수 없고 H 지지 운동은 가상 template임을 표시한다.
 이 프리셋 목록을 검증된 완전한 ISTA 절차로 보증하지 않는다.
 큰 창에서는 Mode와 Settings가 왼쪽 입력 위에 있고, 오른쪽 설정 아래 남는 공간은
 박스 프리뷰가 사용한다. 창 크기에 따라 그림이 줄어들 수 있지만 고정 높이로

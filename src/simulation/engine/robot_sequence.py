@@ -14,6 +14,7 @@ from .mujoco_engine import MuJoCoEngine
 class SequenceFailure(RuntimeError):
     def __init__(self, message, engine):
         super().__init__(message)
+        self.engine = engine
         self.history = engine.history
         self.evidence = engine.sequence_evidence
 

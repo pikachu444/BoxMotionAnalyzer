@@ -15,6 +15,8 @@ from scipy.spatial.transform import Rotation as R
 
 # Import logic modules
 from src.simulation.engine import MuJoCoEngine
+from src.simulation.engine.robot_sequence import RobotSequenceEngine, SequenceFailure
+from src.simulation.robot_partial import retain_partial
 from src.simulation.scenarios import Scenarios
 from src.simulation.data_exporter import DataExporter
 from src.utils.qt_sections import CollapsibleSection
@@ -240,12 +242,14 @@ class SimulationThread(QThread):
     finished_signal = Signal(str)
     error_signal = Signal(str)
     cancelled_signal = Signal()
+    progress_signal = Signal(float,float,str)
 
     def __init__(self, engine, params, filepath):
         super().__init__()
         self.engine = engine
         self.params = deepcopy(params)
         self.filepath = filepath
+        self.partial_path=None;self.partial_error=None
 
     def run(self):
         try:
@@ -254,7 +258,7 @@ class SimulationThread(QThread):
 
             # 2. Run headless (viewer is disabled in thread to prevent GLFW crash)
             history = self.engine.run_simulation(show_viewer=False, stop_condition_time=self.params['duration'],
-                cancelled=self.isInterruptionRequested)
+                cancelled=self.isInterruptionRequested,progress=lambda current,limit:self.progress_signal.emit(current,limit,sequence_progress(self.engine)))
 
             # 3. Export
             exporter = DataExporter.from_engine(history, self.engine, self.params)
@@ -262,10 +266,30 @@ class SimulationThread(QThread):
 
             self.finished_signal.emit(output_path)
 
+        except SequenceFailure as error:
+            self.partial_path=save_partial(self.engine,self.filepath,error)
+            if self.partial_path is None:self.partial_error='\n'.join(getattr(error,'__notes__',[])) or None
+            if isinstance(error,InterruptedError):self.cancelled_signal.emit()
+            else:self.error_signal.emit(simulation_error_message(error))
         except InterruptedError:
             self.cancelled_signal.emit()
         except Exception as e:
             self.error_signal.emit(simulation_error_message(e))
+
+
+def sequence_progress(engine):
+    if not isinstance(engine,RobotSequenceEngine) or engine.current_phase is None:return 'Running'
+    phase=engine.current_phase;selected=engine.plan['selected_step_ids'];step=phase['step_id']
+    index=selected.index(step)+1 if step in selected else 0
+    return f"Drop {index} / {len(selected)} — {phase['kind']}"
+
+
+def save_partial(engine,filepath,error):
+    if not isinstance(engine,RobotSequenceEngine) or not engine.history:return None
+    try:
+        partial=retain_partial(filepath,engine);error.add_note('Partial capture: '+partial);return partial
+    except Exception as failure:
+        error.add_note('Partial capture was not saved: '+str(failure));return None
 
 class SimulationUI(QWidget):
     def closeEvent(self, event):
@@ -452,6 +476,7 @@ class SimulationUI(QWidget):
             try: self.profiles.set_config(config)
             except ValueError as error: self.settings.status.setText(str(error)); return
         self.settings.reset(self.profiles)
+        self._set_busy(self._busy)
         self._fit_form()
 
     def _invalidate_result(self, message, *, marker_source_changed=True):
@@ -481,6 +506,7 @@ class SimulationUI(QWidget):
 
     def _load_config(self):
         self._loading = True
+        self.duration_input.setMaximum(3600 if self.profiles.mode=='robot_sequence' else 60)
         config = self.profiles.configs[self.profiles.mode]; physics = config['physics_profile']; corner = config['observation_profile']['corner']
         for control, value in zip(self._value_controls(), [*config['size_mm'], physics['mass_kg'], physics['friction'], physics['contact_damping_control'],
                 *physics['com_offset_mm'], *([config['sequence_profile']['steps'][0]['clearance_mm'], *config['sequence_profile']['steps'][0]['fixed_xyz_deg']]), config['duration_s'], corner['std_mm']]):
@@ -539,8 +565,16 @@ class SimulationUI(QWidget):
         self.mode_combo.setEnabled(not busy); self.settings_button.setEnabled(not busy)
         self.form_scroll.setEnabled(not busy); self.settings.setEnabled(not busy)
         for control in (self.cat_combo, self.drop_combo, self.custom_h_input, self.rotation_section): control.setEnabled(not busy and not robot)
-        for button in (self.run_btn, self.batch_btn, self.marker_btn):
-            button.setEnabled(not busy and not robot); button.setToolTip(BLOCKED_REASON if robot else self._action_tooltips[button])
+        reason=None
+        if robot:
+            try:require_executable(self._capture_config())
+            except ValueError as error:reason=str(error)
+        for button in (self.run_btn,self.marker_btn):
+            button.setEnabled(not busy and reason is None);button.setToolTip(reason or self._action_tooltips[button])
+        self.batch_btn.setEnabled(not busy and not robot)
+        self.batch_btn.setToolTip('Use Run for one continuous robot plan.' if robot and reason is None else reason or self._action_tooltips[self.batch_btn])
+        label=self.duration_input.parentWidget().layout().labelForField(self.duration_input)
+        if label is not None:label.setText('Run time limit (s):' if robot else 'Duration (s):')
         self.progress_bar.setVisible(busy); self.cancel_run.setVisible(busy)
         self.cancel_run.setEnabled(busy and getattr(self, '_cancel_message', None) is None)
         if not busy: self.settings.select_row()
@@ -560,12 +594,9 @@ class SimulationUI(QWidget):
         try: config = self._execution_config()
         except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
         from src.simulation.ui.marker_export_dialog import MarkerExportDialog
-        simulation = dict(mass=self.mass_input.value(), friction=self.friction_input.value(),
-            elasticity=self.elasticity_input.value(),
-            com_offset=(self.com_x.value(), self.com_y.value(), self.com_z.value()),
-            height=self.custom_h_input.value(), duration=self.duration_input.value(),
-            quat=Scenarios.get_orientation_from_euler(self.custom_r_input.value(),
-                self.custom_p_input.value(), self.custom_y_input.value()), mode_config=config)
+        physics=config['physics_profile']
+        simulation=dict(self._params(config),mass=physics['mass_kg'],friction=physics['friction'],
+            elasticity=physics['contact_damping_control'],com_offset=tuple(physics['com_offset_mm']))
         self.marker_dialog = MarkerExportDialog(simulation,
             (self.w_input.value(), self.d_input.value(), self.h_input.value()), self)
         # Window modality preserves the captured Simulation inputs until close.
@@ -873,6 +904,7 @@ class SimulationUI(QWidget):
 
     @staticmethod
     def _engine(config):
+        if config['mode']=='robot_sequence':return RobotSequenceEngine(config)
         physics = config['physics_profile']
         return MuJoCoEngine(size=tuple(config['size_mm']), mass=physics['mass_kg'],
             friction=physics['friction'], elasticity=physics['contact_damping_control'], com_offset=tuple(physics['com_offset_mm']))
@@ -896,12 +928,18 @@ class SimulationUI(QWidget):
             try:
                 engine.set_initial_state(params['height'], params['quat'])
                 history = engine.run_simulation(show_viewer=True, stop_condition_time=params['duration'],
-                    cancelled=lambda: generation != self._generation, progress=lambda *_: QApplication.processEvents())
+                    cancelled=lambda: generation != self._generation,
+                    progress=lambda current,limit:self._viewer_progress(engine,generation,current,limit))
                 exporter = DataExporter.from_engine(history, engine, params)
                 output = exporter.export_proc_csv(filepath, cancelled=lambda: generation != self._generation)
                 self._set_busy(False)
                 if generation == self._generation: self.on_sim_finished(output)
                 else: self._show_cancelled()
+            except SequenceFailure as error:
+                partial=save_partial(engine,filepath,error);self._record_partial(partial,config,engine.sequence_evidence['completion'])
+                if isinstance(error,InterruptedError):
+                    self._set_busy(False);self._show_cancelled(partial,'\n'.join(getattr(error,'__notes__',[])) if partial is None else None)
+                else:self.on_sim_error(simulation_error_message(error))
             except InterruptedError: self._set_busy(False); self._show_cancelled()
             except Exception as error: self.on_sim_error(simulation_error_message(error))
         else: self._start_worker(engine, params, filepath, batch=False)
@@ -916,24 +954,44 @@ class SimulationUI(QWidget):
         worker.finished_signal.connect(lambda path: outcome.update(kind='success', value=path))
         worker.error_signal.connect(lambda error: outcome.update(kind='error', value=error))
         worker.cancelled_signal.connect(lambda: outcome.update(kind='cancelled', value=None))
+        if isinstance(engine,RobotSequenceEngine):
+            worker.progress_signal.connect(lambda current,limit,label:self._worker_progress(worker,generation,current,limit,label))
         worker.finished.connect(lambda: self._worker_finished(worker, generation, outcome, batch))
         worker.start()
+
+    def _worker_progress(self,worker,generation,current,limit,label):
+        if self._active_worker is worker and self._generation==generation:self._show_progress(current,limit,label)
+
+    def _viewer_progress(self,engine,generation,current,limit):
+        QApplication.processEvents()
+        if self._generation==generation:self._show_progress(current,limit,sequence_progress(engine))
+
+    def _show_progress(self,current,limit,label):
+        self.progress_bar.setValue(min(100,int(100*current/limit)))
+        self.result_label.setText(f'{label} — {current:.3f} s'+(' Previous result: '+self.previous_result if self.previous_result else ''))
+
+    def _record_partial(self,path,config,status):
+        if path:self.result_history.append(dict(status=status,path=path,config=deepcopy(config),partial=True))
 
     def _worker_finished(self, worker, generation, outcome, batch):
         if self._active_worker is not worker: return
         self._active_worker = None
+        partial=getattr(worker,'partial_path',None)
+        partial_error=getattr(worker,'partial_error',None)
+        if partial:self._record_partial(partial,worker.params['mode_config'],worker.engine.sequence_evidence['completion'])
         if generation != self._generation:
             self.result_history.append(dict(status='stale', path=outcome['value'] if outcome['kind'] == 'success' else None,
                 config=deepcopy(worker.params['mode_config']), reason=self._cancel_message))
-            self._set_busy(False); self._show_cancelled(); return
+            self._set_busy(False); self._show_cancelled(partial,partial_error); return
         if outcome['kind'] == 'success':
             if batch: self._on_batch_step_finished(outcome['value'])
             else: self.on_sim_finished(outcome['value'])
         elif outcome['kind'] == 'error': self.on_sim_error(outcome['value'])
-        else: self._set_busy(False); self._show_cancelled()
+        else: self._set_busy(False); self._show_cancelled(partial,partial_error)
 
-    def _show_cancelled(self):
+    def _show_cancelled(self,partial=None,partial_error=None):
         self.result_label.setText((self._cancel_message or 'Cancelled. Previous results are preserved.')+
+            (' Partial capture: '+partial if partial else '')+(' '+partial_error if partial_error else '')+
             (' Previous result: '+self.previous_result if self.previous_result else ''))
         self.result_label.show()
 
@@ -941,6 +999,8 @@ class SimulationUI(QWidget):
         if self._busy: return
         try: self._execution_config()
         except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
+        if self.profiles.mode=='robot_sequence':
+            QMessageBox.warning(self,'Cannot run','Use Run for the captured continuous robot plan.');return
         directory = QFileDialog.getExistingDirectory(self, 'Select Directory to Save Batch Data', str(Path('data')))
         if not directory: return
         try: self._batch_config = self._execution_config()
@@ -984,7 +1044,10 @@ class SimulationUI(QWidget):
 
     def on_sim_finished(self, output_path):
         self._remember_result(output_path); self._set_busy(False)
-        QMessageBox.information(self, 'Success', f'Simulation completed and saved to:\n{output_path}\n\nYou can now load this in Data Analysis.')
+        partial=self._job_config['mode']=='robot_sequence' and self._job_config['sequence_profile']['execution_plan']['completion_policy']=='partial'
+        if partial:self.result_history[-1].update(status='partial',partial=True)
+        QMessageBox.information(self, 'Partial plan saved' if partial else 'Success',
+            ('Partial plan saved to:\n' if partial else 'Simulation completed and saved to:\n')+output_path+'\n\nYou can now load this in Data Analysis.')
 
     def on_sim_error(self, err_msg):
         self._set_busy(False)

@@ -195,7 +195,7 @@ def validate_public(value,artifact=None):
     vector(config.get('size_mm'),'Simulation dimensions',minimum=10,maximum=5000)
     if set(config)!={'size_mm','sequence_profile','physics_profile','observation_profile','requested_duration_s'}:
         raise ValueError('Unexpected simulation configuration declaration.')
-    number(config.get('requested_duration_s'),'Duration',minimum=.5,maximum=60)
+    number(config.get('requested_duration_s'),'Duration',minimum=.5,maximum=3600 if robot else 60)
     sequence=config.get('sequence_profile');_profile(sequence,'SimulationSequenceProfile')
     if set(sequence)-({'execution_plan'} if robot else set())!={'schema_version','plan_spec','object_type','profile_id','source','mode','robot_model','steps'}:
         raise ValueError('Unexpected sequence declaration.')

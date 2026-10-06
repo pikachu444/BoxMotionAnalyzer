@@ -149,7 +149,7 @@ def validate_config(config):
     number(fault.get('start'), 'Fault start (s)', minimum=0)
     number(fault.get('end'), 'Fault end (s)', minimum=0)
     number(fault.get('std_mm'), 'Marker noise standard deviation', minimum=.001, maximum=100)
-    number(config.get('duration_s'), 'Duration (s)', minimum=.5, maximum=60)
+    number(config.get('duration_s'), 'Duration (s)', minimum=.5, maximum=3600 if mode=='robot_sequence' else 60)
     if fault['kind'] is not None:
         if fault['start'] > config['duration_s']:
             raise ValueError('Fault start is outside requested duration.')

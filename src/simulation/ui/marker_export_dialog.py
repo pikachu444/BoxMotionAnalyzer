@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
 
 from src.simulation.marker_fixtures import load_profile, draw_profile
 from src.simulation.marker_export import generate_marker_capture
+from src.simulation.engine.robot_sequence import SequenceFailure
+from src.simulation.robot_partial import retain_partial
 from src.simulation.profile_document import read_document
 from src.utils.marker_profile_identity import profile_identity, validate_identity, compatibility, artifact_identity, layout_support
 from src.utils.artifact_metadata import metadata_from_source_rows
@@ -31,6 +33,7 @@ class MarkerExportWorker(QThread):
         super().__init__(parent)
         self.arguments = copy.deepcopy((destination, profile, simulation, faults, seed))
         self.profile_identity = profile_identity(profile)
+        self.partial_path=None;self.partial_error=None
 
     def run(self):
         try:
@@ -43,6 +46,11 @@ class MarkerExportWorker(QThread):
             validate_identity(self.profile_identity)
             if self.isInterruptionRequested():
                 raise InterruptedError()
+        except SequenceFailure as error:
+            try:self.partial_path=retain_partial(str(Path(self.arguments[0]).with_suffix('.proc')),error.engine)
+            except Exception as failure:self.partial_error=str(failure)
+            if isinstance(error,InterruptedError):self.cancelled.emit()
+            else:self.failed.emit(str(error))
         except InterruptedError:
             self.cancelled.emit()
         except Exception as error:
@@ -69,6 +77,7 @@ class MarkerExportDialog(QDialog):
         self._layout_block_reason = None
         self.worker = None
         self.observed_path = None
+        self.partial_history=[]
         self.close_requested = False
         self.source_stale = False
         self.setWindowTitle('Synthetic marker CSV')
@@ -350,6 +359,10 @@ class MarkerExportDialog(QDialog):
     def _finished(self, completed):
         if self.worker is not completed: return
         worker, self.worker = self.worker, None
+        if worker.partial_path:
+            self.partial_history.append(dict(path=worker.partial_path,simulation=copy.deepcopy(worker.arguments[2])))
+            self.status.setText(self.status.text()+' Partial simulation PROC: '+worker.partial_path)
+        elif worker.partial_error:self.status.setText(self.status.text()+' Partial capture was not saved: '+worker.partial_error)
         worker.deleteLater()
         self.progress.hide()
         self._update_actions()

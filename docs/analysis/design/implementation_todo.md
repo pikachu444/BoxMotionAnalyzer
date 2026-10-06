@@ -13,8 +13,13 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   controls and actual producer/analysis truth-isolation diagnostics are recorded
   in `../reference/robot_sequence_contract.md`. Reviewed FHD/narrow proposal was
   shown; human UI and new synthetic fixture/tolerance approvals are pending.
-  Production UI binding, final independent audit, publication/CI/merge and native
-  confirmation remain open. Existing single-drop and #139 source/history paths
+  Production Preview/Apply, explicit scope, Run/Marker CSV, real progress and
+  partial retention are connected;159 affected checks pass, including15 new GUI
+  checks. Actual widget renders7 and preserved PUB06 renders12 are retained.
+  Whole public G16 diagnostic runs one engine/16 releases/95.69 actual seconds.
+  Independent GUI audit closed all4 P2 corrections with no material P0/P1/P2
+  remaining in that bounded scope. Publication/current CI/merge and native
+  confirmation remain open in PR151. Existing single-drop and #139 source/history paths
   stay in production. #141–143 are not started; #104 remains separate.
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel

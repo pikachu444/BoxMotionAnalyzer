@@ -3,16 +3,17 @@
 Last Reviewed: 2026-10-07
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. New envelopes use `schema_version: 1`.
-The #140 backend checkpoint adds an explicit, source-bound `RobotExecutionPlan`
+The #140 implementation adds an explicit, source-bound `RobotExecutionPlan`
 and the opt-in `pub07-dynamic-gripper-v1` producer. Config-only robot profiles
 retain the #139 execution block; they are never silently upgraded. Production
-robot UI execution remains blocked while its mockup approval is pending. The
+robot UI binds handling/attachment/scope Preview, Apply, Run, Marker CSV and
+partial retention. Separate new UI/numerical approval questions remain pending. The
 new engine, proposed virtual fixtures/tolerances, incomplete-result status and
 evaluation-only transition evidence are described in
 [robot_sequence_contract.md](robot_sequence_contract.md). Neither the backend
 checkpoint nor diagnostic success completes #140 or certifies an ISTA procedure.
 
-The following PUB06 production flow remains the current UI behavior.
+The following PUB06 flow is preserved alongside explicit PUB07 execution.
 This document describes the backend and production UI bindings. The human approved
 the shared G17/H12 workspace; the same independent reviewer closed all production
 findings. Current CI and publication are tracked in PR150. Native Windows input
@@ -29,8 +30,8 @@ preview arrangement. It shows the existing G17 or H12 lists; `single_drop`
 still has one selected planned drop regardless of visible browser row count.
 Preset rows are not experimental repetitions `n`. The lists are current
 uncalibrated configurations, not a verified complete ISTA procedure. G17 hazard
-geometry and H supported/rotation/release behavior remain unimplemented.
-No new engine or reinterpretation of existing output follows from this UI.
+geometry remains unimplemented. PUB07 adds virtual H supported/rotation/release
+templates; they do not certify the complete H procedure.
 The user approved this proposal before production binding.
 
 ## Production user flow

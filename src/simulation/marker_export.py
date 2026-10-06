@@ -90,8 +90,12 @@ def generate_marker_capture(destination, profile, simulation, faults, seed, *, c
         engine = MuJoCoEngine(size=profile['box_dims_mm'], mass=simulation['mass'],
             friction=simulation['friction'], elasticity=simulation['elasticity'], com_offset=simulation['com_offset'])
     engine.set_initial_state(simulation['height'], simulation['quat'])
+    def engine_progress(current,stop):
+        phase=getattr(engine,'current_phase',None)
+        label=(f"{phase['step_id']} — {phase['kind']} — {current:.3f} s" if phase else 'Simulating')
+        update(min(80,80*current/stop),label)
     history = engine.run_simulation(show_viewer=False, stop_condition_time=simulation['duration'],
-        cancelled=cancelled, progress=lambda t, stop: update(min(80, 80 * t / stop), 'Simulating'))
+        cancelled=cancelled, progress=engine_progress)
     checkpoint()
     trajectory = history_to_trajectory(history)
     spec = fault_spec(trajectory['time_s'], faults)

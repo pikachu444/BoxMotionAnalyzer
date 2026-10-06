@@ -9,13 +9,15 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QTabWidget, QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox,
     QCheckBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
-    QFileDialog, QDialog, QSizePolicy)
+    QFileDialog, QDialog, QSizePolicy, QTextEdit)
 from src.simulation.mode_profiles import (ModeProfiles, drop_step, validate_config,
-    read_profiles, save_profiles, BLOCKED_REASON)
+    read_profiles, save_profiles, BLOCKED_REASON, require_executable)
+from src.simulation.robot_profiles import example_plan
 from src.simulation.scenarios import Scenarios
 from src.simulation.marker_fixtures import load_profile
 from src.simulation.profile_document import read_document
 from src.utils.marker_profile_identity import profile_identity
+from src.utils.marker_profile_identity import digest
 from .marker_profile_dialog import MarkerProfileDialog
 
 
@@ -46,6 +48,18 @@ class ModeSettings(QWidget):
         self.sequence_name = QLineEdit(); names.addRow('Sequence profile', self.sequence_name)
         self.robot_model = QComboBox(); self.robot_model.addItem('Gripper proxy', 'gripper_proxy')
         names.addRow('Robot model', self.robot_model); seq.addLayout(names)
+        self.handling = QComboBox()
+        for label,key in [('Configuration only',None),('Public G airborne','airborne'),
+                ('Public H supported 15°','floor_supported'),('Public held only','held_only')]:self.handling.addItem(label,key)
+        self.attachment_face = QComboBox();self.attachment_face.addItems(['upward','+X','-X','+Y','-Y','+Z','-Z'])
+        self.run_scope = QComboBox();self.run_scope.addItem('Entire plan','entire');self.run_scope.addItem('Selected drop','selected')
+        self.run_scope.addItem('Captured selection','captured')
+        self.preview_button=QPushButton('Preview sequence');self.preview_button.clicked.connect(self.preview_sequence)
+        self.robot_fields=QWidget();fields=QFormLayout(self.robot_fields);fields.setContentsMargins(0,0,0,0)
+        row=QHBoxLayout();row.addWidget(self.handling,2);row.addWidget(QLabel('Attach'));row.addWidget(self.attachment_face,1)
+        fields.addRow('Handling',row)
+        row=QHBoxLayout();row.addWidget(self.run_scope,1);row.addWidget(self.preview_button);fields.addRow('Run scope',row)
+        seq.addWidget(self.robot_fields)
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(['Preset', 'Clearance (mm)', 'Fixed X (°)', 'Fixed Y (°)', 'Fixed Z (°)', 'Scope'])
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -62,6 +76,8 @@ class ModeSettings(QWidget):
             button = QPushButton(text); button.clicked.connect(action); actions.addWidget(button); self.order_buttons.append(button)
         seq.addLayout(actions)
         self.sequence_hint = QLabel(); seq.addWidget(self.sequence_hint)
+        self.sequence_preview=QTextEdit();self.sequence_preview.setReadOnly(True);self.sequence_preview.setFixedHeight(120)
+        self.sequence_preview.hide();seq.addWidget(self.sequence_preview)
         self.tabs.addTab(sequence, 'Sequence')
         physics = QWidget(); form = QFormLayout(physics)
         self.physics_name = QLineEdit(); form.addRow('Physics profile', self.physics_name)
@@ -103,10 +119,16 @@ class ModeSettings(QWidget):
         layout.addLayout(actions)
         self.table.itemSelectionChanged.connect(self.select_row)
         self.table.cellChanged.connect(lambda row, column: self.select_row() if column in (1, 2, 3, 4) else None)
+        self.table.cellChanged.connect(self.invalidate_sequence_preview)
         self.marker_combo.currentIndexChanged.connect(self.change_marker)
         self.corner_enabled.toggled.connect(self.fault_controls)
         self.fault_kind.currentIndexChanged.connect(self.fault_controls)
         self.tabs.currentChanged.connect(self.fit_tab)
+        for control in self.findChildren(QWidget):
+            if isinstance(control,(QDoubleSpinBox,QSpinBox)):control.valueChanged.connect(self.invalidate_sequence_preview)
+            elif isinstance(control,QLineEdit):control.textChanged.connect(self.invalidate_sequence_preview)
+            elif isinstance(control,QComboBox):control.currentIndexChanged.connect(self.invalidate_sequence_preview)
+            elif isinstance(control,QCheckBox):control.toggled.connect(self.invalidate_sequence_preview)
         self.fit_tab()
 
     def fit_tab(self):
@@ -131,7 +153,19 @@ class ModeSettings(QWidget):
     def show_config(self):
         self._refreshing = True
         config = self.draft.configs[self.draft.mode]; robot = config['mode'] == 'robot_sequence'
+        self.start.setMaximum(3600 if robot else 60);self.end.setMaximum(3600 if robot else 60)
         sequence = config['sequence_profile']; physics = config['physics_profile']; observation = config['observation_profile']
+        plan=sequence.get('execution_plan')
+        self.robot_fields.setVisible(robot);self.preview_button.setVisible(robot)
+        self.handling.setCurrentIndex(self.handling.findData(plan['handling_family'] if plan else None))
+        self.attachment_face.setCurrentText(plan['attachment_face'] if plan else 'upward')
+        scope=(1 if len(plan['selected_step_ids'])==1 and len(sequence['steps'])>1 else
+            2 if plan['selected_step_ids']!=[s['step_id'] for s in sequence['steps']] else 0) if plan else 0
+        self.run_scope.model().item(2).setEnabled(plan is not None)
+        self.run_scope.setItemText(2,f"Captured selection ({len(plan['selected_step_ids'])} / {len(sequence['steps'])})" if plan else 'Captured selection')
+        self.run_scope.setItemData(2,', '.join(plan['selected_step_ids']) if plan else '',Qt.ToolTipRole)
+        self.run_scope.setCurrentIndex(scope)
+        self.sequence_preview.hide();self._preview_signature=None;self._preview_plan=None;self._preview_duration=config['duration_s']
         self.mode_label.setText('Robot sequence' if robot else 'Single drop')
         self.sequence_name.setText(sequence['profile_id']); self.robot_model.setEnabled(robot)
         for button in self.order_buttons: button.setEnabled(robot)
@@ -141,6 +175,7 @@ class ModeSettings(QWidget):
             self._preset_rows = preset_steps(*key); self._preset_key = key
         self.rows = deepcopy(sequence['steps'] if robot else self._preset_rows)
         active = min(self._active_rows.get(self.draft.mode, 0), len(self.rows)-1) if robot else next(i for i, step in enumerate(self.rows) if step['preset_id'] == selected['preset_id'])
+        if robot and plan and self.run_scope.currentData()=='selected':active=next(i for i,s in enumerate(self.rows) if s['step_id']==plan['selected_step_ids'][0])
         if not robot: self.rows[active] = deepcopy(selected)
         self._paint_rows(active)
         self.physics_name.setText(physics['profile_id'])
@@ -152,12 +187,20 @@ class ModeSettings(QWidget):
         fault = self.marker['faults']; self.fault_kind.setCurrentIndex(self.fault_kind.findData(fault['kind'])); self.channel.setCurrentIndex(self.channel.findData(fault['channel']))
         self.axis.setCurrentText(fault['axis']); self.start.setValue(fault['start']); self.end.setValue(fault['end']); self.marker_std.setValue(fault['std_mm'])
         self._refreshing = False; self.fault_controls(); self.fit_tab(); self.select_row()
+        if robot and plan:
+            try:
+                require_executable(config);self._preview_signature=self._sequence_signature(self._base_candidate());self._preview_plan=deepcopy(plan)
+            except ValueError:pass
 
     def _paint_rows(self, active):
         self.table.blockSignals(True); self.table.setRowCount(len(self.rows))
         for row, step in enumerate(self.rows):
             spec = next(item for item in Scenarios.get_drop_sequence_specs(step['category']) if item.id == step['preset_id'])
-            scope = 'Hazard block unavailable' if spec.variant == 'hazard_face2' else 'Supported motion unavailable' if spec.kind in ('tip', 'rotational_edge') else 'Free-fall preset'
+            plan=self.draft.configs[self.draft.mode]['sequence_profile'].get('execution_plan')
+            virtual_support=plan and plan['handling_family']=='floor_supported' and step['step_id'] in plan['selected_step_ids']
+            scope = ('Hazard block unavailable' if spec.variant == 'hazard_face2' else
+                'Virtual support; ISTA unverified' if virtual_support else
+                'Supported motion unavailable' if spec.kind in ('tip', 'rotational_edge') else 'Free-fall preset')
             for column, value in enumerate([step['preset_id'].replace('_', ' '), step['clearance_mm'], *step['fixed_xyz_deg'], scope]):
                 text = f'{value:g}' if isinstance(value, (int, float)) else value
                 item = self.table.item(row, column)
@@ -168,7 +211,10 @@ class ModeSettings(QWidget):
         self.table.selectRow(active); self.table.blockSignals(False)
         self._active_rows[self.draft.mode] = active
         robot = self.draft.mode == 'robot_sequence'
-        self.sequence_hint.setText(f'{len(self.rows)} preset steps. Execution unavailable (#140).' if robot else f'1 selected / {len(self.rows)} presets. Use in Simulation to run this preset.')
+        plan=self.draft.configs[self.draft.mode]['sequence_profile'].get('execution_plan')
+        self.sequence_hint.setText((f"{len(plan['selected_step_ids'])} selected / {len(self.rows)} planned drops." if plan else
+            f'{len(self.rows)} planned drops. Preview a handling profile before execution.') if robot else
+            f'1 selected / {len(self.rows)} presets. Use in Simulation to run this preset.')
 
     def read_rows(self):
         rows = deepcopy(self.rows)
@@ -191,7 +237,7 @@ class ModeSettings(QWidget):
             step['clearance_mm'] = values[0]; step['fixed_xyz_deg'] = values[1:]
         return rows
 
-    def candidate(self):
+    def _base_candidate(self):
         config = deepcopy(self.draft.configs[self.draft.mode]); rows = self.read_rows()
         config['sequence_profile']['profile_id'] = self.sequence_name.text().strip()
         config['sequence_profile']['steps'] = rows if self.draft.mode == 'robot_sequence' else [rows[max(0, self.table.currentRow())]]
@@ -205,9 +251,74 @@ class ModeSettings(QWidget):
         observation['marker'] = marker
         return validate_config(config)
 
+    def _sequence_signature(self,config):
+        return digest(dict(config=config,handling=self.handling.currentData(),face=self.attachment_face.currentText(),
+            selection=self._selected_ids(config)))
+
+    def _selected_ids(self,config):
+        if self.run_scope.currentData()=='selected':return [config['sequence_profile']['steps'][max(0,self.table.currentRow())]['step_id']]
+        if self.run_scope.currentData()=='captured':
+            plan=config['sequence_profile'].get('execution_plan')
+            if plan is None:raise ValueError('Choose an explicit run scope.')
+            return list(plan['selected_step_ids'])
+        return [s['step_id'] for s in config['sequence_profile']['steps']]
+
+    def candidate(self):
+        config=self._base_candidate()
+        if config['mode']=='robot_sequence':
+            if self.handling.currentData() is None:config['sequence_profile'].pop('execution_plan',None)
+            elif self._preview_signature!=self._sequence_signature(config):
+                raise ValueError('Plan changed. Preview sequence before applying or saving.')
+            else:
+                config['sequence_profile']['execution_plan']=deepcopy(self._preview_plan)
+                config['duration_s']=self._preview_duration
+        return validate_config(config)
+
+    def invalidate_sequence_preview(self,*_):
+        if self._refreshing:return
+        self._preview_signature=None
+        if self.sequence_preview.isVisible():self.sequence_preview.setPlainText('Preview is out of date. Preview sequence again.')
+
+    def preview_sequence(self):
+        try:
+            config=self._base_candidate();family=self.handling.currentData()
+            if family is None:raise ValueError(BLOCKED_REASON)
+            selected=self._selected_ids(config)
+            existing=config['sequence_profile'].get('execution_plan')
+            if (existing and existing['handling_family']==family and existing['attachment_face']==self.attachment_face.currentText()
+                    and existing['selected_step_ids']==selected):
+                try:require_executable(config);plan=deepcopy(existing)
+                except ValueError:plan=example_plan(config,family=family,attachment_face=self.attachment_face.currentText(),selected_step_ids=selected)
+            else:plan=example_plan(config,family=family,attachment_face=self.attachment_face.currentText(),selected_step_ids=selected)
+            self._preview_signature=self._sequence_signature(config);self._preview_plan=plan
+            limits=plan['transition'];physics=plan['physics']
+            if plan==existing:self._preview_duration=config['duration_s']
+            else:
+                budget=sum(p['duration_s'] for p in plan['phases'])
+                budget+=limits['timeout_s']*sum(p['kind'] in ('approach','lift','orient','hold','floor_move','flip','contact','settle') for p in plan['phases'])
+                budget+=sum(limits['timeout_s']+limits['retries']*(p['duration_s']+limits['timeout_s']) for p in plan['phases'] if p['kind'] in ('attach','pickup'))
+                self._preview_duration=max(config['duration_s'],min(3600.,math.ceil(budget+1)))
+            lines=[f"{len(selected)} / {len(config['sequence_profile']['steps'])} planned drops; {family}; face {plan['attachment_face']}.",
+                f"Run time limit: {self._preview_duration:g} s. Phase durations total {sum(p['duration_s'] for p in plan['phases']):g} s; tracking/settle may take longer.",
+                f"Attach: sphere {physics['radius_mm']:g} mm; distance ≤ {limits['distance_mm']:g} mm, normal ≤ {limits['normal_deg']:g}°, speed ≤ {limits['relative_speed_mm_s']:g} mm/s."]
+            for step_id in selected:
+                phases=[p for p in plan['phases'] if p['step_id']==step_id]
+                motions=[str(p.get('target_xyz_deg')) for p in phases if 'target_xyz_deg' in p]
+                pivots=[str(p['support_pivot_local_mm']) for p in phases if 'support_pivot_local_mm' in p]
+                lines.append(f"{step_id}: {' / '.join(p['kind'] for p in phases)}; XYZ {', '.join(motions) or 'unchanged'}"+
+                    (f"; support edge mm {', '.join(pivots)}" if pivots else ''))
+            if plan['omitted_step_ids']:lines.append('Omitted: '+', '.join(plan['omitted_step_ids']))
+            lines.append('Virtual handling conditions; experimental approval is not evaluated.')
+            self.sequence_preview.setPlainText('\n'.join(lines));self.status.setText('Preview ready. Use in Simulation to apply.')
+        except ValueError as error:
+            self._preview_signature=None;self.sequence_preview.setPlainText(str(error));self.status.setText('Sequence cannot be applied.')
+        self.sequence_preview.show();self.fit_tab()
+
     def select_row(self):
         if self._refreshing or self.table.currentRow() < 0: return
+        old=self._active_rows.get(self.draft.mode)
         self._active_rows[self.draft.mode] = self.table.currentRow()
+        if self.draft.mode=='robot_sequence' and self.run_scope.currentData()=='selected' and old!=self.table.currentRow():self.invalidate_sequence_preview()
         try: self.selected.emit(self.read_rows()[self.table.currentRow()])
         except ValueError as error: self.status.setText(str(error))
 
@@ -272,7 +383,8 @@ class ModeSettings(QWidget):
         try: self.draft.set_config(self.candidate())
         except ValueError as error: self.status.setText(str(error)+' Changes were not applied.'); return
         self.applied.emit(ModeProfiles.from_document(self.draft.document()))
-        self.status.setText('Settings applied. '+(BLOCKED_REASON if self.draft.mode == 'robot_sequence' else ''))
+        config=self.draft.configs[self.draft.mode]
+        self.status.setText('Settings applied. '+(BLOCKED_REASON if self.draft.mode=='robot_sequence' and 'execution_plan' not in config['sequence_profile'] else ''))
 
     def cancel_settings(self):
         self.reset(self.live_state); self.status.setText('Changes cancelled. Previous results are preserved.')

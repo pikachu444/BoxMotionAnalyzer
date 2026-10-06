@@ -1,10 +1,12 @@
-# Dynamic gripper sequence proposal — PUB07
+# Dynamic gripper sequence implementation — PUB07
 
 Last Reviewed: 2026-10-07
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. Branch `issue140-dynamic-robot-sequence`,
-base `2e3dea4b97fdb274501adf58ef6ae3744e3a0895`. This is a backend development
-checkpoint. Human UI and new synthetic fixture/tolerance approval are pending.
+base `2e3dea4b97fdb274501adf58ef6ae3744e3a0895`. Backend checkpoint `9c3e263`
+is followed by production GUI binding on this branch. The user instructed
+continuation of the editable preset-to-continuous-run workflow. Separate new
+UI proposal and synthetic fixture/tolerance approval questions remain pending.
 No full issue completion, native acceptance, experimental accuracy, new baseline,
 trial approval, or migration is claimed.
 
@@ -79,7 +81,10 @@ one engine build and actual clock throughout, including settle/hold and later
 pickup. Partial histories and structured evidence are retained on failure;
 `retain_partial` can publish an incomplete direct capture to a unique side file
 without replacing a previous complete result. Public status stays incomplete.
-Automatic failure/cancel retention is not yet integrated into the GUI.
+Production GUI workers retain failure/cancel/time-limit history to unique side
+files, preserve previous results, and expose partial-save errors, including stale
+jobs and the viewer bridge. A failed Marker CSV run cannot publish completed
+observations. Only the matching finished worker can adopt a completed result.
 Interrupted attach/release boundaries explicitly retain an unavailable next
 integration reaction with its reason. They can publish an incomplete side file;
 only completed transitions may claim a recorded reaction. Build/run/export bind
@@ -114,6 +119,46 @@ No observation-model expansion, resampling, threshold change or trial automation
 is introduced. Production UI binding is pending human mockup approval.
 
 ## Development evidence
+
+### Production GUI binding and current verification
+
+Sequence Settings binds handling, upward attachment face, and entire/selected
+scope to an explicit condition Preview. Planned XYZ/orientation/order, physics,
+and markers remain editable. Apply requires a current applicable Preview; a
+loaded custom plan retains its exact phases and numerical settings. Loaded
+multi-step subsets display `Captured selection` with their saved IDs. Browsing
+another row does not silently change that subset. Expanding scope requires a new
+Preview. G17 hazard remains blocked; H uses an explicitly virtual supported
+template, labelled `Virtual support; ISTA unverified`.
+
+Run and Marker CSV use the actual one-state runner. Visible robot time budget
+can reach3600 s; individual phases retain60 s limits and Single drop retains
+its60 s cap. New generated plans expose a conservative budget from their phase
+durations/timeouts/retries; loaded plans retain the requested budget. Progress
+uses actual engine time and the executing selected phase. Marker dialog scalar
+identity comes from the frozen producer configuration, not a browsed table row.
+
+`ui-final-affected-integration.xml` records159 passing checks in139.98 s, including
+15 new production-GUI tests,53 backend tests and existing GUI/profile/metadata
+preservation. The GUI tests execute two-release export/reload, a loaded two-step
+subset, selected-drop8 Marker dialog Generate/export/reload, H time-limit partial,
+cancel/stale source, and injected partial-save failures. The viewer cancellation
+test forces headless integration and is not native viewer acceptance.
+
+`production-reviewed-125` retains7 fresh actual widget PNGs and RunReport;
+`pub06-preservation-ui-reviewed` retains12 existing-workspace renders. FHD output
+is1920×1080 at Qt process DPR1.25; it does not verify native OS125/input.
+`full-G16-current/RunReport.json` records a fresh public200/120/80 mm,1 kg virtual
+plan: selected16 of17 planned drops, explicit omitted hazard, one engine,
+16 releases,11962 samples and95.69 s actual clock. That diagnostic retained
+config/truth/report, not a full-G16 observed Raw file. Numeric approval and
+experimental repetition remain0; previous failures and separate retries remain.
+Backend commit `9c3e263` passed hosted CI37543122942. Current GUI commit CI,
+publication and remaining approvals are tracked in PR151.
+The same independent read-only reviewer closed all4 production GUI P2 findings
+after inspecting the corrected source,159-pass XML and all7 actual PNGs. No
+material P0/P1/P2 remains in that bounded audit. This does not certify native
+behavior, numerical acceptance, current-source CI or complete #140 acceptance.
 
 Original failures remain under `tmp/issue140`: import/invocation smoke failures,
 first dynamic tracking failure, H rotation/floor-support failures, original
