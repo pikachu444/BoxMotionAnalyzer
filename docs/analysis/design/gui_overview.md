@@ -6,8 +6,9 @@ Last Reviewed: 2026-10-07
 actual continuous Run/Marker CSV, progress and partial retention on the development
 branch. Loaded subset IDs remain explicit. Related159 checks pass; actual FHD/narrow
 widget renders are retained. The user confirmed described virtual software
-controls; final GUI confirmation and native input/viewer
-remain pending. [Delivery scope](../reference/robot_sequence_contract.md).
+controls and explicitly instructed continued software delivery after the requested
+GUI corrections. Native input/viewer verification remains separate.
+[Delivery scope](../reference/robot_sequence_contract.md).
 The central preview shows count/motion/grip/time, with optional Details tabs.
 X/Y/Z rotation values are scene-axis angles in that order (Z up); Motion describes
 free-fall/supported/unavailable handling. Loaded selections retain their exact IDs.

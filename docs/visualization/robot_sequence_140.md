@@ -6,7 +6,9 @@ Production SimulationUI now connects sequence Preview/Apply, scope, Run/Marker
 CSV, actual progress and partial retention on the development branch. The user
 instructed continuation of the editable automatic-plan/continuous-run workflow.
 On2026-10-07 the user confirmed proceeding with the described virtual software
-control conditions, then requested a clearer GUI. UI confirmation remains pending. Existing
+control conditions, then requested a clearer GUI. After the final corrections,
+the user explicitly instructed continued software delivery without another
+approval pause. Native input/viewer acceptance remains separate. Existing
 PUB06 workspace and Single drop behavior are preserved.
 
 `mockups/robot_sequence_140/generate_mockups.py` subclasses the existing workspace
@@ -32,7 +34,9 @@ these are widget renders, not native desktop input/viewer acceptance.
 
 Corrected selected-drop, condition-Preview and actual H12 images were shown
 inline in conversation before requesting human approval. The async approval
-question is pending. Prior #139 approval is not treated as new #140 approval.
+question was pending at that historical proposal checkpoint. The user's later
+continuation authorizes software delivery after the requested corrections.
+Prior #139 approval is not treated as native or physical #140 acceptance.
 
 The full G17/H12 browser is preserved. Entire plan and selected drop are distinct.
 An unavailable G17 hazard blocks the entire plan; the edited16-row plan retains
@@ -69,8 +73,9 @@ render12-state preservation also passed. Evidence is under `tmp/issue140`.
 
 ## Remaining work
 
-Current-source required PR/main CI, publication/merge and separate approval
-questions remain outstanding in PR151. Native input/viewer/actual
+Current-source required PR/main CI and publication/merge are tracked in PR151.
+The user's continuation removes another discretionary approval pause for software
+delivery. Native input/viewer/actual
 OS125 remain unexecuted; previous #138/#139 failures are preserved. #104 measured
 validation is separate and unavailable. #113 is excluded; #141–143 are not started.
 
@@ -166,4 +171,7 @@ The same reviewer inspected the source, all14 originals and tests and found no
 material P0/P1/P2 in this bounded correction. The final recheck confirmed the
 updated narrow capture logic, fresh13-state report and final5-check XML;
 recorded source hashes match the reviewed files.
-Current-source CI/GUI confirmation remain tracked in draft PR151.
+The final acceptance audit found no concrete missing #140 software requirement
+and no remaining P0/P1 or material P2. Software publication can proceed when
+final-head required CI passes; native/experimental acceptance is separate.
+Launcher English/Korean Options is independent issue #152, for later implementation.

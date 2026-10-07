@@ -6,8 +6,9 @@ Last Reviewed: 2026-10-07
 `RobotExecutionPlan` profiles; existing config-only plans remain blocked. One
 dynamic state runs attach/lift/orient/release/contact/settle/pickup. Production
 UI binds editable plan Preview/Apply, Run/Marker CSV, actual progress and incomplete
-history retention. The user confirmed described virtual software controls;
-final GUI confirmation and other diagnostic numerical bounds remain pending. Existing default
+history retention. The user confirmed described virtual software controls and
+authorized continued software delivery after GUI corrections. Native/experimental
+checks and other diagnostic numerical acceptance remain separate. Existing default
 single-drop behavior/contact settings and export aliases remain intact.
 [Contract and proposed public diagnostics](analysis/reference/robot_sequence_contract.md).
 

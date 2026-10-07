@@ -5,8 +5,10 @@ Last Reviewed: 2026-10-07
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. Branch `issue140-dynamic-robot-sequence`,
 base `2e3dea4b97fdb274501adf58ef6ae3744e3a0895`. Backend checkpoint `9c3e263`
 is followed by production GUI binding on this branch. The user instructed
-continuation of the editable preset-to-continuous-run workflow. Separate new
-UI confirmation remains pending after the user's readability correction request.
+continuation of the editable preset-to-continuous-run workflow. After the
+readability/language/startup corrections, the user explicitly instructed continued
+software delivery without another waiting/approval pause. This is delivery
+authorization, not a claim that native input or physical validation passed.
 On2026-10-07 the user confirmed the described virtual software control conditions
 (attachment distance/alignment/speed/spin, tracking/rest limits, dwell,
 timeout/retries). Additional numerical diagnostic bounds remain proposed; no
@@ -124,7 +126,7 @@ through Raw/storage/results/Compare; single-drop version and numeric aliases
 remain unchanged. Unsupported versions, missing source, stale applicability,
 invalid enums/units/time, nonfinite values and unexpected fields are rejected.
 No observation-model expansion, resampling, threshold change or trial automation
-is introduced. Production UI binding is pending human mockup approval.
+is introduced. Production Preview/Apply/Run/Marker CSV binding is implemented.
 
 ## Development evidence
 
@@ -134,10 +136,10 @@ Sequence Settings binds handling, upward attachment face, and entire/selected
 scope to an explicit condition Preview. Planned XYZ/orientation/order, physics,
 and markers remain editable. Apply requires a current applicable Preview; a
 loaded custom plan retains its exact phases and numerical settings. Loaded
-multi-step subsets display `Captured selection` with their saved IDs. Browsing
+multi-step subsets display `Saved selection` with their saved IDs. Browsing
 another row does not silently change that subset. Expanding scope requires a new
 Preview. G17 hazard remains blocked; H uses an explicitly virtual supported
-template, labelled `Virtual support; ISTA unverified`.
+template, labelled `Floor tip (virtual)`.
 The subsequent user readability correction replaces central debug prose with
 a compact count/motion/grip/time card and an optional structured Details dialog.
 Rotation and Motion headings replace Fixed XYZ and Scope. Virtual H/unavailable
@@ -236,7 +238,8 @@ missing stage-state continuity, incomplete ordered toggle/reaction checks,
 toggle-boundary partial rejection, ignored phase settings, insufficient phase
 chronology, inconsistent incomplete status/coverage, and mutable effective-plan
 source mismatch. Main added guards and real export/reload negative controls;
-same-reviewer correction verification is pending. The first correction suite
+same-reviewer correction verification was pending at that historical checkpoint
+and subsequently closed all7 findings as recorded below. The first correction suite
 passed50 and failed1 in64.53 s because the NaN rejection test expected a returned
 failure while the schema correctly raised `ValueError`; both the original and
 corrected executions are retained separately. No acceptance follows from a
@@ -261,6 +264,10 @@ and `needs_review`. Counts overlap; they are not a total test or trial count.
 The same reviewer read the current code/tests and stored results, closed all7
 material P2s within the backend checkpoint and found no remaining P0/P1 or
 material P2 in that bounded correction scope. The reviewer did not execute tests.
-Human UI/fixture/tolerance approval, production UI/native/CI and full issue
-completion remain pending. All source snapshots,
+At that backend checkpoint, human UI/fixture/tolerance approval, production UI,
+native/CI and full issue completion were pending. Production UI and later
+independent reviews are now implemented/completed; the user's continuation
+authorizes software delivery subject to final-head required CI. Native/viewer,
+experimental and additional diagnostic numerical acceptance remain separate.
+All source snapshots,
 original failures and retries remain separately identified.

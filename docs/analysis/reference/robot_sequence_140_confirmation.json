@@ -34,6 +34,11 @@
       "answer_verbatim": "갑자기 영어에서 한글로 바꼈네. 영어로 통일하는게 좋지 않나? 한글로 바꾸는건 나중에 하면 좋을거 같아.",
       "status": "English now; Korean localization deferred"
     },
+    "continuation": {
+      "answer_verbatim": "대기하지 말고 쭉 진행해. 그리고 부모 이슈와 별도로, 프로그램 실행하면 나오는 런처에서 옵션 창을 넣고 한글 영어 전환할수있도록 하는 기능을 넣자는 이슈도 하나 생성해줘.",
+      "status": "Authorized continued software delivery without another discretionary approval pause; independent launcher language issue created as #152",
+      "acceptance_limit": "No native input/viewer, experimental, baseline or trial acceptance inferred"
+    },
     "startup_review": {
       "request": "Bottom cut off on opening; asked for a larger default window",
       "action": "Larger screen-bounded startup implemented; whole-GUI acceptance not inferred"

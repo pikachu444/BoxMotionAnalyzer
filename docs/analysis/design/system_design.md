@@ -5,8 +5,9 @@ Last Reviewed: 2026-10-07
 #140 / PUB07 adds explicit applicability-bound execution profiles, a one-state
 dynamic gripper runner, production Preview/Apply/Run/Marker CSV binding and
 partial-history retention. Existing config-only robot profiles stay blocked.
-The user confirmed described virtual software controls; final GUI confirmation
-and additional numeric diagnostic approval remain pending. Metadata/export reuse PUB06;
+The user confirmed described virtual software controls and authorized continued
+software delivery after GUI corrections. Native/experimental checks and additional
+numeric diagnostic acceptance remain separate. Metadata/export reuse PUB06;
 sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/robot_sequence_contract.md).
 
 #139 / PUB06 reuses the existing simulation producers and adapters. ModeProfiles validates isolated schema1/plan-bound sequence, physics and observation settings with source/edit snapshots. The production GUI captures immutable jobs, adopts only the matching generation after QThread.finished and preserves earlier files/history on cancellation or source changes. Public SimulationMetadataJson propagates through existing artifact/read/write/Compare routes; full release state and corruption truth stay evaluation-only. Robot engine execution is added by issue140 on the development branch. [Contract](../reference/simulation_mode_contract.md) records legacy unknown semantics and native/measured verification limits.

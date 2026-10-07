@@ -7,13 +7,15 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
-- [ ] #140 / PUB07 ongoing: opt-in dynamic gripper backend and explicit execution
+- [O] #140 / PUB07 software implementation and independent acceptance review:
+  opt-in dynamic gripper backend and explicit execution
   profiles are implemented on `issue140-dynamic-robot-sequence`; continuous clock,
   two releases/pickup/orient, supported H template, independent toggle/coverage
   controls and actual producer/analysis truth-isolation diagnostics are recorded
   in `../reference/robot_sequence_contract.md`. Reviewed FHD/narrow proposal was
   shown. User confirmed described virtual software controls2026-10-07 and requested
-  GUI readability corrections; final UI confirmation remains pending.
+  GUI readability corrections, then explicitly instructed continued software
+  delivery without another waiting/approval pause.
   Production Preview/Apply, explicit scope, Run/Marker CSV, real progress and
   partial retention are connected;159 affected checks pass, including15 new GUI
   checks. Actual widget renders7 and preserved PUB06 renders12 are retained.
@@ -27,7 +29,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   Fresh actual11-state renders,49-pass affected GUI run and4-pass grip-geometry
   correction recheck are retained separately.
   Same-agent clarity recheck closed the lost-radius P2; no material P0/P1/P2
-  remains in that correction scope. GUI confirmation/current CI are still open.
+  remains in that correction scope. Final-head required CI remains pending;
+  native verification is separate.
   Second user readability correction: four labelled content-sized pre-run rows,
   two-row invalid/stale guidance, Korean rotation/motion labels and separate
   display/saved automatic-face values. Related GUI49 and final layout4 pass;
@@ -43,8 +46,16 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   separate small-screen startup1 and refreshed13-state actual widget render pass.
   Original failed small-screen test assertion is retained; narrow target/Settings
   surfaces are now checked directly. Same-reviewer bounded English/startup audit
-  passes. Originals are in english_rows125. Latest source is not yet merged or
-  human GUI-approved; current-source hosted CI is tracked in PR151.
+  passes. Originals are in english_rows125. Final acceptance audit found no
+  concrete missing software requirement or remaining material P0/P1/P2. Final-head
+  required CI and software publication are tracked in PR151.
+- [ ] #140 / PUB07 native and experimental acceptance: native Windows input,
+  viewer and actual OS125 remain unexecuted; #104 measured validation is separate
+  and unavailable. Additional numerical diagnostic promotion, baseline/trial
+  approval and full issue closure are not inferred from software delivery.
+- [ ] #152 independent enhancement: launcher Options with English/한국어 selection,
+  persistence and consistent application UI. Issue created at the user's request;
+  implementation is deferred and is not a child/dependency of #134/#140.
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
   and stale-worker cancellation are implemented. Original production GUI34 checks
