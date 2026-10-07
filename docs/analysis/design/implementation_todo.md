@@ -36,7 +36,15 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   source CI/publication are tracked in PR151. Prior be3e52b CI37549796822 passed.
   Same-agent row-layout review and header/unit correction recheck are complete;
   final3 detail checks and11-state renders pass. No material P0/P1/P2 remains
-  in that scope. Latest source is not yet merged or human GUI-approved.
+  in that scope. User then requested English consistency (Korean localization
+  later) and a larger initial window because the bottom was cut off. English
+  four-row summary and1280×900 logical startup capped to the usable screen are
+  implemented; mode/manual resizing remains intact. Affected GUI40, final layout5,
+  separate small-screen startup1 and refreshed13-state actual widget render pass.
+  Original failed small-screen test assertion is retained; narrow target/Settings
+  surfaces are now checked directly. Same-reviewer bounded English/startup audit
+  passes. Originals are in english_rows125. Latest source is not yet merged or
+  human GUI-approved; current-source hosted CI is tracked in PR151.
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
   and stale-worker cancellation are implemented. Original production GUI34 checks

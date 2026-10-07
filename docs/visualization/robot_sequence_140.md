@@ -110,7 +110,7 @@ The same reviewer rechecked the source,4-pass XML and original default/custom
 Conditions renders and closed the radius P2. No material P0/P1/P2 remains in
 that bounded readability correction. Final human GUI confirmation is still open.
 
-## Labelled summary after the second user review
+## Labelled summary after the second user review (historical Korean display)
 
 The user still found the central prose unclear and asked whether it was a log
 or a permanently sized area. The centre is a pre-run settings summary, replaced
@@ -138,3 +138,32 @@ The same reviewer inspected all12 originals and found a clipped planned-time
 header in Actions. Content-sized columns restored the seconds unit and target
 rotation; bounded detail recheck3 passed4.86 s and refreshed11 states passed.
 The reviewer closed that P2 with no other material P0/P1/P2 in this scope.
+
+## English consistency and initial window height
+
+The user requested English UI consistency and deferred Korean localization.
+Current labels are Pre-run summary, Drops, Motion, Grip face and Time limit;
+the table uses X/Y/Z rotation (°) and Motion type, and the range control remains
+Drops to run. Top-facing face (auto) keeps the saved `upward` key. The aligned
+four-row layout, two-row error guidance and optional Details remain unchanged.
+Earlier Korean originals remain historical evidence in summary_rows125.
+
+The user also reported a cut-off bottom when opening the window. The old default
+was1280×720 logical pixels; the robot settings and target exceeded that height.
+Startup now requests1280×900, capped to available screen geometry after Qt-style
+title/border and margin allowances. On the sampled2048×1114 usable logical screen
+at process DPR1.25, the initial single and robot windows fit their native frames
+and show the whole target/captions. Mode changes preserve size. Smaller screens
+keep scrollable targets and the separate Settings footer.
+
+english_rows125 retains13 actual widget states plus the direct summary PNG and
+original RunReport. Fresh affected GUI40 passed58.63 s; final layout5 passed4.69 s.
+An additional small-screen offscreen check initially failed because the new test
+assumed a wide visible settings table. That original failure is preserved; the
+corrected check follows the actual narrow form target and Settings Apply and
+passed1 in2.54 s. This is separate from native Windows input acceptance.
+The same reviewer inspected the source, all14 originals and tests and found no
+material P0/P1/P2 in this bounded correction. The final recheck confirmed the
+updated narrow capture logic, fresh13-state report and final5-check XML;
+recorded source hashes match the reviewed files.
+Current-source CI/GUI confirmation remain tracked in draft PR151.

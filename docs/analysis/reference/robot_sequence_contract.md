@@ -187,10 +187,15 @@ loading of that retained capture passed in the separate
 `full-G16-producer-e1547ab/RawReloadReport.json` (fresh0/reused1). This validates
 saved whole-plan observations/reload, not independently measured package accuracy.
 The subsequent pre-run summary uses four labelled rows with content-sized height;
-error/stale states use two rows. Korean display labels and automatic-face wording
-retain the exact serialized face enum via userData. Related GUI49/final layout4
-and corrected11-state widget renders pass. No physics/time/rotation convention
-or metadata schema was changed; latest-source CI is tracked in PR151.
+error/stale states use two rows. The user subsequently requested English UI
+consistency and deferred Korean localization. English labels and automatic-face
+wording retain the exact serialized face enum via userData. The initial window
+requests1280×900 logical pixels, capped to the usable screen including title/border
+allowance; mode changes preserve manual size. Fresh affected GUI40 pass58.63 s,
+final layout5 pass4.69 s, separate small-screen startup1 passes2.54 s, and actual
+13-state Qt1.25 renders pass. Same-reviewer bounded English/startup review found
+no material P0/P1/P2. No physics/time/rotation convention or metadata schema was
+changed; latest-source CI is tracked in PR151. Native/human acceptance stays separate.
 
 Original failures remain under `tmp/issue140`: import/invocation smoke failures,
 first dynamic tracking failure, H rotation/floor-support failures, original

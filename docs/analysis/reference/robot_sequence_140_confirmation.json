@@ -29,7 +29,15 @@
     "later_user_review": "Requested readable central summary and clarification of Fixed X/Y/Z and Scope",
     "later_status": "Readability correction implemented and independently reviewed; GUI approval not inferred",
     "second_user_review": "Requested labelled/line-broken central summary, asked log versus permanent area, remained unsure about rotation and Scope; other GUI largely acceptable",
-    "second_review_status": "Further row-based summary correction; final whole-GUI confirmation not inferred"
+    "second_review_status": "Further row-based summary correction; final whole-GUI confirmation not inferred",
+    "language_preference": {
+      "answer_verbatim": "갑자기 영어에서 한글로 바꼈네. 영어로 통일하는게 좋지 않나? 한글로 바꾸는건 나중에 하면 좋을거 같아.",
+      "status": "English now; Korean localization deferred"
+    },
+    "startup_review": {
+      "request": "Bottom cut off on opening; asked for a larger default window",
+      "action": "Larger screen-bounded startup implemented; whole-GUI acceptance not inferred"
+    }
   },
   "prior_run_reports": "Remain unchanged as historical evidence with original approval/status values"
 }

@@ -20,7 +20,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--output',required=True)
     root=Path(parser.parse_args().output);root.mkdir(parents=True,exist_ok=False)
     app=QApplication.instance() or QApplication([]);dpr=app.primaryScreen().devicePixelRatio()
-    window=SimulationUI();stamp=datetime.now(timezone.utc)
+    window=SimulationUI();startup_size=window.size();stamp=datetime.now(timezone.utc)
     paths=['src/simulation/ui/main_window.py','src/simulation/ui/mode_settings.py','src/simulation/ui/marker_export_dialog.py',
         'src/simulation/robot_ui_validation.py','tests/test_robot_sequence_gui.py']
     report=envelope('RunReport',run_id='pub07-ui-'+stamp.strftime('%Y%m%dT%H%M%SZ'),utc=stamp.isoformat(),
@@ -28,20 +28,34 @@ def main():
         command=[sys.executable,*sys.argv],code=dict(commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
             dirty=subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],text=True).splitlines(),
             source_sha256={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths}),
-        environment=dict(platform=app.platformName(),process_scale=os.environ.get('QT_SCALE_FACTOR'),dpr=dpr),
+        environment=dict(platform=app.platformName(),process_scale=os.environ.get('QT_SCALE_FACTOR'),dpr=dpr,
+            available_screen=[window.screen().availableGeometry().width(),window.screen().availableGeometry().height()],
+            startup_size=[startup_size.width(),startup_size.height()]),
         fresh=True,reused=False,native=dict(status='not_executed',reason='Widget render does not establish native input/viewer/OS125'),
         approval=dict(fixture='proposed',tolerance='proposed',baseline='no promotion',trial='not_evaluated'),
         experimental=dict(status='unavailable',reason='#104 separate'),states=[],completion='running')
-    def capture(name,small=False):
-        size=(820,600) if small else (math.ceil(1920/dpr),math.ceil(1080/dpr))
+    def capture(name,small=False,startup=False):
+        size=(startup_size.width(),startup_size.height()) if startup else (820,600) if small else (math.ceil(1920/dpr),math.ceil(1080/dpr))
         window.resize(*size);window.show();QTest.qWait(70);window.resize(*size);app.processEvents()
         pixmap=window.grab();assert pixmap.save(str(root/(name+'.png')))
+        if startup:assert window.screen().availableGeometry().contains(window.frameGeometry()),'Startup frame extends outside usable screen'
         for control in (window.run_btn,window.batch_btn,window.marker_btn):
             assert control.visibleRegion().contains(control.rect()),'Primary actions clipped'
         fits=None
-        if not small:
+        if startup and window._narrow:
+            window.form_scroll.ensureWidgetVisible(window.orientation_preview);app.processEvents()
+            assert window.orientation_preview.visibleRegion().contains(window.orientation_preview.rect()),'Startup target unreachable'
+            window.form_scroll.verticalScrollBar().setValue(0);app.processEvents()
+        elif not small:
             rect=window.orientation_preview.rect();rect.moveTopLeft(window.orientation_preview.mapTo(window.right_scroll.viewport(),rect.topLeft()))
-            fits=window.right_scroll.viewport().rect().contains(rect);assert fits,'Actual target preview clipped'
+            fits=window.right_scroll.viewport().rect().contains(rect)
+            if startup:
+                if window.right_scroll.verticalScrollBar().maximum()==0:assert fits,'Startup target clipped without scrolling'
+                else:
+                    window.right_scroll.ensureWidgetVisible(window.orientation_preview);app.processEvents()
+                    assert window.orientation_preview.visibleRegion().contains(window.orientation_preview.rect()),'Startup target unreachable'
+                    window.right_scroll.verticalScrollBar().setValue(0);app.processEvents()
+            else:assert fits,'Actual target preview clipped'
             assert window.settings.table.viewport().height()>=5*window.settings.table.rowHeight(0),'Five planned rows must fit'
         config=window.profiles.configs[window.profiles.mode]
         report['states'].append(dict(name=name,pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),
@@ -51,13 +65,14 @@ def main():
             preview_face=window.settings.preview_face.text(),preview_time=window.settings.preview_time.text(),
             preview_height=window.settings.preview_box.height(),actual_label=window.result_label.text(),status='passed'))
     try:
-        capture('single-default');window.mode_combo.setCurrentIndex(1)
+        capture('single-startup',startup=True);capture('single-default');window.mode_combo.setCurrentIndex(1)
         window.settings.handling.setCurrentIndex(1);window.settings.preview_sequence()
-        assert not window.run_btn.isEnabled() and '위험물 낙하' in window.settings.sequence_preview.text()
+        assert not window.run_btn.isEnabled() and 'Hazard drop' in window.settings.sequence_preview.text()
         capture('G-entire-unavailable')
         window.settings.run_scope.setCurrentIndex(1);window.settings.table.selectRow(7)
         window.settings.attachment_face.setCurrentText('+X');window.settings.preview_sequence()
-        assert window.settings.preview_face.text()=='박스 +X면';capture('G-selected-preview')
+        assert window.settings.preview_face.text()=='Box +X face';capture('G-selected-preview')
+        capture('G-startup-preview',startup=True)
         assert window.settings.preview_box.grab().save(str(root/'G-preview-summary.png'))
         details=window.settings.sequence_details_dialog();details.show();QTest.qWait(70)
         for index,name in enumerate(('G-details-drops','G-details-actions','G-details-conditions')):
@@ -68,7 +83,7 @@ def main():
         window.settings.apply_settings();assert window.run_btn.isEnabled();capture('G-selected-applied')
         state=ModeProfiles();state.switch('robot_sequence');state.set_config(fixture(family='floor_supported',two=False))
         window._apply_profiles(state);window.settings.preview_sequence()
-        assert '바닥에 지지' in window.settings.sequence_preview.text();capture('H-supported-preview')
+        assert 'supported on floor' in window.settings.sequence_preview.text();capture('H-supported-preview')
         capture('H-small-main',True);window._show_settings();app.processEvents();dialog=window.settings_dialog
         dialog.resize(820,600);QTest.qWait(70);dialog.resize(820,600);app.processEvents()
         scroll=dialog.layout().itemAt(0).widget();scroll.ensureWidgetVisible(window.settings.apply_button);app.processEvents()

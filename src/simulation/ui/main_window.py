@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QLineEdit, QComboBox, QPushButton, QDoubleSpinBox, QCheckBox,
     QGroupBox, QFormLayout, QMessageBox, QFileDialog, QProgressBar,
-    QScrollArea, QSizePolicy, QDialog
+    QScrollArea, QSizePolicy, QDialog, QStyle
 )
 from PySide6.QtCore import Qt, QThread, Signal, QPointF, QSize, QTimer
 from PySide6.QtGui import QColor, QBrush, QPainter, QPen, QPolygonF
@@ -231,7 +231,7 @@ class OrientationPreviewWidget(QWidget):
         painter.drawText(
             10,
             self.height() - 10,
-            f"박스 회전각 (°) X / Y / Z: {self.euler[0]:.1f}, {self.euler[1]:.1f}, {self.euler[2]:.1f}"
+            f"Box rotation (°) X / Y / Z: {self.euler[0]:.1f}, {self.euler[1]:.1f}, {self.euler[2]:.1f}"
         )
 
 def simulation_error_message(error):
@@ -310,7 +310,13 @@ class SimulationUI(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Simulation")
-        self.resize(1280, 720)
+        # Leave room for the robot settings and target at startup, while keeping
+        # the native title bar and borders inside the screen's usable area.
+        available = self.screen().availableGeometry()
+        border = self.style().pixelMetric(QStyle.PM_DefaultFrameWidth)
+        title = self.style().pixelMetric(QStyle.PM_TitleBarHeight)
+        self.resize(min(1280, available.width() - 2 * border - 24),
+                    min(900, available.height() - title - 2 * border - 24))
         self.profiles = ModeProfiles()
         self._loading = True
         self._busy = False
@@ -766,7 +772,7 @@ class SimulationUI(QWidget):
         rotation_form.setContentsMargins(8, 0, 0, 0)
         for axis, control in (("X", self.custom_r_input), ("Y", self.custom_p_input), ("Z", self.custom_y_input)):
             control.setToolTip("Box orientation: rotate about the scene X, then Y, then Z axes. Z points up. Values are angles in degrees.")
-            rotation_form.addRow(f"{axis}축 회전 (°):", control)
+            rotation_form.addRow(f"{axis} rotation (°):", control)
         self.rotation_section = CollapsibleSection("Rotation", rotation)
         form.addRow(self.rotation_section)
         form.addRow(self.warning_label)
