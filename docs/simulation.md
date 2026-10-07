@@ -2,10 +2,21 @@
 
 Last Reviewed: 2026-10-07
 
+#140 backend development introduces opt-in `RobotSequenceEngine` and explicit
+`RobotExecutionPlan` profiles; existing config-only plans remain blocked. One
+dynamic state runs attach/lift/orient/release/contact/settle/pickup. Production
+UI binds editable plan Preview/Apply, Run/Marker CSV, actual progress and incomplete
+history retention. The user confirmed described virtual software controls and
+authorized continued software delivery after GUI corrections. Native/experimental
+checks and other diagnostic numerical acceptance remain separate. Existing default
+single-drop behavior/contact settings and export aliases remain intact.
+[Contract and proposed public diagnostics](analysis/reference/robot_sequence_contract.md).
+
 #139 / PUB06은 기본 Single drop과 선택형 Robot sequence의 설정을 분리한다.
 기존 Run·Run all presets·Marker CSV 경로를 사용하며 두 모드가 같은 설정 탭과
-박스 프리뷰를 공유한다. Robot sequence는 설정 저장까지 가능하며 실행은 #140의
-attach/pickup/release engine이 없다는 사유로 차단한다. 합성 설정과 결과는
+박스 프리뷰를 공유한다. Robot sequence는 취급 방식·부착면·실행 범위를 선택하고
+Preview 후 Use in Simulation으로 명시적인 #140 실행 plan을 적용해 연속 실행한다.
+실행 plan이 없는 기존 설정은 실행을 차단한다. 합성 설정과 결과는
 실제 원시험·반복 수와 구분한다. [mode 계약](analysis/reference/simulation_mode_contract.md),
 [검증과 native 대기 범위](visualization/simulation_mode_139.md)를 참고한다.
 
@@ -14,7 +25,22 @@ Open/Save settings는 파일을 읽고 저장하며, `Use in Simulation`으로 �
 Cancel은 적용 전 변경을 되돌린다. 작은 창에서는 Settings를 별도 창으로 열고
 기존 입력·박스 프리뷰를 스크롤로 확인한다. 모드 왕복은 각 모드의 적용한 설정을
 복원한다. Single drop 표의 여러 프리셋은 탐색 목록이며 선택한 한 행만 실행한다.
-Robot sequence의 순서 편집은 전체 계획 설정이며 연속 실행 성공을 뜻하지 않는다.
+Robot sequence는 목록의 순서·위치·자세를 수정할 수 있다. 전체 계획과 선택 항목,
+불러온 일부 선택을 구분하며, 설정 변경 후에는 Preview를 다시 확인한다.
+G17 hazard는 실행할 수 없고 H 지지 운동은 가상 template임을 표시한다.
+표의 X/Y/Z rotation은 장면 축 기준 X→Y→Z 순서로 적용하는 회전각이며 Z축이
+위쪽이다. Motion은 자유낙하·바닥 지지·미지원 운동을 구분한다. 중앙 Preview는
+실행 수·동작·부착면·시간 제한만 요약하고, 제외 항목·단계·조건은 Details에서 본다.
+요약은 실행 로그가 아니라 실행 전 계획을 확인하는 화면이다. `Drops`, `Motion`,
+`Grip face`, `Time limit`을 각각 한 줄로 표시하고 내용에 맞게 높이를 정한다.
+입력이 바뀌거나 실행할 수 없으면 `Status`, `Next step`만 남긴다.
+회전각은 표와 왼쪽에서 `X/Y/Z rotation (°)`, 항목별 운동은 `Motion type`으로
+표시한다. 사용자 요청에 따라 UI는 영어로 통일하고 한국어 지원은 나중에 진행한다.
+항목 간격과 미리보기 내부 여백을 명시해 Qt6.10.1·6.11.2 모두 FHD에서
+하단 테두리까지 표시합니다. 글자 크기와 표의 다섯 행은 유지합니다.
+기본 Simulation 창은1280×900 logical px로 열되, 제목 표시줄과 테두리를 포함해
+작업 표시줄을 제외한 화면 안에 맞춘다. 작은 화면은 스크롤로 하단을 볼 수 있고,
+모드 전환은 사용자가 조정한 창 크기를 바꾸지 않는다.
 이 프리셋 목록을 검증된 완전한 ISTA 절차로 보증하지 않는다.
 큰 창에서는 Mode와 Settings가 왼쪽 입력 위에 있고, 오른쪽 설정 아래 남는 공간은
 박스 프리뷰가 사용한다. 창 크기에 따라 그림이 줄어들 수 있지만 고정 높이로

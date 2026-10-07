@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "utc": "2026-10-06T22:18:06.696862+00:00",
+  "command": [
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+    "docs/visualization/mockups/robot_sequence_140/generate_mockups.py",
+    "--output",
+    "docs/visualization/mockups/robot_sequence_140/corrected125"
+  ],
+  "code_commit": "2e3dea4b97fdb274501adf58ef6ae3744e3a0895",
+  "script_sha256": "caf1f1f2ca97074e1d3911caa5edb3b4cbe3017f02b9289b9ddccbdf3c207509",
+  "tier": "review-only-widget-render",
+  "fresh": true,
+  "reused": false,
+  "approval": "pending human review",
+  "qt_process_scale": "1.25",
+  "platform": "windows",
+  "native_os125": "unexecuted; Qt process scale is separate",
+  "states": [
+    {
+      "name": "single-default",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-draft",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-preview",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-entire-incomplete",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Entire plan blocked: G17 hazard block unavailable. Choose a supported subset or selected drop.",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-selected",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Ready: selected face 3. Previous result: public-single.proc",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-running",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Drop 2 / 16 — pickup · 8.640 s. Previous result: public-single.proc",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-attach-failed",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Drop 2 — attach failed: face is not accessible. Partial capture retained. Previous result: public-single.proc",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-cancelled",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Cancelled at 8.640 s — partial capture retained. Previous result: public-single.proc",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-inapplicable",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Cannot run with a stale handling profile. Previous result: public-single.proc",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-invalid",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Cannot run with a stale handling profile. Previous result: public-single.proc",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-h-supported",
+      "logical": [
+        1536,
+        864
+      ],
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Ready for supported template preview. Previous result: public-single.proc",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-820x600",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "source": "public UI state fixture",
+      "actual": "Ready for supported template preview. Previous result: public-single.proc",
+      "scope": "Mockup labels/buttons; no engine or native acceptance",
+      "expected": "Shared layout, original target picture, primary buttons accessible",
+      "status": "passed"
+    },
+    {
+      "name": "robot-settings-820x600",
+      "logical": [
+        820,
+        600
+      ],
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "status": "passed"
+    }
+  ],
+  "completion": "passed"
+}

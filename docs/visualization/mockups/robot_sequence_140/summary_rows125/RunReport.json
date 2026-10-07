@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub07-ui-20261007T045443Z",
+  "utc": "2026-10-07T04:54:43.728937+00:00",
+  "kst": "2026-10-07T13:54:43.728937+09:00",
+  "tier": "actual-production-widget-render",
+  "command": [
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\src\\simulation\\robot_ui_validation.py",
+    "--output",
+    "tmp/issue140/production-summary-rows-reviewed-125"
+  ],
+  "code": {
+    "commit": "be3e52bcb1cbdf459ce96006994007cf88e32655",
+    "dirty": [
+      " M docs/analysis/design/gui_overview.md",
+      " M docs/analysis/design/implementation_todo.md",
+      " M docs/analysis/reference/robot_sequence_140_confirmation.json",
+      " M docs/analysis/reference/robot_sequence_contract.md",
+      " M docs/simulation.md",
+      " M docs/visualization/robot_sequence_140.md",
+      " M src/simulation/robot_ui_validation.py",
+      " M src/simulation/ui/main_window.py",
+      " M src/simulation/ui/mode_settings.py",
+      " M tests/test_robot_sequence_gui.py",
+      " M tests/test_simulation_modes_gui.py"
+    ],
+    "source_sha256": {
+      "src/simulation/ui/main_window.py": "ac07586a6759c94b0c8bf6ec1defc5b709cf6f7099db9054fc3924fdf8693165",
+      "src/simulation/ui/mode_settings.py": "ef83548d5fd952102cbeef0c31d2a91510080079f596ed4e74fbd660fd150142",
+      "src/simulation/ui/marker_export_dialog.py": "e0a3b4fa7f0fe2967c91c5826b0b9f9137dab26343f3292ae2688f2388bd2867",
+      "src/simulation/robot_ui_validation.py": "a0201121bb399a0f1e7adaefa9f01811a366ce771d1ecb5964fa5c16edfba014",
+      "tests/test_robot_sequence_gui.py": "97e68748adbf72259bb224172ac9787a737f9dd4c4c82dfa2d56c0d85d0771fe"
+    }
+  },
+  "environment": {
+    "platform": "windows",
+    "process_scale": "1.25",
+    "dpr": 1.25
+  },
+  "fresh": true,
+  "reused": false,
+  "native": {
+    "status": "not_executed",
+    "reason": "Widget render does not establish native input/viewer/OS125"
+  },
+  "approval": {
+    "fixture": "proposed",
+    "tolerance": "proposed",
+    "baseline": "no promotion",
+    "trial": "not_evaluated"
+  },
+  "experimental": {
+    "status": "unavailable",
+    "reason": "#104 separate"
+  },
+  "states": [
+    {
+      "name": "single-default",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "5a6cdd43ef5d0abc1adf22d1837b5f7b4e2bb7a2f89acdf8d8b17faec2a22eb8",
+      "mode": "single_drop",
+      "selected_step_ids": null,
+      "actual_preview": "",
+      "preview_count": "",
+      "preview_face": "",
+      "preview_time": "",
+      "preview_height": 480,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-entire-unavailable",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "위험물 낙하 항목은 아직 지원하지 않습니다.\n해당 항목을 제외하거나 실행할 항목을 선택하세요.",
+      "preview_count": "실행 불가",
+      "preview_face": "",
+      "preview_time": "",
+      "preview_height": 90,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-selected-preview",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "들어 올린 뒤 놓아서 자유낙하",
+      "preview_count": "8번 항목만 실행 (16개 제외)",
+      "preview_face": "박스 +X면",
+      "preview_time": "적용 후 최대 33초",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-drops",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-actions",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-conditions",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-selected-applied",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "6285a2716069260e5ad6ab7b8e3f120eccfd834593ec929690c81b392455f20e",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "preset-8"
+      ],
+      "actual_preview": "들어 올린 뒤 놓아서 자유낙하",
+      "preview_count": "8번 항목만 실행 (16개 제외)",
+      "preview_face": "박스 +X면",
+      "preview_time": "적용 후 최대 33초",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-supported-preview",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "c5254513e86cc11e6f53e34742fcdc51ddf9dc8fcd2e99da42e1474b8eddf3d3",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "drop-1"
+      ],
+      "actual_preview": "바닥에 지지한 채 기울여 놓기 (가상)",
+      "preview_count": "1번 항목만 실행",
+      "preview_face": "위쪽을 향한 면 자동 선택",
+      "preview_time": "적용 후 최대 30초",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-small-main",
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "target_fits": null,
+      "configuration_hash": "c5254513e86cc11e6f53e34742fcdc51ddf9dc8fcd2e99da42e1474b8eddf3d3",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "drop-1"
+      ],
+      "actual_preview": "바닥에 지지한 채 기울여 놓기 (가상)",
+      "preview_count": "1번 항목만 실행",
+      "preview_face": "위쪽을 향한 면 자동 선택",
+      "preview_time": "적용 후 최대 30초",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-small-settings",
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "scope": "Actual scrolled Settings with Apply/Cancel reachable",
+      "status": "passed"
+    },
+    {
+      "name": "custom-grip-conditions",
+      "scope": "Actual loaded custom grip radius6.5mm",
+      "status": "passed"
+    }
+  ],
+  "completion": "passed"
+}

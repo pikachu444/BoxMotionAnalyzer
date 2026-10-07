@@ -87,6 +87,8 @@ jobs:
           tests/test_marker_flip_artifact_io.py
           tests/test_marker_face_gui_flow.py
           tests/test_simulation_contact_gui.py
+          tests/test_robot_sequence.py
+          tests/test_robot_sequence_gui.py
           tests/test_simulation_layout.py
           tests/test_marker_flip_review_dialog.py
           tests/test_marker_review_layout.py
@@ -142,6 +144,12 @@ jobs:
           --junitxml=tmp/public-marker-results.xml
       - name: Verify PUB06 mode contracts and independent transforms
         run: python -m src.simulation.mode_validation --output tmp/issue139/contracts
+      - name: Verify PUB07 virtual dynamic continuity diagnostics
+        run: python -m src.simulation.robot_validation --output tmp/issue140/robot-diagnostics
+      - name: Render PUB07 actual production profiles at 125 percent
+        env:
+          QT_SCALE_FACTOR: '1.25'
+        run: python -m src.simulation.robot_ui_validation --output tmp/issue140/production-125
       - name: Render PUB06 production mode settings at original FHD size
         env:
           QT_SCALE_FACTOR: '1.25'
@@ -253,6 +261,7 @@ jobs:
             tmp/issue137/**
             tmp/issue138/**
             tmp/issue139/**
+            tmp/issue140/**
             tmp/issue81_gui/**
             tmp/issue74_gui/**
           if-no-files-found: warn

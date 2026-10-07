@@ -7,6 +7,61 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #140 / PUB07 software implementation and independent acceptance review:
+  opt-in dynamic gripper backend and explicit execution
+  profiles are implemented on `issue140-dynamic-robot-sequence`; continuous clock,
+  two releases/pickup/orient, supported H template, independent toggle/coverage
+  controls and actual producer/analysis truth-isolation diagnostics are recorded
+  in `../reference/robot_sequence_contract.md`. Reviewed FHD/narrow proposal was
+  shown. User confirmed described virtual software controls2026-10-07 and requested
+  GUI readability corrections, then explicitly instructed continued software
+  delivery without another waiting/approval pause.
+  Production Preview/Apply, explicit scope, Run/Marker CSV, real progress and
+  partial retention are connected;159 affected checks pass, including15 new GUI
+  checks. Actual widget renders7 and preserved PUB06 renders12 are retained.
+  Whole public G16 diagnostic runs one engine/16 releases/95.69 actual seconds.
+  Independent GUI audit closed all4 P2 corrections with no material P0/P1/P2
+  remaining in that bounded scope. Publication/current CI/merge and native
+  confirmation remain open in PR151. Existing single-drop and #139 source/history paths
+  stay in production. #141–143 are not started; #104 remains separate.
+  Follow-up readability change replaces debug prose with a compact card and
+  Details tabs; Rotation/Motion/Drops to run labels explain actual meanings.
+  Fresh actual11-state renders,49-pass affected GUI run and4-pass grip-geometry
+  correction recheck are retained separately.
+  Same-agent clarity recheck closed the lost-radius P2; no material P0/P1/P2
+  remains in that correction scope. Final-head required CI remains pending;
+  native verification is separate.
+  Second user readability correction: four labelled content-sized pre-run rows,
+  two-row invalid/stale guidance, Korean rotation/motion labels and separate
+  display/saved automatic-face values. Related GUI49 and final layout4 pass;
+  corrected actual11-state renders plus summary close-up are in summary_rows125.
+  Original FHD target-clip failure is retained; final independent review/current
+  source CI/publication are tracked in PR151. Prior be3e52b CI37549796822 passed.
+  Same-agent row-layout review and header/unit correction recheck are complete;
+  final3 detail checks and11-state renders pass. No material P0/P1/P2 remains
+  in that scope. User then requested English consistency (Korean localization
+  later) and a larger initial window because the bottom was cut off. English
+  four-row summary and1280×900 logical startup capped to the usable screen are
+  implemented; mode/manual resizing remains intact. Affected GUI40, final layout5,
+  separate small-screen startup1 and refreshed13-state actual widget render pass.
+  Original failed small-screen test assertion is retained; narrow target/Settings
+  surfaces are now checked directly. Same-reviewer bounded English/startup audit
+  passes. Originals are in english_rows125. Final acceptance audit found no
+  concrete missing software requirement or remaining material P0/P1/P2. Final-head
+  required CI and software publication are tracked in PR151.
+  Hosted CI37576477292 passed1378 core checks+11 subtests and robot diagnostics,
+  then exposed FHD target clipping with Qt6.11.2. Original failure and local
+  reproduction are preserved. Compact spacing/margins fix the actual layout;
+  GUI41, final layout6 and actual13-state renders pass separately on Qt6.10.1
+  and6.11.2. The fit gate now includes the whole frame; independent recheck passes
+  with no remaining material P0/P1/P2. Current CI is tracked in PR151.
+- [ ] #140 / PUB07 native and experimental acceptance: native Windows input,
+  viewer and actual OS125 remain unexecuted; #104 measured validation is separate
+  and unavailable. Additional numerical diagnostic promotion, baseline/trial
+  approval and full issue closure are not inferred from software delivery.
+- [ ] #152 independent enhancement: launcher Options with English/한국어 selection,
+  persistence and consistent application UI. Issue created at the user's request;
+  implementation is deferred and is not a child/dependency of #134/#140.
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
   and stale-worker cancellation are implemented. Original production GUI34 checks
@@ -27,7 +82,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   denied0x80070005. Original failures and Qt evidence are preserved separately.
   See `../reference/simulation_mode_contract.md` and
   `../../visualization/simulation_mode_139.md`. No whole139/native/measured
-  completion claimed. #140/#143 not started; #104 measured validation separate;
+  completion claimed. #140 ongoing; #143 not started; #104 measured validation separate;
   #113 excluded; no baseline/tolerance/trial promotion.
 - [O] #138 / PUB05 software implementation and automatic review: user approved
   the final interactive mockup on 2026-10-06. Main implemented geometry/meaning/correspondence

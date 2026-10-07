@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub07-ui-20261006T234115Z",
+  "utc": "2026-10-06T23:41:15.578004+00:00",
+  "kst": "2026-10-07T08:41:15.578004+09:00",
+  "tier": "actual-production-widget-render",
+  "command": [
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\src\\simulation\\robot_ui_validation.py",
+    "--output",
+    "tmp/issue140/production-reviewed-125"
+  ],
+  "code": {
+    "commit": "9c3e263e36d225e638e4b3499803f5ebdfd77988",
+    "dirty": [
+      " M .github/workflows/public-marker-validation.yml",
+      " M src/simulation/engine/robot_sequence.py",
+      " M src/simulation/marker_export.py",
+      " M src/simulation/mode_profiles.py",
+      " M src/simulation/ui/main_window.py",
+      " M src/simulation/ui/marker_export_dialog.py",
+      " M src/simulation/ui/mode_settings.py",
+      " M src/utils/simulation_metadata.py"
+    ],
+    "source_sha256": {
+      "src/simulation/ui/main_window.py": "181c55bfd7583fade59bd84f1292dbe34e54a2dec453bae12145d21b68494851",
+      "src/simulation/ui/mode_settings.py": "d99404ddd383a8e56c38f133195ba2633cd790458a6e8da70759fd3d582ed2fe",
+      "src/simulation/ui/marker_export_dialog.py": "e0a3b4fa7f0fe2967c91c5826b0b9f9137dab26343f3292ae2688f2388bd2867",
+      "src/simulation/robot_ui_validation.py": "d9f62333050f64bd30eed7ace90e2e1ccc918aa0fddcccaba766ef6474543f1d",
+      "tests/test_robot_sequence_gui.py": "703925a70049e19f973de17835303ec5fc7c6a6b0cf080b4b3b3c035fc9db930"
+    }
+  },
+  "environment": {
+    "platform": "windows",
+    "process_scale": "1.25",
+    "dpr": 1.25
+  },
+  "fresh": true,
+  "reused": false,
+  "native": {
+    "status": "not_executed",
+    "reason": "Widget render does not establish native input/viewer/OS125"
+  },
+  "approval": {
+    "fixture": "proposed",
+    "tolerance": "proposed",
+    "baseline": "no promotion",
+    "trial": "not_evaluated"
+  },
+  "experimental": {
+    "status": "unavailable",
+    "reason": "#104 separate"
+  },
+  "states": [
+    {
+      "name": "single-default",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "5a6cdd43ef5d0abc1adf22d1837b5f7b4e2bb7a2f89acdf8d8b17faec2a22eb8",
+      "mode": "single_drop",
+      "selected_step_ids": null,
+      "actual_preview": "",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-entire-unavailable",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "Hazard block is unavailable; explicitly omit that planned test.",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-selected-preview",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "1 / 17 planned drops; airborne; face +X.\nRun time limit: 33 s. Phase durations total 4.51 s; tracking/settle may take longer.\nAttach: sphere 5 mm; distance ≤ 2 mm, normal ≤ 5°, speed ≤ 30 mm/s.\npreset-8: approach / attach / lift / orient / lift / hold / release / free_motion / contact / settle; XYZ [-180.0, 0.0, 0.0]\nOmitted: preset-1, preset-2, preset-3, preset-4, preset-5, preset-6, preset-7, preset-9, preset-10, preset-11, preset-12, preset-13, preset-14, preset-15, preset-16, preset-17\nVirtual handling conditions; experimental approval is not evaluated.",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-selected-applied",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "6285a2716069260e5ad6ab7b8e3f120eccfd834593ec929690c81b392455f20e",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "preset-8"
+      ],
+      "actual_preview": "1 / 17 planned drops; airborne; face +X.\nRun time limit: 33 s. Phase durations total 4.51 s; tracking/settle may take longer.\nAttach: sphere 5 mm; distance ≤ 2 mm, normal ≤ 5°, speed ≤ 30 mm/s.\npreset-8: approach / attach / lift / orient / lift / hold / release / free_motion / contact / settle; XYZ [-180.0, 0.0, 0.0]\nOmitted: preset-1, preset-2, preset-3, preset-4, preset-5, preset-6, preset-7, preset-9, preset-10, preset-11, preset-12, preset-13, preset-14, preset-15, preset-16, preset-17\nVirtual handling conditions; experimental approval is not evaluated.",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-supported-preview",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "c5254513e86cc11e6f53e34742fcdc51ddf9dc8fcd2e99da42e1474b8eddf3d3",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "drop-1"
+      ],
+      "actual_preview": "1 / 1 planned drops; floor_supported; face upward.\nRun time limit: 30 s. Phase durations total 2.71 s; tracking/settle may take longer.\nAttach: sphere 5 mm; distance ≤ 2 mm, normal ≤ 5°, speed ≤ 30 mm/s.\ndrop-1: approach / attach / orient / hold / release / free_motion / contact / settle; XYZ [0, 15, 0]; support edge mm [100.0, 0, -40.0]\nVirtual handling conditions; experimental approval is not evaluated.",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-small-main",
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "target_fits": null,
+      "configuration_hash": "c5254513e86cc11e6f53e34742fcdc51ddf9dc8fcd2e99da42e1474b8eddf3d3",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "drop-1"
+      ],
+      "actual_preview": "1 / 1 planned drops; floor_supported; face upward.\nRun time limit: 30 s. Phase durations total 2.71 s; tracking/settle may take longer.\nAttach: sphere 5 mm; distance ≤ 2 mm, normal ≤ 5°, speed ≤ 30 mm/s.\ndrop-1: approach / attach / orient / hold / release / free_motion / contact / settle; XYZ [0, 15, 0]; support edge mm [100.0, 0, -40.0]\nVirtual handling conditions; experimental approval is not evaluated.",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-small-settings",
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "scope": "Actual scrolled Settings with Apply/Cancel reachable",
+      "status": "passed"
+    }
+  ],
+  "completion": "passed"
+}

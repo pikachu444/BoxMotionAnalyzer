@@ -51,7 +51,8 @@ def test_mode_roundtrip_preserves_manual_pose_and_ordered_plan(window):
     original = deepcopy(window.profiles.configs['single_drop'])
     window.mode_combo.setCurrentIndex(1)
     panel = window.settings
-    assert panel.table.rowCount() == 17 and panel.table.item(16, 5).text() == 'Hazard block unavailable'
+    assert panel.table.rowCount() == 17 and panel.table.item(16, 5).text() == 'Unavailable'
+    assert 'Hazard block is not implemented' in panel.table.item(16,5).toolTip()
     assert window.orientation_preview.sequence_spec.faces == (3, 4)
     panel.table.selectRow(7)
     assert window.orientation_preview.sequence_spec.faces == (3,) and window.custom_h_input.value() == 910
@@ -193,7 +194,7 @@ def test_completed_preset_update_and_small_window_settings(window):
     assert window.settings.table.item(0, 1).text() == '460' and window.settings.table.item(0, 4).text() == '0'
     window.cat_combo.setCurrentIndex(1)
     assert window.settings.table.rowCount() == 12
-    assert window.settings.table.item(0, 5).text() == 'Supported motion unavailable'
+    assert window.settings.table.item(0, 5).text() == 'Floor tip (unavailable)'
     for mode in (0, 1):
         window.mode_combo.setCurrentIndex(mode); window.resize(820, 600); QApplication.processEvents()
         assert window.size().width() == 820 and not window.right_scroll.isVisible()

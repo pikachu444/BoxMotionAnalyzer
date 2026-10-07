@@ -9,6 +9,41 @@ from src.simulation.scenarios import Scenarios
 from src.simulation.ui.main_window import OrientationPreviewWidget, SimulationUI
 
 
+def test_startup_window_fits_screen_and_robot_target_is_reachable():
+    app = QApplication.instance() or QApplication([])
+    window = SimulationUI()
+    window.show(); QTest.qWait(50); app.processEvents()
+    try:
+        assert window.screen().availableGeometry().contains(window.frameGeometry())
+        original_size = window.size()
+        window.mode_combo.setCurrentIndex(1)
+        window.settings.handling.setCurrentIndex(1)
+        window.settings.run_scope.setCurrentIndex(1)
+        window.settings.table.selectRow(7)
+        window.settings.preview_sequence(); app.processEvents()
+        assert window.size() == original_size  # Mode changes respect window size.
+        for control in (window.run_btn, window.marker_btn):
+            assert control.visibleRegion().contains(control.rect())
+        if window._narrow:
+            window.form_scroll.ensureWidgetVisible(window.orientation_preview); app.processEvents()
+            assert window.orientation_preview.visibleRegion().contains(window.orientation_preview.rect())
+            window._show_settings(); app.processEvents()
+            scroll = window.settings_dialog.layout().itemAt(0).widget()
+            scroll.ensureWidgetVisible(window.settings.apply_button); app.processEvents()
+            assert window.settings.apply_button.visibleRegion().contains(window.settings.apply_button.rect())
+            window.settings_dialog.reject()
+            return
+        assert window.settings.table.viewport().height() >= 5 * window.settings.table.rowHeight(0)
+        for control in (window.settings.apply_button, window.orientation_preview):
+            window.right_scroll.ensureWidgetVisible(control); app.processEvents()
+            assert control.visibleRegion().contains(control.rect())
+        # When the content fits, no part of the bottom preview needs scrolling.
+        if window.right_scroll.widget().minimumSizeHint().height() <= window.right_scroll.viewport().height():
+            assert window.right_scroll.verticalScrollBar().maximum() == 0
+    finally:
+        window.close(); app.processEvents()
+
+
 def test_wide_workspace_preserves_approved_preview_and_left_mode_controls():
     app = QApplication.instance() or QApplication([])
     window = SimulationUI()
@@ -35,6 +70,26 @@ def test_wide_workspace_preserves_approved_preview_and_left_mode_controls():
         assert window.profiles.document() == original
     finally:
         window.close(); app.processEvents()
+
+
+def test_robot_summary_and_whole_target_fit_fhd_without_scrolling():
+    app = QApplication.instance() or QApplication([])
+    window = SimulationUI();window.show()
+    try:
+        window.resize(1536,864);QTest.qWait(50)
+        window.mode_combo.setCurrentIndex(1)
+        window.settings.handling.setCurrentIndex(1)
+        window.settings.run_scope.setCurrentIndex(1)
+        window.settings.table.selectRow(7)
+        window.settings.preview_sequence();QTest.qWait(50);app.processEvents()
+        for control in (window.settings.preview_box,window.settings.apply_button,window.preview_group):
+            rect=control.rect();rect.moveTopLeft(control.mapTo(window.right_scroll.viewport(),rect.topLeft()))
+            assert window.right_scroll.viewport().rect().contains(rect)
+        assert window.right_scroll.verticalScrollBar().maximum()==0
+        assert window.settings.table.viewport().height()>=5*window.settings.table.rowHeight(0)
+        assert window.orientation_preview.height()>=160
+    finally:
+        window.close();app.processEvents()
 
 
 def test_small_simulation_form_keeps_run_fixed_and_settings_intact():

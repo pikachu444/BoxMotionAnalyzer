@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub07-ui-20261007T000100Z",
+  "utc": "2026-10-07T00:01:00.484527+00:00",
+  "kst": "2026-10-07T09:01:00.484527+09:00",
+  "tier": "actual-production-widget-render",
+  "command": [
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\src\\simulation\\robot_ui_validation.py",
+    "--output",
+    "tmp/issue140/production-clarity-reviewed-125"
+  ],
+  "code": {
+    "commit": "e1547ab1a7077c9344c8094269da76421c4c4a12",
+    "dirty": [
+      " M docs/analysis/design/gui_overview.md",
+      " M docs/analysis/design/implementation_todo.md",
+      " M docs/analysis/design/system_design.md",
+      " M docs/analysis/reference/robot_sequence_contract.md",
+      " M docs/analysis/reference/simulation_mode_contract.md",
+      " M docs/simulation.md",
+      " M docs/visualization/robot_sequence_140.md",
+      " M src/simulation/robot_ui_validation.py",
+      " M src/simulation/ui/main_window.py",
+      " M src/simulation/ui/mode_settings.py",
+      " M tests/test_robot_sequence_gui.py",
+      " M tests/test_simulation_modes_gui.py"
+    ],
+    "source_sha256": {
+      "src/simulation/ui/main_window.py": "d8a7468000276be7928fd906dba1c73111fe25903470795f9e9290451d148403",
+      "src/simulation/ui/mode_settings.py": "70e0e355776d9be9b5a3be0c9bc6ae2b69a6d70283189c1d7496b32297065b6d",
+      "src/simulation/ui/marker_export_dialog.py": "e0a3b4fa7f0fe2967c91c5826b0b9f9137dab26343f3292ae2688f2388bd2867",
+      "src/simulation/robot_ui_validation.py": "22324a13738a85b58ac4c78e1e907951a523f4c7168e522440b325918394ee70",
+      "tests/test_robot_sequence_gui.py": "f5de24ecb9faa253a36a5e8e89319a5556ca89520b98dcf33095d14ebfd6cf0f"
+    }
+  },
+  "environment": {
+    "platform": "windows",
+    "process_scale": "1.25",
+    "dpr": 1.25
+  },
+  "fresh": true,
+  "reused": false,
+  "native": {
+    "status": "not_executed",
+    "reason": "Widget render does not establish native input/viewer/OS125"
+  },
+  "approval": {
+    "fixture": "proposed",
+    "tolerance": "proposed",
+    "baseline": "no promotion",
+    "trial": "not_evaluated"
+  },
+  "experimental": {
+    "status": "unavailable",
+    "reason": "#104 separate"
+  },
+  "states": [
+    {
+      "name": "single-default",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "5a6cdd43ef5d0abc1adf22d1837b5f7b4e2bb7a2f89acdf8d8b17faec2a22eb8",
+      "mode": "single_drop",
+      "selected_step_ids": null,
+      "actual_preview": "",
+      "preview_count": "",
+      "preview_time": "",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-entire-unavailable",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "Hazard block is unavailable; explicitly omit that planned test.",
+      "preview_count": "Cannot run this plan",
+      "preview_time": "",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-selected-preview",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "Lift and release. Grip the +X face.",
+      "preview_count": "Run 1 of 17 drops (drop 8); 16 excluded",
+      "preview_time": "Time limit: 33 s",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-drops",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-actions",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-conditions",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-selected-applied",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "6285a2716069260e5ad6ab7b8e3f120eccfd834593ec929690c81b392455f20e",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "preset-8"
+      ],
+      "actual_preview": "Lift and release. Grip the +X face.",
+      "preview_count": "Run 1 of 17 drops (drop 8); 16 excluded",
+      "preview_time": "Time limit: 33 s",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-supported-preview",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "c5254513e86cc11e6f53e34742fcdc51ddf9dc8fcd2e99da42e1474b8eddf3d3",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "drop-1"
+      ],
+      "actual_preview": "Virtual tip on floor. Grip the top-facing face (automatic).",
+      "preview_count": "Run 1 of 1 drops (drop 1)",
+      "preview_time": "Time limit: 30 s",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-small-main",
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "target_fits": null,
+      "configuration_hash": "c5254513e86cc11e6f53e34742fcdc51ddf9dc8fcd2e99da42e1474b8eddf3d3",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "drop-1"
+      ],
+      "actual_preview": "Virtual tip on floor. Grip the top-facing face (automatic).",
+      "preview_count": "Run 1 of 1 drops (drop 1)",
+      "preview_time": "Time limit: 30 s",
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-small-settings",
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "scope": "Actual scrolled Settings with Apply/Cancel reachable",
+      "status": "passed"
+    },
+    {
+      "name": "custom-grip-conditions",
+      "scope": "Actual loaded custom grip radius6.5mm",
+      "status": "passed"
+    }
+  ],
+  "completion": "passed"
+}
