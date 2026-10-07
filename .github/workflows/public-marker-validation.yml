@@ -88,6 +88,7 @@ jobs:
           tests/test_marker_face_gui_flow.py
           tests/test_simulation_contact_gui.py
           tests/test_robot_sequence.py
+          tests/test_contact_evaluation.py
           tests/test_robot_sequence_gui.py
           tests/test_simulation_layout.py
           tests/test_marker_flip_review_dialog.py
@@ -146,6 +147,8 @@ jobs:
         run: python -m src.simulation.mode_validation --output tmp/issue139/contracts
       - name: Verify PUB07 virtual dynamic continuity diagnostics
         run: python -m src.simulation.robot_validation --output tmp/issue140/robot-diagnostics
+      - name: Verify PUB08 contacts and production observed event comparisons
+        run: python -m src.simulation.contact_validation --output tmp/issue141/contact-diagnostics
       - name: Render PUB07 actual production profiles at 125 percent
         env:
           QT_SCALE_FACTOR: '1.25'
@@ -262,6 +265,7 @@ jobs:
             tmp/issue138/**
             tmp/issue139/**
             tmp/issue140/**
+            tmp/issue141/**
             tmp/issue81_gui/**
             tmp/issue74_gui/**
           if-no-files-found: warn

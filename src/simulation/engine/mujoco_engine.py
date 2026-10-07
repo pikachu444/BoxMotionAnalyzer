@@ -23,6 +23,18 @@ class MuJoCoEngine:
 
         self.model = None
         self.data = None
+        self.contact_recorder = None
+
+    def enable_contact_recording(self, source_identity):
+        """Explicit evaluation sidecar; existing exports and defaults are intact."""
+        if self.data is not None and self.data.time != 0:
+            raise ValueError('Enable timestep contacts before physical execution.')
+        from ..contact_recording import ContactRecorder
+        self.contact_recorder = ContactRecorder(self, source_identity)
+
+    def _capture_contacts(self):
+        if self.contact_recorder is not None:
+            self.contact_recorder.capture()
 
     def set_initial_state(self, height_mm, quat_wxyz):
         """
@@ -166,6 +178,7 @@ class MuJoCoEngine:
                         # Step simulation
                         for _ in range(steps_per_frame):
                             mujoco.mj_step(self.model, self.data)
+                            self._capture_contacts()
 
                         current_time = float(self.data.time)
 
@@ -192,6 +205,7 @@ class MuJoCoEngine:
                 # Step simulation
                 for _ in range(steps_per_frame):
                     mujoco.mj_step(self.model, self.data)
+                    self._capture_contacts()
 
                 current_time = float(self.data.time)
 
@@ -215,7 +229,12 @@ class MuJoCoEngine:
         history = []
         for index in range(samples):
             if index:
-                mujoco.mj_step(self.model, self.data, nstep=substeps)
+                if self.contact_recorder is None:
+                    mujoco.mj_step(self.model, self.data, nstep=substeps)
+                else:
+                    for _ in range(substeps):
+                        mujoco.mj_step(self.model, self.data)
+                        self._capture_contacts()
             self._record_frame(history)
         return history
 
@@ -223,6 +242,7 @@ class MuJoCoEngine:
         # mj_step integrates state after calculating derived transforms. Refresh
         # kinematics so every recorded quantity refers to the same actual time.
         mujoco.mj_forward(self.model, self.data)
+        self._capture_contacts()
         frame_data = {'time': float(self.data.time)}
 
         # Center remains the legacy body-origin alias. COM is explicitly separate.

@@ -1,6 +1,12 @@
 # Dynamic gripper sequence implementation — PUB07
 
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-10-08
+
+PUB07 software source `f1a66c9` passed required CI37579195396 and PR #151
+merged as `78b6c797916f421530327b061ced098fc30060d8`. Native viewer/input and
+measured accuracy remain separate. PUB08 extends opt-in timestep contact
+evidence without changing this one-state execution or its approved controls:
+[contact evaluation contract](contact_evaluation_contract.md).
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. Branch `issue140-dynamic-robot-sequence`,
 base `2e3dea4b97fdb274501adf58ef6ae3744e3a0895`. Backend checkpoint `9c3e263`

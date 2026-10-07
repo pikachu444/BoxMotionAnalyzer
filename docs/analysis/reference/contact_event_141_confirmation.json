@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ContactEventApproval",
+  "reviewed_date": "2026-10-08",
+  "policy_sha256": "bfb33aa29f7edf47887730ffe86421ff9be2344ca353df44b57cd589de90dc56",
+  "approver": "repository-user-in-task",
+  "event_scope": {
+    "status": "approved",
+    "statement": "두 경우 모두 포함 (추천)",
+    "meaning": "first subsequent detached floor impact within the same release, including new-feature and rebound"
+  },
+  "thresholds": {
+    "status": "proposed",
+    "reason": "A separate plain-language numeric question is pending"
+  },
+  "numerical_accuracy": {
+    "status": "proposed",
+    "reason": "Not part of synthetic semantics approval"
+  },
+  "baseline": "none",
+  "experimental_accuracy": "unavailable"
+}

@@ -1,12 +1,20 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-10-08
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [ ] #141 / PUB08 software delivery: independent timestep contact recording,
+  frozen public event policy/expectations, material-corner impact evaluation,
+  ordered comparison and real PUB07/production-observation roundtrip are being
+  verified on `issue141-contact-evaluation`. Initial 27 checks pass; the first
+  production harness failure and separate correction execution are preserved.
+  Policy approval, final independent review and final-head CI/merge are pending.
+  See `../reference/contact_evaluation_contract.md`. #142/#143/#152 excluded;
+  numerical accuracy/baseline promotion and #104 measured verification separate.
 - [O] #140 / PUB07 software implementation and independent acceptance review:
   opt-in dynamic gripper backend and explicit execution
   profiles are implemented on `issue140-dynamic-robot-sequence`; continuous clock,
@@ -22,8 +30,10 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   Whole public G16 diagnostic runs one engine/16 releases/95.69 actual seconds.
   Independent GUI audit closed all4 P2 corrections with no material P0/P1/P2
   remaining in that bounded scope. Publication/current CI/merge and native
-  confirmation remain open in PR151. Existing single-drop and #139 source/history paths
-  stay in production. #141–143 are not started; #104 remains separate.
+  confirmation is tracked in PR151. Final source f1a66c9 passed required CI37579195396;
+  PR151 merged as78b6c79. Native/experimental acceptance remains separate.
+  Existing single-drop and #139 source/history paths stay in production.
+  #141 starts separately; #142/#143 are not started; #104 remains separate.
   Follow-up readability change replaces debug prose with a compact card and
   Details tabs; Rotation/Motion/Drops to run labels explain actual meanings.
   Fresh actual11-state renders,49-pass affected GUI run and4-pass grip-geometry

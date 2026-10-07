@@ -1,6 +1,14 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-10-08
+
+#141 / PUB08 adds opt-in timestep ContactRecording on copied MuJoCo data,
+an independent corner-load event evaluator, and an observation-only adapter to
+the unchanged whole-record postprocessor. Ordered comparison applies one t1
+shift and retains unmatched/extra/ambiguous events and missing states.
+Production Raw/slice/proc reopening and truth separation use existing APIs.
+No GUI change or new processing policy is introduced.
+[Contact contract and proposed approval scope](../reference/contact_evaluation_contract.md).
 
 #140 / PUB07 adds explicit applicability-bound execution profiles, a one-state
 dynamic gripper runner, production Preview/Apply/Run/Marker CSV binding and
