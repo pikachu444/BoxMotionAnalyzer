@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 import sys
 from PySide6.QtWidgets import QApplication
+from PySide6 import __version__ as qt_binding_version
 from PySide6.QtTest import QTest
 from .ui.main_window import SimulationUI
 from .mode_profiles import ModeProfiles
@@ -29,6 +30,7 @@ def main():
             dirty=subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],text=True).splitlines(),
             source_sha256={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths}),
         environment=dict(platform=app.platformName(),process_scale=os.environ.get('QT_SCALE_FACTOR'),dpr=dpr,
+            qt_binding_version=qt_binding_version,qt_style=app.style().objectName(),font=app.font().toString(),
             available_screen=[window.screen().availableGeometry().width(),window.screen().availableGeometry().height()],
             startup_size=[startup_size.width(),startup_size.height()]),
         fresh=True,reused=False,native=dict(status='not_executed',reason='Widget render does not establish native input/viewer/OS125'),
@@ -49,13 +51,21 @@ def main():
         elif not small:
             rect=window.orientation_preview.rect();rect.moveTopLeft(window.orientation_preview.mapTo(window.right_scroll.viewport(),rect.topLeft()))
             fits=window.right_scroll.viewport().rect().contains(rect)
+            report.setdefault('geometry',[]).append(dict(name=name,
+                viewport=[window.right_scroll.viewport().width(),window.right_scroll.viewport().height()],
+                target=[rect.x(),rect.y(),rect.width(),rect.height()],
+                settings_height=window.settings.height(),tabs_height=window.settings.tabs.height(),
+                scroll_max=window.right_scroll.verticalScrollBar().maximum()))
             if startup:
                 if window.right_scroll.verticalScrollBar().maximum()==0:assert fits,'Startup target clipped without scrolling'
                 else:
                     window.right_scroll.ensureWidgetVisible(window.orientation_preview);app.processEvents()
                     assert window.orientation_preview.visibleRegion().contains(window.orientation_preview.rect()),'Startup target unreachable'
                     window.right_scroll.verticalScrollBar().setValue(0);app.processEvents()
-            else:assert fits,'Actual target preview clipped'
+            else:
+                assert fits,'Actual target preview clipped'
+                group=window.preview_group.rect();group.moveTopLeft(window.preview_group.mapTo(window.right_scroll.viewport(),group.topLeft()))
+                assert window.right_scroll.viewport().rect().contains(group),'Actual target frame clipped'
             assert window.settings.table.viewport().height()>=5*window.settings.table.rowHeight(0),'Five planned rows must fit'
         config=window.profiles.configs[window.profiles.mode]
         report['states'].append(dict(name=name,pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),

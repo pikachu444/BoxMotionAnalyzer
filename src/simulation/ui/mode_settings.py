@@ -40,11 +40,11 @@ class ModeSettings(QWidget):
         self._active_rows = {}
         self._examples = {key: load_profile(example=key) for key in ('18', '32')}
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-        layout = QVBoxLayout(self); layout.setContentsMargins(0, 0, 0, 0)
+        layout = QVBoxLayout(self); layout.setContentsMargins(0, 0, 0, 0);layout.setSpacing(3)
         self.mode_label = QLabel(); layout.addWidget(self.mode_label)
         self.tabs = QTabWidget(); layout.addWidget(self.tabs)
         sequence = QWidget(); seq = QVBoxLayout(sequence);seq.setSpacing(3)
-        names = QFormLayout()
+        names = QFormLayout();names.setVerticalSpacing(3)
         self.sequence_name = QLineEdit(); names.addRow('Sequence profile', self.sequence_name)
         self.robot_model = QComboBox(); self.robot_model.addItem('Gripper proxy', 'gripper_proxy')
         names.addRow('Robot model', self.robot_model); seq.addLayout(names)
@@ -57,7 +57,7 @@ class ModeSettings(QWidget):
         self.run_scope = QComboBox();self.run_scope.addItem('Entire plan','entire');self.run_scope.addItem('Selected drop','selected')
         self.run_scope.addItem('Saved selection','captured')
         self.preview_button=QPushButton('Preview sequence');self.preview_button.clicked.connect(self.preview_sequence)
-        self.robot_fields=QWidget();fields=QFormLayout(self.robot_fields);fields.setContentsMargins(0,0,0,0)
+        self.robot_fields=QWidget();fields=QFormLayout(self.robot_fields);fields.setContentsMargins(0,0,0,0);fields.setVerticalSpacing(3)
         row=QHBoxLayout();row.addWidget(self.handling,2);row.addWidget(QLabel('Grip face'));row.addWidget(self.attachment_face,1)
         fields.addRow('Handling',row)
         row=QHBoxLayout();row.addWidget(self.run_scope,1);row.addWidget(self.preview_button);fields.addRow('Drops to run',row)

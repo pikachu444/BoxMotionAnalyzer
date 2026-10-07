@@ -271,3 +271,16 @@ authorizes software delivery subject to final-head required CI. Native/viewer,
 experimental and additional diagnostic numerical acceptance remain separate.
 All source snapshots,
 original failures and retries remain separately identified.
+
+## Hosted layout correction before publication
+
+Final-head CI37576477292 passed1378 core checks plus11 subtests and dynamic
+diagnostics but failed the FHD robot render with PySide6.11.2. Its original
+failure and local6.11.2 reproduction remain preserved. Compact explicit layout
+spacing and target margins restore the entire frame while keeping font, five
+rows and minimum preview sizes. New render geometry/font/style/version fields
+aid diagnosis; the required fit assertions are strengthened, not removed.
+Affected GUI41 pass separately on Qt6.10.1/6.11.2, final layout6 and actual
+13-state renders pass in both. Independent correction review passed with no
+remaining P0/P1 or material P2; current CI is tracked in PR151. No earlier green
+head is substituted for this correction.

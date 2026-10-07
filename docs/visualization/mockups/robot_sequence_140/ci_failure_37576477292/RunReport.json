@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub07-ui-20261007T054843Z",
+  "utc": "2026-10-07T05:48:43.937402+00:00",
+  "kst": "2026-10-07T14:48:43.937402+09:00",
+  "tier": "actual-production-widget-render",
+  "command": [
+    "C:\\hostedtoolcache\\windows\\Python\\3.13.15\\x64\\python.exe",
+    "D:\\a\\BoxMotionAnalyzer\\BoxMotionAnalyzer\\src\\simulation\\robot_ui_validation.py",
+    "--output",
+    "tmp/issue140/production-125"
+  ],
+  "code": {
+    "commit": "aa881adbdc42e446e5af3f8da32dea5d0e32ba77",
+    "dirty": [],
+    "source_sha256": {
+      "src/simulation/ui/main_window.py": "cfa2f3c10e159351f7638e124797c584bfce4c3c7c65f93c21c8dfabac22fa17",
+      "src/simulation/ui/mode_settings.py": "855c6bad0bd29a441a898374d91aed99ff6b154c2f5f90dce204c94a220e02cc",
+      "src/simulation/ui/marker_export_dialog.py": "6bbc75009b6a2b7ad00686590dfba1262d80def80a57475b581f931d6895d9d2",
+      "src/simulation/robot_ui_validation.py": "480638735c903cd41fafc0d5b1d6d6d0c900149bbbd03aa787c4f1f61a5d2ba7",
+      "tests/test_robot_sequence_gui.py": "47377c219849e5f92d8a8b719cdbb94102653e2418449eef176b6a9c1e537f38"
+    }
+  },
+  "environment": {
+    "platform": "windows",
+    "process_scale": "1.25",
+    "dpr": 1.25,
+    "available_screen": [
+      1536,
+      826
+    ],
+    "startup_size": [
+      1280,
+      773
+    ]
+  },
+  "fresh": true,
+  "reused": false,
+  "native": {
+    "status": "not_executed",
+    "reason": "Widget render does not establish native input/viewer/OS125"
+  },
+  "approval": {
+    "fixture": "proposed",
+    "tolerance": "proposed",
+    "baseline": "no promotion",
+    "trial": "not_evaluated"
+  },
+  "experimental": {
+    "status": "unavailable",
+    "reason": "#104 separate"
+  },
+  "states": [
+    {
+      "name": "single-startup",
+      "pixels": [
+        1600,
+        966
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "5a6cdd43ef5d0abc1adf22d1837b5f7b4e2bb7a2f89acdf8d8b17faec2a22eb8",
+      "mode": "single_drop",
+      "selected_step_ids": null,
+      "actual_preview": "",
+      "preview_count": "",
+      "preview_face": "",
+      "preview_time": "",
+      "preview_height": 480,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "single-default",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "5a6cdd43ef5d0abc1adf22d1837b5f7b4e2bb7a2f89acdf8d8b17faec2a22eb8",
+      "mode": "single_drop",
+      "selected_step_ids": null,
+      "actual_preview": "",
+      "preview_count": "",
+      "preview_face": "",
+      "preview_time": "",
+      "preview_height": 480,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-entire-unavailable",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "Hazard drop is unavailable.\nExclude it or select the drops to run.",
+      "preview_count": "Cannot run this plan",
+      "preview_face": "",
+      "preview_time": "",
+      "preview_height": 90,
+      "actual_label": "",
+      "status": "passed"
+    }
+  ],
+  "completion": "failed",
+  "failure": "AssertionError('Actual target preview clipped')"
+}

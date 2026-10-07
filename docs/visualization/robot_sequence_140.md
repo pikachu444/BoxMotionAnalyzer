@@ -175,3 +175,31 @@ The final acceptance audit found no concrete missing #140 software requirement
 and no remaining P0/P1 or material P2. Software publication can proceed when
 final-head required CI passes; native/experimental acceptance is separate.
 Launcher English/Korean Options is independent issue #152, for later implementation.
+
+## Final-head CI layout correction
+
+CI37576477292 on head1fd7acc passed1378 core checks and11 subtests, PUB06
+contracts and fresh PUB07 continuity diagnostics, then failed the actual FHD
+robot target render. Later tiers were skipped; this run is not a passing release.
+ci_failure_37576477292 retains its four original PNGs and failed RunReport.
+The hosted environment used PySide6.11.2 while the initial local checks used6.10.1.
+The same target clipping was reproduced with6.11.2 in an isolated temporary
+environment, without changing the application's existing virtual environment.
+Settings measured612 logical px; the target bottom extended beyond the838-px
+viewport. The original local reproduction report remains separately retained.
+
+Explicit3-px settings/form/right-panel spacing and8-px target layout margins
+recover the required space. Font size, five planned rows,160-px minimum target,
+200-px minimum group, English labels and all engine/binding values stay unchanged.
+The regression checks the summary, Apply and complete target frame without
+scrolling at FHD; the render now also requires the entire target frame to fit.
+RunReports record Qt binding version, style, font and mapped target geometry.
+
+Related GUI41 passed63.66 s on6.10.1 and66.38 s on6.11.2 after the spacing change.
+After the final margin-only correction, layout6 passed5.84 s and5.89 s
+respectively; refreshed13-state renders passed in each environment. These scopes
+overlap and are not summed. qt6112_layout125 retains14 fresh original PNGs and
+the final report; G/H FHD scroll maximum is0. The independent correction reviewer
+inspected all14 final originals, source hashes, the CI failure and both Qt results;
+no remaining P0/P1 or material P2 was found. Replacement final-head required CI
+is tracked in PR151.

@@ -49,6 +49,12 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   passes. Originals are in english_rows125. Final acceptance audit found no
   concrete missing software requirement or remaining material P0/P1/P2. Final-head
   required CI and software publication are tracked in PR151.
+  Hosted CI37576477292 passed1378 core checks+11 subtests and robot diagnostics,
+  then exposed FHD target clipping with Qt6.11.2. Original failure and local
+  reproduction are preserved. Compact spacing/margins fix the actual layout;
+  GUI41, final layout6 and actual13-state renders pass separately on Qt6.10.1
+  and6.11.2. The fit gate now includes the whole frame; independent recheck passes
+  with no remaining material P0/P1/P2. Current CI is tracked in PR151.
 - [ ] #140 / PUB07 native and experimental acceptance: native Windows input,
   viewer and actual OS125 remain unexecuted; #104 measured validation is separate
   and unavailable. Additional numerical diagnostic promotion, baseline/trial

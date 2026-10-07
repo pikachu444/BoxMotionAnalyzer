@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "RunReport",
+  "run_id": "pub07-ui-20261007T055820Z",
+  "utc": "2026-10-07T05:58:20.299761+00:00",
+  "kst": "2026-10-07T14:58:20.299761+09:00",
+  "tier": "actual-production-widget-render",
+  "command": [
+    "C:\\SourceCodes\\BoxMotionAnalyzer\\tmp\\issue140\\qt6112-env\\Scripts\\python.exe",
+    "src.simulation.robot_ui_validation",
+    "--output",
+    "tmp/issue140/production-qt6112-layout-final-125"
+  ],
+  "code": {
+    "commit": "1fd7acc5b69c6d2ad8a43fb75026a7e77b8359cd",
+    "dirty": [
+      " M src/simulation/robot_ui_validation.py",
+      " M src/simulation/ui/main_window.py",
+      " M src/simulation/ui/mode_settings.py",
+      " M tests/test_simulation_layout.py"
+    ],
+    "source_sha256": {
+      "src/simulation/ui/main_window.py": "35dd101c41db5774be12f62339c2186a82909e900e0412010b908e1dd9400c70",
+      "src/simulation/ui/mode_settings.py": "935ec5285e0aa2ed1bc5deb6debe0bcbbbaf15bab25b03df8abc426d9640d844",
+      "src/simulation/ui/marker_export_dialog.py": "e0a3b4fa7f0fe2967c91c5826b0b9f9137dab26343f3292ae2688f2388bd2867",
+      "src/simulation/robot_ui_validation.py": "17e9edb1d62d765db4f200ee2cd40d67a087ff4cc04661b6a45933a807bc70a9",
+      "tests/test_robot_sequence_gui.py": "784baa38f832db248e470cab41d8703cee9453d84f089ad1672466f643231710"
+    }
+  },
+  "environment": {
+    "platform": "windows",
+    "process_scale": "1.25",
+    "dpr": 1.25,
+    "qt_binding_version": "6.11.2",
+    "qt_style": "windows11",
+    "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+    "available_screen": [
+      2048,
+      1114
+    ],
+    "startup_size": [
+      1280,
+      900
+    ]
+  },
+  "fresh": true,
+  "reused": false,
+  "native": {
+    "status": "not_executed",
+    "reason": "Widget render does not establish native input/viewer/OS125"
+  },
+  "approval": {
+    "fixture": "proposed",
+    "tolerance": "proposed",
+    "baseline": "no promotion",
+    "trial": "not_evaluated"
+  },
+  "experimental": {
+    "status": "unavailable",
+    "reason": "#104 separate"
+  },
+  "states": [
+    {
+      "name": "single-startup",
+      "pixels": [
+        1600,
+        1125
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "5a6cdd43ef5d0abc1adf22d1837b5f7b4e2bb7a2f89acdf8d8b17faec2a22eb8",
+      "mode": "single_drop",
+      "selected_step_ids": null,
+      "actual_preview": "",
+      "preview_count": "",
+      "preview_face": "",
+      "preview_time": "",
+      "preview_height": 480,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "single-default",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "5a6cdd43ef5d0abc1adf22d1837b5f7b4e2bb7a2f89acdf8d8b17faec2a22eb8",
+      "mode": "single_drop",
+      "selected_step_ids": null,
+      "actual_preview": "",
+      "preview_count": "",
+      "preview_face": "",
+      "preview_time": "",
+      "preview_height": 480,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-entire-unavailable",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "Hazard drop is unavailable.\nExclude it or select the drops to run.",
+      "preview_count": "Cannot run this plan",
+      "preview_face": "",
+      "preview_time": "",
+      "preview_height": 90,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-selected-preview",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "Lift and release for free fall",
+      "preview_count": "Drop 8 only (16 excluded)",
+      "preview_face": "Box +X face",
+      "preview_time": "Max 33 s after Apply",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-startup-preview",
+      "pixels": [
+        1600,
+        1125
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "53f0675e486ac31315a9c245ca66b752aa71b6b7c1391e0ba208f3cac3eec406",
+      "mode": "robot_sequence",
+      "selected_step_ids": null,
+      "actual_preview": "Lift and release for free fall",
+      "preview_count": "Drop 8 only (16 excluded)",
+      "preview_face": "Box +X face",
+      "preview_time": "Max 33 s after Apply",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-drops",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-actions",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-details-conditions",
+      "scope": "Actual optional review dialog",
+      "status": "passed"
+    },
+    {
+      "name": "G-selected-applied",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "6285a2716069260e5ad6ab7b8e3f120eccfd834593ec929690c81b392455f20e",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "preset-8"
+      ],
+      "actual_preview": "Lift and release for free fall",
+      "preview_count": "Drop 8 only (16 excluded)",
+      "preview_face": "Box +X face",
+      "preview_time": "Max 33 s after Apply",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-supported-preview",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "dpr": 1.25,
+      "target_fits": true,
+      "configuration_hash": "c5254513e86cc11e6f53e34742fcdc51ddf9dc8fcd2e99da42e1474b8eddf3d3",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "drop-1"
+      ],
+      "actual_preview": "Tip while supported on floor (virtual)",
+      "preview_count": "Drop 1 only",
+      "preview_face": "Top-facing face (auto)",
+      "preview_time": "Max 30 s after Apply",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-small-main",
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "target_fits": null,
+      "configuration_hash": "c5254513e86cc11e6f53e34742fcdc51ddf9dc8fcd2e99da42e1474b8eddf3d3",
+      "mode": "robot_sequence",
+      "selected_step_ids": [
+        "drop-1"
+      ],
+      "actual_preview": "Tip while supported on floor (virtual)",
+      "preview_count": "Drop 1 only",
+      "preview_face": "Top-facing face (auto)",
+      "preview_time": "Max 30 s after Apply",
+      "preview_height": 110,
+      "actual_label": "",
+      "status": "passed"
+    },
+    {
+      "name": "H-small-settings",
+      "pixels": [
+        1025,
+        750
+      ],
+      "dpr": 1.25,
+      "scope": "Actual scrolled Settings with Apply/Cancel reachable",
+      "status": "passed"
+    },
+    {
+      "name": "custom-grip-conditions",
+      "scope": "Actual loaded custom grip radius6.5mm",
+      "status": "passed"
+    }
+  ],
+  "completion": "passed",
+  "geometry": [
+    {
+      "name": "single-startup",
+      "viewport": [
+        831,
+        874
+      ],
+      "target": [
+        14,
+        465,
+        803,
+        395
+      ],
+      "settings_height": 432,
+      "tabs_height": 365,
+      "scroll_max": 0
+    },
+    {
+      "name": "single-default",
+      "viewport": [
+        1074,
+        838
+      ],
+      "target": [
+        14,
+        465,
+        1046,
+        359
+      ],
+      "settings_height": 432,
+      "tabs_height": 365,
+      "scroll_max": 0
+    },
+    {
+      "name": "G-entire-unavailable",
+      "viewport": [
+        1074,
+        838
+      ],
+      "target": [
+        14,
+        597,
+        1046,
+        227
+      ],
+      "settings_height": 564,
+      "tabs_height": 497,
+      "scroll_max": 0
+    },
+    {
+      "name": "G-selected-preview",
+      "viewport": [
+        1074,
+        838
+      ],
+      "target": [
+        14,
+        633,
+        1046,
+        191
+      ],
+      "settings_height": 600,
+      "tabs_height": 533,
+      "scroll_max": 0
+    },
+    {
+      "name": "G-startup-preview",
+      "viewport": [
+        831,
+        874
+      ],
+      "target": [
+        14,
+        633,
+        803,
+        227
+      ],
+      "settings_height": 600,
+      "tabs_height": 533,
+      "scroll_max": 0
+    },
+    {
+      "name": "G-selected-applied",
+      "viewport": [
+        1074,
+        838
+      ],
+      "target": [
+        14,
+        523,
+        1046,
+        301
+      ],
+      "settings_height": 490,
+      "tabs_height": 423,
+      "scroll_max": 0
+    },
+    {
+      "name": "H-supported-preview",
+      "viewport": [
+        1074,
+        838
+      ],
+      "target": [
+        14,
+        633,
+        1046,
+        191
+      ],
+      "settings_height": 600,
+      "tabs_height": 533,
+      "scroll_max": 0
+    }
+  ]
+}

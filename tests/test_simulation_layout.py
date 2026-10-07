@@ -72,6 +72,26 @@ def test_wide_workspace_preserves_approved_preview_and_left_mode_controls():
         window.close(); app.processEvents()
 
 
+def test_robot_summary_and_whole_target_fit_fhd_without_scrolling():
+    app = QApplication.instance() or QApplication([])
+    window = SimulationUI();window.show()
+    try:
+        window.resize(1536,864);QTest.qWait(50)
+        window.mode_combo.setCurrentIndex(1)
+        window.settings.handling.setCurrentIndex(1)
+        window.settings.run_scope.setCurrentIndex(1)
+        window.settings.table.selectRow(7)
+        window.settings.preview_sequence();QTest.qWait(50);app.processEvents()
+        for control in (window.settings.preview_box,window.settings.apply_button,window.preview_group):
+            rect=control.rect();rect.moveTopLeft(control.mapTo(window.right_scroll.viewport(),rect.topLeft()))
+            assert window.right_scroll.viewport().rect().contains(rect)
+        assert window.right_scroll.verticalScrollBar().maximum()==0
+        assert window.settings.table.viewport().height()>=5*window.settings.table.rowHeight(0)
+        assert window.orientation_preview.height()>=160
+    finally:
+        window.close();app.processEvents()
+
+
 def test_small_simulation_form_keeps_run_fixed_and_settings_intact():
     app = QApplication.instance() or QApplication([])
     window = SimulationUI()

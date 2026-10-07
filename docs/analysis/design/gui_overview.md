@@ -17,6 +17,8 @@ limit, with content-based height; invalid/stale states show status/action only.
 The table uses X/Y/Z rotation (°) and Motion type. The user requested English
 consistency and deferred Korean localization. Grip-face display text remains
 separate from saved keys; the execution contract stays unchanged.
+Explicit compact layout spacing and target margins preserve the full FHD
+target frame on both Qt6.10.1 and6.11.2 without reducing font or row count.
 The initial Simulation window now requests1280×900 logical pixels, capped to the
 screen's usable area with space for native title/borders. Mode changes preserve
 the chosen size. Smaller screens retain scrollable inputs/target and Settings.
