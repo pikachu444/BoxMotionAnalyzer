@@ -28,6 +28,15 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   correction recheck are retained separately.
   Same-agent clarity recheck closed the lost-radius P2; no material P0/P1/P2
   remains in that correction scope. GUI confirmation/current CI are still open.
+  Second user readability correction: four labelled content-sized pre-run rows,
+  two-row invalid/stale guidance, Korean rotation/motion labels and separate
+  display/saved automatic-face values. Related GUI49 and final layout4 pass;
+  corrected actual11-state renders plus summary close-up are in summary_rows125.
+  Original FHD target-clip failure is retained; final independent review/current
+  source CI/publication are tracked in PR151. Prior be3e52b CI37549796822 passed.
+  Same-agent row-layout review and header/unit correction recheck are complete;
+  final3 detail checks and11-state renders pass. No material P0/P1/P2 remains
+  in that scope. Latest source is not yet merged or human GUI-approved.
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
   and stale-worker cancellation are implemented. Original production GUI34 checks

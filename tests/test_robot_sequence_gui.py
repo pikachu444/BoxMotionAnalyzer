@@ -42,7 +42,7 @@ def test_real_preview_binds_selected_face_and_edited_rows(window):
     p.handling.setCurrentIndex(p.handling.findData('airborne'));p.run_scope.setCurrentIndex(1);p.table.selectRow(7)
     p.attachment_face.setCurrentText('+X');p.table.item(7,2).setText('11');p.table.item(7,3).setText('12');p.table.item(7,4).setText('37')
     p.preview_sequence();text=p.sequence_preview.text()
-    assert '+X face' in text and '1 of 17' in p.preview_count.text() and 'drop 8' in p.preview_count.text()
+    assert '자유낙하' in text and p.preview_face.text()=='박스 +X면' and '8번 항목만 실행' in p.preview_count.text()
     dialog=p.sequence_details_dialog();tabs=dialog.layout().itemAt(0).widget()
     actions=tabs.widget(1)
     assert actions.item(3,1).text()=='Turn' and actions.item(3,3).text()=='11 / 12 / 37'
@@ -60,7 +60,7 @@ def test_real_preview_binds_selected_face_and_edited_rows(window):
 
 def test_entire_hazard_blocks_and_loaded_custom_plan_is_preserved(window,tmp_path,monkeypatch):
     window.mode_combo.setCurrentIndex(1);p=window.settings;p.handling.setCurrentIndex(1);p.preview_sequence()
-    assert 'Hazard' in p.sequence_preview.text() and not window.run_btn.isEnabled()
+    assert '위험물 낙하' in p.sequence_preview.text() and not window.run_btn.isEnabled()
     c=robot_fixture(two=False);c['sequence_profile']['execution_plan']['phases'][2]['target_origin_mm'][0]=12.
     c['sequence_profile']['execution_plan']['physics']['radius_mm']=6.5
     apply_config(window,c);window.settings.preview_sequence()
@@ -124,7 +124,7 @@ def test_actual_gui_partial_retention_and_retry(window,tmp_path,monkeypatch,reas
 def test_actual_h_preview_and_partial_marker_worker(window,tmp_path):
     c=robot_fixture(family='floor_supported',two=False);apply_config(window,c);window.settings.preview_sequence()
     text=window.settings.sequence_preview.text()
-    assert 'Virtual tip on floor' in text
+    assert '바닥에 지지' in text and '(가상)' in text
     dialog=window.settings.sequence_details_dialog();actions=dialog.layout().itemAt(0).widget().widget(1)
     assert actions.item(2,1).text()=='Turn' and actions.item(2,3).text()=='0 / 15 / 0'
     assert '100 / 0 / -40' in actions.item(2,3).toolTip();dialog.deleteLater()
@@ -176,7 +176,7 @@ def test_loaded_multi_drop_subset_is_visible_and_expansion_is_explicit(window,tm
     assert sum(t['kind']=='release' for t in window.thread.engine.sequence_evidence['toggles'])==2
     p.run_scope.setCurrentIndex(0);before=window.profiles.document();p.apply_settings()
     assert window.profiles.document()==before and 'Preview' in p.status.text()
-    p.preview_sequence();assert 'Hazard' in p.sequence_preview.text()
+    p.preview_sequence();assert '위험물 낙하' in p.sequence_preview.text()
 
 
 @pytest.mark.parametrize('stale',[False,True])
@@ -199,9 +199,9 @@ def test_cancelled_partial_write_failure_remains_visible(window,tmp_path,monkeyp
 
 def test_virtual_h_scope_matches_actual_applied_template(window):
     apply_config(window,robot_fixture(family='floor_supported',two=False))
-    assert window.settings.table.item(0,5).text()=='Virtual floor tip'
+    assert window.settings.table.item(0,5).text()=='바닥 기울임 (가상)'
     assert 'ISTA procedure is unverified' in window.settings.table.item(0,5).toolTip()
-    window.settings.preview_sequence();assert 'Virtual tip on floor' in window.settings.sequence_preview.text()
+    window.settings.preview_sequence();assert '바닥에 지지' in window.settings.sequence_preview.text()
 
 
 def test_viewer_bridge_mocked_cancel_preserves_retention_failure(window,tmp_path,monkeypatch):

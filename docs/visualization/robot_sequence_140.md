@@ -109,3 +109,32 @@ scheduled/minimum time from actual runtime and additional timeout waits.
 The same reviewer rechecked the source,4-pass XML and original default/custom
 Conditions renders and closed the radius P2. No material P0/P1/P2 remains in
 that bounded readability correction. Final human GUI confirmation is still open.
+
+## Labelled summary after the second user review
+
+The user still found the central prose unclear and asked whether it was a log
+or a permanently sized area. The centre is a pre-run settings summary, replaced
+on Preview, never an accumulating runtime log. It now separates four labelled
+rows: 실행 항목, 동작, 잡는 면, 시간 제한. The limit explicitly says 적용 후 최대
+to distinguish a draft budget from the currently applied value on the left.
+The form sizes to its contents; invalid/stale previews hide the grip/time rows
+and show only status and the next action. No fixed120-pixel log area remains.
+
+The disputed headers are now X/Y/Z축 회전 (°) and 동작 종류. Motion cells use
+자유낙하, 바닥 기울임 (가상), or 미지원. The short hint explains scene-axis order
+and Z-up; grip faces are box-local, and the automatic-face choice is named in
+Korean. Display labels are separate from serialized face keys; schema, angles,
+physics and actual execution remain unchanged.
+
+`summary_rows125` retains11 complete widget states and an additional direct
+summary-widget PNG. The first FHD render in `production-summary-rows-first-125`
+failed target-fit after the four-row layout; its report is preserved. Reducing
+Sequence layout spacing from6 to3 restored the full target without changing
+font, five visible table rows or minimum target height. The corrected11-state
+render passed. Affected GUI49 passed82.51 s before that spacing correction;
+the final layout4 checks passed4.47 s afterwards. These are separate overlapping
+software checks, not native input/viewer acceptance.
+The same reviewer inspected all12 originals and found a clipped planned-time
+header in Actions. Content-sized columns restored the seconds unit and target
+rotation; bounded detail recheck3 passed4.86 s and refreshed11 states passed.
+The reviewer closed that P2 with no other material P0/P1/P2 in this scope.

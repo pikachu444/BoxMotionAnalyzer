@@ -11,6 +11,10 @@ remain pending. [Delivery scope](../reference/robot_sequence_contract.md).
 The central preview shows count/motion/grip/time, with optional Details tabs.
 X/Y/Z rotation values are scene-axis angles in that order (Z up); Motion describes
 free-fall/supported/unavailable handling. Loaded selections retain their exact IDs.
+After the second readability review, the pre-run summary uses labelled Korean
+rows and content-based height; invalid/stale states show status/action only.
+X/Y/Z축 회전 and 동작 종류 replace the disputed labels. Local grip-face display
+text is separated from saved keys; the execution contract stays unchanged.
 
 #139 / PUB06 adds a shared Simulation mode/settings/target-preview workspace. Single drop stays the default and existing Run/Run all presets/Marker CSV actions are retained. Settings drafts separate Sequence, Physics and Markers and noise, with Open/Save distinct from Use in Simulation/Cancel. Each mode restores its own applied settings. Config-only robot profiles remain blocked; #140 requires an explicit applicable execution plan. Synthetic public metadata follows the real producer, saved results and analysis/Compare; no trial approval is inherited. [Mode/source contract and verification limits](../reference/simulation_mode_contract.md) distinguish widget checks from pending native Windows input/OS125.
 

@@ -43,7 +43,7 @@ class ModeSettings(QWidget):
         layout = QVBoxLayout(self); layout.setContentsMargins(0, 0, 0, 0)
         self.mode_label = QLabel(); layout.addWidget(self.mode_label)
         self.tabs = QTabWidget(); layout.addWidget(self.tabs)
-        sequence = QWidget(); seq = QVBoxLayout(sequence)
+        sequence = QWidget(); seq = QVBoxLayout(sequence);seq.setSpacing(3)
         names = QFormLayout()
         self.sequence_name = QLineEdit(); names.addRow('Sequence profile', self.sequence_name)
         self.robot_model = QComboBox(); self.robot_model.addItem('Gripper proxy', 'gripper_proxy')
@@ -51,41 +51,46 @@ class ModeSettings(QWidget):
         self.handling = QComboBox()
         for label,key in [('Choose handling',None),('G: Lift and release','airborne'),
                 ('H: Virtual tip on floor','floor_supported'),('Hold without release','held_only')]:self.handling.addItem(label,key)
-        self.attachment_face = QComboBox();self.attachment_face.addItems(['upward','+X','-X','+Y','-Y','+Z','-Z'])
+        self.attachment_face = QComboBox();self.attachment_face.addItem('위쪽 면 자동 선택','upward')
+        for face in ['+X','-X','+Y','-Y','+Z','-Z']:self.attachment_face.addItem(face,face)
+        self.attachment_face.setToolTip('박스 자체의 좌표로 구분한 면입니다. 자동 선택은 현재 위쪽을 향하는 면을 사용합니다.')
         self.run_scope = QComboBox();self.run_scope.addItem('Entire plan','entire');self.run_scope.addItem('Selected drop','selected')
         self.run_scope.addItem('Saved selection','captured')
         self.preview_button=QPushButton('Preview sequence');self.preview_button.clicked.connect(self.preview_sequence)
         self.robot_fields=QWidget();fields=QFormLayout(self.robot_fields);fields.setContentsMargins(0,0,0,0)
-        row=QHBoxLayout();row.addWidget(self.handling,2);row.addWidget(QLabel('Grip face'));row.addWidget(self.attachment_face,1)
-        fields.addRow('Handling',row)
-        row=QHBoxLayout();row.addWidget(self.run_scope,1);row.addWidget(self.preview_button);fields.addRow('Drops to run',row)
+        row=QHBoxLayout();row.addWidget(self.handling,2);row.addWidget(QLabel('잡는 면'));row.addWidget(self.attachment_face,1)
+        fields.addRow('취급 동작',row)
+        row=QHBoxLayout();row.addWidget(self.run_scope,1);row.addWidget(self.preview_button);fields.addRow('실행할 항목',row)
         seq.addWidget(self.robot_fields)
         self.table = QTableWidget(0, 6)
-        self.table.setHorizontalHeaderLabels(['Preset', 'Clearance (mm)', 'X rotation (°)', 'Y rotation (°)', 'Z rotation (°)', 'Motion'])
+        self.table.setHorizontalHeaderLabels(['Preset', 'Clearance (mm)', 'X축 회전 (°)', 'Y축 회전 (°)', 'Z축 회전 (°)', '동작 종류'])
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         for column in range(1, 6): self.table.horizontalHeader().setSectionResizeMode(column, QHeaderView.ResizeToContents)
         self.table.setToolTip('Box orientation: rotate about the scene X, then Y, then Z axes. Z points up. These are angles, not positions or axis locks.')
         for column,axis in enumerate('XYZ',2):
-            self.table.horizontalHeaderItem(column).setToolTip(f'Box rotation about the scene {axis} axis, in degrees. Applied in X → Y → Z order; Z points up.')
-        self.table.horizontalHeaderItem(5).setToolTip('Motion required by this planned test. Unavailable tests cannot run.')
+            self.table.horizontalHeaderItem(column).setToolTip(f'장면의 {axis}축을 중심으로 박스를 돌리는 각도입니다. X → Y → Z 순서로 적용하며 Z축은 위쪽입니다.')
+        self.table.horizontalHeaderItem(5).setToolTip('이 시험에 필요한 운동입니다. 자유낙하, 바닥 지지 운동, 미지원 항목을 구분합니다.')
         self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
             +5*self.table.verticalHeader().defaultSectionSize()+2*self.table.frameWidth())
         seq.addWidget(self.table)
-        self.rotation_hint=QLabel('Rotation: scene X → Y → Z; Z points up.');seq.addWidget(self.rotation_hint)
+        self.rotation_hint=QLabel('회전각으로 박스 자세를 정합니다. X → Y → Z 순서이며 Z축은 위쪽입니다.');self.rotation_hint.setWordWrap(True);seq.addWidget(self.rotation_hint)
         actions = QHBoxLayout(); self.order_buttons = []
         for text, action in [('Add drop', self.add_drop), ('Remove', self.remove_drop),
                 ('Move up', lambda: self.move_drop(-1)), ('Move down', lambda: self.move_drop(1))]:
             button = QPushButton(text); button.clicked.connect(action); actions.addWidget(button); self.order_buttons.append(button)
         seq.addLayout(actions)
         self.sequence_hint = QLabel(); seq.addWidget(self.sequence_hint)
-        self.preview_box=QGroupBox('Execution preview');preview=QVBoxLayout(self.preview_box)
-        row=QHBoxLayout();self.preview_count=QLabel();row.addWidget(self.preview_count,1)
-        self.preview_time=QLabel();row.addWidget(self.preview_time)
-        self.details_button=QPushButton('Details…');self.details_button.clicked.connect(self.show_sequence_details);row.addWidget(self.details_button)
-        preview.addLayout(row)
-        self.sequence_preview=QLabel();self.sequence_preview.setWordWrap(True);self.sequence_preview.setTextFormat(Qt.PlainText);preview.addWidget(self.sequence_preview)
+        self.preview_box=QGroupBox('실행 전 설정 요약');self.preview_form=QFormLayout(self.preview_box)
+        self.preview_form.setContentsMargins(10,5,10,5);self.preview_form.setVerticalSpacing(2)
+        self.preview_count=QLabel();self.preview_count.setWordWrap(True)
+        self.preview_time=QLabel();self.preview_face=QLabel()
+        self.sequence_preview=QLabel();self.sequence_preview.setWordWrap(True);self.sequence_preview.setTextFormat(Qt.PlainText)
+        self.details_button=QPushButton('상세 설정…');self.details_button.clicked.connect(self.show_sequence_details)
+        row=QHBoxLayout();row.addWidget(self.preview_count,1);row.addWidget(self.details_button)
+        self.preview_labels=[QLabel(text) for text in ('실행 항목','동작','잡는 면','시간 제한')]
+        for label,value in zip(self.preview_labels,[row,self.sequence_preview,self.preview_face,self.preview_time]):self.preview_form.addRow(label,value)
         self.preview_box.hide();seq.addWidget(self.preview_box)
         self.tabs.addTab(sequence, 'Sequence')
         physics = QWidget(); form = QFormLayout(physics)
@@ -167,7 +172,7 @@ class ModeSettings(QWidget):
         plan=sequence.get('execution_plan')
         self.robot_fields.setVisible(robot);self.preview_button.setVisible(robot)
         self.handling.setCurrentIndex(self.handling.findData(plan['handling_family'] if plan else None))
-        self.attachment_face.setCurrentText(plan['attachment_face'] if plan else 'upward')
+        self.attachment_face.setCurrentIndex(self.attachment_face.findData(plan['attachment_face'] if plan else 'upward'))
         scope=(1 if len(plan['selected_step_ids'])==1 and len(sequence['steps'])>1 else
             2 if plan['selected_step_ids']!=[s['step_id'] for s in sequence['steps']] else 0) if plan else 0
         self.run_scope.model().item(2).setEnabled(plan is not None)
@@ -207,9 +212,9 @@ class ModeSettings(QWidget):
             spec = next(item for item in Scenarios.get_drop_sequence_specs(step['category']) if item.id == step['preset_id'])
             plan=self.draft.configs[self.draft.mode]['sequence_profile'].get('execution_plan')
             virtual_support=plan and plan['handling_family']=='floor_supported' and step['step_id'] in plan['selected_step_ids']
-            scope = ('Unavailable' if spec.variant == 'hazard_face2' else
-                'Virtual floor tip' if virtual_support else
-                'Floor tip (unavailable)' if spec.kind in ('tip', 'rotational_edge') else 'Free fall')
+            scope = ('미지원' if spec.variant == 'hazard_face2' else
+                '바닥 기울임 (가상)' if virtual_support else
+                '바닥 기울임 (미지원)' if spec.kind in ('tip', 'rotational_edge') else '자유낙하')
             for column, value in enumerate([step['preset_id'].replace('_', ' '), step['clearance_mm'], *step['fixed_xyz_deg'], scope]):
                 text = f'{value:g}' if isinstance(value, (int, float)) else value
                 item = self.table.item(row, column)
@@ -267,7 +272,7 @@ class ModeSettings(QWidget):
         return validate_config(config)
 
     def _sequence_signature(self,config):
-        return digest(dict(config=config,handling=self.handling.currentData(),face=self.attachment_face.currentText(),
+        return digest(dict(config=config,handling=self.handling.currentData(),face=self.attachment_face.currentData(),
             selection=self._selected_ids(config)))
 
     def _selected_ids(self,config):
@@ -293,8 +298,14 @@ class ModeSettings(QWidget):
         if self._refreshing:return
         self._preview_signature=None
         if self.preview_box.isVisible():
-            self.preview_count.setText('Plan changed');self.preview_time.clear()
-            self.sequence_preview.setText('Preview sequence again before applying.');self.details_button.setEnabled(False)
+            self.preview_issue('설정 변경됨','Preview sequence로 변경한 계획을 다시 확인하세요.')
+            self.fit_tab()
+
+    def preview_issue(self,title,message):
+        self.preview_labels[0].setText('상태');self.preview_labels[1].setText('확인 사항')
+        self.preview_count.setText(title);self.sequence_preview.setText(message)
+        self.preview_time.clear();self.preview_face.clear();self.details_button.setEnabled(False)
+        self.preview_form.setRowVisible(2,False);self.preview_form.setRowVisible(3,False)
 
     def preview_sequence(self):
         try:
@@ -302,11 +313,11 @@ class ModeSettings(QWidget):
             if family is None:raise ValueError(BLOCKED_REASON)
             selected=self._selected_ids(config)
             existing=config['sequence_profile'].get('execution_plan')
-            if (existing and existing['handling_family']==family and existing['attachment_face']==self.attachment_face.currentText()
+            if (existing and existing['handling_family']==family and existing['attachment_face']==self.attachment_face.currentData()
                     and existing['selected_step_ids']==selected):
                 try:require_executable(config);plan=deepcopy(existing)
-                except ValueError:plan=example_plan(config,family=family,attachment_face=self.attachment_face.currentText(),selected_step_ids=selected)
-            else:plan=example_plan(config,family=family,attachment_face=self.attachment_face.currentText(),selected_step_ids=selected)
+                except ValueError:plan=example_plan(config,family=family,attachment_face=self.attachment_face.currentData(),selected_step_ids=selected)
+            else:plan=example_plan(config,family=family,attachment_face=self.attachment_face.currentData(),selected_step_ids=selected)
             self._preview_signature=self._sequence_signature(config);self._preview_plan=plan
             limits=plan['transition']
             if plan==existing:self._preview_duration=config['duration_s']
@@ -315,23 +326,27 @@ class ModeSettings(QWidget):
                 budget+=limits['timeout_s']*sum(p['kind'] in ('approach','lift','orient','hold','floor_move','flip','contact','settle') for p in plan['phases'])
                 budget+=sum(limits['timeout_s']+limits['retries']*(p['duration_s']+limits['timeout_s']) for p in plan['phases'] if p['kind'] in ('attach','pickup'))
                 self._preview_duration=max(config['duration_s'],min(3600.,math.ceil(budget+1)))
-            count=f"Run {len(selected)} of {len(config['sequence_profile']['steps'])} drops"
-            if len(selected)==1:count+=f" (drop {next(i+1 for i,s in enumerate(config['sequence_profile']['steps']) if s['step_id']==selected[0])})"
-            if plan['omitted_step_ids']:count+=f"; {len(plan['omitted_step_ids'])} excluded"
-            self.preview_count.setText(count);self.preview_time.setText(f'Time limit: {self._preview_duration:g} s')
-            motion={'airborne':'Lift and release','floor_supported':'Virtual tip on floor','held_only':'Hold without release'}[family]
+            count=f"전체 {len(config['sequence_profile']['steps'])}개 중 {len(selected)}개 실행"
+            if len(selected)==1:count=f"{next(i+1 for i,s in enumerate(config['sequence_profile']['steps']) if s['step_id']==selected[0])}번 항목만 실행"
+            if plan['omitted_step_ids']:count+=f" ({len(plan['omitted_step_ids'])}개 제외)"
+            for label,text in zip(self.preview_labels,('실행 항목','동작','잡는 면','시간 제한')):label.setText(text)
+            self.preview_form.setRowVisible(2,True);self.preview_form.setRowVisible(3,True)
+            self.preview_count.setText(count);self.preview_time.setText(f'적용 후 최대 {self._preview_duration:g}초')
+            motion={'airborne':'들어 올린 뒤 놓아서 자유낙하','floor_supported':'바닥에 지지한 채 기울여 놓기 (가상)','held_only':'잡고 유지하기 (낙하 없음)'}[family]
             kinds={p['kind'] for p in plan['phases']}
-            if 'release' not in kinds:motion='Hold without release' if 'hold' in kinds else 'No release in this plan'
-            elif family=='airborne' and 'lift' not in kinds:motion='Grip and release'
-            elif family=='floor_supported' and not kinds & {'orient','flip'}:motion='Virtual motion on floor'
-            if plan['completion_policy']=='partial':motion='Partial plan. '+motion
-            face='top-facing face (automatic)' if plan['attachment_face']=='upward' else plan['attachment_face']+' face'
-            self.sequence_preview.setText(f'{motion}. Grip the {face}.')
+            if 'release' not in kinds:motion='잡고 유지하기 (낙하 없음)' if 'hold' in kinds else '놓기 동작 없음'
+            elif family=='airborne' and 'lift' not in kinds:motion='박스를 잡은 뒤 놓기'
+            elif family=='floor_supported' and not kinds & {'orient','flip'}:motion='바닥 지지 상태에서 이동 (가상)'
+            if plan['completion_policy']=='partial':motion+=' — 부분 계획'
+            face='위쪽을 향한 면 자동 선택' if plan['attachment_face']=='upward' else '박스 '+plan['attachment_face']+'면'
+            self.preview_face.setText(face);self.sequence_preview.setText(motion)
             self._preview_config=deepcopy(config);self.details_button.setEnabled(True);self.sequence_hint.hide()
             self.status.setText('Ready. Use in Simulation to apply.')
         except ValueError as error:
-            self._preview_signature=None;self.preview_count.setText('Cannot run this plan');self.preview_time.clear()
-            self.sequence_preview.setText(str(error));self.details_button.setEnabled(False);self.sequence_hint.hide()
+            self._preview_signature=None
+            message=str(error)
+            if 'Hazard block' in message:message='위험물 낙하 항목은 아직 지원하지 않습니다.\n해당 항목을 제외하거나 실행할 항목을 선택하세요.'
+            self.preview_issue('실행 불가',message);self.sequence_hint.hide()
             self.status.setText('Change the plan, then Preview sequence again.')
         self.preview_box.show();self.fit_tab()
 
@@ -350,6 +365,7 @@ class ModeSettings(QWidget):
         phases=QTableWidget(len(plan['phases']),4)
         phases.setHorizontalHeaderLabels(['Drop','Action','Planned duration (s)','Target rotation X / Y / Z (°)']);phases.setEditTriggers(QTableWidget.NoEditTriggers)
         phases.horizontalHeaderItem(2).setToolTip('Planned motion duration or minimum wait. Tracking/contact may extend this up to the phase timeout.')
+        for column in (0,1,2):phases.horizontalHeader().setSectionResizeMode(column,QHeaderView.ResizeToContents)
         phases.horizontalHeader().setSectionResizeMode(3,QHeaderView.Stretch)
         actions={'approach':'Move to box','attach':'Grip','pickup':'Re-grip','lift':'Move vertically','orient':'Turn',
             'hold':'Hold','release':'Release','free_motion':'Free motion','contact':'Wait for contact','settle':'Wait until still','floor_move':'Move on floor','flip':'Flip'}

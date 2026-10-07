@@ -35,6 +35,7 @@ def main():
     def capture(name,small=False):
         size=(820,600) if small else (math.ceil(1920/dpr),math.ceil(1080/dpr))
         window.resize(*size);window.show();QTest.qWait(70);window.resize(*size);app.processEvents()
+        pixmap=window.grab();assert pixmap.save(str(root/(name+'.png')))
         for control in (window.run_btn,window.batch_btn,window.marker_btn):
             assert control.visibleRegion().contains(control.rect()),'Primary actions clipped'
         fits=None
@@ -42,21 +43,22 @@ def main():
             rect=window.orientation_preview.rect();rect.moveTopLeft(window.orientation_preview.mapTo(window.right_scroll.viewport(),rect.topLeft()))
             fits=window.right_scroll.viewport().rect().contains(rect);assert fits,'Actual target preview clipped'
             assert window.settings.table.viewport().height()>=5*window.settings.table.rowHeight(0),'Five planned rows must fit'
-        pixmap=window.grab();assert pixmap.save(str(root/(name+'.png')))
         config=window.profiles.configs[window.profiles.mode]
         report['states'].append(dict(name=name,pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),
             target_fits=fits,configuration_hash=digest(config),mode=config['mode'],
             selected_step_ids=config['sequence_profile'].get('execution_plan',{}).get('selected_step_ids'),
             actual_preview=window.settings.sequence_preview.text(),preview_count=window.settings.preview_count.text(),
-            preview_time=window.settings.preview_time.text(),actual_label=window.result_label.text(),status='passed'))
+            preview_face=window.settings.preview_face.text(),preview_time=window.settings.preview_time.text(),
+            preview_height=window.settings.preview_box.height(),actual_label=window.result_label.text(),status='passed'))
     try:
         capture('single-default');window.mode_combo.setCurrentIndex(1)
         window.settings.handling.setCurrentIndex(1);window.settings.preview_sequence()
-        assert not window.run_btn.isEnabled() and 'Hazard' in window.settings.sequence_preview.text()
+        assert not window.run_btn.isEnabled() and '위험물 낙하' in window.settings.sequence_preview.text()
         capture('G-entire-unavailable')
         window.settings.run_scope.setCurrentIndex(1);window.settings.table.selectRow(7)
         window.settings.attachment_face.setCurrentText('+X');window.settings.preview_sequence()
-        assert '+X face' in window.settings.sequence_preview.text();capture('G-selected-preview')
+        assert window.settings.preview_face.text()=='박스 +X면';capture('G-selected-preview')
+        assert window.settings.preview_box.grab().save(str(root/'G-preview-summary.png'))
         details=window.settings.sequence_details_dialog();details.show();QTest.qWait(70)
         for index,name in enumerate(('G-details-drops','G-details-actions','G-details-conditions')):
             details.layout().itemAt(0).widget().setCurrentIndex(index);app.processEvents()
@@ -66,7 +68,7 @@ def main():
         window.settings.apply_settings();assert window.run_btn.isEnabled();capture('G-selected-applied')
         state=ModeProfiles();state.switch('robot_sequence');state.set_config(fixture(family='floor_supported',two=False))
         window._apply_profiles(state);window.settings.preview_sequence()
-        assert 'Virtual tip on floor' in window.settings.sequence_preview.text();capture('H-supported-preview')
+        assert '바닥에 지지' in window.settings.sequence_preview.text();capture('H-supported-preview')
         capture('H-small-main',True);window._show_settings();app.processEvents();dialog=window.settings_dialog
         dialog.resize(820,600);QTest.qWait(70);dialog.resize(820,600);app.processEvents()
         scroll=dialog.layout().itemAt(0).widget();scroll.ensureWidgetVisible(window.settings.apply_button);app.processEvents()

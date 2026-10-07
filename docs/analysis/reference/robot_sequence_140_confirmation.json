@@ -27,7 +27,9 @@
     "status": "not_confirmed",
     "action": "Reshow actual production Preview; file panel open returned queued, image emitted again",
     "later_user_review": "Requested readable central summary and clarification of Fixed X/Y/Z and Scope",
-    "later_status": "Readability correction implemented and independently reviewed; GUI approval not inferred"
+    "later_status": "Readability correction implemented and independently reviewed; GUI approval not inferred",
+    "second_user_review": "Requested labelled/line-broken central summary, asked log versus permanent area, remained unsure about rotation and Scope; other GUI largely acceptable",
+    "second_review_status": "Further row-based summary correction; final whole-GUI confirmation not inferred"
   },
   "prior_run_reports": "Remain unchanged as historical evidence with original approval/status values"
 }
