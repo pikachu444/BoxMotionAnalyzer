@@ -16,7 +16,8 @@ concurrency:
 jobs:
   synthetic-integration:
     runs-on: windows-latest
-    timeout-minutes: 60
+    # Existing required run: ~51 min; PUB08 fresh production tier: ~13 min.
+    timeout-minutes: 90
     env:
       # QOpenGLWidget-backed PyVistaQt needs a real Windows Qt platform.
       # The setup action below installs Mesa software OpenGL for the runner.

@@ -102,6 +102,13 @@
       "scope": "168 pass at recorded checkpoint; overlapping tests are not summed",
       "fresh": 0,
       "reused": 0
+    },
+    {
+      "path": "tmp/issue141/reviewer-ci-budget/ReviewReport.json",
+      "sha256": "47c3e17e426b5321b8099475b03994cea9b041d5bbb6cfc1142e563cf62b10d6",
+      "scope": "Independent CI budget63.80min versus former60;90min budget accepted, required steps unchanged",
+      "fresh": 0,
+      "reused": 0
     }
   ],
   "independent_review": {
@@ -253,5 +260,85 @@
   "publication_gate": "Complete required CI at final source; prior source runs cannot substitute.",
   "measured_accuracy": "unavailable",
   "native_viewer": "not_executed",
-  "baseline": "none"
+  "baseline": "none",
+  "ci_budget_review": {
+    "schema_version": 1,
+    "plan_spec": "ISTA6A-PLAN-20261001-v1",
+    "object_type": "IndependentReview",
+    "utc": "2026-10-07T22:58:33.133803+00:00",
+    "status": "pass",
+    "scope": "Bounded CI budget follow-up after PUB08 software PASS; timeout and explanatory comment only",
+    "code": {
+      "commit": "02f702a3c3c1eeab67aa0f50d95004a6ecbfa298",
+      "dirty": true,
+      "workflow_sha256": "f338d60365037ac352c4e10de6bec0aa6072a1186ce032fd926930023ca5424b",
+      "prior_reviewed_product_test_and_policy_hashes_unchanged": {
+        "src/simulation/contact_recording.py": true,
+        "src/simulation/contact_evaluation.py": true,
+        "src/simulation/contact_comparison.py": true,
+        "src/simulation/contact_policy.py": true,
+        "src/simulation/contact_validation.py": true,
+        "tests/test_contact_evaluation.py": true,
+        "src/simulation/contact_fixtures.py": true,
+        "src/simulation/engine/mujoco_engine.py": true,
+        "src/simulation/engine/robot_sequence.py": true,
+        "docs/analysis/reference/contact_evaluation_protocol_v1.json": true,
+        "docs/analysis/reference/contact_event_141_confirmation.json": true
+      },
+      "required_steps_sha256": "78de3c1dffe3af572bd65f739f6e73b3ce2ca567c53687710cee97d3ef6d08bb"
+    },
+    "commands": [
+      [
+        "gh",
+        "run",
+        "view",
+        "37579195396",
+        "--repo",
+        "pikachu444/BoxMotionAnalyzer",
+        "--json",
+        "headSha,conclusion,status,jobs,createdAt,updatedAt,url"
+      ],
+      [
+        "git",
+        "diff",
+        "--",
+        ".github/workflows/public-marker-validation.yml",
+        "docs/analysis/reference/contact_evaluation_contract.md"
+      ],
+      [
+        "git",
+        "show",
+        "HEAD:.github/workflows/public-marker-validation.yml"
+      ]
+    ],
+    "evidence": {
+      "previous_run_url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37579195396",
+      "previous_head": "f1a66c9b867ef56a69de71aad31d2ebda3fa7d2e",
+      "job_started": "2026-10-07T06:00:44Z",
+      "job_completed": "2026-10-07T06:51:49Z",
+      "previous_job_duration_s": 3065.0,
+      "pub08_local_report": "tmp\\issue141\\production-padding-fixed\\RunReport.json",
+      "pub08_local_report_sha256": "d7cef9d3c9aa9ec25b239ea2851564629c8c51dbd0df3a84149402f8cd6c4453",
+      "pub08_duration_s": 763.1566209000011,
+      "estimated_combined_min": 63.80261034833335,
+      "old_timeout_min": 60,
+      "new_timeout_min": 90,
+      "estimated_headroom_min": 26.197389651666647,
+      "caveat": "Combined duration is a cross-environment budget estimate, not an actual final hosted run or timing guarantee."
+    },
+    "checks": {
+      "exactly_timeout_and_comment_changed": true,
+      "all_required_steps_byte_equivalent_after_newline_normalization": true,
+      "no_tests_removed_or_disabled": true,
+      "reviewed_product_test_policy_and_engine_sources_unchanged": true,
+      "contract_doc_explains_budget": true
+    },
+    "findings": [],
+    "limitations": [
+      "Final-head complete required CI remains a publication gate.",
+      "Prior successful or incomplete heads do not substitute for final-head execution.",
+      "Numerical thresholds, baseline promotion, measured accuracy and native viewer acceptance remain outside this budget PASS."
+    ]
+  },
+  "execution_budget_minutes": 90
 }

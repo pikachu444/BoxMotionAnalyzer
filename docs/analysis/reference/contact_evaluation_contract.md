@@ -198,3 +198,8 @@ indexes original and corrected evidence with digests and scope. Numeric
 thresholds remain proposed; this review does not approve numerical or measured
 accuracy, a baseline, or manual viewer operation. Final-source full required CI
 and merge remain publication gates on PR #153.
+
+The prior complete required run #37579195396 took 51.08 minutes. The local fresh
+PUB08 tier took 12.72 minutes, exceeding the previous 60-minute combined budget.
+The workflow therefore retains every required check and uses a 90-minute job
+limit. This execution budget changes no event threshold or accuracy criterion.
