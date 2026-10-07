@@ -6,8 +6,8 @@ Last Reviewed: 2026-10-07
 `RobotExecutionPlan` profiles; existing config-only plans remain blocked. One
 dynamic state runs attach/lift/orient/release/contact/settle/pickup. Production
 UI binds editable plan Preview/Apply, Run/Marker CSV, actual progress and incomplete
-history retention. Separate new UI and fixture/tolerance approval questions remain
-pending. Existing default
+history retention. The user confirmed described virtual software controls;
+final GUI confirmation and other diagnostic numerical bounds remain pending. Existing default
 single-drop behavior/contact settings and export aliases remain intact.
 [Contract and proposed public diagnostics](analysis/reference/robot_sequence_contract.md).
 
@@ -27,6 +27,9 @@ Cancel은 적용 전 변경을 되돌린다. 작은 창에서는 Settings를 별
 Robot sequence는 목록의 순서·위치·자세를 수정할 수 있다. 전체 계획과 선택 항목,
 불러온 일부 선택을 구분하며, 설정 변경 후에는 Preview를 다시 확인한다.
 G17 hazard는 실행할 수 없고 H 지지 운동은 가상 template임을 표시한다.
+표의 X/Y/Z rotation은 장면 축 기준 X→Y→Z 순서로 적용하는 회전각이며 Z축이
+위쪽이다. Motion은 자유낙하·바닥 지지·미지원 운동을 구분한다. 중앙 Preview는
+실행 수·동작·부착면·시간 제한만 요약하고, 제외 항목·단계·조건은 Details에서 본다.
 이 프리셋 목록을 검증된 완전한 ISTA 절차로 보증하지 않는다.
 큰 창에서는 Mode와 Settings가 왼쪽 입력 위에 있고, 오른쪽 설정 아래 남는 공간은
 박스 프리뷰가 사용한다. 창 크기에 따라 그림이 줄어들 수 있지만 고정 높이로

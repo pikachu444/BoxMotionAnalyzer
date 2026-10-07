@@ -12,7 +12,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   two releases/pickup/orient, supported H template, independent toggle/coverage
   controls and actual producer/analysis truth-isolation diagnostics are recorded
   in `../reference/robot_sequence_contract.md`. Reviewed FHD/narrow proposal was
-  shown; human UI and new synthetic fixture/tolerance approvals are pending.
+  shown. User confirmed described virtual software controls2026-10-07 and requested
+  GUI readability corrections; final UI confirmation remains pending.
   Production Preview/Apply, explicit scope, Run/Marker CSV, real progress and
   partial retention are connected;159 affected checks pass, including15 new GUI
   checks. Actual widget renders7 and preserved PUB06 renders12 are retained.
@@ -21,6 +22,12 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   remaining in that bounded scope. Publication/current CI/merge and native
   confirmation remain open in PR151. Existing single-drop and #139 source/history paths
   stay in production. #141–143 are not started; #104 remains separate.
+  Follow-up readability change replaces debug prose with a compact card and
+  Details tabs; Rotation/Motion/Drops to run labels explain actual meanings.
+  Fresh actual11-state renders,49-pass affected GUI run and4-pass grip-geometry
+  correction recheck are retained separately.
+  Same-agent clarity recheck closed the lost-radius P2; no material P0/P1/P2
+  remains in that correction scope. GUI confirmation/current CI are still open.
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
   and stale-worker cancellation are implemented. Original production GUI34 checks

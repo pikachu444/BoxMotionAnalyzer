@@ -47,19 +47,26 @@ def main():
         report['states'].append(dict(name=name,pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),
             target_fits=fits,configuration_hash=digest(config),mode=config['mode'],
             selected_step_ids=config['sequence_profile'].get('execution_plan',{}).get('selected_step_ids'),
-            actual_preview=window.settings.sequence_preview.toPlainText(),actual_label=window.result_label.text(),status='passed'))
+            actual_preview=window.settings.sequence_preview.text(),preview_count=window.settings.preview_count.text(),
+            preview_time=window.settings.preview_time.text(),actual_label=window.result_label.text(),status='passed'))
     try:
         capture('single-default');window.mode_combo.setCurrentIndex(1)
         window.settings.handling.setCurrentIndex(1);window.settings.preview_sequence()
-        assert not window.run_btn.isEnabled() and 'Hazard' in window.settings.sequence_preview.toPlainText()
+        assert not window.run_btn.isEnabled() and 'Hazard' in window.settings.sequence_preview.text()
         capture('G-entire-unavailable')
         window.settings.run_scope.setCurrentIndex(1);window.settings.table.selectRow(7)
         window.settings.attachment_face.setCurrentText('+X');window.settings.preview_sequence()
-        assert 'face +X' in window.settings.sequence_preview.toPlainText();capture('G-selected-preview')
+        assert '+X face' in window.settings.sequence_preview.text();capture('G-selected-preview')
+        details=window.settings.sequence_details_dialog();details.show();QTest.qWait(70)
+        for index,name in enumerate(('G-details-drops','G-details-actions','G-details-conditions')):
+            details.layout().itemAt(0).widget().setCurrentIndex(index);app.processEvents()
+            assert details.grab().save(str(root/(name+'.png')))
+            report['states'].append(dict(name=name,scope='Actual optional review dialog',status='passed'))
+        details.close();details.deleteLater()
         window.settings.apply_settings();assert window.run_btn.isEnabled();capture('G-selected-applied')
         state=ModeProfiles();state.switch('robot_sequence');state.set_config(fixture(family='floor_supported',two=False))
         window._apply_profiles(state);window.settings.preview_sequence()
-        assert 'support edge' in window.settings.sequence_preview.toPlainText();capture('H-supported-preview')
+        assert 'Virtual tip on floor' in window.settings.sequence_preview.text();capture('H-supported-preview')
         capture('H-small-main',True);window._show_settings();app.processEvents();dialog=window.settings_dialog
         dialog.resize(820,600);QTest.qWait(70);dialog.resize(820,600);app.processEvents()
         scroll=dialog.layout().itemAt(0).widget();scroll.ensureWidgetVisible(window.settings.apply_button);app.processEvents()
@@ -67,7 +74,14 @@ def main():
         pixmap=dialog.grab();assert pixmap.save(str(root/'H-small-settings.png'))
         report['states'].append(dict(name='H-small-settings',pixels=[pixmap.width(),pixmap.height()],dpr=pixmap.devicePixelRatio(),
             scope='Actual scrolled Settings with Apply/Cancel reachable',status='passed'))
-        dialog.reject();report['completion']='passed'
+        dialog.reject()
+        custom=fixture(family='floor_supported',two=False);custom['sequence_profile']['execution_plan']['physics']['radius_mm']=6.5
+        state=ModeProfiles();state.switch('robot_sequence');state.set_config(custom)
+        window._apply_profiles(state);window.settings.preview_sequence();details=window.settings.sequence_details_dialog()
+        details.layout().itemAt(0).widget().setCurrentIndex(2);details.show();QTest.qWait(70)
+        assert details.grab().save(str(root/'custom-grip-conditions.png'))
+        report['states'].append(dict(name='custom-grip-conditions',scope='Actual loaded custom grip radius6.5mm',status='passed'))
+        details.close();details.deleteLater();report['completion']='passed'
     except BaseException as error:report.update(completion='failed',failure=repr(error));raise
     finally:
         window.close();(root/'RunReport.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

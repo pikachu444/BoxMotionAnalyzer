@@ -41,8 +41,13 @@ def test_real_preview_binds_selected_face_and_edited_rows(window):
     window.mode_combo.setCurrentIndex(1);p=window.settings
     p.handling.setCurrentIndex(p.handling.findData('airborne'));p.run_scope.setCurrentIndex(1);p.table.selectRow(7)
     p.attachment_face.setCurrentText('+X');p.table.item(7,2).setText('11');p.table.item(7,3).setText('12');p.table.item(7,4).setText('37')
-    p.preview_sequence();text=p.sequence_preview.toPlainText()
-    assert 'face +X' in text and '[11.0, 12.0, 37.0]' in text and '1 / 17' in text
+    p.preview_sequence();text=p.sequence_preview.text()
+    assert '+X face' in text and '1 of 17' in p.preview_count.text() and 'drop 8' in p.preview_count.text()
+    dialog=p.sequence_details_dialog();tabs=dialog.layout().itemAt(0).widget()
+    actions=tabs.widget(1)
+    assert actions.item(3,1).text()=='Turn' and actions.item(3,3).text()=='11 / 12 / 37'
+    assert tabs.widget(0).item(7,2).text()=='Yes' and tabs.widget(0).item(0,2).text()=='Excluded'
+    dialog.deleteLater()
     before=window.profiles.document();p.physics_controls[0].setValue(26);p.apply_settings()
     assert window.profiles.document()==before and 'Preview sequence' in p.status.text()
     p.preview_sequence();p.apply_settings();c=window.profiles.configs['robot_sequence'];plan=c['sequence_profile']['execution_plan']
@@ -55,8 +60,13 @@ def test_real_preview_binds_selected_face_and_edited_rows(window):
 
 def test_entire_hazard_blocks_and_loaded_custom_plan_is_preserved(window,tmp_path,monkeypatch):
     window.mode_combo.setCurrentIndex(1);p=window.settings;p.handling.setCurrentIndex(1);p.preview_sequence()
-    assert 'Hazard' in p.sequence_preview.toPlainText() and not window.run_btn.isEnabled()
+    assert 'Hazard' in p.sequence_preview.text() and not window.run_btn.isEnabled()
     c=robot_fixture(two=False);c['sequence_profile']['execution_plan']['phases'][2]['target_origin_mm'][0]=12.
+    c['sequence_profile']['execution_plan']['physics']['radius_mm']=6.5
+    apply_config(window,c);window.settings.preview_sequence()
+    dialog=window.settings.sequence_details_dialog();conditions=dialog.layout().itemAt(0).widget().widget(2).layout()
+    assert conditions.itemAt(0).widget().text()=='Grip geometry'
+    assert conditions.itemAt(1).widget().text()=='Sphere, radius 6.5 mm';dialog.deleteLater()
     apply_config(window,c);window.settings.preview_sequence();window.settings.apply_settings()
     assert window.profiles.configs['robot_sequence']['sequence_profile']['execution_plan']==c['sequence_profile']['execution_plan']
     path=tmp_path/'settings.json';monkeypatch.setattr(QFileDialog,'getSaveFileName',lambda *a:(str(path),''))
@@ -113,8 +123,11 @@ def test_actual_gui_partial_retention_and_retry(window,tmp_path,monkeypatch,reas
 
 def test_actual_h_preview_and_partial_marker_worker(window,tmp_path):
     c=robot_fixture(family='floor_supported',two=False);apply_config(window,c);window.settings.preview_sequence()
-    text=window.settings.sequence_preview.toPlainText()
-    assert 'floor_supported' in text and 'support edge' in text and '[0, 15, 0]' in text
+    text=window.settings.sequence_preview.text()
+    assert 'Virtual tip on floor' in text
+    dialog=window.settings.sequence_details_dialog();actions=dialog.layout().itemAt(0).widget().widget(1)
+    assert actions.item(2,1).text()=='Turn' and actions.item(2,3).text()=='0 / 15 / 0'
+    assert '100 / 0 / -40' in actions.item(2,3).toolTip();dialog.deleteLater()
     c=robot_fixture(two=False);c['duration_s']=.5;marker=c['observation_profile']['marker']
     from src.simulation.ui.main_window import SimulationUI
     simulation=SimulationUI._params(c);p=c['physics_profile'];simulation.update(mass=p['mass_kg'],friction=p['friction'],
@@ -163,7 +176,7 @@ def test_loaded_multi_drop_subset_is_visible_and_expansion_is_explicit(window,tm
     assert sum(t['kind']=='release' for t in window.thread.engine.sequence_evidence['toggles'])==2
     p.run_scope.setCurrentIndex(0);before=window.profiles.document();p.apply_settings()
     assert window.profiles.document()==before and 'Preview' in p.status.text()
-    p.preview_sequence();assert 'Hazard' in p.sequence_preview.toPlainText()
+    p.preview_sequence();assert 'Hazard' in p.sequence_preview.text()
 
 
 @pytest.mark.parametrize('stale',[False,True])
@@ -186,8 +199,9 @@ def test_cancelled_partial_write_failure_remains_visible(window,tmp_path,monkeyp
 
 def test_virtual_h_scope_matches_actual_applied_template(window):
     apply_config(window,robot_fixture(family='floor_supported',two=False))
-    assert window.settings.table.item(0,5).text()=='Virtual support; ISTA unverified'
-    window.settings.preview_sequence();assert 'floor_supported' in window.settings.sequence_preview.toPlainText()
+    assert window.settings.table.item(0,5).text()=='Virtual floor tip'
+    assert 'ISTA procedure is unverified' in window.settings.table.item(0,5).toolTip()
+    window.settings.preview_sequence();assert 'Virtual tip on floor' in window.settings.sequence_preview.text()
 
 
 def test_viewer_bridge_mocked_cancel_preserves_retention_failure(window,tmp_path,monkeypatch):

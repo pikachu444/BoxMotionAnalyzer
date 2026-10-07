@@ -231,7 +231,7 @@ class OrientationPreviewWidget(QWidget):
         painter.drawText(
             10,
             self.height() - 10,
-            f"Fixed XYZ (°): {self.euler[0]:.1f}, {self.euler[1]:.1f}, {self.euler[2]:.1f}"
+            f"Rotation X / Y / Z (°): {self.euler[0]:.1f}, {self.euler[1]:.1f}, {self.euler[2]:.1f}"
         )
 
 def simulation_error_message(error):
@@ -765,8 +765,8 @@ class SimulationUI(QWidget):
         rotation_form = QFormLayout(rotation)
         rotation_form.setContentsMargins(8, 0, 0, 0)
         for axis, control in (("X", self.custom_r_input), ("Y", self.custom_p_input), ("Z", self.custom_y_input)):
-            control.setToolTip("Fixed world-axis XYZ rotation about the geometric box centre, in degrees; not a marker-local half-turn.")
-            rotation_form.addRow(f"Fixed {axis} (°):", control)
+            control.setToolTip("Box orientation: rotate about the scene X, then Y, then Z axes. Z points up. Values are angles in degrees.")
+            rotation_form.addRow(f"{axis} rotation (°):", control)
         self.rotation_section = CollapsibleSection("Rotation", rotation)
         form.addRow(self.rotation_section)
         form.addRow(self.warning_label)

@@ -6,7 +6,14 @@ Plan Spec: `ISTA6A-PLAN-20261001-v1`. Branch `issue140-dynamic-robot-sequence`,
 base `2e3dea4b97fdb274501adf58ef6ae3744e3a0895`. Backend checkpoint `9c3e263`
 is followed by production GUI binding on this branch. The user instructed
 continuation of the editable preset-to-continuous-run workflow. Separate new
-UI proposal and synthetic fixture/tolerance approval questions remain pending.
+UI confirmation remains pending after the user's readability correction request.
+On2026-10-07 the user confirmed the described virtual software control conditions
+(attachment distance/alignment/speed/spin, tracking/rest limits, dwell,
+timeout/retries). Additional numerical diagnostic bounds remain proposed; no
+baseline promotion or experimental accuracy was authorized.
+The literal confirmation scope is retained in
+`robot_sequence_140_confirmation.json`; the later GUI readability request is
+not treated as UI approval. Prior diagnostic RunReports remain unchanged.
 No full issue completion, native acceptance, experimental accuracy, new baseline,
 trial approval, or migration is claimed.
 
@@ -56,8 +63,9 @@ tiny sphere's inferred inertia. Sphere radius5 mm, drive/attach time constants
 settings unchanged. They model ideal actuation/attachment, not physical suction
 capacity, leak, damage, robot-arm accuracy, or calibrated package inertia.
 
-The configured control bounds and numerical test bounds above remain proposed
-until human review. Diagnostic test success does not approve them. No regression
+The operational control bounds listed in the confirmation question were
+confirmed for virtual software testing. Other numerical test bounds remain
+proposed until review. Diagnostic test success does not approve them. No regression
 baseline is regenerated. Experimental acceptance stays unavailable in #104.
 
 ## Actual implementation boundary
@@ -130,6 +138,10 @@ multi-step subsets display `Captured selection` with their saved IDs. Browsing
 another row does not silently change that subset. Expanding scope requires a new
 Preview. G17 hazard remains blocked; H uses an explicitly virtual supported
 template, labelled `Virtual support; ISTA unverified`.
+The subsequent user readability correction replaces central debug prose with
+a compact count/motion/grip/time card and an optional structured Details dialog.
+Rotation and Motion headings replace Fixed XYZ and Scope. Virtual H/unavailable
+status remains visible; all saved IDs, phase targets and limits remain bound.
 
 Run and Marker CSV use the actual one-state runner. Visible robot time budget
 can reach3600 s; individual phases retain60 s limits and Single drop retains
@@ -159,6 +171,21 @@ The same independent read-only reviewer closed all4 production GUI P2 findings
 after inspecting the corrected source,159-pass XML and all7 actual PNGs. No
 material P0/P1/P2 remains in that bounded audit. This does not certify native
 behavior, numerical acceptance, current-source CI or complete #140 acceptance.
+
+After the user readability request, central preview prose was replaced by a
+compact card and structured optional Details. Corrected actual GUI integration
+`ui-clarity-current.xml` passed49 checks in76.19 s. Fresh widget renders11 include
+the three detail tabs and nondefault6.5 mm actual grip-radius display. A bounded
+geometry/H/selection recheck passed4 in4.62 s. First37-pass/2-old-label-assertion failures are retained
+separately in `ui-clarity-first.xml`, not overwritten.
+
+At clean `e1547ab`, a separate real whole-G16 Marker producer saved11962 observed
+Raw rows, one engine/16 releases and exact selected1–16/omitted17 metadata.
+The original verification harness used a result-file loader on Raw and failed
+after producing the capture; its `RunReport.json` is preserved. Correct Raw
+loading of that retained capture passed in the separate
+`full-G16-producer-e1547ab/RawReloadReport.json` (fresh0/reused1). This validates
+saved whole-plan observations/reload, not independently measured package accuracy.
 
 Original failures remain under `tmp/issue140`: import/invocation smoke failures,
 first dynamic tracking failure, H rotation/floor-support failures, original

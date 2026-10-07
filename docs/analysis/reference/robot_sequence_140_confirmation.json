@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "HumanConfirmationRecord",
+  "date_kst": "2026-10-07",
+  "source": "human reply to request_user_input_async in current session",
+  "virtual_software_conditions": {
+    "answer_verbatim": "그래 해봐",
+    "status": "confirmed_to_proceed",
+    "scope": "Public virtual software validation conditions described in the question; physical accuracy and baseline promotion explicitly excluded",
+    "attachment_distance_mm": 2,
+    "attachment_normal_deg": 5,
+    "attachment_relative_speed_mm_s": 30,
+    "attachment_relative_spin_rad_s": 0.2,
+    "tracking_position_mm": 5,
+    "tracking_angle_deg": 3,
+    "rest_speed_mm_s": 15,
+    "rest_spin_rad_s": 0.15,
+    "rest_dwell_s": 0.15,
+    "phase_timeout_s": 3,
+    "additional_retries": 1,
+    "baseline_promotion": "not_authorized",
+    "experimental_accuracy": "not_evaluated"
+  },
+  "gui": {
+    "answer_verbatim": "안 보여 다시 보여줘",
+    "status": "not_confirmed",
+    "action": "Reshow actual production Preview; file panel open returned queued, image emitted again",
+    "later_user_review": "Requested readable central summary and clarification of Fixed X/Y/Z and Scope",
+    "later_status": "Readability correction implemented and independently reviewed; GUI approval not inferred"
+  },
+  "prior_run_reports": "Remain unchanged as historical evidence with original approval/status values"
+}

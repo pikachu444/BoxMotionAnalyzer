@@ -7,7 +7,8 @@ The #140 implementation adds an explicit, source-bound `RobotExecutionPlan`
 and the opt-in `pub07-dynamic-gripper-v1` producer. Config-only robot profiles
 retain the #139 execution block; they are never silently upgraded. Production
 robot UI binds handling/attachment/scope Preview, Apply, Run, Marker CSV and
-partial retention. Separate new UI/numerical approval questions remain pending. The
+partial retention. The user confirmed described virtual software controls; final
+GUI confirmation and additional numeric diagnostic approval remain pending. The
 new engine, proposed virtual fixtures/tolerances, incomplete-result status and
 evaluation-only transition evidence are described in
 [robot_sequence_contract.md](robot_sequence_contract.md). Neither the backend

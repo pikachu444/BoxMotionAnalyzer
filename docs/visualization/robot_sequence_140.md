@@ -5,7 +5,8 @@ Last Reviewed: 2026-10-07
 Production SimulationUI now connects sequence Preview/Apply, scope, Run/Marker
 CSV, actual progress and partial retention on the development branch. The user
 instructed continuation of the editable automatic-plan/continuous-run workflow.
-Separate original UI and numerical approval questions remain pending. Existing
+On2026-10-07 the user confirmed proceeding with the described virtual software
+control conditions, then requested a clearer GUI. UI confirmation remains pending. Existing
 PUB06 workspace and Single drop behavior are preserved.
 
 `mockups/robot_sequence_140/generate_mockups.py` subclasses the existing workspace
@@ -72,3 +73,39 @@ Current-source required PR/main CI, publication/merge and separate approval
 questions remain outstanding in PR151. Native input/viewer/actual
 OS125 remain unexecuted; previous #138/#139 failures are preserved. #104 measured
 validation is separate and unavailable. #113 is excluded; #141–143 are not started.
+
+## Readability correction after user review
+
+The user found the central ID/phase/tolerance prose incomprehensible and asked
+what `Fixed X/Y/Z` and `Scope` meant. Main replaced that text with an Execution
+preview card: selected/total count, excluded count, time limit, motion and grip
+face. `Details…` opens separate Drops, Actions and Conditions tabs bound to the
+actual saved/generated plan. Drop numbers/preset names replace internal IDs;
+excluded rows remain explicit, ordered actions retain actual targets and limits.
+The centre does not expand a phase list for every selected drop.
+
+Table headings now use `X/Y/Z rotation (°)` and `Motion`; the left controls and
+target preview use the same rotation wording. A short visible hint specifies
+scene X→Y→Z order and Z-up. Angles set orientation; they are neither position
+coordinates nor axis locks. Motion labels show Free fall, Virtual floor tip or
+unavailable handling. `Drops to run` replaces `Run scope`, and loaded subsets use
+`Saved selection`. This is a presentation change; numeric values, fixed-axis
+rotation convention, applicability, engine and export contracts are preserved.
+
+`mockups/robot_sequence_140/clarity125/` retains11 actual widget renders including
+all three optional detail tabs and a loaded6.5 mm grip-radius case. Earlier production/proposal images remain
+historical evidence. `ui-clarity-first.xml` preserved37 passes and2 failures from
+old display-text assertions; the updated assertions retain hazard/unavailability
+checks. The corrected GUI suite and independent review are recorded below.
+
+Corrected affected GUI integration passed49 checks in76.19 s. The independent
+clarity audit inspected10 original widgets and found one P2: grip sphere radius
+was removed from the centre without appearing in Details. Main restored the
+actual-plan radius in Conditions, retained the short centre, and added a
+nondefault6.5 mm binding assertion to the existing loaded-plan preservation
+test. The bounded geometry/H/selection recheck passed4 in4.62 s and the new
+11-state render passed. Actions uses `Planned duration (s)` to distinguish
+scheduled/minimum time from actual runtime and additional timeout waits.
+The same reviewer rechecked the source,4-pass XML and original default/custom
+Conditions renders and closed the radius P2. No material P0/P1/P2 remains in
+that bounded readability correction. Final human GUI confirmation is still open.
