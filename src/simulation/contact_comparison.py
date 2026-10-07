@@ -135,21 +135,24 @@ def compare_events(truth, detector, policy, *, approval='proposed', pairing=None
     da=[e for e in ds if e['eligible'] and e['status']=='valid' and truth['window_s'][0]<=e['time_s']<truth['window_s'][1]]
     designated_observed=[e for e in ds if e['eligible'] and truth['window_s'][0]<=e['time_s']<truth['window_s'][1]]
     anchor_ambiguous=bool(designated_observed and designated_observed[0]['status']=='ambiguous')
-    shift=None; matches=[]; ambiguous=[]; used_t=set(); used_d=set()
+    shift=None; matches=[]; ambiguous=[]; used_t=set(); used_d=set();reserved_t=set()
     if ta and da and not anchor_ambiguous and truth['t1']['status']=='valid' and detector['status']=='valid':
         shift=ta[0]['time_s']-da[0]['time_s']
         matches.append(dict(truth_id=ta[0]['event_id'],detector_id=da[0]['event_id'],aligned_error_s=0.,role='t1_anchor'))
         used_t.add(ta[0]['event_id']);used_d.add(da[0]['event_id'])
         last_d=da[0]['event_id']
         for t in ta[1:]:
-            options=[d for d in da if d['event_id']>last_d and d['event_id'] not in used_d
+            if t['event_id'] in reserved_t:continue
+            options=[d for d in designated_observed if d['event_id']>last_d and d['event_id'] not in used_d
                 and abs(d['time_s']+shift-t['time_s'])<=policy['matching_window_s']+1e-12]
             if not options:continue
             d=options[0]
-            competing=[t2 for t2 in ta if t2['event_id'] not in used_t and abs(d['time_s']+shift-t2['time_s'])<=policy['matching_window_s']+1e-12]
-            if len(options)>1 or len(competing)>1:
-                ambiguous.append(dict(truth_ids=[x['event_id'] for x in competing],detector_ids=[x['event_id'] for x in options],reason='Multiple chronological counterparts within fixed window.'))
+            competing=[t2 for t2 in ta if t2['event_id'] not in (used_t|reserved_t)
+                and any(abs(option['time_s']+shift-t2['time_s'])<=policy['matching_window_s']+1e-12 for option in options)]
+            if d['status']=='ambiguous' or len(options)>1 or len(competing)>1:
+                ambiguous.append(dict(truth_ids=[x['event_id'] for x in competing],detector_ids=[x['event_id'] for x in options],reason='Unresolved or multiple chronological counterparts within fixed window.'))
                 # Reserve ambiguous interval so later events cannot steal a favorable match.
+                reserved_t.update(x['event_id'] for x in competing)
                 last_d=max(x['event_id'] for x in options);continue
             matches.append(dict(truth_id=t['event_id'],detector_id=d['event_id'],aligned_error_s=d['time_s']+shift-t['time_s'],role='ordered'))
             used_t.add(t['event_id']);used_d.add(d['event_id']);last_d=d['event_id']
@@ -158,6 +161,8 @@ def compare_events(truth, detector, policy, *, approval='proposed', pairing=None
         if target['status']!='valid':return metric(status=target['status'],reason=target['reason'])
         if detector['status']!='valid':return metric(status=detector['status'],reason=detector['reason'])
         if anchor_ambiguous:return metric(status='ambiguous',reason='Declared first observation conflicts with existing t1-minus; later anchors are forbidden.')
+        if which=='t2' and len(designated_observed)>=2 and designated_observed[1]['status']=='ambiguous':
+            return metric(status='ambiguous',reason='The designated second observation is unresolved; later replacement is forbidden.')
         event=target['value']; match=next((m for m in matches if m['truth_id']==event['event_id']),None)
         if any(event['event_id'] in a['truth_ids'] for a in ambiguous):return metric(status='ambiguous',reason='Multiple ordered matches.')
         if match is None:return metric(status='not_detected',reason='Designated truth event has no eligible observed match.')
@@ -192,21 +197,26 @@ def compare_events(truth, detector, policy, *, approval='proposed', pairing=None
         policy_approval=approval,numerical_acceptance='needs_review',physical_acceptance='not_evaluated')
 
 
-def motion_diagnostics(recording, truth, detector, processed):
-    """Compare recorded trajectories after the independently selected first onsets.
+def motion_diagnostics(recording, truth, detector, processed, *, comparison=None):
+    """Compare trajectories using only the established event correspondence.
 
     Values are diagnostics, with no new detector labels or acceptance threshold.
     Minimum-corner clearance is not the rise of the COM or a measured bounce.
     """
-    if truth['t1']['status']!='valid' or detector['status']!='valid':
-        return dict(status='unavailable',reason='Both first events and trajectories are required.')
-    observed=[e for e in detector['events'] if e['eligible']]
-    if not observed:return dict(status='not_detected',reason='No eligible observed first event.')
+    if comparison is None:
+        return dict(status='unavailable',reason='An established event comparison is required.')
+    validate_envelope(comparison,'ContactComparison')
+    if comparison['truth_sha256']!=digest(truth) or comparison['detector_sha256']!=digest(detector):
+        raise ValueError('Motion comparison source differs from the established event comparison.')
+    if comparison['t1']['status']!='valid':
+        return dict(status=comparison['t1']['status'],reason=comparison['t1']['reason'])
+    if comparison['t1_shift_s']['status']!='valid':
+        return dict(status='unavailable',reason='No established single t1 alignment.')
     first=truth['t1']['value'];start=first['time_s'];stop=truth['window_s'][1]
     later_attach=next((s['time_s'] for s in recording['samples'] if s['time_s']>start and s['box_attached']),None)
     if later_attach is not None:stop=min(stop,later_attach)
     samples=[s for s in recording['samples'] if start<=s['time_s']<stop]
-    shift=start-observed[0]['time_s']
+    shift=comparison['t1_shift_s']['value']
     obs=processed.loc[(processed.index.to_numpy(float)+shift>=start)&(processed.index.to_numpy(float)+shift<stop)]
     if len(samples)<2 or len(obs)<2:return dict(status='unavailable',reason='Insufficient post-impact trajectory.')
     truth_height=np.array([min(np.array(s['corners_world_mm'])[:,2]) for s in samples])

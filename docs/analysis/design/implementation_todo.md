@@ -7,12 +7,17 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
-- [ ] #141 / PUB08 software delivery: independent timestep contact recording,
+- [O] #141 / PUB08 software implementation and independent local review:
+  independent timestep contact recording,
   frozen public event policy/expectations, material-corner impact evaluation,
-  ordered comparison and real PUB07/production-observation roundtrip are being
-  verified on `issue141-contact-evaluation`. Initial 27 checks pass; the first
-  production harness failure and separate correction execution are preserved.
-  Policy approval, final independent review and final-head CI/merge are pending.
+  ordered comparison and real PUB07/production-observation roundtrip are implemented.
+  Thirteen fresh functional cases and six bounded comparison replays are retained.
+  Independent GPT-6 Astra xhigh review closed six correction groups; 47 event
+  checks pass, and six independent physics runs preserve recorder OFF/ON state.
+  Original failures and correction results are separate. Final-source complete
+  required CI and merge are publication gates tracked in PR #153; do not infer
+  their success from these local records. User approved both t2 kinds, while
+  synthetic numeric thresholds remain proposed/needs_review.
   See `../reference/contact_evaluation_contract.md`. #142/#143/#152 excluded;
   numerical accuracy/baseline promotion and #104 measured verification separate.
 - [O] #140 / PUB07 software implementation and independent acceptance review:
@@ -33,7 +38,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   confirmation is tracked in PR151. Final source f1a66c9 passed required CI37579195396;
   PR151 merged as78b6c79. Native/experimental acceptance remains separate.
   Existing single-drop and #139 source/history paths stay in production.
-  #141 starts separately; #142/#143 are not started; #104 remains separate.
+  #141 is delivered separately in PR153; #142/#143 are not started; #104 remains separate.
   Follow-up readability change replaces debug prose with a compact card and
   Details tabs; Rotation/Motion/Drops to run labels explain actual meanings.
   Fresh actual11-state renders,49-pass affected GUI run and4-pass grip-geometry

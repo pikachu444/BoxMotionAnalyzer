@@ -20,7 +20,7 @@ from scipy.spatial.transform import Rotation
 from src.utils.marker_profile_identity import envelope,digest
 from .contact_policy import event_policy,frozen_protocol,policy_approval
 from .contact_fixtures import public_case
-from .contact_evaluation import evaluate_contacts,evaluate_available,save_document,load_recording
+from .contact_evaluation import evaluate_contacts,evaluate_available,save_document,load_recording,load_evaluation
 from .contact_comparison import observed_events,compare_events,motion_diagnostics,observation_pair
 
 
@@ -76,6 +76,7 @@ def _real_single(root,policy,case_id,xyz,elasticity,expected):
     recording=engine.contact_recorder.document();save_document(root/'contacts.json',recording)
     retained=load_recording(root/'contacts.json',source);evaluation=evaluate_contacts(retained,policy)
     save_document(root/'evaluation.json',evaluation)
+    evaluation=load_evaluation(root/'evaluation.json',policy,retained)
     impacts=[e for e in evaluation['events'] if e['eligible']]
     check=bool(impacts) and impacts[0]['kind']=='first_floor_impact' and any(e['kind']==expected for e in impacts)
     directory=write_observations(root/'observed',history_to_trajectory(history),load_profile(),dict(schema_version=1,events=[]),74082)
@@ -86,7 +87,7 @@ def _real_single(root,policy,case_id,xyz,elasticity,expected):
     if len(reopened)!=len(processed):raise AssertionError('Production result reopen lost records.')
     pair=observation_pair(evaluation,directory/'observed.csv');save_document(root/'pairing.json',pair)
     comparison=compare_events(evaluation,detector,policy,pairing=pair,approval=policy_approval(policy))
-    comparison['post_impact_motion']=motion_diagnostics(recording,evaluation,detector,processed)
+    comparison['post_impact_motion']=motion_diagnostics(recording,evaluation,detector,processed,comparison=comparison)
     save_document(root/'detector.json',detector);save_document(root/'comparison.json',comparison)
     return dict(case_id=case_id,expected=dict(first='first_floor_impact',includes=expected),
         actual=dict(kinds=[e['kind'] for e in impacts],t1=evaluation['t1']['status'],t2=evaluation['t2']['status'],coverage=comparison['coverage']),
@@ -116,13 +117,16 @@ def _robot(root,policy):
     if continuity['releases']!=2 or continuity['engine_builds']!=1 or continuity['status']!='valid':raise AssertionError(continuity)
     save_document(root/'sequence-truth.json',engine.sequence_evidence);save_document(root/'contacts.json',engine.contact_recorder.document())
     recording=load_recording(root/'contacts.json',source);evaluation=evaluate_contacts(recording,policy);save_document(root/'evaluation.json',evaluation)
+    evaluation=load_evaluation(root/'evaluation.json',policy,recording)
     marker=config['observation_profile']['marker'];metadata=build_metadata(config,engine,history,route='marker_csv',run_id='pub08-two-release')
     directory=write_observations(root/'observed',history_to_trajectory(history),marker['profile'],dict(schema_version=1,events=[]),marker['seed'],simulation_metadata=metadata)
     raw_path=directory/'observed.csv';processed,detector,header,raw=analyze_raw(raw_path,config['size_mm'])
     if detector['status']!='valid':raise AssertionError(('whole detector adapter',detector['status'],detector['reason']))
     save_proc_file(str(root/'whole.proc'),processed);DataLoader().load_result_csv(str(root/'whole.proc'))
     pair=observation_pair(evaluation,raw_path);save_document(root/'pairing.json',pair)
-    save_document(root/'whole-detector.json',detector);save_document(root/'whole-comparison.json',compare_events(evaluation,detector,policy,pairing=pair,approval=policy_approval(policy)))
+    comparison=compare_events(evaluation,detector,policy,pairing=pair,approval=policy_approval(policy))
+    comparison['post_impact_motion']=motion_diagnostics(recording,evaluation,detector,processed,comparison=comparison)
+    save_document(root/'whole-detector.json',detector);save_document(root/'whole-comparison.json',comparison)
     parsed=Parser(FACE_PREFIX_TO_INFO).process(header,raw)
     scenes=detect_scenes(header,raw,parsed,registration=Registration(marker['profile'],0.,1.,(0.,0.,0.),True))
     falls=[c for c in scenes.candidates if c.evidence_class=='free_fall']
@@ -140,8 +144,9 @@ def _robot(root,policy):
         save_proc_file(str(root/f'scene-{i}.proc'),result);DataLoader().load_result_csv(str(root/f'scene-{i}.proc'))
         dt=float(np.median(np.diff(result.index)))
         t=evaluate_contacts(recording,policy,window=(float(result.index[0]),float(result.index[-1]+dt)),release_group_id=groups[i])
+        save_document(root/f'scene-{i}-evaluation.json',t);t=load_evaluation(root/f'scene-{i}-evaluation.json',policy,recording)
         pair=observation_pair(t,slice_path);save_document(root/f'scene-{i}-pairing.json',pair)
-        comparison=compare_events(t,d,policy,pairing=pair,approval=policy_approval(policy));comparison['post_impact_motion']=motion_diagnostics(recording,t,d,result)
+        comparison=compare_events(t,d,policy,pairing=pair,approval=policy_approval(policy));comparison['post_impact_motion']=motion_diagnostics(recording,t,d,result,comparison=comparison)
         save_document(root/f'scene-{i}-comparison.json',comparison)
         outputs.append(dict(candidate=asdict(candidate),release_group_id=groups[i],t1=comparison['t1']['status'],t2=comparison['t2']['status'],coverage=comparison['coverage']))
     # Original Raw bytes are the only event input. Changing/deleting truth cannot affect it.

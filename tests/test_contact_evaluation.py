@@ -202,3 +202,69 @@ def test_user_event_scope_does_not_promote_accuracy_or_baseline():
     t=evaluate_contacts(public_case('corner-edge'),event_policy())
     result=compare_events(t,detector([.112,.192]),event_policy(),approval=approval)
     assert result['numerical_acceptance']=='needs_review'
+
+
+def test_post_impact_motion_cannot_realign_an_ambiguous_first_event():
+    from src.simulation.contact_comparison import motion_diagnostics
+    recording=public_case('corner-edge');t=evaluate_contacts(recording,event_policy());d=detector([0.,.112,.192])
+    d['events'][0].update(status='ambiguous',reason='First support run conflicts with impact.')
+    comparison=compare_events(t,d,event_policy())
+    motion=motion_diagnostics(recording,t,d,None,comparison=comparison)
+    assert motion['status']=='ambiguous';assert 'single_t1_shift_s' not in motion
+    assert 'truth' not in motion;assert 'detector' not in motion
+    stale=deepcopy(comparison);stale['truth_sha256']='0'*64
+    with pytest.raises(ValueError):motion_diagnostics(recording,t,d,None,comparison=stale)
+
+
+def test_duplicate_reordered_or_hidden_designated_truth_endpoint_rejected():
+    from src.simulation.contact_evaluation import validate_evaluation
+    t=evaluate_contacts(public_case('corner-edge'),event_policy())
+    for key in ('t1','t2'):
+        mutant=deepcopy(t);mutant[key]=deepcopy(t['t2' if key=='t1' else 't1'])
+        with pytest.raises(ValueError):validate_evaluation(mutant,event_policy())
+    mutant=deepcopy(t);mutant['t2']=dict(value=None,status='not_detected',reason='hidden event')
+    with pytest.raises(ValueError):compare_events(mutant,detector([.112,.192]),event_policy())
+
+
+def test_ambiguous_designated_detector_t2_is_preserved():
+    t=evaluate_contacts(public_case('corner-edge'),event_policy());d=detector([.112,.192,.194])
+    d['events'][1]['status']='ambiguous'
+    c=compare_events(t,d,event_policy())
+    assert c['t2']['status']=='ambiguous';assert len(c['matches'])==1
+    assert len(c['ambiguous']['detector'])==1;assert len(c['extra_detector'])==2
+
+
+def test_truth_reserved_by_ambiguous_matching_cannot_be_matched_again():
+    r=public_case('corner-face')
+    for k in range(90,95):r['samples'][k]['contacts']=r['samples'][k]['contacts'][:2]
+    r['samples'][94]['origin_velocity_mm_s']=[0.,0.,-200.]
+    r['samples'][94]['corners_velocity_mm_s']=[[0.,0.,-200.]]*8
+    t=evaluate_contacts(r,event_policy());c=compare_events(t,detector([.112,.197,.222]),event_policy())
+    reserved={i for a in c['ambiguous']['matching'] for i in a['truth_ids']}
+    assert reserved=={1,2};assert reserved.isdisjoint(m['truth_id'] for m in c['matches'])
+    assert len(c['matches'])==1
+
+
+def test_partial_contact_capture_does_not_establish_t2_absence():
+    r=public_case('corner-edge');r['samples']=r['samples'][:70];r['execution_status']='partial'
+    t=evaluate_contacts(r,event_policy())
+    assert t['t1']['status']=='valid';assert t['t2']['status']=='unavailable'
+
+
+@pytest.mark.parametrize('mutation',['wrong_body_pair','missing_efc','inactive_force'])
+def test_contact_body_and_force_constraint_evidence_is_required(mutation):
+    r=public_case('corner-edge')
+    for s in r['samples']:
+        for c in s['contacts']:
+            if mutation=='wrong_body_pair':c.update(body_ids=[1,0],body_names=['box','world'])
+            elif mutation=='missing_efc':del c['efc_address']
+            else:c['efc_address']=-1
+    with pytest.raises(ValueError):validate_recording(r)
+
+
+@pytest.mark.parametrize('case_id',['corner-edge','gripper-only'])
+def test_known_geom_pair_cannot_be_hidden_as_other_contact(case_id):
+    r=public_case(case_id)
+    for s in r['samples']:
+        for c in s['contacts']:c['role']='other'
+    with pytest.raises(ValueError):evaluate_contacts(r,event_policy())

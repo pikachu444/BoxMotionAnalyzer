@@ -71,16 +71,20 @@ def validate_recording(recording, source_identity=None):
         for c in s['contacts']:
             if c['role'] not in ('floor', 'gripper', 'other'):
                 raise ValueError('Unknown contact role.')
-            expected = {'box_geom', 'floor'} if c['role'] == 'floor' else {'box_geom', 'gripper_geom'} if c['role'] == 'gripper' else None
-            if expected is not None and set(c['geom_names']) != expected:
+            pair=set(c['geom_names'])
+            expected_role='floor' if pair=={'box_geom','floor'} else 'gripper' if pair=={'box_geom','gripper_geom'} else 'other'
+            if c['role']!=expected_role:
                 raise ValueError('Contact role differs from actual geom identity.')
             if c['role']=='floor' and (set(c['body_names'])!={'world','box'} or not np.allclose(
                     np.array(c['frame_world_rows'])[0]*c['box_side_sign'],[0,0,1],atol=1e-10,rtol=0)):
                 raise ValueError('Unsupported floor body/normal orientation.')
-            if len(c['geom_ids']) != 2 or len(c['body_ids']) != 2 or len(c['body_names']) != 2:
+            if len(c['geom_ids']) != 2 or len(c['geom_names']) != 2 or len(c['body_ids']) != 2 or len(c['body_names']) != 2:
                 raise ValueError('Missing geom/body identity.')
             for g,gn,b,bn in zip(c['geom_ids'],c['geom_names'],c['body_ids'],c['body_names']):
                 if type(g) is not int or type(b) is not int or g<0 or b<0:raise ValueError('Invalid geom/body index.')
+                expected_body={'floor':'world','box_geom':'box','gripper_geom':'gripper'}.get(gn)
+                if expected_body is not None and bn!=expected_body:raise ValueError('Geom belongs to the wrong recorded body.')
+                if (bn=='world')!=(b==0):raise ValueError('Invalid world-body identity.')
                 if g in geom_identity and geom_identity[g]!=(gn,b):raise ValueError('Geom identity changes across timesteps.')
                 if b in body_identity and body_identity[b]!=bn:raise ValueError('Body identity changes across timesteps.')
                 geom_identity[g]=(gn,b);body_identity[b]=bn
@@ -88,6 +92,8 @@ def validate_recording(recording, source_identity=None):
             if c['box_side_sign'] != side:
                 raise ValueError('Wrong contact wrench sign.')
             basis = _array(c['frame_world_rows'], (3, 3)); wrench = _array(c['wrench_contact_on_geom2'], (6,))
+            if type(c.get('efc_address')) is not int or c['efc_address'] < -1 or (c['efc_address']==-1 and np.any(wrench!=0)):
+                raise ValueError('Invalid or absent force-constraint evidence.')
             if not np.allclose(basis@basis.T, np.eye(3), atol=1e-10, rtol=0) or abs(np.linalg.det(basis)-1) > 1e-10:
                 raise ValueError('Invalid contact frame.')
             mid = _array(c['world_midpoint_mm'], (3,)); world = _array(c['box_surface_world_mm'], (3,))
@@ -226,7 +232,7 @@ def evaluate_contacts(recording, policy, *, window=None, source_identity=None, r
         if ambiguous and (event is None or any(a['time_s']<=event['time_s'] for a in ambiguous)):
             return metric(status='ambiguous',reason='Unresolved prior floor onset; cannot choose a later favorable event.')
         if event and not event['in_window']:return metric(event,'out_of_window','Designated event is outside evaluation window.')
-        if event is None and (window[1]>times[-1]+dt+1e-9 or recording.get('execution_status') in ('cancelled','time_limit','failure')):
+        if event is None and (window[1]>times[-1]+dt+1e-9 or recording.get('execution_status') in ('partial','cancelled','time_limit','failure')):
             return metric(status='unavailable',reason='Incomplete recording cannot establish absence of designated impact.')
         if event is None and which==1 and any(e['kind'] in ('initial_support','unavailable_contact') for e in events):
             return metric(status='unavailable',reason='Initial floor support has no recorded approach/onset prehistory.')
@@ -260,6 +266,8 @@ def validate_evaluation(value, policy):
         raise ValueError('Invalid evaluation policy/source identity.')
     window=value['window_s']
     if len(window)!=2 or not np.isfinite(window).all() or window[1]<=window[0]:raise ValueError('Invalid evaluation window.')
+    group=value['release_group_id']
+    if type(group) is not int or group<0:raise ValueError('Invalid evaluation release group.')
     previous=-np.inf
     for i,e in enumerate(value['events']):
         if e['event_id']!=i or e['kind'] not in EVENT_KINDS or e['status'] not in STATUSES or e['time_s']<=previous or not np.isfinite(e['time_s']):
@@ -274,6 +282,19 @@ def validate_evaluation(value, policy):
         m=value[key]
         if m['status'] not in STATUSES or (m['status']=='valid' and m['value'] is None):raise ValueError('Invalid endpoint metric status.')
         if m['value'] is not None and (not isinstance(m['value'],dict) or m['value'] not in value['events']):raise ValueError('Endpoint does not reference a recorded event.')
+        eligible=[e for e in value['events'] if e['eligible'] and e.get('release_group_id')==group]
+        candidates=eligible if key=='t1' else [e for e in eligible[1:] if policy['designated_t2']=='next_floor_impact' or e['kind']=='rebound_recontact']
+        designated=candidates[0] if candidates else None
+        prior_ambiguous=any(e['status']=='ambiguous' and e.get('release_group_id')==group and (designated is None or e['time_s']<=designated['time_s']) for e in value['events'])
+        if designated is not None:
+            expected_status='ambiguous' if prior_ambiguous else 'valid' if designated['in_window'] else 'out_of_window'
+            if m['status']!=expected_status:raise ValueError('Endpoint status contradicts the designated event evidence.')
+        if m['status'] in ('valid','out_of_window'):
+            if m['value']!=designated or designated is None or (m['status']=='valid')!=designated['in_window']:
+                raise ValueError('Endpoint differs from the frozen chronological designation.')
+            if prior_ambiguous:
+                raise ValueError('Endpoint skips an unresolved prior floor onset.')
+        elif m['value'] is not None:raise ValueError('Missing/ambiguous endpoint cannot contain an accepted event.')
     return digest(value)
 
 

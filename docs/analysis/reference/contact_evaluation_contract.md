@@ -164,7 +164,7 @@ before that finding was interrupted and retained as `production-current` with
 | `production-padding-fixed/RunReport.json` | 13 fresh functional cases, zero reused, 763.16 s; nine logical controls, three actual physics paths, and actual two-release producer/whole Raw/observed scenes/save/reopen/truth isolation |
 | `comparison-current/RunReport.json` | Six bounded current-comparator replays, zero new physics/optimizer calls; retained Raw/proc/recording identities checked |
 | `affected-expanded.xml` | 168 passed: event and related robot/export/metadata preservation checks at that source checkpoint |
-| `observer-preservation.xml` | 76 passed, one existing skipped check; whole-record/local-event preservation |
+| `observer-preservation.xml` | 76 passed, one optional real-capture check skipped because its measured dataset is absent; whole-record/local-event preservation |
 | `raw-pairing.xml` | 36 passed: latest source pairing and ambiguous-anchor guards at that checkpoint |
 
 The full production run loaded an earlier comparator snapshot, identified by
@@ -175,4 +175,26 @@ remain first-only. The actual corner run has an ambiguous t2 correspondence;
 the actual elastic rebound is not detected by the existing observer. These are
 reported diagnostic outcomes, not detector-accuracy passes. Final hosted CI must
 run the complete tier fresh at the published source; earlier successes cannot
-substitute for that check. Independent review and publication are pending.
+substitute for that check. Publication results are tracked in
+[PR #153](https://github.com/pikachu444/BoxMotionAnalyzer/pull/153).
+
+Independent review reproduced six correction groups: post-impact motion must
+reuse the established t1 correspondence; endpoints must obey the frozen
+chronological designation; ambiguous detector t2 remains ambiguous; truth IDs
+reserved by ambiguity cannot be matched again; partial recording cannot
+establish t2 absence; geom/body associations and force-constraint addresses are
+required evidence. Original probes are preserved in
+`reviewer-independent/probes-results.json`. The corresponding regression suite
+has 45 passing checks in `reviewer-five-groups-corrected.xml`. The final role
+guard also rejects floor/gripper pairs labelled `other`; actual saved
+evaluations are reopened against their recording/policy before comparison.
+
+GPT-6 Astra xhigh independently rechecked all six groups and returned a bounded
+software PASS with no remaining material findings. Its final 47-test run,
+six fresh recorder OFF/ON physics runs (including nonzero COM), real whole-record
+ambiguity replay and actual 801/5,174-state evaluation save/reopen checks are
+preserved in `reviewer-final/ReviewReport.json`. `contact_evaluation_evidence_v1.json`
+indexes original and corrected evidence with digests and scope. Numeric
+thresholds remain proposed; this review does not approve numerical or measured
+accuracy, a baseline, or manual viewer operation. Final-source full required CI
+and merge remain publication gates on PR #153.
