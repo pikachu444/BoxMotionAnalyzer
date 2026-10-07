@@ -166,6 +166,7 @@ class RobotSequenceEngine(MuJoCoEngine):
             self._target(p+np.array([0,0,.1*s]),r)
             if u==1.:self._retract=None
         before=float(self.data.time);mujoco.mj_step(self.model,self.data);mujoco.mj_forward(self.model,self.data)
+        self._capture_contacts()
         if (not np.isfinite(self.data.qpos).all() or not np.isfinite(self.data.qvel).all()
                 or abs(float(self.data.time)-before-self.model.opt.timestep)>1e-9):
             self._stop('failure','Engine state nonfinite or clock reset.')

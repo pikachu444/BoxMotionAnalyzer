@@ -1,6 +1,11 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-10-08
+
+#141 / PUB08 supplies a separate contact-evaluation CLI and JSON reports.
+Step 1 / Step 1.5 / Step 2, English UI and existing contact-summary meanings
+are preserved; simulator contact truth is never analysis input.
+[Evaluator contract](../reference/contact_evaluation_contract.md).
 
 #140 connects editable sequence handling/attachment/scope Preview and Apply to
 actual continuous Run/Marker CSV, progress and partial retention on the development

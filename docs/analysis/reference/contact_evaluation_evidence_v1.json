@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ContactEvaluationEvidenceIndex",
+  "reviewed_date": "2026-10-08",
+  "policy_sha256": "bfb33aa29f7edf47887730ffe86421ff9be2344ca353df44b57cd589de90dc56",
+  "approval": {
+    "event_scope": "approved",
+    "thresholds": "proposed",
+    "numerical_accuracy": "proposed",
+    "baseline": "none",
+    "approval_sha256": "d27099d2c5c814945afd7d94665b0c28230532a16cac4d4288f9e2395ccaf1b1"
+  },
+  "artifacts": [
+    {
+      "path": "tmp/issue141/production-first/RunReport.json",
+      "sha256": "95fa2f5713e61a7fc37418d0bd7db7163dcce7b87ddaae5083f8d24a19a4f8f9",
+      "scope": "original failure: missing production slice bounds",
+      "fresh": 9,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/production-retry1/RunReport.json",
+      "sha256": "f2d65ea463d8a879f1dad076cf6ab823cb58a4cdb05cb19a714ce71eeabc113a",
+      "scope": "original failure: 32-row scene below existing minimum50",
+      "fresh": 13,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/production-current/RunReport-aborted.json",
+      "sha256": "228d994709d88684fe28bd6de9449be17662a9e1a495ee2d93521473ed6b2db6",
+      "scope": "interrupted redundant attempt; no completion",
+      "fresh": 0,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/production-padding-fixed/RunReport.json",
+      "sha256": "d7cef9d3c9aa9ec25b239ea2851564629c8c51dbd0df3a84149402f8cd6c4453",
+      "scope": "13 fresh functionality cases; pre-correction source snapshot, needs_review",
+      "fresh": 13,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/comparison-current/RunReport.json",
+      "sha256": "bd9236e48423a281d18bca2d011f6858fcd3c28facb640dea48c710eb9d215f9",
+      "scope": "6 bounded original-comparator corrections; retained Raw/proc",
+      "fresh": 0,
+      "reused": 6
+    },
+    {
+      "path": "tmp/issue141/reviewer-all-corrections-replay/RunReport.json",
+      "sha256": "d27c06245ad98214dd37fad804fec64dd2269e77d9fdc2c10e26d8e3d2c11ac1",
+      "scope": "6 bounded correspondence/motion corrections; before last role guard",
+      "fresh": 0,
+      "reused": 6
+    },
+    {
+      "path": "tmp/issue141/reviewer-independent/probes-results.json",
+      "sha256": "a21cd2b1ee123b9026111f4419f36a922f587aee7d62eeb7a397b001a7b51b49",
+      "scope": "independent original failures; source hashes and expectations",
+      "fresh": 0,
+      "reused": 1
+    },
+    {
+      "path": "tmp/issue141/reviewer-independent/fresh-physics/RunReport.json",
+      "sha256": "93e9fb087b4d911b36630cfafea8436f5171c6fecdad81d2ecd7a3cd373fb2c8",
+      "scope": "6 independent fresh OFF/ON runs; exact state/history",
+      "fresh": 6,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/reviewer-final/ReviewReport.json",
+      "sha256": "7833d21f3d96bd0d33f6acb1a97f6702de05742988fbb57d582f6de385a4fe0d",
+      "scope": "independent final bounded software PASS; source hashes and closed groups",
+      "fresh": 0,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/reviewer-final/role-persistence-results.json",
+      "sha256": "42d877c91727c0d74e9f5432110a5daeef7d610f1cab7eb34246258f44b05c6e",
+      "scope": "independent bidirectional role and actual evaluation save/reopen",
+      "fresh": 0,
+      "reused": 2
+    },
+    {
+      "path": "tmp/issue141/reviewer-final/pytest.xml",
+      "sha256": "2669fd86bf3a982035e1b8d6785b7edc564dc47430b483ef6eb44230e9540937",
+      "scope": "independent final47 checks",
+      "fresh": 0,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/observer-preservation.xml",
+      "sha256": "75194fcf852784664d7392bccaf1e6de98167a79db2449ae3d70033bfa391b14",
+      "scope": "76 pass; optional measured capture absent, one skip",
+      "fresh": 0,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/affected-expanded.xml",
+      "sha256": "c163973536a92d96bc5a6cedf4079815abd9a38f24b4292cb8251c0b492b4c6e",
+      "scope": "168 pass at recorded checkpoint; overlapping tests are not summed",
+      "fresh": 0,
+      "reused": 0
+    },
+    {
+      "path": "tmp/issue141/reviewer-ci-budget/ReviewReport.json",
+      "sha256": "47c3e17e426b5321b8099475b03994cea9b041d5bbb6cfc1142e563cf62b10d6",
+      "scope": "Independent CI budget63.80min versus former60;90min budget accepted, required steps unchanged",
+      "fresh": 0,
+      "reused": 0
+    }
+  ],
+  "independent_review": {
+    "schema_version": 1,
+    "plan_spec": "ISTA6A-PLAN-20261001-v1",
+    "object_type": "IndependentReview",
+    "utc": "2026-10-07T22:51:26.281069+00:00",
+    "status": "pass",
+    "scope": "Bounded PUB08 software functionality and correction review; no numerical, physical, native or final-head CI acceptance",
+    "code": {
+      "commit": "0d912201031bd42897aee567e3ae5cc79d6bdf7c",
+      "dirty": true,
+      "source_sha256": {
+        "src/simulation/contact_recording.py": "ecfa7d6793ba7a738cb42808df00b62febb95b1739fc7137d266e58663a1b325",
+        "src/simulation/contact_evaluation.py": "ce8ae497351489ae588254e8cd1aa239c8f2428a7f2241039c4f2dc3f6c107e5",
+        "src/simulation/contact_comparison.py": "6e199e9f53f52ce5e7a8cf587acd5dd69bf04f8217bf64774ebcab00fe8e30ed",
+        "src/simulation/contact_policy.py": "2c09d447b4a267b5ba7a5b7868a4582a5f382b8470c8c6da92dfcd6d5dbfc6a8",
+        "src/simulation/contact_validation.py": "e9da57b44a70f6f73ce949fde43a4244806f1d826f1d6a747bbc70cedca9737d",
+        "tests/test_contact_evaluation.py": "c9617ff59ac56cdd4395eb8d31dda1f2ace120b7856b8028623c56c534e636bf",
+        "src/simulation/contact_fixtures.py": "609af96037f1ceb590f09127a8bdad6bfbefa7cc9a18431e54bbe5eb49d17669",
+        "src/simulation/engine/mujoco_engine.py": "cd25a481f31666ee812aed501f9d713974ae1d7fd9fdab6dbf0740f628502fd2",
+        "src/simulation/engine/robot_sequence.py": "7ee0b05202234ff91b9cc5e15b732088cebd4cc051af1132fe78479a73756d1f",
+        ".github/workflows/public-marker-validation.yml": "6d7844317c811e13d651572a8425bab8d03c7465da5f4576066a47617be815c3",
+        "docs/analysis/reference/contact_evaluation_protocol_v1.json": "bc4416e7a4bfddb04702fbd547f0f9194c15220258538fd51021906f8646e1f1",
+        "docs/analysis/reference/contact_event_141_confirmation.json": "3beda3c951d0a6fd4f3567d7eb26486f37240e0b8e504ead6f25ca99afbf609e"
+      }
+    },
+    "unresolved_findings": [],
+    "closed_findings": [
+      {
+        "id": "R1",
+        "severity": "P2",
+        "area": "contact_comparison.motion_diagnostics",
+        "problem": "Independent motion alignment bypassed ambiguous first-event guard",
+        "resolution": "Established comparison identity and t1 shift required; real whole-record replay now remains ambiguous"
+      },
+      {
+        "id": "R2",
+        "severity": "P2",
+        "area": "contact_evaluation.validate_evaluation",
+        "problem": "Duplicate/reordered designated t1/t2 accepted with a fabricated zero interval",
+        "resolution": "Frozen chronological endpoint, status, release and earlier ambiguity checked"
+      },
+      {
+        "id": "R3",
+        "severity": "P2",
+        "area": "contact_comparison.compare_events",
+        "problem": "Ambiguous designated second observation became not_detected",
+        "resolution": "Ambiguous endpoint preserved and later replacement forbidden"
+      },
+      {
+        "id": "R4",
+        "severity": "P2",
+        "area": "contact_comparison.compare_events",
+        "problem": "Truth reserved in ambiguous correspondence was later matched again",
+        "resolution": "Every affected truth ID reserved from accepted matching"
+      },
+      {
+        "id": "R5",
+        "severity": "P2",
+        "area": "contact_evaluation.evaluate_contacts",
+        "problem": "Partial recording could report t2 absence",
+        "resolution": "Absent endpoint in partial capture remains unavailable"
+      },
+      {
+        "id": "R6",
+        "severity": "P2",
+        "area": "contact_evaluation.validate_recording",
+        "problem": "Wrong geom/body association, missing force constraint, and known floor/gripper pairs relabelled other passed",
+        "resolution": "Bidirectional role identity, required geom/body bindings/world ID and force-constraint evidence enforced"
+      }
+    ],
+    "independent_execution": {
+      "commands": [
+        [
+          "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+          "tmp/issue141/reviewer-final/role_persistence.py"
+        ],
+        [
+          "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+          "tmp/issue141/reviewer-final/probes.py"
+        ],
+        [
+          "C:/SourceCodes/BoxMotionAnalyzer/.venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/test_contact_evaluation.py",
+          "--junitxml=tmp/issue141/reviewer-final/pytest.xml"
+        ],
+        [
+          "C:/SourceCodes/BoxMotionAnalyzer/.venv/Scripts/python.exe",
+          "tmp/issue141/reviewer-independent/fresh_physics.py"
+        ]
+      ],
+      "final_tests": {
+        "tests": 47,
+        "passed": 47,
+        "failed": 0,
+        "seconds": 9.626
+      },
+      "fresh_physics_runs": 6,
+      "fresh_configurations": [
+        "face",
+        "corner-offset-com",
+        "rebound"
+      ],
+      "exact_off_on_history_and_terminal_state": true,
+      "physics_samples_per_recording": 801,
+      "optimizer_runs": 0,
+      "actual_whole_raw_detector_replay": "retained production whole.proc plus original Raw SHA; ambiguous first anchor and motion preserved",
+      "actual_evaluation_save_reopen": [
+        "801-sample independently fresh corner-offset-COM",
+        "5174-sample retained actual one-engine two-release"
+      ],
+      "numeric_diagnostics": "Transform, normal velocity, wrench reconstruction inspected at floating-point precision; no accuracy approval"
+    },
+    "artifacts": [
+      "tmp/issue141/reviewer-independent/probes-frozen.json",
+      "tmp/issue141/reviewer-independent/probes-results.json",
+      "tmp/issue141/reviewer-independent/fresh-physics/RunReport.json",
+      "tmp/issue141/reviewer-recheck1/floor-role.json",
+      "tmp/issue141/reviewer-final/probes-frozen.json",
+      "tmp/issue141/reviewer-final/probes-results.json",
+      "tmp/issue141/reviewer-final/role-persistence-results.json",
+      "tmp/issue141/reviewer-final/pytest.xml"
+    ],
+    "inspected_original_evidence": [
+      "production-first/RunReport.json",
+      "production-retry1/RunReport.json",
+      "production-current/RunReport-aborted.json",
+      "production-padding-fixed/RunReport.json",
+      "comparison-current/RunReport.json"
+    ],
+    "limits": {
+      "full_production": "Original 13-case fresh RunReport inspected; its source predates corrections. No independent full optimizer repeat. Final-head complete required CI remains publication gate.",
+      "approvals": "User approved both kinds and chronological same-release t2; synthetic numeric thresholds remain proposed/needs_review, no baseline promotion.",
+      "measured": "unavailable; no verified experimental dataset",
+      "native": "viewer/manual acceptance not executed; no UI changes",
+      "excluded_issues": [
+        142,
+        143,
+        152
+      ]
+    }
+  },
+  "coverage_note": "Different tiers and overlapping tests are not summed; fresh/reused scopes remain per artifact.",
+  "publication_reference": "https://github.com/pikachu444/BoxMotionAnalyzer/pull/153",
+  "publication_gate": "Complete required CI at final source; prior source runs cannot substitute.",
+  "measured_accuracy": "unavailable",
+  "native_viewer": "not_executed",
+  "baseline": "none",
+  "ci_budget_review": {
+    "schema_version": 1,
+    "plan_spec": "ISTA6A-PLAN-20261001-v1",
+    "object_type": "IndependentReview",
+    "utc": "2026-10-07T22:58:33.133803+00:00",
+    "status": "pass",
+    "scope": "Bounded CI budget follow-up after PUB08 software PASS; timeout and explanatory comment only",
+    "code": {
+      "commit": "02f702a3c3c1eeab67aa0f50d95004a6ecbfa298",
+      "dirty": true,
+      "workflow_sha256": "f338d60365037ac352c4e10de6bec0aa6072a1186ce032fd926930023ca5424b",
+      "prior_reviewed_product_test_and_policy_hashes_unchanged": {
+        "src/simulation/contact_recording.py": true,
+        "src/simulation/contact_evaluation.py": true,
+        "src/simulation/contact_comparison.py": true,
+        "src/simulation/contact_policy.py": true,
+        "src/simulation/contact_validation.py": true,
+        "tests/test_contact_evaluation.py": true,
+        "src/simulation/contact_fixtures.py": true,
+        "src/simulation/engine/mujoco_engine.py": true,
+        "src/simulation/engine/robot_sequence.py": true,
+        "docs/analysis/reference/contact_evaluation_protocol_v1.json": true,
+        "docs/analysis/reference/contact_event_141_confirmation.json": true
+      },
+      "required_steps_sha256": "78de3c1dffe3af572bd65f739f6e73b3ce2ca567c53687710cee97d3ef6d08bb"
+    },
+    "commands": [
+      [
+        "gh",
+        "run",
+        "view",
+        "37579195396",
+        "--repo",
+        "pikachu444/BoxMotionAnalyzer",
+        "--json",
+        "headSha,conclusion,status,jobs,createdAt,updatedAt,url"
+      ],
+      [
+        "git",
+        "diff",
+        "--",
+        ".github/workflows/public-marker-validation.yml",
+        "docs/analysis/reference/contact_evaluation_contract.md"
+      ],
+      [
+        "git",
+        "show",
+        "HEAD:.github/workflows/public-marker-validation.yml"
+      ]
+    ],
+    "evidence": {
+      "previous_run_url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37579195396",
+      "previous_head": "f1a66c9b867ef56a69de71aad31d2ebda3fa7d2e",
+      "job_started": "2026-10-07T06:00:44Z",
+      "job_completed": "2026-10-07T06:51:49Z",
+      "previous_job_duration_s": 3065.0,
+      "pub08_local_report": "tmp\\issue141\\production-padding-fixed\\RunReport.json",
+      "pub08_local_report_sha256": "d7cef9d3c9aa9ec25b239ea2851564629c8c51dbd0df3a84149402f8cd6c4453",
+      "pub08_duration_s": 763.1566209000011,
+      "estimated_combined_min": 63.80261034833335,
+      "old_timeout_min": 60,
+      "new_timeout_min": 90,
+      "estimated_headroom_min": 26.197389651666647,
+      "caveat": "Combined duration is a cross-environment budget estimate, not an actual final hosted run or timing guarantee."
+    },
+    "checks": {
+      "exactly_timeout_and_comment_changed": true,
+      "all_required_steps_byte_equivalent_after_newline_normalization": true,
+      "no_tests_removed_or_disabled": true,
+      "reviewed_product_test_policy_and_engine_sources_unchanged": true,
+      "contract_doc_explains_budget": true
+    },
+    "findings": [],
+    "limitations": [
+      "Final-head complete required CI remains a publication gate.",
+      "Prior successful or incomplete heads do not substitute for final-head execution.",
+      "Numerical thresholds, baseline promotion, measured accuracy and native viewer acceptance remain outside this budget PASS."
+    ]
+  },
+  "execution_budget_minutes": 90
+}

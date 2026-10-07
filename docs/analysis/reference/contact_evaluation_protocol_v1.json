@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "EvaluationProtocol",
+  "version": "pub08-public-functional-v1",
+  "frozen_date": "2026-10-08",
+  "source_kind": "public_hand_specified_contact_controls",
+  "policy": {
+    "schema_version": 1,
+    "plan_spec": "ISTA6A-PLAN-20261001-v1",
+    "object_type": "ContactEventPolicy",
+    "version": "pub08-synthetic-v1",
+    "designated_t2": "next_floor_impact",
+    "eligibility": "detached-floor-box; same release ending at next attachment or window end",
+    "force_on_n": 0.05,
+    "force_off_n": 0.01,
+    "approach_mm_s": 50.0,
+    "feature_tolerance_mm": 0.5,
+    "rearm_clearance_mm": 0.5,
+    "rearm_dwell_s": 0.02,
+    "merge_s": 0.004,
+    "matching_window_s": 0.02,
+    "timing": "force-on bracket; approach from immediately preceding material-point state",
+    "merge": "unresolved onset cluster; independently separated onsets retained ambiguous",
+    "matching": "single t1 shift; chronological; multiple possible counterparts ambiguous",
+    "detector_t2": "second eligible legacy contact-set run; physical kind unverified",
+    "numerical_acceptance": "proposed; no physical accuracy or baseline promotion"
+  },
+  "policy_sha256": "bfb33aa29f7edf47887730ffe86421ff9be2344ca353df44b57cd589de90dc56",
+  "expectations": [
+    {
+      "case_id": "face-single",
+      "kinds": [
+        "first_floor_impact"
+      ],
+      "t2_status": "not_detected"
+    },
+    {
+      "case_id": "corner-edge",
+      "kinds": [
+        "first_floor_impact",
+        "new_feature_impact"
+      ],
+      "t2_status": "valid"
+    },
+    {
+      "case_id": "corner-face",
+      "kinds": [
+        "first_floor_impact",
+        "new_feature_impact"
+      ],
+      "t2_status": "valid"
+    },
+    {
+      "case_id": "rebound",
+      "kinds": [
+        "first_floor_impact",
+        "rebound_recontact"
+      ],
+      "t2_status": "valid"
+    },
+    {
+      "case_id": "rocking",
+      "kinds": [
+        "first_floor_impact",
+        "support_transition"
+      ],
+      "t2_status": "not_detected"
+    },
+    {
+      "case_id": "chatter",
+      "kinds": [
+        "first_floor_impact",
+        "contact_chatter"
+      ],
+      "t2_status": "not_detected"
+    },
+    {
+      "case_id": "gripper-only",
+      "kinds": [
+        "gripper_contact"
+      ],
+      "t2_status": "not_detected"
+    },
+    {
+      "case_id": "conflict",
+      "kinds": [
+        "first_floor_impact",
+        "ambiguous_contact"
+      ],
+      "t2_status": "ambiguous"
+    },
+    {
+      "case_id": "out-of-window",
+      "kinds": [
+        "first_floor_impact",
+        "new_feature_impact"
+      ],
+      "t2_status": "out_of_window"
+    }
+  ],
+  "tolerance_approval": "proposed",
+  "baseline": "none",
+  "experimental_accuracy": "unavailable",
+  "label_uncertainty": "bracketed at declared sample interval"
+}
