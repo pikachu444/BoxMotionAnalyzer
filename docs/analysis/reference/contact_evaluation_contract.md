@@ -2,6 +2,12 @@
 
 Last Reviewed: 2026-10-08
 
+PUB09 extends recordings with opt-in seed/contact-profile inputs and actual
+combined contact settings. A precontact seed has unknown prior release history:
+its first visible contact is `visible_floor_impact`; full-release t1/t2 remain
+unavailable. The existing approved chronological t2 kinds and proposed thresholds
+are unchanged. [Seed and fitting contract](contact_calibration_contract.md).
+
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. Development starts at current
 `origin/main@78b6c797916f421530327b061ced098fc30060d8`, including merged PUB07
 PR #151. Issues #142, #143 and launcher-language issue #152 are excluded.

@@ -84,8 +84,18 @@ def validate_step(step):
 
 def validate_config(config):
     validate_envelope(config, 'SimulationModeConfiguration')
-    if set(config)!={'schema_version','plan_spec','object_type','mode','size_mm','sequence_profile','physics_profile','observation_profile','duration_s','show_viewer'}:
+    if set(config)-{'initial_condition','contact_profile'}!={'schema_version','plan_spec','object_type','mode','size_mm','sequence_profile','physics_profile','observation_profile','duration_s','show_viewer'}:
         raise ValueError('Unexpected simulation configuration fields.')
+    if 'initial_condition' in config or 'contact_profile' in config:
+        from .initial_conditions import validate_seed, validate_profile
+        if config['mode'] != 'single_drop': raise ValueError('PUB09 initial conditions/profiles are single-drop opt-ins.')
+        if 'initial_condition' in config: validate_seed(config['initial_condition'])
+        if 'contact_profile' in config:
+            p = validate_profile(config['contact_profile'])
+            legacy = config['physics_profile']
+            if (p['mass_kg'] != legacy['mass_kg'] or p['friction'][0] != legacy['friction']
+                    or p['com_offset_mm'] != legacy['com_offset_mm']):
+                raise ValueError('Opt-in profile differs from captured legacy aliases.')
     mode = config.get('mode')
     if mode not in MODES:
         raise ValueError('Unsupported simulation mode.')

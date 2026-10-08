@@ -7,6 +7,17 @@ This is the handoff document for ongoing Analysis GUI, Drop Posture, and experim
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #142 / PUB09 software implementation and independent correction review:
+  opt-in seed/contact API, source-bound export/reopen, native convergence,
+  frozen limited fit and separate holdout, production observation paths.
+  29/29 fresh runs and408 local affected checks passed; independent220 checks,
+  all26 native records and two Raw/PROC paths passed. Five original findings
+  are closed. Observed holdout retains4required/0evaluable/4not_detected.
+  See `../reference/contact_calibration_contract.md` and its evidence index.
+  Final-source CI/merge are publication gates in the PR linked from #142;
+  their actual status is tracked there, not inferred from local runs.
+- [ ] PUB09 numeric ranges/tolerances/baseline promotion remain proposed;
+  observed detector limitations and #104 measured calibration are separate.
 - [O] #141 / PUB08 software implementation and independent local review:
   independent timestep contact recording,
   frozen public event policy/expectations, material-corner impact evaluation,
@@ -38,7 +49,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   confirmation is tracked in PR151. Final source f1a66c9 passed required CI37579195396;
   PR151 merged as78b6c79. Native/experimental acceptance remains separate.
   Existing single-drop and #139 source/history paths stay in production.
-  #141 is delivered separately in PR153; #142/#143 are not started; #104 remains separate.
+  #141 is delivered separately in PR153; #142 is in progress; #143 is not started; #104 remains separate.
   Follow-up readability change replaces debug prose with a compact card and
   Details tabs; Rotation/Motion/Drops to run labels explain actual meanings.
   Fresh actual11-state renders,49-pass affected GUI run and4-pass grip-geometry

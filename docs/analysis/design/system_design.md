@@ -2,6 +2,13 @@
 
 Last Reviewed: 2026-10-08
 
+#142 / PUB09 adds opt-in seed/profile declarations, a seed-aware source adapter,
+actual compiled contact checks and frozen convergence/limited-fit/holdout APIs.
+Seed pose/velocity and actual simulator state remain evaluation-only; declared
+contact inputs are public. Observed Raw uses existing production analysis and
+PUB08 correspondence. Robot state/clock and UI controls remain.
+[Contract](../reference/contact_calibration_contract.md).
+
 #141 / PUB08 adds opt-in timestep ContactRecording on copied MuJoCo data,
 an independent corner-load event evaluator, and an observation-only adapter to
 the unchanged whole-record postprocessor. Ordered comparison applies one t1

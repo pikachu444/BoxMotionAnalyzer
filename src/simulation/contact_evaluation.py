@@ -13,7 +13,7 @@ from .contact_policy import validate_policy
 
 STATUSES = {'valid', 'not_detected', 'unavailable', 'out_of_window', 'ambiguous', 'failed'}
 EVENT_KINDS = {'first_floor_impact','new_feature_impact','rebound_recontact','support_transition','contact_chatter',
-    'initial_support','unavailable_contact','ambiguous_contact','unresolved_impact_cluster','constrained_floor_contact','gripper_contact'}
+    'initial_support','unavailable_contact','ambiguous_contact','unresolved_impact_cluster','constrained_floor_contact','gripper_contact','visible_floor_impact'}
 
 
 def metric(value=None, status='unavailable', reason=None):
@@ -45,6 +45,16 @@ def validate_recording(recording, source_identity=None):
         raise ValueError('Invalid contact timestep.')
     size = _array(recording['box_half_extents_mm'], (3,))
     offset = _array(recording['origin_to_com_local_mm'], (3,))
+    if 'initial_condition' in recording:
+        from .initial_conditions import canonical_state
+        state=canonical_state(recording['initial_condition'],offset)
+        first=recording['samples'][0]
+        if first['time_s']!=0:raise ValueError('Seed recording must begin at actual engine zero.')
+        for key,field in (('origin_mm','origin_mm'),('rotation','rotation'),('origin_velocity_mm_s','origin_velocity_mm_s'),('angular_velocity_rad_s','angular_velocity_world')):
+            if not np.allclose(first[key],state[field],atol=1e-9,rtol=0):raise ValueError('Recording differs from declared initial condition.')
+    if 'contact_profile' in recording:
+        from .initial_conditions import validate_compiled_values
+        validate_compiled_values(recording['contact_profile'],recording['compiled_profile'],size*2)
     local_corners=np.array([[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]])*size
     if (size <= 0).any() or not recording['samples']:
         raise ValueError('Missing contact geometry/samples.')
@@ -69,6 +79,12 @@ def validate_recording(recording, source_identity=None):
         if type(s['box_attached']) is not bool:
             raise ValueError('Missing actual attachment state.')
         for c in s['contacts']:
+            if 'contact_profile' in recording and c['role']=='floor':
+                p=recording['contact_profile'];actual=c.get('effective_parameters',{})
+                f=p['friction'];expected=dict(condim=p['condim'],friction=[f[0],f[0],f[1],f[2],f[2]],
+                    solref=p['solref'],solimp=p['solimp'],inclusion_margin_mm=sum(p['margin_mm'].values()))
+                if set(actual)!=set(expected) or any(not np.allclose(actual[k],v,rtol=0,atol=1e-12) for k,v in expected.items()):
+                    raise ValueError('Actual combined contact differs from requested profile.')
             if c['role'] not in ('floor', 'gripper', 'other'):
                 raise ValueError('Unknown contact role.')
             pair=set(c['geom_names'])
@@ -221,11 +237,16 @@ def evaluate_contacts(recording, policy, *, window=None, source_identity=None, r
         event['geometric_brackets_s']=brackets
         first=next((b for b in brackets if b is not None),None)
         event['force_minus_geometric_s']=metric(event['time_s']-first[1],'valid') if first else metric(reason='No geometric zero crossing in recorded interval.')
+    if recording.get('initial_condition',{}).get('mode')=='precontact':
+        for e in events:
+            if e['release_group_id']==0 and e['kind']=='first_floor_impact':e['kind']='visible_floor_impact'
     selected_group=release_group_id if release_group_id is not None else next((e['release_group_id'] for e in events if e['eligible']),0)
     if type(selected_group) is not int or selected_group<0:raise ValueError('Invalid declared release group.')
     eligible=[e for e in events if e['eligible'] and e['release_group_id']==selected_group]
     ambiguous=[e for e in events if e['status']=='ambiguous' and e.get('release_group_id')==selected_group]
     def endpoint(which):
+        if recording.get('initial_condition',{}).get('mode')=='precontact' and selected_group==0:
+            return metric(None,'unavailable','Precontact seed has unknown release prehistory; first visible impact is not full-release t1/t2.')
         candidates=eligible if which==1 else [e for e in eligible[1:] if e['release_group_id']==eligible[0]['release_group_id']
             and (policy['designated_t2']=='next_floor_impact' or e['kind']=='rebound_recontact')]
         event=candidates[0] if candidates else None
@@ -244,9 +265,13 @@ def evaluate_contacts(recording, policy, *, window=None, source_identity=None, r
             c=clusters[-1];c['onset_event_ids'].append(e['event_id']);c['status']='ambiguous'
             c['onset_spread_s']=e['time_s']-c['time_s'];c['reason']='Independently armed onsets within merge resolution.'
         else:clusters.append(dict(cluster_id=len(clusters),time_s=e['time_s'],onset_event_ids=[e['event_id']],status=e['status'],onset_spread_s=0.,reason='Resolved onset.'))
-    return envelope('ContactEvaluation',policy=deepcopy(policy),policy_sha256=ph,recording_sha256=rh,
+    result = envelope('ContactEvaluation',policy=deepcopy(policy),policy_sha256=ph,recording_sha256=rh,
         source_identity=deepcopy(recording['source_identity']),window_s=list(window),release_group_id=selected_group,events=events,episodes=episodes,onset_clusters=clusters,
         t1=endpoint(1),t2=endpoint(2),physical_acceptance='not_evaluated')
+    if 'initial_condition' in recording:
+        seed=recording['initial_condition']
+        result['seed_context']=dict(mode=seed['mode'],content_hash=seed['content_hash'],prehistory=seed['prehistory'])
+    return result
 
 
 def save_document(path, value):
@@ -273,7 +298,9 @@ def validate_evaluation(value, policy):
         if e['event_id']!=i or e['kind'] not in EVENT_KINDS or e['status'] not in STATUSES or e['time_s']<=previous or not np.isfinite(e['time_s']):
             raise ValueError('Invalid truth event kind/status/order/clock.')
         previous=e['time_s']
-        expected=e['kind'] in ('first_floor_impact','new_feature_impact','rebound_recontact') and e['status']=='valid'
+        expected=e['kind'] in ('first_floor_impact','new_feature_impact','rebound_recontact','visible_floor_impact') and e['status']=='valid'
+        if e['kind']=='visible_floor_impact' and value.get('seed_context',{}).get('mode')!='precontact':
+            raise ValueError('Visible-only impact needs a precontact seed declaration.')
         if type(e['eligible']) is not bool or e['eligible']!=expected or type(e['in_window']) is not bool or e['in_window']!=(window[0]<=e['time_s']<window[1]):
             raise ValueError('Inconsistent truth eligibility/window.')
         b=e['bracket_s']
@@ -286,7 +313,10 @@ def validate_evaluation(value, policy):
         candidates=eligible if key=='t1' else [e for e in eligible[1:] if policy['designated_t2']=='next_floor_impact' or e['kind']=='rebound_recontact']
         designated=candidates[0] if candidates else None
         prior_ambiguous=any(e['status']=='ambiguous' and e.get('release_group_id')==group and (designated is None or e['time_s']<=designated['time_s']) for e in value['events'])
-        if designated is not None:
+        precontact=value.get('seed_context',{}).get('mode')=='precontact' and group==0
+        if precontact and (m['status']!='unavailable' or m['value'] is not None):
+            raise ValueError('Precontact seed cannot establish full-release t1/t2.')
+        if designated is not None and not precontact:
             expected_status='ambiguous' if prior_ambiguous else 'valid' if designated['in_window'] else 'out_of_window'
             if m['status']!=expected_status:raise ValueError('Endpoint status contradicts the designated event evidence.')
         if m['status'] in ('valid','out_of_window'):

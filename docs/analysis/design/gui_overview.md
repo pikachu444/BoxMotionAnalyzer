@@ -2,6 +2,11 @@
 
 Last Reviewed: 2026-10-08
 
+#142 / PUB09 adds API/CLI explicit initial conditions, contact profiles and
+frozen fit/holdout diagnostics. Existing GUI controls/Step 1/1.5/2 remain;
+generated observed Raw and reopened PROC use the production pipeline.
+[API/CLI usage and limits](../reference/contact_calibration_contract.md).
+
 #141 / PUB08 supplies a separate contact-evaluation CLI and JSON reports.
 Step 1 / Step 1.5 / Step 2, English UI and existing contact-summary meanings
 are preserved; simulator contact truth is never analysis input.

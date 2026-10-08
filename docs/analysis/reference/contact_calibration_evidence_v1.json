@@ -1,0 +1,618 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "ContactCalibrationEvidenceIndex",
+  "last_reviewed": "2026-10-08",
+  "source_identity": {
+    "repository": "https://github.com/pikachu444/BoxMotionAnalyzer",
+    "parent_issue": 134,
+    "issue": 142,
+    "base_commit": "da4a91048692f0cc5a5769028f4299ac8c61583c"
+  },
+  "approval": {
+    "event_kinds": "user-approved PUB08 t2; inherited unchanged",
+    "numeric": "proposed",
+    "range": "proposed",
+    "label_uncertainty": "proposed",
+    "baseline": "none",
+    "calibration_status": "uncalibrated",
+    "measured": "unavailable/pending #104"
+  },
+  "agent_dispatch": {
+    "physics_advisor": {
+      "requested_model": "gpt-6-astra",
+      "reasoning": "high",
+      "fork_turns": "none"
+    },
+    "independent_reviewer": {
+      "requested_model": "gpt-6.1-sol",
+      "reasoning": "high",
+      "fork_turns": "none"
+    },
+    "actual_routing": "unverified; runtime exposes no authoritative model/reasoning introspection; no substitution claimed"
+  },
+  "local": {
+    "run_report": {
+      "path": "tmp/issue142/demo-post-review/RunReport.json",
+      "sha256": "291ddd92f6bac4a73b3107e78c6d3132bb9411d954c2d0dad6997a331e9ea0c6"
+    },
+    "command": [
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+      "-m",
+      "src.simulation.calibration_cli",
+      "demo",
+      "--output",
+      "tmp/issue142/demo-post-review"
+    ],
+    "code": {
+      "commit": "da4a91048692f0cc5a5769028f4299ac8c61583c",
+      "dirty": [
+        "M  .github/workflows/public-marker-validation.yml",
+        "M  README.md",
+        "M  docs/analysis/design/gui_overview.md",
+        "M  docs/analysis/design/implementation_todo.md",
+        "M  docs/analysis/design/system_design.md",
+        "A  docs/analysis/reference/contact_calibration_contract.md",
+        "M  docs/analysis/reference/contact_evaluation_contract.md",
+        "M  docs/analysis/reference/simulation_mode_contract.md",
+        "AM src/simulation/calibration_cli.py",
+        "AM src/simulation/contact_calibration.py",
+        "M  src/simulation/contact_evaluation.py",
+        "M  src/simulation/contact_recording.py",
+        "M  src/simulation/engine/mujoco_engine.py",
+        "AM src/simulation/initial_conditions.py",
+        "M  src/simulation/marker_export.py",
+        "M  src/simulation/mode_profiles.py",
+        "M  src/utils/simulation_metadata.py",
+        "AM tests/test_contact_calibration.py",
+        "AM tests/test_initial_conditions.py"
+      ]
+    },
+    "environment": {
+      "os": "Windows-11-10.0.26200-SP0",
+      "python": "3.13.5",
+      "dependencies": {
+        "mujoco": "3.6.0",
+        "numpy": "2.3.5",
+        "scipy": "1.16.3",
+        "pandas": "2.3.3",
+        "PySide6": "6.10.1"
+      }
+    },
+    "duration_s": 582.9614153000002,
+    "coverage": {
+      "required": 29,
+      "loaded": 29,
+      "fresh": 29,
+      "reused": 0,
+      "approved": 0,
+      "failed": 0,
+      "unexecuted": 0,
+      "required_reason": "frozen execution budget",
+      "cache_origin": "none",
+      "scope": "actual-engine runs; production controls run separately within case; no reused results"
+    },
+    "source_changed_during_execution": false,
+    "source_sha256": {
+      "src\\simulation\\initial_conditions.py": "d7bf8ef79c3c91cd2a41a0b0b15e0860392f26a3c6f881bdf7cad126194deca8",
+      "src\\simulation\\contact_calibration.py": "7f398b68c63f7da89d59bedc980c5bf84c288b306a705aa8a466eeeea69ab1dc",
+      "src\\simulation\\calibration_cli.py": "d6a3821073671fef0c9bfaacdaa0786eb966e4865f5f73726b965ab79d2d668a",
+      "src\\simulation\\contact_evaluation.py": "d07cfb17196132535838de46c28b8f4a31ff8641994d636edae740d0126eb944",
+      "src\\simulation\\contact_recording.py": "89f611ca9f5e61a240a3b0d0f2d7533ad6d28d0a881578c363c98b9fedf00c50",
+      "src\\simulation\\engine\\mujoco_engine.py": "3ad580c11e9521156bf2a3897713de52082565e4f53b232af0edff119d9d7b42",
+      "src\\simulation\\marker_export.py": "4ff0bdf5f0692f995367ed5196c58cf8e2cbe6eac577fbcb166d54547edf40d8",
+      "src\\simulation\\mode_profiles.py": "5b32dc96feef1ce7d9bb9f1d682b59c55f8a4fc75a515d2012dc592f91c04bce",
+      "src\\utils\\simulation_metadata.py": "ebcd918ac32170e4e018bb4b9042b65131c0655c8749fab5e370ce4312d8597e",
+      "src\\simulation\\contact_comparison.py": "2d707c2a6896ee75da86dd1bdb46006f0585ef78219fca558ccd2f7af1533f84"
+    },
+    "protocol_version": "pub09-synthetic-protocol-v2",
+    "protocol_sha256": "b7d690fc482f529118d13ee07580e5741a7e9db649c8b3d841725531365ae755",
+    "policy_sha256": "bfb33aa29f7edf47887730ffe86421ff9be2344ca353df44b57cd589de90dc56",
+    "selected_profile_sha256": "0d21902d41e9e7a3a5cf42e0422a31c06c15f63d0d35b8d2b259708ebd9a6278",
+    "fit_identifiability": "unique-on-grid-only",
+    "synthetic_holdout_summary": {
+      "required": 4,
+      "evaluable": 4,
+      "pass_count": 0,
+      "ambiguous": 0,
+      "unavailable": 0,
+      "failed": 0,
+      "not_detected": 0,
+      "out_of_window": 0,
+      "reported": 4,
+      "within_proposed_tolerance": 4,
+      "pass": 0,
+      "denominators": {
+        "required": 4,
+        "evaluable": 4
+      },
+      "coverage": "complete",
+      "numerical_status": "needs_review",
+      "physical_status": "pending",
+      "calibration_status": "uncalibrated",
+      "all_required_evaluable": true,
+      "whole_protocol_pass": false,
+      "modality": "synthetic-self-consistency"
+    },
+    "observed_holdout_summary": {
+      "required": 4,
+      "evaluable": 0,
+      "pass_count": 0,
+      "ambiguous": 0,
+      "unavailable": 0,
+      "failed": 0,
+      "not_detected": 4,
+      "out_of_window": 0,
+      "reported": 4,
+      "within_proposed_tolerance": 0,
+      "pass": 0,
+      "denominators": {
+        "required": 4,
+        "evaluable": 0
+      },
+      "coverage": "complete",
+      "numerical_status": "needs_review",
+      "physical_status": "pending",
+      "calibration_status": "uncalibrated",
+      "all_required_evaluable": false,
+      "whole_protocol_pass": false,
+      "modality": "production-observed-Raw"
+    },
+    "analytical": {
+      "schema_version": 1,
+      "plan_spec": "ISTA6A-PLAN-20261001-v1",
+      "object_type": "AnalyticalSeedReport",
+      "source_identity": {
+        "kind": "public_literal_ballistic-spherical-inertia"
+      },
+      "expectations": "COM ballistic; spherical inertia constant world spin; origin and corners rotate around COM",
+      "reference_clock": "t_reference=t_engine+12.5;engine-times-unchanged",
+      "runs": [
+        {
+          "timestep_s": 0.002,
+          "time_s": 0.20000000000000015,
+          "expected_com_mm": [
+            333.899980153691,
+            -134.88791048760038,
+            3018.5246858825712
+          ],
+          "actual_com_mm": [
+            333.91295267222733,
+            -134.87455662811504,
+            3016.5668068049076
+          ],
+          "difference_mm": 1.9579675928250897,
+          "rotation_error_rad": 9.515092704204194e-16,
+          "seed_com_velocity_expected_mm_s": [
+            352.71776370477284,
+            -168.4590078638837,
+            746.3417300711977
+          ],
+          "seed_com_velocity_actual_mm_s": [
+            352.717763704773,
+            -168.4590078638836,
+            746.3417300711976
+          ],
+          "tolerance_status": "proposed",
+          "scope": "Euler truncation;not physical accuracy"
+        },
+        {
+          "timestep_s": 0.001,
+          "time_s": 0.20000000000000015,
+          "expected_com_mm": [
+            333.899980153691,
+            -134.88791048760038,
+            3018.5246858825712
+          ],
+          "actual_com_mm": [
+            333.90646358283533,
+            -134.8812319781219,
+            3017.5457488818142
+          ],
+          "difference_mm": 0.9789812504810612,
+          "rotation_error_rad": 2.360796900335763e-15,
+          "seed_com_velocity_expected_mm_s": [
+            352.71776370477284,
+            -168.4590078638837,
+            746.3417300711977
+          ],
+          "seed_com_velocity_actual_mm_s": [
+            352.717763704773,
+            -168.4590078638836,
+            746.3417300711976
+          ],
+          "tolerance_status": "proposed",
+          "scope": "Euler truncation;not physical accuracy"
+        },
+        {
+          "timestep_s": 0.0005,
+          "time_s": 0.20000000000000015,
+          "expected_com_mm": [
+            333.899980153691,
+            -134.88791048760038,
+            3018.5246858825712
+          ],
+          "actual_com_mm": [
+            333.90322116073247,
+            -134.88457083792724,
+            3018.035218016714
+          ],
+          "difference_mm": 0.4894899887568802,
+          "rotation_error_rad": 3.454373385645627e-15,
+          "seed_com_velocity_expected_mm_s": [
+            352.71776370477284,
+            -168.4590078638837,
+            746.3417300711977
+          ],
+          "seed_com_velocity_actual_mm_s": [
+            352.717763704773,
+            -168.4590078638836,
+            746.3417300711976
+          ],
+          "tolerance_status": "proposed",
+          "scope": "Euler truncation;not physical accuracy"
+        }
+      ],
+      "status": "pass",
+      "numerical_approval": "proposed"
+    }
+  },
+  "affected_tests": {
+    "report": {
+      "path": "tmp/issue142/affected-post-review-corrected.xml",
+      "sha256": "be29917318f4bfb068bc550f5e18f170e54cffceab788f27ce0a8b19124ac3aa"
+    },
+    "log": {
+      "path": "tmp/issue142/affected-post-review-corrected.log",
+      "sha256": "764c33c312b98c3ccf5348b877a2c3f3c6c814b4487e71d922f1f0f8c62f1d41"
+    },
+    "tests": 408,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "initial conditions, calibration, source metadata/modes, actual contacts, robot continuity, export/marker/corruption/artifact provenance"
+  },
+  "original_failures": [
+    {
+      "path": "tmp/issue142/seed-first.xml",
+      "sha256": "dbd41e3b0dfb1e1d13919f47e4c4d34e220c4cfef71c9ef439163b85d5aa555f"
+    },
+    {
+      "path": "tmp/issue142/demo-first/RunReport.json",
+      "sha256": "5a91020f3612efb1aa2fc3031314f6057d22f48517a6ab927a4d522db4f1fbf8"
+    },
+    {
+      "path": "tmp/issue142/correction-first.xml",
+      "sha256": "d8e35fac9148492b77a9f81fde56405ad620c5384e146c64c76b098f94067974"
+    },
+    {
+      "path": "tmp/issue142/affected-post-review.log",
+      "sha256": "85f43d897db9538da8cbbfb8e245c30bf80d17aa5a53aceb65dce274ca885fef"
+    },
+    {
+      "path": "tmp/issue142/reviewer-original/ReviewReport-original.json",
+      "sha256": "a695efbf603b5ad2c97ec19de9a27544a2698e306418d37940f4560d7dec9883"
+    },
+    {
+      "path": "tmp/issue142/reviewer-original/negative-controls-original.json",
+      "sha256": "70ab28d062aa5601c04b50169ecdb52f759d6d26519334377cb811df6831102a"
+    },
+    {
+      "path": "tmp/issue142/reviewer-original/partial-fit-cli-original/RunReport.json",
+      "sha256": "cfa4e31ad14ad776d10ee83e3d40798f9f3ba079b9a33bb25ea61937d7e1e87f"
+    },
+    {
+      "path": "tmp/issue142/reviewer-original/empty-input-original.json",
+      "sha256": "8a487f4096139c1879497511f5a14223814f8cfa9d12a6ac682a9e2b1b7cf881"
+    }
+  ],
+  "original_review": {
+    "schema_version": 1,
+    "plan_spec": "ISTA6A-PLAN-20261001-v1",
+    "object_type": "ReviewReport",
+    "status": "FAIL-awaiting-corrections",
+    "requested_dispatch": {
+      "model": "GPT-6.1 Sol",
+      "reasoning": "high",
+      "fork_turns": "none",
+      "actual_routing": "unverified; no authoritative introspection exposed"
+    },
+    "repository": "C:/Users/pikac/.codex/worktrees/pub09-initial-contact/BoxMotionAnalyzer",
+    "findings": [
+      {
+        "id": "R1",
+        "severity": "P1",
+        "function": "contact_calibration.evaluate_holdout",
+        "expected": "Reject missing required fit population",
+        "actual": "Empty candidate endpoint populations accepted; selected ratio changed0.2->0.1 and actual holdout executed",
+        "evidence": "C:/Users/pikac/AppData/Local/Temp/bma142-independent-review/negative-controls-original.json"
+      },
+      {
+        "id": "R2",
+        "severity": "P1",
+        "function": "contact_calibration.validate_reference",
+        "expected": "Strict nested source/window/metric schema",
+        "actual": "Empty source, bad approach hash, reversed window, nested parameter truth and schema999 accepted",
+        "evidence": "C:/Users/pikac/AppData/Local/Temp/bma142-independent-review/negative-controls-original.json"
+      },
+      {
+        "id": "R3",
+        "severity": "P1",
+        "function": "calibration_cli.production_roundtrip/demo",
+        "expected": "Own required observed holdout denominator; separate execution status",
+        "actual": "Both production cases pass with4/4 events not_detected; separate synthetic holdout says4/4 evaluable"
+      },
+      {
+        "id": "R4",
+        "severity": "P2",
+        "function": "calibration_cli.main finally",
+        "expected": "Frozen fit budget6 remains denominator on validation failure",
+        "actual": "required0/fresh0/failed1/unexecuted0",
+        "evidence": "C:/Users/pikac/AppData/Local/Temp/bma142-independent-review/partial-fit-cli-original/RunReport.json"
+      },
+      {
+        "id": "R5",
+        "severity": "P2",
+        "function": "initial_conditions.initial_condition/contact_profile",
+        "expected": "Defaults only for None",
+        "actual": "Explicit empty source/inertia/margin silently substituted",
+        "evidence": "C:/Users/pikac/AppData/Local/Temp/bma142-independent-review/empty-input-original.json"
+      }
+    ],
+    "verified": [
+      {
+        "scope": "Affected seed/fit, robot moving release/one clock, metadata/export/contact",
+        "passed": 187,
+        "seconds": 116.68,
+        "xml": "C:/Users/pikac/AppData/Local/Temp/bma142-independent-review/pytest-original.xml"
+      },
+      {
+        "scope": "Independent4 frame/point/sign/spin variants; rotated inertia/nonzero COM; override rejection; all26 full native original records/evaluations,2 full151-row Raw/direct/PROC reopen",
+        "evidence": "C:/Users/pikac/AppData/Local/Temp/bma142-independent-review/physics-and-raw-corrected1.json"
+      }
+    ],
+    "remaining_uncertainties": [
+      "Corrected-source recheck pending",
+      "Numerical approval proposed; measured reference unavailable; calibration uncalibrated",
+      "Native GUI/input unexecuted; no new GUI",
+      "Final hosted CI/PR/merge pending main"
+    ],
+    "harness_failures": [
+      {
+        "path": "C:/Users/pikac/AppData/Local/Temp/bma142-independent-review/physics-and-raw-original.log",
+        "reason": "Independent harness numpy int64 serialization; corrected explicit float inputs in new script/output; not reported as product defect"
+      }
+    ]
+  },
+  "evidence_storage": "Full raw source/contacts/exports, original failures and advisory/review scripts/logs are retained locally under tmp/issue142 (gitignored). Hosted final-source evidence is uploaded by the required Public marker validation workflow with 30-day retention; repository source/tests and this index retain reproducibility after artifact expiry.",
+  "publication": {
+    "workflow": ".github/workflows/public-marker-validation.yml",
+    "required_check": "synthetic-integration",
+    "status_at_source_snapshot": "pending final-source CI and merge; see #142 and its linked PR for actual current gate status"
+  },
+  "corrected_review": {
+    "schema_version": 1,
+    "plan_spec": "ISTA6A-PLAN-20261001-v1",
+    "object_type": "ReviewReport",
+    "reviewed_utc": "2026-10-08T07:43:04.002378+00:00",
+    "conclusion": "PASS",
+    "scope": "Bounded independent correction review of PUB09 source and current frozen synthetic evidence; no claim of approved numerical or measured physical accuracy",
+    "requested_dispatch": {
+      "model": "GPT-6.1 Sol",
+      "reasoning": "high",
+      "fork_turns": "none",
+      "actual_routing": "unverified; no authoritative model/reasoning introspection exposed"
+    },
+    "reviewer": "independent_reviewer",
+    "delegation": "none",
+    "repository": "C:\\Users\\pikac\\.codex\\worktrees\\pub09-initial-contact\\BoxMotionAnalyzer",
+    "branch": "codex/pub09-initial-contact",
+    "base_commit": "da4a91048692f0cc5a5769028f4299ac8c61583c",
+    "product_edits": "none",
+    "source_sha256": {
+      "src\\simulation\\initial_conditions.py": "d7bf8ef79c3c91cd2a41a0b0b15e0860392f26a3c6f881bdf7cad126194deca8",
+      "src\\simulation\\contact_calibration.py": "7f398b68c63f7da89d59bedc980c5bf84c288b306a705aa8a466eeeea69ab1dc",
+      "src\\simulation\\calibration_cli.py": "d6a3821073671fef0c9bfaacdaa0786eb966e4865f5f73726b965ab79d2d668a",
+      "src\\simulation\\contact_evaluation.py": "d07cfb17196132535838de46c28b8f4a31ff8641994d636edae740d0126eb944",
+      "src\\simulation\\contact_recording.py": "89f611ca9f5e61a240a3b0d0f2d7533ad6d28d0a881578c363c98b9fedf00c50",
+      "src\\simulation\\engine\\mujoco_engine.py": "3ad580c11e9521156bf2a3897713de52082565e4f53b232af0edff119d9d7b42",
+      "src\\simulation\\marker_export.py": "4ff0bdf5f0692f995367ed5196c58cf8e2cbe6eac577fbcb166d54547edf40d8",
+      "src\\simulation\\mode_profiles.py": "5b32dc96feef1ce7d9bb9f1d682b59c55f8a4fc75a515d2012dc592f91c04bce",
+      "src\\utils\\simulation_metadata.py": "ebcd918ac32170e4e018bb4b9042b65131c0655c8749fab5e370ce4312d8597e",
+      "src\\simulation\\contact_comparison.py": "2d707c2a6896ee75da86dd1bdb46006f0585ef78219fca558ccd2f7af1533f84"
+    },
+    "source_changed_during_main_demo": false,
+    "original_report": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\ReviewReport-original.json",
+    "findings": [
+      {
+        "id": "R1",
+        "severity": "P1",
+        "status": "closed",
+        "function": "contact_calibration.validate_fit_result/evaluate_holdout",
+        "original": "Empty required candidate endpoint population could select another profile",
+        "verified": "Original attack on current full payload rejected before holdout execution; exact profile/rules/required population, summary/score/tie and nested results regenerated and compared",
+        "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\current-payload-controls.log"
+      },
+      {
+        "id": "R2",
+        "severity": "P1",
+        "status": "closed",
+        "function": "contact_calibration.validate_reference/validate_case_result/validate_convergence_report/validate_holdout_report",
+        "original": "Weak nested source/identity/window/metric validation",
+        "verified": "Empty source, invalid SHA/window, nested truth/schema, missing case/endpoint, wrong rules, convergence alterations and favorable later t2 rejected; normal current payload accepted",
+        "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\correction-controls.log"
+      },
+      {
+        "id": "R3",
+        "severity": "P1",
+        "status": "closed",
+        "function": "calibration_cli.production_roundtrip/demo",
+        "original": "No own required observed holdout denominator; ambiguous pass labeling",
+        "verified": "Frozen observed t1/t2 population with4 required/0 evaluable/4 not_detected/0 pass; production execution_status pass separated from endpoint_acceptance needs_review; synthetic summary separate",
+        "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\current-raw-verification.json"
+      },
+      {
+        "id": "R4",
+        "severity": "P2",
+        "status": "closed",
+        "function": "calibration_cli.main",
+        "original": "Failure shrank required/unexecuted budget to0",
+        "verified": "Original incomplete reference input against current protocol returns exit1, required6/fresh0/failed1/unexecuted6; unavailable protocol null population has reason",
+        "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\partial-fit-cli-current\\RunReport.json"
+      },
+      {
+        "id": "R5",
+        "severity": "P2",
+        "status": "closed",
+        "function": "initial_conditions.initial_condition/contact_profile/finite",
+        "original": "Explicit empty source/inertia/margin substituted defaults",
+        "verified": "Empty declarations and bool/string numeric values rejected; omitted None defaults remain usable",
+        "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\correction-fixture\\checks.json"
+      }
+    ],
+    "new_findings": [],
+    "remaining_material_P0_P1_P2": [],
+    "verification": {
+      "affected_independent_tests": {
+        "passed": 220,
+        "seconds": 152.68,
+        "xml": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\pytest-corrected.xml",
+        "log": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\pytest-corrected.log"
+      },
+      "current_full_payload_attacks": {
+        "all_blocked": true,
+        "log": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\current-payload-controls.log"
+      },
+      "expanded_controls": {
+        "log": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\correction-controls.log",
+        "count": 28
+      },
+      "independent_fresh_native_contacts": 16,
+      "independent_current_holdout": {
+        "coverage": {
+          "required": 2,
+          "loaded": 2,
+          "fresh": 2,
+          "reused": 0,
+          "approved": 0,
+          "failed": 0,
+          "unexecuted": 0,
+          "required_reason": "frozen execution budget",
+          "cache_origin": "none",
+          "scope": "actual-engine runs; production controls run separately within case; no reused results"
+        },
+        "duration_s": 17.94605670000601,
+        "report": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\normal-current-holdout\\RunReport.json"
+      },
+      "main_fresh_demo": {
+        "coverage": {
+          "required": 29,
+          "loaded": 29,
+          "fresh": 29,
+          "reused": 0,
+          "approved": 0,
+          "failed": 0,
+          "unexecuted": 0,
+          "required_reason": "frozen execution budget",
+          "cache_origin": "none",
+          "scope": "actual-engine runs; production controls run separately within case; no reused results"
+        },
+        "duration_s": 582.9614153000002,
+        "report": "C:\\Users\\pikac\\.codex\\worktrees\\pub09-initial-contact\\BoxMotionAnalyzer\\tmp\\issue142\\demo-post-review\\RunReport.json",
+        "scope": "Main execution evidence read and source hashes independently matched; all26 full native contact/evaluation documents reloaded and endpoint values re-extracted; two151-row observed Raw/direct/production PROC fully read and metadata validated",
+        "independent_verification_log": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\current-raw-verification.log",
+        "independent_verification_json": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\current-raw-verification.json"
+      },
+      "observed_summary": {
+        "required": 4,
+        "evaluable": 0,
+        "pass_count": 0,
+        "ambiguous": 0,
+        "unavailable": 0,
+        "failed": 0,
+        "not_detected": 4,
+        "out_of_window": 0,
+        "reported": 4,
+        "within_proposed_tolerance": 0,
+        "pass": 0,
+        "denominators": {
+          "required": 4,
+          "evaluable": 0
+        },
+        "coverage": "complete",
+        "numerical_status": "needs_review",
+        "physical_status": "pending",
+        "calibration_status": "uncalibrated",
+        "all_required_evaluable": false,
+        "whole_protocol_pass": false,
+        "modality": "production-observed-Raw"
+      },
+      "synthetic_summary": {
+        "required": 4,
+        "evaluable": 4,
+        "pass_count": 0,
+        "ambiguous": 0,
+        "unavailable": 0,
+        "failed": 0,
+        "not_detected": 0,
+        "out_of_window": 0,
+        "reported": 4,
+        "within_proposed_tolerance": 4,
+        "pass": 0,
+        "denominators": {
+          "required": 4,
+          "evaluable": 4
+        },
+        "coverage": "complete",
+        "numerical_status": "needs_review",
+        "physical_status": "pending",
+        "calibration_status": "uncalibrated",
+        "all_required_evaluable": true,
+        "whole_protocol_pass": false,
+        "modality": "synthetic-self-consistency"
+      },
+      "original_physics": "Prior independent4 frame/point/sign/spin rotated-inertia/nonzero-COM runs remain preserved in physics-and-raw-corrected1.json; physics mapping engine source unchanged"
+    },
+    "commands": [
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\correction_controls.py",
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\current_payload_controls.py",
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe -m pytest -q tests/test_initial_conditions.py tests/test_contact_calibration.py tests/test_robot_sequence.py tests/test_simulation_metadata.py tests/test_contact_evaluation.py --basetemp=C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\pytest-corrected-tmp --junitxml=C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\pytest-corrected.xml",
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe -m src.simulation.calibration_cli holdout --protocol tmp/issue142/demo-post-review/protocol.json --fit-result tmp/issue142/demo-post-review/fit/fit-result.json --references tmp/issue142/demo-post-review/holdout-references.json --output C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\normal-current-holdout",
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe -m src.simulation.calibration_cli fit --protocol tmp/issue142/demo-post-review/protocol.json --profile tmp/issue142/demo-post-review/base-profile.json --references C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\partial-fit-references.json --convergence tmp/issue142/demo-post-review/convergence-input.json --output C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\partial-fit-cli-current",
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\verify_current_raw.py"
+    ],
+    "remaining_uncertainties": [
+      "Numeric tolerance/range/label uncertainty proposed; no baseline/default promotion approval inferred",
+      "Observed holdout has0/4 evaluable event endpoints; retained detection limitations, not calibrated success",
+      "No verified measured reference; calibration uncalibrated and physical status pending (#104)",
+      "Native GUI/viewer/input unexecuted; no new GUI requested in this API/CLI scope",
+      "Final committed-head hosted CI, PR and merge remain Main publication gates outside this review"
+    ]
+  },
+  "corrected_review_evidence": [
+    {
+      "path": "tmp/issue142/reviewer-corrected/ReviewReport-corrected.json",
+      "sha256": "ea06a3817cf03c8145352291db91802812504981f5031947ccceb3aa943b2b22"
+    },
+    {
+      "path": "tmp/issue142/reviewer-corrected/pytest-corrected.xml",
+      "sha256": "c2a4d2a88b9f994e0b76d59a3884b5f3b7da30de6ad4565833a50e003e678ccd"
+    },
+    {
+      "path": "tmp/issue142/reviewer-corrected/current-payload-controls.log",
+      "sha256": "b56e9548f30290d1581bf0961df3ff1c9e8263a4e0b2ac9d0a15b432b927ec8b"
+    },
+    {
+      "path": "tmp/issue142/reviewer-corrected/current-raw-verification.json",
+      "sha256": "98f080f29d84492ebf3e3dcfed43b49c39de73e3416762c402c35545767a8dea"
+    },
+    {
+      "path": "tmp/issue142/reviewer-corrected/normal-current-holdout/RunReport.json",
+      "sha256": "9cdcf93c9fbb020c0592bccd8e625166a646e5a54f30bf9bd6a250e7f7300a92"
+    },
+    {
+      "path": "tmp/issue142/reviewer-corrected/partial-fit-cli-current/RunReport.json",
+      "sha256": "eaf97fe8d7edf4b0283615683d5c6e9975f5e27a1377acf124acb6c37f057969"
+    }
+  ]
+}

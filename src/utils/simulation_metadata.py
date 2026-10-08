@@ -13,6 +13,7 @@ from src.utils.marker_profile_identity import envelope, validate_envelope, diges
 FIELD = 'SimulationMetadataJson'
 GENERATOR_VERSION = 'pub06-simulation-contract-v1'
 ROBOT_GENERATOR_VERSION = 'pub07-dynamic-gripper-v1'
+SEED_GENERATOR_VERSION = 'pub09-explicit-state-v1'
 COORDINATE_POLICY = 'world-y-up-box-local-fixed-center-v1'
 TRANSFORM = [[1.,0.,0.],[0.,0.,1.],[0.,-1.,0.]]
 UNITS = dict(position='mm',time='s',rotation='rotation-matrix-local-to-world',
@@ -48,7 +49,7 @@ def public_configuration(config):
         ('sequence_profile','physics_profile','observation_profile'))
     marker=observation['marker']
     identity=marker['identity']
-    return dict(size_mm=deepcopy(config['size_mm']),
+    result = dict(size_mm=deepcopy(config['size_mm']),
         sequence_profile=deepcopy(sequence), physics_profile=deepcopy(physics),
         observation_profile=envelope('SimulationObservationDeclaration',profile_id=observation['profile_id'],model=observation['model'],
             units=observation['units'],source=deepcopy(observation['source']),
@@ -57,6 +58,13 @@ def public_configuration(config):
                 semantic_hash=identity['semantic_hash'],observation_mapping_hash=identity['observation_mapping_hash'],
                 settings_hash=digest(marker['faults']),seed=marker['seed'],corruption_details='evaluation-only')),
         requested_duration_s=config['duration_s'])
+    if 'initial_condition' in config:
+        # Input identity and clock semantics only. Pose/velocity truth is private.
+        s=config['initial_condition']
+        result['initial_condition']=dict(content_hash=s['content_hash'],mode=s['mode'],
+            clock_policy=s['clock_policy'],reference_time_s=s['reference_time_s'],prehistory=s['prehistory'])
+    if 'contact_profile' in config:result['contact_profile']=deepcopy(config['contact_profile'])
+    return result
 
 
 def build_metadata(config,engine,history,*,route,run_id):
@@ -85,6 +93,20 @@ def build_metadata(config,engine,history,*,route,run_id):
     corners=np.asarray([[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],
         [-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]])*np.asarray(size)/2
     initial_position=[0.,0.,step['clearance_mm']-(corners@expected_rotation.T)[:,2].min()]
+    explicit='initial_condition' in config
+    if explicit:
+        from src.simulation.initial_conditions import canonical_state
+        if getattr(engine,'initial_condition',None)!=config['initial_condition']:
+            raise ValueError('Engine seed differs from captured input identity.')
+        state=canonical_state(config['initial_condition'],physics['com_offset_mm'])
+        expected_rotation=state['rotation'];initial_position=state['origin_mm']
+        for key,field in (('OriginLinearVelocityWorld','origin_velocity_mm_s'),('AngularVelocityWorld','angular_velocity_world')):
+            if not np.allclose(history[0].get(key),state[field],rtol=0,atol=1e-10):
+                raise ValueError('Actual seed velocity differs from captured settings.')
+    elif getattr(engine,'initial_condition',None) is not None:
+        raise ValueError('Explicit engine seed requires captured source settings.')
+    if getattr(engine,'contact_profile',None)!=config.get('contact_profile'):
+        raise ValueError('Engine contact profile differs from captured source identity.')
     if config['mode']=='single_drop' and (times[0]!=0 or not np.allclose(actual_rotation,expected_rotation,rtol=0,atol=1e-12)
             or not np.allclose(history[0]['RotationMatrix'],expected_rotation,rtol=0,atol=1e-12)
             or not np.allclose(history[0]['BodyOrigin'],initial_position,rtol=0,atol=1e-9)):
@@ -118,7 +140,7 @@ def build_metadata(config,engine,history,*,route,run_id):
         legacy_alias='Position/CoM is body-origin/geocenter; Simulation/InertialCOM is inertial COM')
     seed=config['observation_profile']['corner']['seed'] if route=='direct_proc' else config['observation_profile']['marker']['seed']
     public=_sealed('SimulationSourceMetadata',mode=config['mode'],source=dict(kind='mujoco_synthetic',run_id=run_id),
-        generator=dict(name='mujoco',version=ROBOT_GENERATOR_VERSION if robot else GENERATOR_VERSION,engine_version=mujoco.__version__),
+        generator=dict(name='mujoco',version=ROBOT_GENERATOR_VERSION if robot else SEED_GENERATOR_VERSION if explicit or 'contact_profile' in config else GENERATOR_VERSION,engine_version=mujoco.__version__),
         route=route,seed=seed,configuration=configuration,configuration_hash=digest(configuration),
         clock=clock,transforms=transforms,release_state_status='evaluation-only',calibration_status='uncalibrated')
     if robot:
@@ -149,6 +171,10 @@ def build_metadata(config,engine,history,*,route,run_id):
             inertia_orientation_wxyz=engine.model.body_iquat[body].tolist(),box=contact(geometry),floor=contact(floor)),
         release_state=release,observation_config=deepcopy(config['observation_profile']),
         truth_access='direct simulation/evaluation only; never analysis input')
+    if 'contact_profile' in config:
+        from src.simulation.initial_conditions import validate_compiled
+        full['compiled_physics']['explicit_profile']=validate_compiled(engine)
+        full['content_hash']=digest({k:v for k,v in full.items() if k!='content_hash'})
     if robot:
         full['sequence_evidence']=deepcopy(engine.sequence_evidence)
         grip=mujoco.mj_name2id(engine.model,mujoco.mjtObj.mjOBJ_BODY,'gripper')
@@ -184,8 +210,10 @@ def validate_public(value,artifact=None):
     if value.get('route') not in ('direct_proc','marker_csv') or value.get('calibration_status')!='uncalibrated':
         raise ValueError('Unsupported simulation route/calibration declaration.')
     generator=value.get('generator')
+    cfg=value.get('configuration',{})
+    explicit='initial_condition' in cfg or 'contact_profile' in cfg
     if (not isinstance(generator,dict) or set(generator)!={'name','version','engine_version'}
-            or generator.get('name')!='mujoco' or generator.get('version')!=(ROBOT_GENERATOR_VERSION if robot else GENERATOR_VERSION)):
+            or generator.get('name')!='mujoco' or generator.get('version')!=(ROBOT_GENERATOR_VERSION if robot else SEED_GENERATOR_VERSION if explicit else GENERATOR_VERSION)):
         raise ValueError('Unsupported simulation generator/version.')
     _text(generator.get('engine_version'),'Engine version')
     if type(value.get('seed')) is not int or not 0<=value['seed']<=2147483647:raise ValueError('Invalid simulation seed.')
@@ -193,8 +221,22 @@ def validate_public(value,artifact=None):
     if not isinstance(config,dict) or value.get('configuration_hash')!=digest(config):
         raise ValueError('Stale simulation configuration identity.')
     vector(config.get('size_mm'),'Simulation dimensions',minimum=10,maximum=5000)
-    if set(config)!={'size_mm','sequence_profile','physics_profile','observation_profile','requested_duration_s'}:
+    if set(config)-{'initial_condition','contact_profile'}!={'size_mm','sequence_profile','physics_profile','observation_profile','requested_duration_s'}:
         raise ValueError('Unexpected simulation configuration declaration.')
+    if explicit and robot:raise ValueError('PUB09 seeds/profiles cannot reset a robot source.')
+    if 'initial_condition' in config:
+        s=config['initial_condition']
+        if (not isinstance(s,dict) or set(s)!={'content_hash','mode','clock_policy','reference_time_s','prehistory'}
+                or s['mode'] not in ('release','precontact')
+                or s['clock_policy']!='engine-starts-zero;reference=engine+offset'
+                or s['prehistory']!=('release-begins-at-seed' if s['mode']=='release' else 'unknown-before-seed')):
+            raise ValueError('Unsupported public seed declaration; pose/velocity truth is private.')
+        _hash(s['content_hash'],'Seed');_finite(s['reference_time_s'],'Seed reference time')
+    if 'contact_profile' in config:
+        from src.simulation.initial_conditions import validate_profile
+        p=validate_profile(config['contact_profile']);aliases=config['physics_profile']
+        if p['mass_kg']!=aliases['mass_kg'] or p['friction'][0]!=aliases['friction'] or p['com_offset_mm']!=aliases['com_offset_mm']:
+            raise ValueError('Contact profile differs from physics aliases.')
     number(config.get('requested_duration_s'),'Duration',minimum=.5,maximum=3600 if robot else 60)
     sequence=config.get('sequence_profile');_profile(sequence,'SimulationSequenceProfile')
     if set(sequence)-({'execution_plan'} if robot else set())!={'schema_version','plan_spec','object_type','profile_id','source','mode','robot_model','steps'}:
@@ -327,6 +369,13 @@ def validate_full(value):
     if compiled['mass_kg']!=config['physics_profile']['mass_kg']:raise ValueError('Compiled mass differs.')
     for field in ('gravity_m_s2','inertia_kg_m2'):vector(compiled.get(field),'Compiled '+field)
     if min(compiled['inertia_kg_m2'])<=0:raise ValueError('Compiled inertia must be positive.')
+    if 'contact_profile' in config:
+        from src.simulation.initial_conditions import validate_compiled_values
+        actual=validate_compiled_values(config['contact_profile'],compiled.get('explicit_profile'),config['size_mm'])
+        for field in ('mass_kg','inertia_kg_m2','inertia_orientation_wxyz','gravity_m_s2'):
+            if not np.allclose(actual[field],compiled[field],atol=1e-12,rtol=0):
+                raise ValueError('Compiled profile snapshot contradicts metadata.')
+        if actual['solver']['timestep_s']!=compiled['timestep_s']:raise ValueError('Compiled timestep differs.')
     if config['mode']=='robot_sequence':
         expected=config['sequence_profile']['execution_plan']['physics']
         actual=compiled.get('robot')
@@ -338,11 +387,17 @@ def validate_full(value):
     if quat.shape!=(4,) or not np.isfinite(quat).all() or abs(np.linalg.norm(quat)-1)>1e-10:raise ValueError('Invalid compiled inertia orientation.')
     for key in ('box','floor'):
         contact=compiled.get(key)
-        if not isinstance(contact,dict) or contact.get('condim')!=4:raise ValueError('Unsupported compiled contact model.')
+        expected_condim=config.get('contact_profile',{}).get('condim',4)
+        if not isinstance(contact,dict) or contact.get('condim')!=expected_condim:raise ValueError('Unsupported compiled contact model.')
         for field,length in (('friction',3),('solref',2),('solimp',5)):
             array=np.asarray(contact.get(field),dtype=float)
             if array.shape!=(length,) or not np.isfinite(array).all():raise ValueError('Invalid compiled '+field)
         number(contact.get('margin_m'),'Contact margin',minimum=0)
+        if 'contact_profile' in config:
+            actual=compiled['explicit_profile']['contacts'][key]
+            for field in ('condim','friction','solref','solimp'):
+                if not np.allclose(contact[field],actual[field],atol=1e-12,rtol=0):raise ValueError('Compiled contact differs.')
+            if abs(contact['margin_m']*1000-actual['margin_mm'])>1e-12:raise ValueError('Compiled margin differs.')
     release=value.get('release_state')
     if (not isinstance(release,dict) or release.get('status') not in ('recorded','unavailable')
             or release.get('world_frame')!='mujoco-z-up' or release.get('linear_velocity_units')!='mm/s'
@@ -363,6 +418,13 @@ def validate_full(value):
             raise ValueError('Release world/body angular velocity mismatch.')
     elif not release.get('reason') or any(release.get(field) is not None for field in velocities):
         raise ValueError('Unavailable release velocities must remain unknown with a reason.')
+    if 'initial_condition' in config:
+        from src.simulation.initial_conditions import canonical_state
+        state=canonical_state(config['initial_condition'],config['physics_profile']['com_offset_mm'])
+        if release['status']!='recorded' or release['engine_time_s']!=0:raise ValueError('Explicit seed initial snapshot required.')
+        for key,field in (('body_origin_mm','origin_mm'),('com_mm','com_mm'),('rotation_matrix','rotation'),
+                ('origin_linear_velocity_world','origin_velocity_mm_s'),('angular_velocity_world','angular_velocity_world')):
+            if not np.allclose(release[key],state[field],rtol=0,atol=1e-9):raise ValueError('Saved seed state differs from input.')
     return value
 
 
@@ -419,8 +481,8 @@ def compatibility_reasons(before,after):
     if a is None or b is None:return ['Simulation mode/profile contract unavailable in one source; no inferred legacy equivalence']
     reasons=[]
     if a['mode']!=b['mode']:reasons.append('Simulation mode differs')
-    for key in ('sequence_profile','physics_profile','observation_profile'):
-        left,right=deepcopy(a['configuration'][key]),deepcopy(b['configuration'][key])
+    for key in ('sequence_profile','physics_profile','observation_profile','initial_condition','contact_profile'):
+        left,right=deepcopy(a['configuration'].get(key)),deepcopy(b['configuration'].get(key))
         # Seeds/run IDs/clock/generator builds identify evidence, not repeated settings.
         if key=='observation_profile':
             left['corner'].pop('seed',None);right['corner'].pop('seed',None)
