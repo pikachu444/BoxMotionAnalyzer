@@ -73,6 +73,9 @@ class ContactRecorder:
                 torque_world_at_contact_on_box_nm=(side * basis.T @ wrench[3:]).tolist(),
                 normal_force_n=float(wrench[0]), closing_speed_mm_s=float(-basis[0] @ (v2-v1) * 1000),
                 efc_address=int(c.efc_address)))
+            if e.contact_profile is not None:
+                contacts[-1]['effective_parameters']=dict(condim=int(c.dim),friction=c.friction.tolist(),
+                    solref=c.solref.tolist(),solimp=c.solimp.tolist(),inclusion_margin_mm=float(c.includemargin*1000))
         self.samples.append(dict(time_s=float(d.time), origin_mm=(p * 1000).tolist(), rotation=r.tolist(),
             origin_velocity_mm_s=(v * 1000).tolist(), angular_velocity_rad_s=w.tolist(),
             com_mm=(d.xipos[bid] * 1000).tolist(), corners_world_mm=(corners * 1000).tolist(),
@@ -83,10 +86,16 @@ class ContactRecorder:
         e = self.engine
         if e.model is None or not self.samples:
             raise ValueError('No actual timestep contact recording.')
-        return envelope('ContactRecording', contract=deepcopy(CONTACT_CONTRACT), source_identity=deepcopy(self.source),
+        result = envelope('ContactRecording', contract=deepcopy(CONTACT_CONTRACT), source_identity=deepcopy(self.source),
             source_sha256=self.source_hash, model_xml_sha256=hashlib.sha256(e._generate_xml().encode()).hexdigest(),
             mujoco_version=mujoco.__version__, timestep_s=float(e.model.opt.timestep),
             box_half_extents_mm=(np.array(e.size_m) * 1000).tolist(), completion='recorded',
             origin_to_com_local_mm=(np.array(e.com_offset)*1000).tolist(),
             execution_status=getattr(e, 'sequence_evidence', {}).get('completion', 'bounded_capture'),
             samples=deepcopy(self.samples))
+        if e.initial_condition is not None:result['initial_condition']=deepcopy(e.initial_condition)
+        if e.contact_profile is not None:
+            from .initial_conditions import validate_compiled
+            result['contact_profile']=deepcopy(e.contact_profile)
+            result['compiled_profile']=validate_compiled(e)
+        return result

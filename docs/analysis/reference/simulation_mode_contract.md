@@ -1,6 +1,6 @@
 # Simulation mode and output contracts (PUB06 / PUB07 checkpoint)
 
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-10-08
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. New envelopes use `schema_version: 1`.
 The #140 implementation adds an explicit, source-bound `RobotExecutionPlan`
@@ -34,6 +34,14 @@ uncalibrated configurations, not a verified complete ISTA procedure. G17 hazard
 geometry remains unimplemented. PUB07 adds virtual H supported/rotation/release
 templates; they do not certify the complete H procedure.
 The user approved this proposal before production binding.
+
+## PUB09 API/CLI opt-in
+
+Explicit seed/contact inputs use pub09-explicit-state-v1, while default PUB06
+settings and continuous PUB07 execution remain. Seed truth is evaluation-only;
+public input identity/clock and actual compiled settings bind export and reopen.
+Current GUI does not expose these new fields. See
+[initial conditions and limited fitting](contact_calibration_contract.md).
 
 ## Production user flow
 

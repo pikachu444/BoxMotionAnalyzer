@@ -7,6 +7,7 @@ Last Reviewed: 2026-10-08
 ## 🚀 주요 기능
 
 ### 1. 시뮬레이션 (Simulation) - *New!*
+*   **초기조건·제한 교정 (PUB09):** 명시적 위치·자세·선속도·각속도와 접촉 profile을 API/CLI로 실행하고, 수렴 진단 뒤 fit과 별도 holdout을 평가합니다. `python -m src.simulation.calibration_cli demo --output tmp/issue142/new-demo`를 사용합니다. [사용·저장·평가 계약](docs/analysis/reference/contact_calibration_contract.md)에 따라 합성 자기 일관성 검증과 실측 교정을 구분하며 기본 설정은 유지합니다.
 *   **MuJoCo 기반 디지털 트윈:** 실제 실험 데이터(CSV)가 없더라도, MuJoCo 물리 엔진을 통해 가상의 상자 낙하 데이터를 시뮬레이션할 수 있습니다.
 *   **낙하 자세 시뮬레이션:** 면(Face), 꼭짓점(Corner), 모서리 선(Edge) 자세와 강체 접촉을 생성합니다. 실제 포장재의 충돌·반발·텀블링 정확도는 검증되지 않았습니다.
 *   **데이터 내보내기:** 실제 시뮬레이션 시간·자세·질량중심을 `.proc`로 저장합니다. 마커 오류 검증은 별도로 생성한 관측 CSV를 분석 파이프라인에 넣고 독립 정답과 비교합니다. (자세한 내용은 [`docs/simulation.md`](docs/simulation.md) 참조)

@@ -9,7 +9,15 @@ class MuJoCoEngine:
     Builds the model dynamically, runs the simulation, and extracts the 8 corner points.
     Supports interactive visualization using mujoco.viewer.
     """
-    def __init__(self, size=(1000, 1000, 1000), mass=100.0, friction=0.7, elasticity=0.2, com_offset=(0.0, 0.0, 0.0)):
+    def __init__(self, size=(1000, 1000, 1000), mass=100.0, friction=0.7, elasticity=0.2, com_offset=(0.0, 0.0, 0.0), *, contact_profile=None):
+        from copy import deepcopy
+        from ..initial_conditions import validate_profile
+        self.contact_profile = deepcopy(validate_profile(contact_profile)) if contact_profile is not None else None
+        self.initial_condition = None
+        if self.contact_profile is not None:
+            mass = self.contact_profile['mass_kg']
+            friction = self.contact_profile['friction'][0]
+            com_offset = self.contact_profile['com_offset_mm']
         # Convert dimensions from mm to meters for MuJoCo (half extents)
         self.size_m = [s / 2000.0 for s in size]
         self.mass = mass
@@ -42,6 +50,8 @@ class MuJoCoEngine:
         Calculates the exact Z position so the lowest point of the box
         is exactly 'height_mm' above the floor, not the center.
         """
+        if self.initial_condition is not None:
+            raise ValueError('Choose either the explicit seed or legacy clearance setter.')
         self.init_quat = quat_wxyz
 
         # Scipy uses [x,y,z,w], but we stored [w,x,y,z] in scenarios.py
@@ -69,6 +79,17 @@ class MuJoCoEngine:
         # The center Z must be: desired_height - lowest_z_offset (which is negative)
         center_z = (height_mm / 1000.0) - lowest_z_offset
         self.init_pos = [0, 0, center_z]
+
+    def set_initial_condition(self, seed):
+        """Apply an explicit seed only before build, never during a release."""
+        from copy import deepcopy
+        from ..initial_conditions import canonical_state, validate_seed
+        if self.model is not None or hasattr(self, 'sequence_evidence'):
+            raise ValueError('Initial conditions are pre-build single-drop inputs only.')
+        self.initial_condition = deepcopy(validate_seed(seed))
+        state = canonical_state(seed, np.asarray(self.com_offset) * 1000)
+        self.init_pos = (state['origin_mm'] / 1000).tolist()
+        self.init_quat = list(seed['quaternion_wxyz'])
 
     def _generate_xml(self):
         """
@@ -118,6 +139,27 @@ class MuJoCoEngine:
             </worldbody>
         </mujoco>
         """
+        if self.contact_profile is not None or self.initial_condition is not None:
+            import xml.etree.ElementTree as ET
+            from ..initial_conditions import moments, validate_profile
+            root = ET.fromstring(xml)
+            root.insert(0, ET.Element('compiler', {'alignfree': 'false'}))
+            root.find('.//freejoint').set('align', 'false')
+            if self.contact_profile is not None:
+                p = validate_profile(self.contact_profile)
+                option = root.find('option')
+                option.attrib.update(timestep=str(p['solver']['timestep_s']),
+                    integrator=p['solver']['integrator'], solver=p['solver']['algorithm'],
+                    iterations=str(p['solver']['iterations']), tolerance=str(p['solver']['tolerance']))
+                inertial = root.find('.//inertial')
+                inertial.set('diaginertia', ' '.join(map(str, moments(p, np.asarray(self.size_m)*2000))))
+                inertial.set('quat', ' '.join(map(str, p['inertia']['quaternion_wxyz'])))
+                for geom in root.findall('.//geom'):
+                    role = 'box' if geom.get('name') == 'box_geom' else 'floor'
+                    geom.attrib.update(condim=str(p['condim']), friction=' '.join(map(str, p['friction'])),
+                        solref=' '.join(map(str, p['solref'])), solimp=' '.join(map(str, p['solimp'])),
+                        margin=str(p['margin_mm'][role]/1000), gap='0', priority='0', solmix='1')
+            return ET.tostring(root, encoding='unicode')
         return xml
 
     def build(self):
@@ -127,7 +169,20 @@ class MuJoCoEngine:
         xml_string = self._generate_xml()
         self.model = mujoco.MjModel.from_xml_string(xml_string)
         self.data = mujoco.MjData(self.model)
+        if self.initial_condition is not None:
+            from ..initial_conditions import canonical_state
+            state = canonical_state(self.initial_condition, np.asarray(self.com_offset)*1000)
+            body = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, 'box')
+            joint = self.model.body_jntadr[body]
+            qa, va = self.model.jnt_qposadr[joint], self.model.jnt_dofadr[joint]
+            self.data.qpos[qa:qa+3] = state['origin_mm']/1000
+            self.data.qpos[qa+3:qa+7] = self.initial_condition['quaternion_wxyz']
+            self.data.qvel[va:va+3] = state['origin_velocity_mm_s']/1000
+            self.data.qvel[va+3:va+6] = state['angular_velocity_body']
         mujoco.mj_forward(self.model, self.data)
+        if self.contact_profile is not None:
+            from ..initial_conditions import validate_compiled
+            validate_compiled(self)
 
     def run_simulation(self, target_fps=120, stop_condition_time=3.0, velocity_threshold=0.01, show_viewer=False,
                        *, cancelled=None, progress=None):

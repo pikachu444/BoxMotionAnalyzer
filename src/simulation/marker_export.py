@@ -57,6 +57,7 @@ def generate_marker_capture(destination, profile, simulation, faults, seed, *, c
         physics=config['physics_profile'];step=config['sequence_profile']['steps'][0]
         from .scenarios import Scenarios
         expected_quat=Scenarios.get_orientation_from_euler(*step['fixed_xyz_deg'])
+        if 'initial_condition' in config:expected_quat=config['initial_condition']['quaternion_wxyz']
         if (simulation['mass']!=physics['mass_kg'] or simulation['friction']!=physics['friction']
                 or simulation['elasticity']!=physics['contact_damping_control']
                 or list(simulation['com_offset'])!=physics['com_offset_mm']
@@ -86,10 +87,14 @@ def generate_marker_capture(destination, profile, simulation, faults, seed, *, c
     if config is not None and config['mode']=='robot_sequence':
         from .engine.robot_sequence import RobotSequenceEngine
         engine=RobotSequenceEngine(config)
+    elif config is not None and ('initial_condition' in config or 'contact_profile' in config):
+        from .initial_conditions import engine_from_config
+        engine=engine_from_config(config)
     else:
         engine = MuJoCoEngine(size=profile['box_dims_mm'], mass=simulation['mass'],
             friction=simulation['friction'], elasticity=simulation['elasticity'], com_offset=simulation['com_offset'])
-    engine.set_initial_state(simulation['height'], simulation['quat'])
+    if config is None or 'initial_condition' not in config:
+        engine.set_initial_state(simulation['height'], simulation['quat'])
     def engine_progress(current,stop):
         phase=getattr(engine,'current_phase',None)
         label=(f"{phase['step_id']} — {phase['kind']} — {current:.3f} s" if phase else 'Simulating')
