@@ -2,6 +2,7 @@
 from copy import deepcopy
 from pathlib import Path
 import re
+from numbers import Real
 
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -296,6 +297,19 @@ def _hash(value):
         raise ValueError('Invalid SHA256 identity.')
 
 
+def _same(actual, expected):
+    """Compare derived JSON while keeping booleans separate from numbers."""
+    if isinstance(expected,dict):
+        return isinstance(actual,dict) and set(actual)==set(expected) and all(_same(actual[k],v) for k,v in expected.items())
+    if isinstance(expected,list):
+        return isinstance(actual,list) and len(actual)==len(expected) and all(_same(a,b) for a,b in zip(actual,expected))
+    if isinstance(expected,(bool,str)) or expected is None:
+        return type(actual) is type(expected) and actual==expected
+    if isinstance(expected,Real):
+        return isinstance(actual,Real) and not isinstance(actual,(bool,np.bool_)) and actual==expected
+    return type(actual) is type(expected) and actual==expected
+
+
 def _metrics(endpoints, window, eligible=None):
     if (not isinstance(endpoints,dict) or not endpoints or not set(endpoints)<=set(ENDPOINT_UNITS)
             or eligible is not None and set(endpoints)!=set(eligible)):
@@ -379,11 +393,11 @@ def validate_case_result(result, case, profile):
             continue
         if not isinstance(event,dict) or set(event)!={'time_s','kind','bracket_s'}:
             raise ValueError('Invalid designated event fields.')
-        if first is None or event!={k:first[k] for k in ('time_s','kind','bracket_s')}:
+        if first is None or not _same(event,{k:first[k] for k in ('time_s','kind','bracket_s')}):
             raise ValueError('Favorable t2 replacement differs from chronological designation.')
         b=finite(bracket,(2,),'event bracket');t=finite(event['time_s'],(),'event time')
         kinds={'first_floor_impact'} if key=='t1' else {'new_feature_impact','rebound_recontact'}
-        if (event['kind'] not in kinds or event['kind'] not in result['event_topology'] or event['bracket_s']!=bracket
+        if (event['kind'] not in kinds or event['kind'] not in result['event_topology'] or not _same(event['bracket_s'],bracket)
                 or not 0<=b[0]<=t==b[1]<case['window_s'][1]
                 or b[1]-b[0]>profile['solver']['timestep_s']+1e-10):
             raise ValueError('Designated event differs from native bracket/window.')
@@ -429,7 +443,7 @@ def validate_convergence_report(report, case, profile, timesteps=(.002,.001,.000
         p=deepcopy(profile);p['solver'].update(timestep_s=dt,iterations=it);p=reseal(p)
         validate_case_result(result,case,p)
     changes,stability=_convergence_diagnostics(case,report['runs'],timesteps,iterations)
-    if report['changes']!=changes or report['endpoint_stability']!=stability:
+    if not _same(report['changes'],changes) or not _same(report['endpoint_stability'],stability):
         raise ValueError('Convergence diagnostics differ from actual runs.')
     return report
 
@@ -446,6 +460,7 @@ def _population(protocol, split, profile, results, references):
 
 def validate_fit_result(result, protocol):
     validate_protocol(protocol);check(result,'ContactFitResult',FIT_FIELDS)
+    validate_profile(result['selected_profile'])
     base=validate_profile(result['base_profile']);refs=result['fit_references'];reports=result['convergence_reports']
     _references(protocol,refs,'fit',base)
     if (result['protocol_sha256']!=protocol['content_hash'] or result['protocol_version']!=protocol['version']
@@ -464,18 +479,19 @@ def validate_fit_result(result, protocol):
     for candidate,value in zip(candidates,protocol['search']['candidates']):
         if not isinstance(candidate,dict) or set(candidate)!={'value','profile','score','missing','endpoints','results','summary'}:
             raise ValueError('Unsupported candidate fields.')
+        validate_profile(candidate['profile'])
         profile=candidate_profile(base,protocol['search']['family'],value)
-        if candidate['value']!=value or candidate['profile']!=profile:raise ValueError('Candidate differs from single-family search.')
+        if not _same(candidate['value'],value) or not _same(candidate['profile'],profile):raise ValueError('Candidate differs from single-family search.')
         records,summary=_population(protocol,'fit',profile,candidate['results'],refs)
         score=sum(r['weight']*(r['difference']/r['scale'])**2 if r['difference'] is not None else protocol['missing_rule']['penalty'] for r in records)
-        if (candidate['endpoints']!=records or candidate['summary']!=summary or type(candidate['missing']) is not int
+        if (not _same(candidate['endpoints'],records) or not _same(candidate['summary'],summary) or type(candidate['missing']) is not int
                 or candidate['missing']!=sum(r['difference'] is None for r in records)
                 or finite(candidate['score'],(),'fit score')!=score):
             raise ValueError('Fit score/rules/required endpoint population differs.')
     best=min(candidates,key=lambda r:(r['missing'],r['score']))
     tied=[r['profile']['content_hash'] for r in candidates if r['missing']==best['missing'] and abs(r['score']-best['score'])<=protocol['search']['tie_tolerance']]
     identifiability='unavailable-required-endpoint' if best['missing'] else 'ambiguous' if len(tied)>1 else 'unique-on-grid-only'
-    if (result['selected_profile']!=best['profile'] or result['selected_profile_sha256']!=best['profile']['content_hash']
+    if (not _same(result['selected_profile'],best['profile']) or result['selected_profile_sha256']!=best['profile']['content_hash']
             or result['tied_profile_sha256']!=tied or result['identifiability']!=identifiability):
         raise ValueError('Selected profile or ambiguity differs from fit-only objective.')
     return result
@@ -488,7 +504,7 @@ def validate_holdout_report(report, protocol, fit_result, references):
     if (report['protocol_sha256']!=protocol['content_hash'] or report['fit_result_sha256']!=fit_result['content_hash']
             or report['selected_profile_sha256']!=profile['content_hash']
             or report['holdout_reference_sha256']!={k:v['content_hash'] if v else None for k,v in references.items()}
-            or report['endpoints']!=records or report['summary']!=summary
+            or not _same(report['endpoints'],records) or not _same(report['summary'],summary)
             or report['candidate_selection']!='already-frozen;holdout-not-used' or report['calibration_status']!='uncalibrated'):
         raise ValueError('Frozen holdout identity/required population differs.')
     return report

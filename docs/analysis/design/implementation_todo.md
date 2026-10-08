@@ -10,9 +10,10 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 - [O] #142 / PUB09 software implementation and independent correction review:
   opt-in seed/contact API, source-bound export/reopen, native convergence,
   frozen limited fit and separate holdout, production observation paths.
-  29/29 fresh runs and408 local affected checks passed; independent220 checks,
+  29/29 local fresh runs and419 final local affected checks passed; independent220 checks,
   all26 native records and two Raw/PROC paths passed. Five original findings
-  are closed. Observed holdout retains4required/0evaluable/4not_detected.
+  and three final integrity findings are closed; independent final delta95 tests
+  and2 fresh holdout engines passed. Observed holdout retains4required/0evaluable/4not_detected.
   See `../reference/contact_calibration_contract.md` and its evidence index.
   Final-source CI/merge are publication gates in the PR linked from #142;
   their actual status is tracked there, not inferred from local runs.

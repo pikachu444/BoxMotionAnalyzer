@@ -142,7 +142,8 @@ def test_changed_protocol_digest_selected_profile_and_partial_convergence(fixtur
 
 
 @pytest.mark.parametrize('mutation',['empty-endpoints','duplicate-results','omit-result','wrong-rule','invent-score',
-    'nested-truth','wrong-source','wrong-base','promoted-summary','wrong-tie','convergence-endpoint','convergence-summary'])
+    'nested-truth','wrong-source','wrong-base','promoted-summary','wrong-tie','convergence-endpoint','convergence-summary','stale-profile-bool',
+    'bool-weight','number-required','bool-count','number-flag','bool-convergence-difference'])
 def test_resealed_fit_cannot_change_population_rules_or_selected_profile(fixture,mutation):
     p,b,f,h,c,result=fixture;bad=deepcopy(result);candidate=bad['candidates'][0]
     if mutation=='empty-endpoints':
@@ -159,6 +160,15 @@ def test_resealed_fit_cannot_change_population_rules_or_selected_profile(fixture
     if mutation=='wrong-base':bad['base_profile']=contact_profile(solref=(.02,.8));bad['base_profile_sha256']=bad['base_profile']['content_hash']
     if mutation=='promoted-summary':candidate['summary']['whole_protocol_pass']=True
     if mutation=='wrong-tie':bad['tied_profile_sha256']=[]
+    if mutation=='stale-profile-bool':candidate['profile']['mass_kg']=True
+    if mutation=='bool-weight':candidate['endpoints'][0]['weight']=True
+    if mutation=='number-required':candidate['endpoints'][0]['required']=1
+    if mutation=='bool-count':candidate['summary']['evaluable']=True
+    if mutation=='number-flag':candidate['summary']['whole_protocol_pass']=0
+    if mutation=='bool-convergence-difference':
+        r=next(iter(bad['convergence_reports'].values()));r['changes'][0]['endpoint_differences']['final_origin_x_mm']=False
+        r=reseal(r);bad['convergence_reports'][p['cases'][0]['case_id']]=r
+        bad['convergence_sha256'][p['cases'][0]['case_id']]=r['content_hash']
     if mutation.startswith('convergence-'):
         r=next(iter(bad['convergence_reports'].values()))
         if mutation=='convergence-summary':r['endpoint_stability']={}
@@ -188,9 +198,12 @@ def test_reference_rejects_nested_truth_and_invalid_declared_input(fixture,mutat
 def test_reopened_holdout_validates_required_population(fixture):
     from src.simulation.contact_calibration import validate_holdout_report
     p,b,f,h,c,result=fixture;held=evaluate_holdout(p,result,h)
-    for mutation in ('endpoints','results','summary'):
+    for mutation in ('endpoints','results','summary','bool-count','number-flag','bool-weight'):
         bad=deepcopy(held)
         if mutation=='summary':bad['summary']['pass_count']=1
+        elif mutation=='bool-count':bad['summary']['evaluable']=True
+        elif mutation=='number-flag':bad['summary']['whole_protocol_pass']=0
+        elif mutation=='bool-weight':bad['endpoints'][0]['weight']=True
         else:bad[mutation]=[]
         with pytest.raises(ValueError):validate_holdout_report(reseal(bad),p,result,h)
 

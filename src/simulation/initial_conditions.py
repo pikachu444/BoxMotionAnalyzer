@@ -254,8 +254,8 @@ def validate_compiled_values(profile, actual, size_mm):
         raise ValueError('Unsupported compiled physics fields.')
     def compare(a, b):
         if isinstance(b, dict): return isinstance(a, dict) and set(a) == set(b) and all(compare(a[k], b[k]) for k in b)
-        if isinstance(b, str) or isinstance(b, bool): return a == b
-        return np.allclose(a, b, rtol=0, atol=1e-12)
+        if isinstance(b, (str, bool)): return type(a) is type(b) and a == b
+        return np.allclose(finite(a,np.asarray(b).shape,'compiled numeric value'), b, rtol=0, atol=1e-12)
     if not all(compare(actual[k], v) for k, v in expected.items()):
         raise ValueError('Requested profile differs from actual compiled physics.')
     if not np.allclose(quaternion(actual['inertia_orientation_wxyz']),

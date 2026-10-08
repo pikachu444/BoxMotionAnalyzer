@@ -253,3 +253,18 @@ holdout execution. Requested advisor/reviewer dispatch settings are recorded in
 the evidence index; actual model routing is unverified because authoritative
 runtime introspection is unavailable. Final CI and merge status is tracked in
 #142 and its linked PR.
+
+Before merge, a final data-integrity check reproduced stale nested profile
+acceptance through Python's boolean/number equality. Each selected/candidate
+profile is now validated directly, compiled declarations reject numeric strings
+and booleans, and derived endpoint/summary/convergence/holdout comparisons keep
+booleans distinct from numbers while allowing equivalent numeric int/float
+values. The original attacks and419 final affected checks are retained separately.
+The first-source `8bc1faa` hosted CI passed1,521 tests and29 fresh PUB09 engines;
+that run is supporting prior evidence. Final guard source requires its own full
+hosted CI before merge. Physical inputs, protocol v2 and endpoint rules are unchanged.
+Final independent delta review is PASS: all three integrity findings and the
+original five are closed,95 current affected checks and2 fresh holdout engines
+passed, and the original contacts matched endpoint re-extraction. No material
+P0/P1/P2 remains in the bounded review scope. These records supplement the earlier
+220-check independent review; counts overlap and are not a unique-test total.

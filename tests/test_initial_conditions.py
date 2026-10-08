@@ -114,6 +114,15 @@ def test_actual_combined_contact_and_compiled_drift(condim):
     with pytest.raises(ValueError,match='compiled'):validate_compiled(e)
 
 
+@pytest.mark.parametrize('field,value',[('mass_kg',True),('mass_kg','1'),('gravity_m_s2',[False,0.,-9.81]),
+    ('reference_safety_clamp_enabled',1),('cone',False)])
+def test_compiled_numeric_and_boolean_declarations_have_strict_types(field,value):
+    from src.simulation.initial_conditions import compiled_settings,validate_compiled_values
+    profile=contact_profile();e=engine_from_config(config(profile=profile));e.build()
+    actual=compiled_settings(e);actual[field]=value
+    with pytest.raises(ValueError):validate_compiled_values(profile,actual,[200.,120.,80.])
+
+
 def test_precontact_unknown_ordinals_and_saved_evaluation(tmp_path):
     s=initial_condition([0,0,140.],mode='precontact',linear_velocity=[0.,0.,-50.],reference_time_s=1.5)
     e=engine_from_config(config(s));e.enable_contact_recording({'id':'precontact'})

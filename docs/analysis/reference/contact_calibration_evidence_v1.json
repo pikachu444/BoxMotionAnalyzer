@@ -388,7 +388,8 @@
   "publication": {
     "workflow": ".github/workflows/public-marker-validation.yml",
     "required_check": "synthetic-integration",
-    "status_at_source_snapshot": "pending final-source CI and merge; see #142 and its linked PR for actual current gate status"
+    "status_at_source_snapshot": "pending final-source CI and merge; see #142 and its linked PR for actual current gate status",
+    "pr_url": "https://github.com/pikachu444/BoxMotionAnalyzer/pull/154"
   },
   "corrected_review": {
     "schema_version": 1,
@@ -614,5 +615,270 @@
       "path": "tmp/issue142/reviewer-corrected/partial-fit-cli-current/RunReport.json",
       "sha256": "eaf97fe8d7edf4b0283615683d5c6e9975f5e27a1377acf124acb6c37f057969"
     }
-  ]
+  ],
+  "final_integrity_delta": {
+    "physical_and_protocol_rules": "unchanged",
+    "prior_source_commit": "8bc1faae94ab04c37e83a205648f5b89e5a59d28",
+    "source_sha256": {
+      "src/simulation/contact_calibration.py": "9588f02f875a25f7a541a3b15fedbc109f1246f8fda794a5c13b1db58cdd2a18",
+      "src/simulation/initial_conditions.py": "8b5e4db053f25a65883cfb53b180acf2b8d49550a93daed9ef62788a5d17326b",
+      "tests/test_initial_conditions.py": "072682e1731dca4eee0359f407f738ba56b1afed1a6b28a9cbe446e96ed7a162",
+      "tests/test_contact_calibration.py": "a59341c18d9b4da0fe92f25f4c8e66abd05319dba841ecbe8db1789e399f4899"
+    },
+    "affected_tests": {
+      "tests": 419,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report": {
+        "path": "tmp/issue142/final-derived-type-guard.xml",
+        "sha256": "12a7201e7629ba03223b359db6f2312bdbbfa5c7f69918307785e731390d6b4d"
+      },
+      "log": {
+        "path": "tmp/issue142/final-derived-type-guard.log",
+        "sha256": "3fc6e4c73a3693e5581eac08efb64ff0ee0f68712e30c49625fcb0f189745d25"
+      }
+    },
+    "original_reproductions": [
+      {
+        "path": "tmp/issue142/stale-unselected-profile-original.json",
+        "sha256": "37fbc1c97fe70fef09e83e53d8d1bdcb4d57661f6a9f24ac0a6f546e1166d411"
+      },
+      {
+        "path": "tmp/issue142/compiled-type-original-and-corrected.json",
+        "sha256": "5af468f16cfaea16477ef060d1a9df8871bdc9850f4334f98c259ed1c477cb0b"
+      }
+    ],
+    "independent_review": {
+      "schema_version": 1,
+      "plan_spec": "ISTA6A-PLAN-20261001-v1",
+      "object_type": "ReviewReport",
+      "conclusion": "PASS",
+      "scope": "Independent bounded pre-publication final type/digest delta review; normal prior v2 evidence reused as explicit audit input, final source executes two fresh holdout cases",
+      "reviewed_utc": "2026-10-08T08:34:32.309349+00:00",
+      "requested_dispatch": {
+        "model": "GPT-6.1 Sol",
+        "reasoning": "high",
+        "actual_routing": "unverified; no authoritative introspection exposed"
+      },
+      "reviewer": "independent_reviewer",
+      "delegation": "none",
+      "repository": "C:\\Users\\pikac\\.codex\\worktrees\\pub09-initial-contact\\BoxMotionAnalyzer",
+      "base_commit": "8bc1faae94ab04c37e83a205648f5b89e5a59d28",
+      "reviewed_worktree": "Base commit plus explicit type/digest changes; final committed-head CI remains Main gate",
+      "source_sha256": {
+        "src\\simulation\\initial_conditions.py": "8b5e4db053f25a65883cfb53b180acf2b8d49550a93daed9ef62788a5d17326b",
+        "src\\simulation\\contact_calibration.py": "9588f02f875a25f7a541a3b15fedbc109f1246f8fda794a5c13b1db58cdd2a18",
+        "src\\simulation\\calibration_cli.py": "d6a3821073671fef0c9bfaacdaa0786eb966e4865f5f73726b965ab79d2d668a",
+        "src\\simulation\\contact_evaluation.py": "d07cfb17196132535838de46c28b8f4a31ff8641994d636edae740d0126eb944",
+        "src\\simulation\\contact_recording.py": "89f611ca9f5e61a240a3b0d0f2d7533ad6d28d0a881578c363c98b9fedf00c50",
+        "src\\simulation\\engine\\mujoco_engine.py": "3ad580c11e9521156bf2a3897713de52082565e4f53b232af0edff119d9d7b42",
+        "src\\simulation\\marker_export.py": "4ff0bdf5f0692f995367ed5196c58cf8e2cbe6eac577fbcb166d54547edf40d8",
+        "src\\simulation\\mode_profiles.py": "5b32dc96feef1ce7d9bb9f1d682b59c55f8a4fc75a515d2012dc592f91c04bce",
+        "src\\utils\\simulation_metadata.py": "ebcd918ac32170e4e018bb4b9042b65131c0655c8749fab5e370ce4312d8597e",
+        "src\\simulation\\contact_comparison.py": "2d707c2a6896ee75da86dd1bdb46006f0585ef78219fca558ccd2f7af1533f84"
+      },
+      "input_sha256": {
+        "C:\\Users\\pikac\\.codex\\worktrees\\pub09-initial-contact\\BoxMotionAnalyzer\\tmp\\issue142\\demo-post-review\\protocol.json": "7f1d84522315d93eab522e813cd03b2b1b91a80105c0e16ddcaf5186e37a382d",
+        "C:\\Users\\pikac\\.codex\\worktrees\\pub09-initial-contact\\BoxMotionAnalyzer\\tmp\\issue142\\demo-post-review\\fit\\fit-result.json": "72851d2da9f49ebed8cd1c4f45221eba1d6b82330bae6126215b92d21e65412b",
+        "C:\\Users\\pikac\\.codex\\worktrees\\pub09-initial-contact\\BoxMotionAnalyzer\\tmp\\issue142\\demo-post-review\\holdout-references.json": "b72fa8dc1b69041cbf4f1f526a73650dacf388c0f0fc5d89b10c858d47c8b639",
+        "C:\\Users\\pikac\\.codex\\worktrees\\pub09-initial-contact\\BoxMotionAnalyzer\\tmp\\issue142\\demo-post-review\\holdout\\holdout-report.json": "57b304d7181fa9c0f3c5e7e6e31e14eb2f07de5aa777242894f5e0b3d1631d7a"
+      },
+      "original_reports_preserved": [
+        "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\ReviewReport-original.json",
+        "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\ReviewReport-corrected.json"
+      ],
+      "findings": [
+        {
+          "id": "D1",
+          "severity": "P1",
+          "status": "closed",
+          "function": "contact_calibration.validate_fit_result",
+          "expected": "Reject stale selected/candidate nested profile digest even when boolean equals numeric mass1",
+          "original": "AST function from8bc1faa accepted stale unselected and selected mass=True, while standalone profile validation rejected stale hash",
+          "corrected": "Both rejected before holdout; all selected/candidate profiles validated explicitly",
+          "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-controls-corrected.log"
+        },
+        {
+          "id": "D2",
+          "severity": "P2",
+          "status": "closed",
+          "function": "initial_conditions.validate_compiled_values",
+          "expected": "Compiled numeric snapshots reject boolean/string and flags keep declared type",
+          "original": "Mass=True, gravityFalse at zero, refsafety1, coneFalse and solref dampingTrue accepted; numeric string1 already raised NumPy UFuncTypeError in this environment",
+          "corrected": "All malformed variants reject with ValueError; actual compiled engine accepted",
+          "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\checks.json"
+        },
+        {
+          "id": "D3",
+          "severity": "P2",
+          "status": "closed",
+          "function": "contact_calibration._same and derived report validators",
+          "expected": "Numeric objective/report leaves and boolean report flags retain separate types",
+          "original": "Candidate endpoint weight=True, summary pass=False and whole_protocol_pass=0 all accepted after outer reseal",
+          "corrected": "All three original attacks blocked with recursive typed comparison; legitimate numeric int/float equivalence remains accepted",
+          "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta\\additional-type-controls-corrected.log"
+        }
+      ],
+      "existing_five_findings": {
+        "status": "closed; no regression found",
+        "source_truth_and_required_population": "Original6 controls on current full v2 payload all blocked",
+        "failed_budget": {
+          "required": 6,
+          "fresh": 0,
+          "failed": 1,
+          "unexecuted": 6
+        },
+        "empty_declarations": "Source/inertia/margin still rejected",
+        "observed_denominator": "Prior read-only observed report retained4 required/0 evaluable/4 not_detected/0 pass; no new production detector code in delta",
+        "evidence": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\regression-checks.json"
+      },
+      "remaining_P0_P1_P2": [],
+      "verification": {
+        "independent_tests": {
+          "passed": 95,
+          "seconds": 42.45,
+          "xml": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\pytest.xml",
+          "log": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\pytest.log"
+        },
+        "intermediate_type_guard_tests": {
+          "passed": 90,
+          "seconds": 43.34,
+          "xml": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta\\pytest.xml",
+          "scope": "Intermediate two guards before derived helper; preserved and not final source evidence"
+        },
+        "latest_fresh_holdout": {
+          "required": 2,
+          "fresh": 2,
+          "reused": 0,
+          "failed": 0,
+          "unexecuted": 0,
+          "duration_s": 18.121142900010454,
+          "source_changed": false,
+          "report": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\normal-holdout\\RunReport.json"
+        },
+        "native_reopen": "Both current fresh contact/evaluation hashes and endpoint re-extractions match their results",
+        "previous_extra_fresh_holdout": {
+          "fresh": 2,
+          "report": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta\\normal-holdout\\RunReport.json",
+          "scope": "Intermediate guard source, preserved separately; final source rerun above"
+        },
+        "regression_log": "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\regressions.log"
+      },
+      "commands": [
+        "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final_delta_controls_corrected.py",
+        "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\additional_type_controls.py",
+        [
+          "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+          "-m",
+          "src.simulation.calibration_cli",
+          "holdout",
+          "--protocol",
+          "tmp/issue142/demo-post-review/protocol.json",
+          "--fit-result",
+          "tmp/issue142/demo-post-review/fit/fit-result.json",
+          "--references",
+          "tmp/issue142/demo-post-review/holdout-references.json",
+          "--output",
+          "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\normal-holdout"
+        ],
+        "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe -m pytest -q tests/test_initial_conditions.py tests/test_contact_calibration.py --basetemp=C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\pytest-tmp --junitxml=C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\pytest.xml",
+        "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final_delta_original_five.py",
+        [
+          "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+          "-m",
+          "src.simulation.calibration_cli",
+          "fit",
+          "--protocol",
+          "tmp/issue142/demo-post-review/protocol.json",
+          "--profile",
+          "tmp/issue142/demo-post-review/base-profile.json",
+          "--references",
+          "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\partial-fit-references.json",
+          "--convergence",
+          "tmp/issue142/demo-post-review/convergence-input.json",
+          "--output",
+          "C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final-delta-corrected\\partial-fit"
+        ],
+        "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe C:\\Users\\pikac\\AppData\\Local\\Temp\\bma142-independent-review\\final_delta_regressions.py"
+      ],
+      "remaining_uncertainties": [
+        "Requested actual routing unverified as before",
+        "Numerical approval remains proposed; measured reference absent and calibration uncalibrated/pending",
+        "Observed holdout detection limitations remain0/4 evaluable; no success substitution",
+        "Prior29-fresh demo evidence is pre-final-delta source, explicitly reused only for audit inputs; latest local execution is2fresh holdout plus related tests",
+        "Final committed-source entire required CI including fresh PUB09 demo must pass before merge; prior8bc1faa CI does not satisfy corrected source gate"
+      ]
+    },
+    "independent_evidence": [
+      {
+        "path": "tmp/issue142/reviewer-final-delta/ReviewReport-final-delta.json",
+        "sha256": "8a319802b94312b0d2cddaed6bf37cd6fbfa82d6d61f2c9bed7b095de6c0f7c2"
+      },
+      {
+        "path": "tmp/issue142/reviewer-final-delta/final-delta/additional-type-controls-original.json",
+        "sha256": "71403d70dfcab1bd73e3b15599fbcdb5cc4d0a2b7caab76d1de8127d15a92d07"
+      },
+      {
+        "path": "tmp/issue142/reviewer-final-delta/final-delta-corrected/checks.json",
+        "sha256": "36e7e87512cb4697f1ad022f7e5dfc886b56d4ebb61f3283a580a1907f099d9d"
+      },
+      {
+        "path": "tmp/issue142/reviewer-final-delta/final-delta-corrected/regression-checks.json",
+        "sha256": "19f2ac80d54641b08ffabb73463a43da209dd9e3d281383ac0daed13ef34c15a"
+      },
+      {
+        "path": "tmp/issue142/reviewer-final-delta/final-delta-corrected/pytest.xml",
+        "sha256": "0b947316384c5642015152f36752201a3b0cd7067d8dc061b998c0c4a48b0126"
+      },
+      {
+        "path": "tmp/issue142/reviewer-final-delta/final-delta-corrected/normal-holdout/RunReport.json",
+        "sha256": "a43276efb4ea2fe06d59fcc61042d533d056ccb4d9ed884942e542761514622a"
+      }
+    ]
+  },
+  "prior_source_ci": {
+    "run_url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37745383961",
+    "head_sha": "8bc1faae94ab04c37e83a205648f5b89e5a59d28",
+    "conclusion": "success",
+    "scope": "prior source only; final integrity delta requires its own full CI",
+    "tests": {
+      "required": 1521,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "run_report": {
+      "path": "tmp/issue142/ci-first-evidence/issue142/calibration-diagnostics/RunReport.json",
+      "sha256": "3422f0e33854d19a628422b4beb5b45b6c0e3a01080bd910bb23f9804a095394"
+    },
+    "coverage": {
+      "required": 29,
+      "loaded": 29,
+      "fresh": 29,
+      "reused": 0,
+      "approved": 0,
+      "failed": 0,
+      "unexecuted": 0,
+      "required_reason": "frozen execution budget",
+      "cache_origin": "none",
+      "scope": "actual-engine runs; production controls run separately within case; no reused results"
+    },
+    "actual_code": {
+      "commit": "bd4270208a1d24aaec9b9c242d1a7d1505190209",
+      "dirty": [
+        "?? mesa3d-24.3.0-release-msvc.7z"
+      ]
+    },
+    "source_changed_during_execution": false,
+    "artifact": {
+      "id": 11537332948,
+      "size_in_bytes": 81036295,
+      "digest": "sha256:4958fcc95bd80b9ef9c5afced68887ddb02113c614fec1e91f4fdfc22e0c7f6c"
+    },
+    "log": {
+      "path": "tmp/issue142/ci-first.log",
+      "sha256": "91e0d6740a408a607f64632ac0193ace01bb1f04c7b829cc2d96073ca25058bf"
+    }
+  }
 }
