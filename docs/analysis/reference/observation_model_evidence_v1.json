@@ -1,0 +1,401 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "PUB10EvidenceIndex",
+  "last_reviewed": "2026-10-10",
+  "issue": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/143",
+  "parent": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/134",
+  "starting_main": "7df201cd09cf4745385b986012bd9792dbbba8be",
+  "software_status": "implemented; corrected-source full local functional execution and independent review complete; final-head CI publication gate remains required",
+  "camera_noise": "uncalibrated virtual model; not OptiTrack or Motive replication",
+  "numerical_approval": "proposed; no range, tolerance or baseline promotion",
+  "experimental": {
+    "status": "pending",
+    "issue": 104,
+    "original_experimental_n": 0
+  },
+  "agents": {
+    "main": {
+      "requested": "GPT-6.1 Sol/xhigh",
+      "runtime": "unverified; no authoritative introspection"
+    },
+    "advisor": {
+      "requested": "GPT-6 Astra/high",
+      "dispatch": "new context; explicit override accepted",
+      "runtime": "unverified",
+      "scope": "read-only contracts/literal independent experiments",
+      "evidence": "tmp/issue143/advisor"
+    },
+    "reviewer": {
+      "requested": "GPT-6.1 Sol/high",
+      "dispatch": "new context; explicit override request accepted by dispatch tool; no runtime settings echo",
+      "runtime": "unverified",
+      "scope": "read-only independent review/reproduction"
+    }
+  },
+  "legacy_baseline": {
+    "path": "tmp/issue143/legacy-before.npz",
+    "observed_arrays": 28,
+    "cases": 14,
+    "created": "before product edits; not regenerated expected results"
+  },
+  "original_failures": [
+    {
+      "path": "tmp/issue143/fresh-first",
+      "reason": "Runner passed a reopened DataFrame to a path-only result reader"
+    },
+    {
+      "path": "tmp/issue143/fresh-reader-fixed",
+      "reason": "Runner omitted production timeline/artifact context at PROC save"
+    },
+    {
+      "path": "tmp/issue143/fresh-storage-fixed",
+      "reason": "Runner supplied NumPy scalars to strict JSON profile parameters"
+    },
+    {
+      "path": "tmp/issue143/fresh-camera-fixed",
+      "reason": "Result frame validation did not accept the production Frame string representation"
+    },
+    {
+      "path": "tmp/issue143/fresh-records-fixed",
+      "reason": "Existing reviewer unavailable scalar sentinels were not serialized as finite explicit statuses"
+    },
+    {
+      "path": "tmp/issue143/advisor/grazing-results.json",
+      "reason": "Actual engine-frame roundtrip made tangent TOP markers falsely visible"
+    },
+    {
+      "path": "tmp/issue143/fresh-grazing-fixed",
+      "reason": "Runner omitted correction metadata when saving annotated slice"
+    },
+    {
+      "path": "tmp/issue143/fresh-review-record-fixed",
+      "reason": "Original annotated-slice failure rerun; separate preserved output"
+    },
+    {
+      "path": "tmp/issue143/fresh-slice-fixed",
+      "reason": "Rebinding a reused robot observation configuration was correctly rejected by existing strict sequence source checks"
+    },
+    {
+      "path": "tmp/issue143/identity-original.xml",
+      "reason": "Missing/new declaration and mismatched seed/clock were accepted"
+    },
+    {
+      "path": "tmp/issue143/legacy-time-original.xml",
+      "reason": "Empty optional metadata wrongly made unavailable legacy time an input error"
+    },
+    {
+      "path": "tmp/issue143/int64-original.xml",
+      "reason": "Frame records were rounded through float64"
+    },
+    {
+      "path": "tmp/issue143/review-original.xml",
+      "reason": "All five main-authored reviewer-integrity controls failed before correction"
+    },
+    {
+      "path": "tmp/issue143/long-header-original",
+      "reason": "Valid2500-record source header183274chars rejected by default csv131072field limit; original fixture/report/reproduction retained"
+    },
+    {
+      "path": "tmp/issue143/long-engine",
+      "reason": "Fresh single-drop settled before requested20s; declared OU window[0,20) correctly rejected as outside actual captured clock. Failed IO harness pilot, not required16-case failure"
+    },
+    {
+      "path": "tmp/issue143/long-engine-fixed",
+      "reason": "No-op fresh single-drop captured202rows, insufficient for predeclared >2000-row large-header control. Failed IO harness pilot preserved; no production executed"
+    }
+  ],
+  "local_execution": {
+    "status": "needs_review",
+    "path": "tmp/issue143/fresh-review-fixed",
+    "command": [
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+      "-m",
+      "src.simulation.observation_validation",
+      "--output",
+      "tmp/issue143/fresh-review-fixed"
+    ],
+    "report_sha256": "a6d54ebd71eba1760853e31f4d35d452d0481c69d0686c4ff63e932d12f0339a",
+    "protocol_hash": "9a148b473a76b5386630eae969f9ddf0cc3f918b9b00ab86741d30ee9cfb0a79",
+    "coverage": {
+      "required_cases": 16,
+      "executed_cases": 16,
+      "unexecuted_cases": 0,
+      "required_physics": 8,
+      "fresh_physics": 8,
+      "reused_physics_for_variants": 16,
+      "physics_attempted": 8,
+      "physics_failed": 0,
+      "required_observations": 16,
+      "fresh_observations": 16,
+      "fresh_production": 18,
+      "production_attempted": 18,
+      "production_failed": 0,
+      "observations_attempted": 16,
+      "observations_failed": 0,
+      "reused_results": 0,
+      "approved_numerical": 0,
+      "original_experimental_n": 0,
+      "unexecuted_reason": null,
+      "cache_origin": "none"
+    },
+    "endpoints": {
+      "required": 80,
+      "evaluable": 76,
+      "passed": 76,
+      "ambiguous": 1,
+      "unavailable": 3,
+      "failed": 0,
+      "functional_pass": true,
+      "accuracy_pass": false
+    },
+    "duration_s": 603.44812310001,
+    "source_changed": false
+  },
+  "checks": [
+    {
+      "path": "tmp/issue143/contracts-first.xml",
+      "passed": 172
+    },
+    {
+      "path": "tmp/issue143/expanded-first.xml",
+      "passed": 193
+    },
+    {
+      "path": "tmp/issue143/affected-first.xml",
+      "passed": 362
+    },
+    {
+      "path": "tmp/issue143/grazing-and-storage.xml",
+      "passed": 84
+    },
+    {
+      "path": "tmp/issue143/identity-fixed.xml",
+      "passed": 206
+    },
+    {
+      "path": "tmp/issue143/review-fixed.xml",
+      "passed": 279
+    }
+  ],
+  "check_count_note": "Overlapping runs; counts are not a unique-test total",
+  "native_gui": {
+    "status": "unexecuted",
+    "reason": "Actual Qt/QTest controls and widget captures verified; external Windows input/optical rendering acceptance not performed"
+  },
+  "ci": {
+    "required_job": "synthetic-integration",
+    "status": "publication gate; final-head run tracked in the PR linked from issue143",
+    "evidence_artifact": "public-validation-evidence/tmp/issue143",
+    "retention_days": 30
+  },
+  "local_before_corrections": {
+    "status": "needs_review",
+    "path": "tmp/issue143/fresh-bound-config",
+    "command": ".venv/Scripts/python.exe -m src.simulation.observation_validation --output tmp/issue143/fresh-bound-config",
+    "report_sha256": "4d53a7cf65696a0d0d0e3c9b84bf766a65fbbb5ac4461fb2045a8c05bbe34d36",
+    "protocol_hash": "9a148b473a76b5386630eae969f9ddf0cc3f918b9b00ab86741d30ee9cfb0a79",
+    "coverage": {
+      "required_cases": 16,
+      "executed_cases": 16,
+      "unexecuted_cases": 0,
+      "required_physics": 8,
+      "fresh_physics": 8,
+      "reused_physics_for_variants": 16,
+      "physics_attempted": 8,
+      "physics_failed": 0,
+      "required_observations": 16,
+      "fresh_observations": 16,
+      "fresh_production": 18,
+      "production_attempted": 18,
+      "production_failed": 0,
+      "observations_attempted": 16,
+      "observations_failed": 0,
+      "reused_results": 0,
+      "approved_numerical": 0,
+      "original_experimental_n": 0,
+      "unexecuted_reason": null,
+      "cache_origin": "none"
+    },
+    "endpoints": {
+      "required": 80,
+      "evaluable": 76,
+      "passed": 76,
+      "ambiguous": 1,
+      "unavailable": 3,
+      "failed": 0,
+      "functional_pass": true,
+      "accuracy_pass": false
+    },
+    "duration_s": 571.842120700021,
+    "source_changed": false
+  },
+  "independent_review": {
+    "original": {
+      "verdict": "request_changes",
+      "p0": 0,
+      "p1": 0,
+      "p2": 5,
+      "report": {
+        "path": "tmp/issue143/reviewer-original/report.md",
+        "sha256": "fc4eadeb52b36264804b55977d99ee184a2d9c28dd8bace9257f2bcd48615c92"
+      },
+      "tests": {
+        "observation": 90,
+        "affected": 142
+      }
+    },
+    "corrections": {
+      "verdict": "R1-R5 resolved",
+      "remaining_p0": 0,
+      "remaining_p1": 0,
+      "remaining_material_p2": 0,
+      "report": {
+        "path": "tmp/issue143/reviewer-corrections/report.md",
+        "sha256": "acd8b32de8a4845ff0388e543030d89eea9cc9e395fc09ed607ae6b77c17ab0a"
+      },
+      "tests": 236
+    },
+    "final": {
+      "verdict": "software accepted; hosted final-head CI publication gate pending",
+      "remaining_p0": 0,
+      "remaining_p1": 0,
+      "remaining_material_p2": 0,
+      "report": {
+        "path": "tmp/issue143/reviewer-corrections/final/report.md",
+        "sha256": "042cea383d354dff62bead0a42a4cae2be8aaaec753267157f7c7e7bed575c1b"
+      },
+      "results": {
+        "path": "tmp/issue143/reviewer-corrections/final/audit-results.json",
+        "sha256": "4067994863e9493642f8676156c00e06b7b1512ced988437104bb093759cce02"
+      }
+    },
+    "resolved_findings": [
+      "R1 mandatory PROC declarations",
+      "R2 declared empty capture",
+      "R3 common profile fields",
+      "R4 complete clock extrema",
+      "R5 reproducible command"
+    ],
+    "gui_footprint": "Initial reviewer Qt run regenerated four tmp/issue143/gui PNGs; original main PNG bytes not archived. Main XML preserved; current PNGs represent independent Qt rerun. Corrections/final did not mutate originals."
+  },
+  "storage_limit": {
+    "robot_proc_bytes": 143762357,
+    "rows": 1295,
+    "independent_reopen_s": 1.73,
+    "reason": "Current PROC repeats original-record metadata per row; longer-capture memory/performance unbenchmarked; no representation migration in this work"
+  },
+  "ci_attempts": [
+    {
+      "run_id": 37953999049,
+      "head": "943ea69296853da9daf6396771196b07fa27f9c3",
+      "status": "failure",
+      "reason": "Generic legacy required-field test treated optional ObservationMetadataJson as mandatory; malformed JSON expected load instead of rejection",
+      "passed_before_maxfail": 715,
+      "failed": 1,
+      "subtests_passed": 8,
+      "partial": true,
+      "original_log": "tmp/issue143/ci-first-failure.log",
+      "original_artifact": "tmp/issue143/ci-first-artifact",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37953999049"
+    },
+    {
+      "run_id": 37956884300,
+      "head": "eb7e5992d2db388fe9503853e3e1c44462220c2c",
+      "status": "success",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37956884300",
+      "scope": "Complete required workflow before additional CSV capacity product correction; not final-head publication evidence",
+      "receipt": {
+        "path": "tmp/issue143/ci-second-final.json",
+        "sha256": "7a36299cc948bd14ec7818e72c95c0281b9c12677ebd30214bfe8c4a1a243e20"
+      }
+    }
+  ],
+  "ci_test_correction": {
+    "path": "tests/test_compare_model.py",
+    "product_source_changes": 0,
+    "original": {
+      "path": "tmp/issue143/ci-local-original.xml",
+      "passed": 64,
+      "failed": 2
+    },
+    "fixed": {
+      "path": "tmp/issue143/ci-compare-fixed.xml",
+      "passed": 157,
+      "failed": 0
+    },
+    "replacement": "Five explicit legacy optional-absence/malformed rejection/PUB10 mandatory profile cases replace two invalid generic assumptions; no skips or product/threshold relaxation",
+    "independent": {
+      "verdict": "accepted",
+      "path": "tmp/issue143/reviewer-ci/report.md",
+      "sha256": "be6f2ea1b60ff7bbc34d1a6dc30b375a072f757b1385f00996603740bc31ab22",
+      "tests": 115,
+      "remaining_material_p0": 0,
+      "remaining_material_p1": 0,
+      "remaining_material_p2": 0,
+      "accepted_product_source_hashes": 88
+    },
+    "physics_note": "Product unchanged; no additional local physics counts. Updated final-head hosted CI must rerun all existing required checks and fresh PUB10 execution."
+  },
+  "large_source_io_correction": {
+    "source_change": "src/utils/artifact_metadata.py: initialize csv field capacity once; no source/schema/identity or numerical relaxation",
+    "original": {
+      "path": "tmp/issue143/long-header-original/result.json",
+      "sha256": "2b5991915ae89b4bc4a3d12215ba9969b700b1bf491122acc0bd40c8b538d351"
+    },
+    "focused_test": {
+      "path": "tmp/issue143/long-header-fixed.xml",
+      "passed": 1
+    },
+    "affected_tests": {
+      "path": "tmp/issue143/large-io-affected.xml",
+      "passed": 225,
+      "failed": 0
+    },
+    "fresh_execution": {
+      "report": {
+        "path": "tmp/issue143/long-robot-fixed/RunReport.json",
+        "sha256": "035cd5ca398a27489a3e5387c4c292c1b4a4a7e08bca32e3bee21a50e36a6df9"
+      },
+      "protocol": {
+        "path": "tmp/issue143/long-robot-fixed/protocol.json",
+        "sha256": "f04de23fd94eae38edbdb9a11ca417f089a67ed9a738a21eb46da47e6c64f24f"
+      },
+      "reproduction": {
+        "path": "tmp/issue143/long-robot-fixed/reproduction.py",
+        "sha256": "30db01478c967de89912a224e14549e36df1b95c23e1203a3ac2874117c1a251"
+      },
+      "physics_fresh": 1,
+      "observations_fresh": 1,
+      "production_fresh": 1,
+      "raw_rows": 2554,
+      "production_rows": 64,
+      "header_chars": 203259,
+      "duration_s": 20.01798130001407,
+      "status": "software_pass",
+      "old_csv_default": {
+        "status": "reproduced",
+        "error": "field larger than field limit (131072)"
+      },
+      "scope": "Separate predeclared4-release IO case; full Raw load, first64 original-record subset and production reopen; not a whole-capture PROC performance benchmark or an extra required16 trial"
+    },
+    "independent_review": {
+      "status": "accepted",
+      "tests": 165,
+      "report": {
+        "path": "tmp/issue143/reviewer-large-io/report.md",
+        "sha256": "6e4c14fe779a008904f1d342b2956f1b95fbd422c64b82a631662ce10d6cb846"
+      },
+      "results": {
+        "path": "tmp/issue143/reviewer-large-io/results.json",
+        "sha256": "af759da8cdc5dbba39703e923fc08dcc748ede4af5622b8da4c16ef0a1b3af8a"
+      },
+      "remaining_material_p0": 0,
+      "remaining_material_p1": 0,
+      "remaining_material_p2": 0,
+      "unchanged_product_sources": 87,
+      "changed_product_sources": 1
+    },
+    "publication_gate": "A new final-head complete hosted CI run is required after this product fix; earlier green heads are not final evidence"
+  }
+}

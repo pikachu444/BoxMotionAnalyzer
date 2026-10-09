@@ -12,6 +12,8 @@ class Parser:
 
     def process(self, header_info: dict[str, list[str]], raw_df: pd.DataFrame) -> pd.DataFrame:
         if raw_df.empty:
+            from src.utils.observation_metadata import validate_records
+            validate_records(header_info.get('artifact_metadata',{}),[],[])
             return pd.DataFrame()
 
         type_header = header_info.get('type', [])

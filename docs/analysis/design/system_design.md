@@ -1,6 +1,14 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-10
+
+#143 / PUB10 adds a separate opt-in virtual observation profile after the unchanged
+MuJoCo trajectory. True-pose assigned-face visibility and common group masks use
+actual timestamps; stationary OU uses actual intervals and separated RNG streams.
+Public source metadata binds opaque profile/settings and retained time/frame
+records, while sampled masks and fault truth stay evaluation-only. Existing
+DataLoader/Parser/review/PipelineController and atomic save/reopen remain the
+production route. [Contract](../reference/observation_model_contract.md).
 
 #142 / PUB09 adds opt-in seed/profile declarations, a seed-aware source adapter,
 actual compiled contact checks and frozen convergence/limited-fit/holdout APIs.

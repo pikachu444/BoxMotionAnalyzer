@@ -11,7 +11,12 @@ from .history_trajectory import history_to_trajectory
 from .marker_fixtures import validate_profile
 
 
-def fault_spec(times, settings):
+def fault_spec(times, settings, observation_profile=None):
+    if observation_profile is not None:
+        from src.utils.marker_profile_identity import PLAN_SPEC
+        result = fault_spec(times, settings)
+        return dict(result, schema_version=2, plan_spec=PLAN_SPEC,
+            observation_profile=copy.deepcopy(observation_profile))
     kind = settings.get('kind')
     if not kind:
         return dict(schema_version=1, events=[])
@@ -103,7 +108,8 @@ def generate_marker_capture(destination, profile, simulation, faults, seed, *, c
         cancelled=cancelled, progress=engine_progress)
     checkpoint()
     trajectory = history_to_trajectory(history)
-    spec = fault_spec(trajectory['time_s'], faults)
+    observation = None if config is None else config['observation_profile']['marker'].get('observation_profile')
+    spec = fault_spec(trajectory['time_s'], faults, observation)
     metadata=None if config is None else build_metadata(config,engine,history,
         route='marker_csv',run_id=simulation.get('run_id') or str(uuid4()))
     if metadata is not None:

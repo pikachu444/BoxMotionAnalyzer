@@ -1,12 +1,27 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-10
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #143 / PUB10 software implementation and independent correction review: optional virtual
+  camera/assigned-face visibility, group occlusions and stationary timestamp OU
+  through existing profile/settings/export/production save/reopen. Legacy arrays
+  and RNG, actual physics/clock, manual correction and #104 boundary are preserved.
+  Corrected-source fresh execution completed8 physics/16 observations/18 production
+  runs:80 required endpoints,76 evaluable/pass,1 ambiguous,3 unavailable,0 failed.
+  Main279 and independent236 affected checks passed; all5 original integrity/evidence
+  findings are resolved, with no material P0/P1/P2 remaining in inspected scope.
+  Final-head required CI/PR/merge remain the publication gate tracked in #143.
+  Initial CI exposed legacy optional-column test assumptions;5 explicit contract
+  cases replace2 wrong assumptions, main157 and independent115 checks passed,
+  with no product/threshold changes or skips. Original CI failure is retained.
+  See `../reference/observation_model_contract.md` and its evidence index.
+- [ ] PUB10 camera/noise calibration, proposed numerical ranges/tolerances and
+  measured accuracy remain pending separately in #104; no baseline promotion.
 - [O] #142 / PUB09 software implementation and independent correction review:
   opt-in seed/contact API, source-bound export/reopen, native convergence,
   frozen limited fit and separate holdout, production observation paths.
@@ -50,7 +65,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   confirmation is tracked in PR151. Final source f1a66c9 passed required CI37579195396;
   PR151 merged as78b6c79. Native/experimental acceptance remains separate.
   Existing single-drop and #139 source/history paths stay in production.
-  #141 is delivered separately in PR153; #142 is in progress; #143 is not started; #104 remains separate.
+  #141/#142 are delivered in PR153/154; #143 software is complete with publication
+  tracked in its issue; #104 remains separate.
   Follow-up readability change replaces debug prose with a compact card and
   Details tabs; Rotation/Motion/Drops to run labels explain actual meanings.
   Fresh actual11-state renders,49-pass affected GUI run and4-pass grip-geometry
@@ -109,7 +125,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   denied0x80070005. Original failures and Qt evidence are preserved separately.
   See `../reference/simulation_mode_contract.md` and
   `../../visualization/simulation_mode_139.md`. No whole139/native/measured
-  completion claimed. #140 ongoing; #143 not started; #104 measured validation separate;
+  completion claimed. #140/#142/#143 software delivered; #104 measured validation separate;
   #113 excluded; no baseline/tolerance/trial promotion.
 - [O] #138 / PUB05 software implementation and automatic review: user approved
   the final interactive mockup on 2026-10-06. Main implemented geometry/meaning/correspondence

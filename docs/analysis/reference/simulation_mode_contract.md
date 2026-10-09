@@ -1,6 +1,16 @@
 # Simulation mode and output contracts (PUB06 / PUB07 checkpoint)
 
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-10
+
+PUB10 optionally adds `marker.observation_profile` without changing mode/config
+schema1 or existing defaults. Public marker settings hash binds both legacy
+faults and the sealed virtual profile; full metadata retains that captured profile.
+An opaque public declaration binds model/hash/adapter/uncalibrated status.
+Standalone observations also carry original time/frame record identities through
+Raw/slice/PROC/reopen and Compare. Legacy sources without the optional declaration
+remain supported. Camera masks/fault windows and sampled truth are evaluation-only.
+Existing settings Open/Save/Apply and Marker CSV preserve this optional profile;
+the profile API/CLI supplies selection. [PUB10 contract](observation_model_contract.md).
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. New envelopes use `schema_version: 1`.
 The #140 implementation adds an explicit, source-bound `RobotExecutionPlan`

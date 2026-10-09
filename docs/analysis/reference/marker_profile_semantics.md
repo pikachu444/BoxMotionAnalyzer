@@ -1,6 +1,6 @@
 # Marker profile interpretation and compatibility — PUB05
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-10-10
 
 Plan Spec: ISTA6A-PLAN-20261001-v1
 
@@ -114,7 +114,10 @@ replay contract, never promoted to complete semantics. New corpus declarations
 also bind full profile identity to observed metadata; old approved fixture/baseline
 assets are not rewritten. #113 registration UI/integration is excluded by the
 user's decision; its name does not exclude the already delivered static #135
-adapter/source lineage. #104 is separate. #139/#143 are not implemented.
+adapter/source lineage. PUB06/PUB07 and PUB10 now preserve this identity through
+their settings and observation adapters; [PUB10](observation_model_contract.md)
+uses declared geometry/face normals, never ID spelling, for virtual visibility.
+#104 measured validation remains separate.
 
 ## Evidence state
 
