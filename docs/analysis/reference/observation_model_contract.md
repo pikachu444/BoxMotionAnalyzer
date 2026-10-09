@@ -166,6 +166,16 @@ columns are removed from PROC. Declared empty Raw/Parser inputs are corruption;
 complete captures require exact first/last times, while subsets retain original
 time/frame pairs. Shared simulation/observation profile fields must agree.
 
+CSV readers initialize the process-wide field limit once to the platform's
+accepted large integer, because a sealed long capture's original-record list
+exceeds Python CSV's default128KiB field limit. This changes parsing capacity;
+source/schema/record checks remain mandatory. A2500-record independent fixture
+and a fresh4-release robot capture (2554records,203259-character Raw header)
+reproduced the original failure. The fixed real capture loaded all records and
+retained its full source identity through a64-original-record slice, production
+processing and PROC reopen. This bounded IO check does not benchmark whole-capture
+PROC scaling or add independent trials to the fixed16-case evaluation.
+
 The current PROC format repeats the opaque original-record hash list in every
 row. The independently measured two-release robot file is143,762,357bytes for1295
 rows and reopened in1.73s on the recorded local environment. This is a known

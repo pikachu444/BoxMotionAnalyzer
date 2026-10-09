@@ -1,11 +1,25 @@
 """Public artifact identity only. Never read simulation truth or event manifests."""
+import csv
 import json
 import math
 import re
+import sys
 from dataclasses import dataclass
 
 import pandas as pd
 from src.utils.processing_settings import validate_processing_record
+
+# A sealed capture declaration includes every original record identity. Raw,
+# corrected sources and slices must read that field beyond csv's 128 KiB default.
+# All readers import this module; use one platform maximum rather than changing
+# and restoring the process-wide limit around concurrent reader operations.
+_csv_field_limit = sys.maxsize
+while True:
+    try:
+        csv.field_size_limit(_csv_field_limit)
+        break
+    except OverflowError:
+        _csv_field_limit //= 10
 
 FIELDS = (
     'SchemaVersion', 'SourceKind', 'ModelId', 'BoxLengthMm', 'BoxWidthMm',

@@ -265,3 +265,33 @@ def test_complete_extrema_match_original_clock_and_subsets_remain_supported(tmp_
     value=json.loads(artifact[FIELD]);value['clock'].update(first_s=-1.,last_s=.2);reseal(value);artifact[FIELD]=json.dumps(value)
     for complete in (False,True):
         with pytest.raises(ValueError,match='identity'):validate_records(artifact,truth()['time_s'],truth()['frame'],complete=complete)
+
+
+def test_large_valid_source_declaration_raw_slice_proc_and_corruption(tmp_path):
+    import pandas as pd
+    from src.analysis.pipeline.data_loader import DataLoader
+    from src.analysis.pipeline.artifact_io import save_slice_file,add_timeline_context_columns,save_proc_file
+    from src.utils.result_time import read_result_frame
+    count=2500;t=truth((np.arange(count)*.008).tolist())
+    root=write_observations(tmp_path/'capture',t,example_profile(),spec(observation_profile(example_profile())),143)
+    path=root/'observed.csv'
+    assert len(path.read_text().splitlines()[0])>131072
+    header,raw=DataLoader().load_csv(str(path))
+    assert len(raw)==count
+    selected=raw.iloc[:4].copy();selected.attrs['original_record_indices']=list(range(4))
+    saved=tmp_path/'selected.slice'
+    save_slice_file(filepath=str(saved),header_info=header,raw_data=selected,source_path=str(path),
+        full_start=0.,full_end=float(t['time_s'][-1]),user_start=0.,user_end=.024,pad_rows=0,box_dims=example_profile()['box_dims_mm'])
+    sh,sr=DataLoader().load_csv(str(saved))
+    assert len(sr)==4 and sh['artifact_metadata']==header['artifact_metadata']
+    frame=pd.DataFrame({'Frame':sr.iloc[:,0].astype(int).to_numpy()},index=pd.Index(sr.iloc[:,1].astype(float),name='Time'))
+    proc=tmp_path/'selected.proc'
+    save_proc_file(str(proc),add_timeline_context_columns(frame,{'artifact_metadata':json.dumps(sh['artifact_metadata'])}))
+    assert len(read_result_frame(proc))==4
+    with path.open(newline='',encoding='utf-8') as stream:rows=list(csv.reader(stream))
+    metadata_index=rows[0].index('Artifact Metadata')+1
+    artifact=json.loads(rows[0][metadata_index]);value=json.loads(artifact[FIELD]);value['seed']=False
+    reseal(value);artifact[FIELD]=json.dumps(value);rows[0][metadata_index]=json.dumps(artifact)
+    broken=tmp_path/'corrupt-large.csv'
+    with broken.open('w',newline='',encoding='utf-8') as stream:csv.writer(stream).writerows(rows)
+    with pytest.raises(ValueError):DataLoader().load_csv(str(broken))

@@ -91,6 +91,18 @@
     {
       "path": "tmp/issue143/review-original.xml",
       "reason": "All five main-authored reviewer-integrity controls failed before correction"
+    },
+    {
+      "path": "tmp/issue143/long-header-original",
+      "reason": "Valid2500-record source header183274chars rejected by default csv131072field limit; original fixture/report/reproduction retained"
+    },
+    {
+      "path": "tmp/issue143/long-engine",
+      "reason": "Fresh single-drop settled before requested20s; declared OU window[0,20) correctly rejected as outside actual captured clock. Failed IO harness pilot, not required16-case failure"
+    },
+    {
+      "path": "tmp/issue143/long-engine-fixed",
+      "reason": "No-op fresh single-drop captured202rows, insufficient for predeclared >2000-row large-header control. Failed IO harness pilot preserved; no production executed"
     }
   ],
   "local_execution": {
@@ -286,6 +298,17 @@
       "original_log": "tmp/issue143/ci-first-failure.log",
       "original_artifact": "tmp/issue143/ci-first-artifact",
       "url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37953999049"
+    },
+    {
+      "run_id": 37956884300,
+      "head": "eb7e5992d2db388fe9503853e3e1c44462220c2c",
+      "status": "success",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37956884300",
+      "scope": "Complete required workflow before additional CSV capacity product correction; not final-head publication evidence",
+      "receipt": {
+        "path": "tmp/issue143/ci-second-final.json",
+        "sha256": "7a36299cc948bd14ec7818e72c95c0281b9c12677ebd30214bfe8c4a1a243e20"
+      }
     }
   ],
   "ci_test_correction": {
@@ -313,5 +336,66 @@
       "accepted_product_source_hashes": 88
     },
     "physics_note": "Product unchanged; no additional local physics counts. Updated final-head hosted CI must rerun all existing required checks and fresh PUB10 execution."
+  },
+  "large_source_io_correction": {
+    "source_change": "src/utils/artifact_metadata.py: initialize csv field capacity once; no source/schema/identity or numerical relaxation",
+    "original": {
+      "path": "tmp/issue143/long-header-original/result.json",
+      "sha256": "2b5991915ae89b4bc4a3d12215ba9969b700b1bf491122acc0bd40c8b538d351"
+    },
+    "focused_test": {
+      "path": "tmp/issue143/long-header-fixed.xml",
+      "passed": 1
+    },
+    "affected_tests": {
+      "path": "tmp/issue143/large-io-affected.xml",
+      "passed": 225,
+      "failed": 0
+    },
+    "fresh_execution": {
+      "report": {
+        "path": "tmp/issue143/long-robot-fixed/RunReport.json",
+        "sha256": "035cd5ca398a27489a3e5387c4c292c1b4a4a7e08bca32e3bee21a50e36a6df9"
+      },
+      "protocol": {
+        "path": "tmp/issue143/long-robot-fixed/protocol.json",
+        "sha256": "f04de23fd94eae38edbdb9a11ca417f089a67ed9a738a21eb46da47e6c64f24f"
+      },
+      "reproduction": {
+        "path": "tmp/issue143/long-robot-fixed/reproduction.py",
+        "sha256": "30db01478c967de89912a224e14549e36df1b95c23e1203a3ac2874117c1a251"
+      },
+      "physics_fresh": 1,
+      "observations_fresh": 1,
+      "production_fresh": 1,
+      "raw_rows": 2554,
+      "production_rows": 64,
+      "header_chars": 203259,
+      "duration_s": 20.01798130001407,
+      "status": "software_pass",
+      "old_csv_default": {
+        "status": "reproduced",
+        "error": "field larger than field limit (131072)"
+      },
+      "scope": "Separate predeclared4-release IO case; full Raw load, first64 original-record subset and production reopen; not a whole-capture PROC performance benchmark or an extra required16 trial"
+    },
+    "independent_review": {
+      "status": "accepted",
+      "tests": 165,
+      "report": {
+        "path": "tmp/issue143/reviewer-large-io/report.md",
+        "sha256": "6e4c14fe779a008904f1d342b2956f1b95fbd422c64b82a631662ce10d6cb846"
+      },
+      "results": {
+        "path": "tmp/issue143/reviewer-large-io/results.json",
+        "sha256": "af759da8cdc5dbba39703e923fc08dcc748ede4af5622b8da4c16ef0a1b3af8a"
+      },
+      "remaining_material_p0": 0,
+      "remaining_material_p1": 0,
+      "remaining_material_p2": 0,
+      "unchanged_product_sources": 87,
+      "changed_product_sources": 1
+    },
+    "publication_gate": "A new final-head complete hosted CI run is required after this product fix; earlier green heads are not final evidence"
   }
 }
