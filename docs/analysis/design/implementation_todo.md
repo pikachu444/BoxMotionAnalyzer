@@ -16,6 +16,9 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   Main279 and independent236 affected checks passed; all5 original integrity/evidence
   findings are resolved, with no material P0/P1/P2 remaining in inspected scope.
   Final-head required CI/PR/merge remain the publication gate tracked in #143.
+  Initial CI exposed legacy optional-column test assumptions;5 explicit contract
+  cases replace2 wrong assumptions, main157 and independent115 checks passed,
+  with no product/threshold changes or skips. Original CI failure is retained.
   See `../reference/observation_model_contract.md` and its evidence index.
 - [ ] PUB10 camera/noise calibration, proposed numerical ranges/tolerances and
   measured accuracy remain pending separately in #104; no baseline promotion.

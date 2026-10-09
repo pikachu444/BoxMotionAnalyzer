@@ -29,7 +29,7 @@ def test_compatible_baseline_differences_and_time_alignment(tmp_path):
     assert model.baseline_name == first
 
 
-@pytest.mark.parametrize('field', [f for f in FIELDS if f not in {'GeneratorVersion','SimulationMetadataJson'}])
+@pytest.mark.parametrize('field', [f for f in FIELDS if f not in {'GeneratorVersion','SimulationMetadataJson','ObservationMetadataJson'}])
 def test_each_required_field_mismatch_or_missing_excludes(tmp_path, field):
     model = ComparisonModel()
     model.load_file(str(write_proc(tmp_path / 'baseline.proc')))
@@ -41,7 +41,7 @@ def test_each_required_field_mismatch_or_missing_excludes(tmp_path, field):
     assert model.get_summary_differences()[name]['diffs']['BetaAtT1MinusDeg'] is None
 
 
-@pytest.mark.parametrize('field', [f for f in FIELDS if f not in {'GeneratorVersion','SimulationMetadataJson'}])
+@pytest.mark.parametrize('field', [f for f in FIELDS if f not in {'GeneratorVersion','SimulationMetadataJson','ObservationMetadataJson'}])
 def test_single_changed_identity_key_excludes(tmp_path, field):
     model = ComparisonModel()
     model.load_file(str(write_proc(tmp_path / 'baseline.proc')))
@@ -52,6 +52,48 @@ def test_single_changed_identity_key_excludes(tmp_path, field):
     df.to_csv(path, index=False)
     name = model.load_file(str(path))
     assert any(field in reason for reason in model.exclusion_reasons(name))
+
+
+@pytest.mark.parametrize('field',['SimulationMetadataJson','ObservationMetadataJson'])
+def test_legacy_optional_declaration_absence_keeps_comparison_compatible(tmp_path,field):
+    model=ComparisonModel();model.load_file(str(write_proc(tmp_path/'baseline.proc')))
+    path=write_proc(tmp_path/'without-optional.proc')
+    df=pd.read_csv(path,header=[0,1,2]).drop(columns=[('Info','Artifact',field)])
+    df.to_csv(path,index=False)
+    name=model.load_file(str(path))
+    assert model.exclusion_reasons(name)==[]
+    assert model.get_summary_differences()[name]['diffs']['BetaAtT1MinusDeg']==0.
+
+
+@pytest.mark.parametrize('field',['SimulationMetadataJson','ObservationMetadataJson'])
+def test_malformed_optional_declaration_rejected_atomically(tmp_path,field):
+    model=ComparisonModel();baseline=model.load_file(str(write_proc(tmp_path/'baseline.proc')))
+    path=write_proc(tmp_path/'bad-declaration.proc');df=pd.read_csv(path,header=[0,1,2])
+    df[('Info','Artifact',field)]='different-contract';df.to_csv(path,index=False)
+    with pytest.raises(ValueError):model.load_file(str(path))
+    assert list(model.datasets)==[baseline] and model.baseline_name==baseline
+
+
+def test_pub10_required_declaration_and_profile_compatibility_remain_strict(tmp_path):
+    from src.simulation.marker_fixtures import example_profile
+    from src.simulation.observation_profile import observation_profile
+    from src.simulation.corruption_export import write_observations
+    from src.analysis.pipeline.data_loader import DataLoader
+    from test_observation_profile import truth,spec
+    def capture(name):
+        t=truth();t['frame']=[100,104,108,112]
+        p=observation_profile(example_profile(),profile_id=name)
+        root=write_observations(tmp_path/(name+'-capture'),t,example_profile(),spec(p),42)
+        artifact=DataLoader().load_csv(str(root/'observed.csv'))[0]['artifact_metadata']
+        return write_proc(tmp_path/(name+'.proc'),times=t['time_s'],t1=.01,metadata=artifact)
+    model=ComparisonModel();path=capture('base');baseline=model.load_file(str(path))
+    other=model.load_file(str(capture('other')))
+    assert any('Virtual observation profile/settings differ' in r for r in model.exclusion_reasons(other))
+    assert model.get_summary_differences()[other]['diffs']['BetaAtT1MinusDeg'] is None
+    broken=pd.read_csv(path,header=[0,1,2]).drop(columns=[('Info','Artifact','ObservationMetadataJson')])
+    broken_path=tmp_path/'missing-pub10.proc';broken.to_csv(broken_path,index=False)
+    with pytest.raises(ValueError,match='declaration is required'):model.load_file(str(broken_path))
+    assert list(model.datasets)==[baseline,other]
 
 
 @pytest.mark.parametrize('source', ['real', 'public_external', 'mujoco_synthetic', 'unknown_legacy'])

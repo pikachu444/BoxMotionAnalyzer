@@ -272,5 +272,46 @@
     "rows": 1295,
     "independent_reopen_s": 1.73,
     "reason": "Current PROC repeats original-record metadata per row; longer-capture memory/performance unbenchmarked; no representation migration in this work"
+  },
+  "ci_attempts": [
+    {
+      "run_id": 37953999049,
+      "head": "943ea69296853da9daf6396771196b07fa27f9c3",
+      "status": "failure",
+      "reason": "Generic legacy required-field test treated optional ObservationMetadataJson as mandatory; malformed JSON expected load instead of rejection",
+      "passed_before_maxfail": 715,
+      "failed": 1,
+      "subtests_passed": 8,
+      "partial": true,
+      "original_log": "tmp/issue143/ci-first-failure.log",
+      "original_artifact": "tmp/issue143/ci-first-artifact",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/37953999049"
+    }
+  ],
+  "ci_test_correction": {
+    "path": "tests/test_compare_model.py",
+    "product_source_changes": 0,
+    "original": {
+      "path": "tmp/issue143/ci-local-original.xml",
+      "passed": 64,
+      "failed": 2
+    },
+    "fixed": {
+      "path": "tmp/issue143/ci-compare-fixed.xml",
+      "passed": 157,
+      "failed": 0
+    },
+    "replacement": "Five explicit legacy optional-absence/malformed rejection/PUB10 mandatory profile cases replace two invalid generic assumptions; no skips or product/threshold relaxation",
+    "independent": {
+      "verdict": "accepted",
+      "path": "tmp/issue143/reviewer-ci/report.md",
+      "sha256": "be6f2ea1b60ff7bbc34d1a6dc30b375a072f757b1385f00996603740bc31ab22",
+      "tests": 115,
+      "remaining_material_p0": 0,
+      "remaining_material_p1": 0,
+      "remaining_material_p2": 0,
+      "accepted_product_source_hashes": 88
+    },
+    "physics_note": "Product unchanged; no additional local physics counts. Updated final-head hosted CI must rerun all existing required checks and fresh PUB10 execution."
   }
 }
