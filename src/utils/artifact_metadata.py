@@ -13,7 +13,7 @@ FIELDS = (
     'MarkerLayoutHash', 'ProcessingSemanticsVersion', 'CoordinatePolicy',
     'UnitsPolicy', 'GeneratorVersion', 'ProcessingSettingsJson',
     'MarkerProfileIdentityJson', 'MarkerGeometryHash', 'MarkerSemanticsVersion', 'MarkerSemanticsHash',
-    'SimulationMetadataJson',
+    'SimulationMetadataJson', 'ObservationMetadataJson',
 )
 DIMENSIONS = ('BoxLengthMm', 'BoxWidthMm', 'BoxHeightMm')
 SOURCE_KINDS = {'real', 'public_external', 'mujoco_synthetic', 'handcrafted_dummy', 'unknown_legacy'}
@@ -105,7 +105,7 @@ class ArtifactIdentity:
         reasons = list(self.errors)
         for field in FIELDS:
             value = self.values.get(field)
-            if field == 'SimulationMetadataJson':
+            if field in ('SimulationMetadataJson','ObservationMetadataJson'):
                 # Legacy/real sources never acquire a mode by guessing. Existing
                 # eligibility remains governed by their original declarations.
                 continue
@@ -180,7 +180,7 @@ def compatibility_reasons(baseline, candidate):
     reasons += marker_reasons
     for field in FIELDS:
         # Generator builds may differ if the explicit processing/units/schema contracts match.
-        if field in {'GeneratorVersion','SimulationMetadataJson'}:
+        if field in {'GeneratorVersion','SimulationMetadataJson','ObservationMetadataJson'}:
             continue
         if equivalent and field in {'MarkerLayoutId', 'MarkerLayoutHash', 'MarkerProfileIdentityJson'}:
             continue
@@ -192,6 +192,14 @@ def compatibility_reasons(baseline, candidate):
             else:
                 reasons.append(f'{field}: mismatch ({baseline.values.get(field)!r} / {candidate.values.get(field)!r})')
     from src.utils.simulation_metadata import compatibility_reasons as simulation_compatibility
+    from src.utils.observation_metadata import artifact_observation
+    try:
+        a,b=artifact_observation(baseline.values),artifact_observation(candidate.values)
+        if (a is None)!=(b is None):reasons.append('Virtual observation model unavailable in one source')
+        elif a is not None and any(a[k]!=b[k] for k in ('model','profile_hash','adapter','settings_hash')):
+            reasons.append('Virtual observation profile/settings differ')
+    except (ValueError,TypeError,KeyError) as error:
+        reasons.append('Observation metadata: '+str(error))
     try:
         reasons += simulation_compatibility(baseline.values,candidate.values)
     except (ValueError,TypeError,KeyError) as error:

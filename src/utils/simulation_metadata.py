@@ -64,6 +64,13 @@ def public_configuration(config):
         result['initial_condition']=dict(content_hash=s['content_hash'],mode=s['mode'],
             clock_policy=s['clock_policy'],reference_time_s=s['reference_time_s'],prehistory=s['prehistory'])
     if 'contact_profile' in config:result['contact_profile']=deepcopy(config['contact_profile'])
+    if 'observation_profile' in marker:
+        virtual = marker['observation_profile']
+        public_marker = result['observation_profile']['marker']
+        public_marker['settings_hash'] = digest(dict(faults=marker['faults'], observation_profile=virtual))
+        public_marker['observation_model'] = envelope('VirtualObservationDeclaration',
+            model=virtual['model'], profile_id=virtual['profile_id'], content_hash=virtual['content_hash'],
+            adapter=virtual['adapter'], calibration_status='uncalibrated', details='evaluation-only')
     return result
 
 
@@ -271,8 +278,19 @@ def validate_public(value,artifact=None):
     number(corner.get('std_mm'),'Corner noise',minimum=.01,maximum=100);seed(corner.get('seed'))
     marker=observation.get('marker')
     if not isinstance(marker,dict) or marker.get('corruption_details')!='evaluation-only':raise ValueError('Simulation observation truth isolation is required.')
-    if set(marker)!={'profile_id','profile_hash','geometry_hash','semantic_hash','observation_mapping_hash','settings_hash','seed','corruption_details'}:
+    if set(marker)-{'observation_model'}!={'profile_id','profile_hash','geometry_hash','semantic_hash','observation_mapping_hash','settings_hash','seed','corruption_details'}:
         raise ValueError('Unexpected marker declaration; injected fault details are evaluation-only.')
+    if 'observation_model' in marker:
+        from src.simulation.observation_profile import MODEL, ADAPTERS
+        virtual = marker['observation_model']
+        validate_envelope(virtual, 'VirtualObservationDeclaration')
+        if (set(virtual) != {'schema_version','plan_spec','object_type','model','profile_id','content_hash',
+                'adapter','calibration_status','details'} or virtual['model'] != MODEL
+                or virtual['adapter'] not in ADAPTERS or virtual['calibration_status'] != 'uncalibrated'
+                or virtual['details'] != 'evaluation-only'):
+            raise ValueError('Unsupported virtual observation declaration; fault truth is private.')
+        _text(virtual['profile_id'], 'Virtual observation profile ID')
+        _hash(virtual['content_hash'], 'Virtual observation identity')
     _text(marker.get('profile_id'),'Marker profile ID');seed(marker.get('seed'))
     if value['seed']!=(corner['seed'] if value['route']=='direct_proc' else marker['seed']):raise ValueError('Simulation output seed mismatch.')
     for key in ('profile_hash','geometry_hash','semantic_hash','observation_mapping_hash','settings_hash'):_hash(marker.get(key),'Marker '+key)
@@ -429,8 +447,25 @@ def validate_full(value):
 
 
 def artifact_simulation(artifact):
+    from src.utils.observation_metadata import artifact_observation
+    observation=artifact_observation(artifact)
     declaration=artifact.get(FIELD)
-    return None if declaration is None or declaration=='' else validate_public(declaration,artifact)
+    simulation=None if declaration is None or declaration=='' else validate_public(declaration,artifact)
+    if (simulation is not None and simulation['route']=='marker_csv'
+            and 'observation_model' in simulation['configuration']['observation_profile']['marker']
+            and observation is None):
+        raise ValueError('Captured virtual observation declaration is missing.')
+    if observation is not None and simulation is not None:
+        marker=simulation['configuration']['observation_profile']['marker']
+        model=marker.get('observation_model')
+        shared=('model','profile_id','adapter','calibration_status','details')
+        if (model is None or model['content_hash']!=observation['profile_hash']
+                or any(model[k]!=observation[k] for k in shared)):
+            raise ValueError('Observation/simulation profile declaration mismatch.')
+        if observation['seed']!=simulation['seed'] or any(observation['clock'][k]!=simulation['clock'][k]
+                for k in ('samples','first_s','last_s','recorded_time_hash')):
+            raise ValueError('Observation/simulation seed or clock mismatch.')
+    return simulation
 
 
 def validate_recorded_times(declaration,times,*,complete=False):

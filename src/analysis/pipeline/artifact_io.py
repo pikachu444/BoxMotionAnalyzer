@@ -893,12 +893,20 @@ def save_proc_file(filepath: str, processed_df: pd.DataFrame) -> None:
         processed_df['Artifact_ProcessingSettingsJson'] = settings
     export_df = convert_to_multi_header(processed_df)
     from src.utils.simulation_metadata import FIELD,artifact_simulation
+    from src.utils.observation_metadata import FIELD as OBSERVATION_FIELD, artifact_observation, validate_records
     from src.utils.artifact_metadata import read_identity
-    if any(col==('Info','Artifact',FIELD) for col in export_df.columns):
-        identity=read_identity(export_df)
-        if any(error.startswith(FIELD+':') for error in identity.errors):
-            raise ValueError('Simulation metadata must be a single constant declaration.')
-        artifact_simulation(identity.values)
+    identity=read_identity(export_df)
+    for field in (FIELD,OBSERVATION_FIELD,'GeneratorVersion'):
+        if any(error.startswith(field+':') for error in identity.errors):
+            raise ValueError(field+' must be a single constant declaration.')
+    artifact_simulation(identity.values)
+    if artifact_observation(identity.values) is not None:
+        from src.utils.result_time import time_values
+        times,error=time_values(export_df)
+        if error:raise ValueError(error)
+        frames=export_df[('Info','Frame','Frame')] if ('Info','Frame','Frame') in export_df.columns else None
+        if frames is None:raise ValueError('Observation result requires original frame records.')
+        validate_records(identity.values,times,frames)
     target_path = Path(filepath).resolve()
     temporary_path = None
     try:

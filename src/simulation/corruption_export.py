@@ -57,6 +57,9 @@ def _observation_artifact(result,profile,simulation_metadata=None):
     }
     from src.utils.marker_profile_identity import artifact_fields
     artifact.update(artifact_fields(profile))
+    if 'observation_evidence' in result['manifest']:
+        from src.utils.observation_metadata import FIELD,build
+        artifact[FIELD]=json.dumps(build(result),sort_keys=True,separators=(',',':'),allow_nan=False)
     if simulation_metadata is not None:
         from src.utils.simulation_metadata import FIELD,validate_public
         from src.utils.artifact_metadata import normalize_metadata
@@ -141,7 +144,8 @@ def write_observations(directory, truth_trajectory, marker_profile, corruption_s
         clock=declaration['clock']
         validate_recorded_times(declaration,result['time_s'],complete=True)
         marker=simulation_metadata['source_configuration']['observation_profile']['marker']
-        if marker_profile!=marker['profile'] or corruption_spec!=fault_spec(result['time_s'],marker['faults']):
+        if (marker_profile!=marker['profile'] or corruption_spec!=fault_spec(result['time_s'],marker['faults'],
+                marker.get('observation_profile'))):
             raise ValueError('Actual marker profile/corruption settings differ from simulation metadata.')
         release=simulation_metadata['release_state']
         transform=np.asarray(declaration['transforms']['engine_to_output_world'])
@@ -171,7 +175,7 @@ def write_observations(directory, truth_trajectory, marker_profile, corruption_s
     manifest.update(input_sha256=input_hashes, com_available=result['com_mm'] is not None,
         files={name: _digest(root / name) for name in ('observed.csv', 'truth_pose.csv', 'truth_markers.csv')},
         source_sha256={name: _digest(Path(__file__).parent / name)
-                       for name in ('marker_corruption.py', 'corruption_export.py', 'marker_fixtures.py')},
+                       for name in ('marker_corruption.py', 'corruption_export.py', 'marker_fixtures.py', 'observation_profile.py')},
         observed_contract='Separate Marker physical positions and Rigid Body Marker solved constraints. '
                           'Physical faults do not model a Motive solver response.',
         completion='complete')

@@ -1,6 +1,13 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-10
+
+#143 / PUB10 adds opt-in virtual camera/group visibility and stationary OU noise
+through profile API/CLI and existing settings/export/open controls. Production
+review/processing and saved result reopening consume observed channels only.
+Correction stays OFF until explicit approval. Physical-only visibility is reference
+information; the solved-mask adapter is declared virtual and uncalibrated.
+[Usage and contract](../reference/observation_model_contract.md).
 
 #142 / PUB09 adds API/CLI explicit initial conditions, contact profiles and
 frozen fit/holdout diagnostics. Existing GUI controls/Step 1/1.5/2 remain;

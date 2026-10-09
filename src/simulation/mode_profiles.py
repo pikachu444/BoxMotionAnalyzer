@@ -136,10 +136,16 @@ def validate_config(config):
         raise ValueError('Corner noise enabled must be boolean.')
     number(corner.get('std_mm'), 'Corner noise standard deviation', minimum=.01, maximum=100)
     seed(corner.get('seed'))
-    if (not isinstance(marker, dict) or set(marker)!={'profile','identity','document','seed','use_layout_box','faults'}
+    if (not isinstance(marker, dict) or set(marker)-{'observation_profile'}!={'profile','identity','document','seed','use_layout_box','faults'}
             or type(marker.get('use_layout_box')) is not bool):
         raise ValueError('Marker layout dimension choice must be boolean.')
     identity = profile_identity(marker.get('profile'))
+    if 'observation_profile' in marker:
+        from .observation_profile import validate_observation_profile
+        observation_model = validate_observation_profile(marker['observation_profile'], marker['profile'])
+        for item in observation_model['occlusions'] + observation_model['noise']:
+            if not 0 <= item['start_s'] < item['end_s'] <= config['duration_s']:
+                raise ValueError('Observation window must stay within captured simulation duration.')
     validate_identity(marker.get('identity'))
     if identity != marker['identity']:
         raise ValueError('Stale marker profile identity.')

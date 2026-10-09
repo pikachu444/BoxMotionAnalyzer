@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "PUB10EvidenceIndex",
+  "last_reviewed": "2026-10-10",
+  "issue": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/143",
+  "parent": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/134",
+  "starting_main": "7df201cd09cf4745385b986012bd9792dbbba8be",
+  "software_status": "implemented; corrected-source full local functional execution and independent review complete; final-head CI publication gate remains required",
+  "camera_noise": "uncalibrated virtual model; not OptiTrack or Motive replication",
+  "numerical_approval": "proposed; no range, tolerance or baseline promotion",
+  "experimental": {
+    "status": "pending",
+    "issue": 104,
+    "original_experimental_n": 0
+  },
+  "agents": {
+    "main": {
+      "requested": "GPT-6.1 Sol/xhigh",
+      "runtime": "unverified; no authoritative introspection"
+    },
+    "advisor": {
+      "requested": "GPT-6 Astra/high",
+      "dispatch": "new context; explicit override accepted",
+      "runtime": "unverified",
+      "scope": "read-only contracts/literal independent experiments",
+      "evidence": "tmp/issue143/advisor"
+    },
+    "reviewer": {
+      "requested": "GPT-6.1 Sol/high",
+      "dispatch": "new context; explicit override request accepted by dispatch tool; no runtime settings echo",
+      "runtime": "unverified",
+      "scope": "read-only independent review/reproduction"
+    }
+  },
+  "legacy_baseline": {
+    "path": "tmp/issue143/legacy-before.npz",
+    "observed_arrays": 28,
+    "cases": 14,
+    "created": "before product edits; not regenerated expected results"
+  },
+  "original_failures": [
+    {
+      "path": "tmp/issue143/fresh-first",
+      "reason": "Runner passed a reopened DataFrame to a path-only result reader"
+    },
+    {
+      "path": "tmp/issue143/fresh-reader-fixed",
+      "reason": "Runner omitted production timeline/artifact context at PROC save"
+    },
+    {
+      "path": "tmp/issue143/fresh-storage-fixed",
+      "reason": "Runner supplied NumPy scalars to strict JSON profile parameters"
+    },
+    {
+      "path": "tmp/issue143/fresh-camera-fixed",
+      "reason": "Result frame validation did not accept the production Frame string representation"
+    },
+    {
+      "path": "tmp/issue143/fresh-records-fixed",
+      "reason": "Existing reviewer unavailable scalar sentinels were not serialized as finite explicit statuses"
+    },
+    {
+      "path": "tmp/issue143/advisor/grazing-results.json",
+      "reason": "Actual engine-frame roundtrip made tangent TOP markers falsely visible"
+    },
+    {
+      "path": "tmp/issue143/fresh-grazing-fixed",
+      "reason": "Runner omitted correction metadata when saving annotated slice"
+    },
+    {
+      "path": "tmp/issue143/fresh-review-record-fixed",
+      "reason": "Original annotated-slice failure rerun; separate preserved output"
+    },
+    {
+      "path": "tmp/issue143/fresh-slice-fixed",
+      "reason": "Rebinding a reused robot observation configuration was correctly rejected by existing strict sequence source checks"
+    },
+    {
+      "path": "tmp/issue143/identity-original.xml",
+      "reason": "Missing/new declaration and mismatched seed/clock were accepted"
+    },
+    {
+      "path": "tmp/issue143/legacy-time-original.xml",
+      "reason": "Empty optional metadata wrongly made unavailable legacy time an input error"
+    },
+    {
+      "path": "tmp/issue143/int64-original.xml",
+      "reason": "Frame records were rounded through float64"
+    },
+    {
+      "path": "tmp/issue143/review-original.xml",
+      "reason": "All five main-authored reviewer-integrity controls failed before correction"
+    }
+  ],
+  "local_execution": {
+    "status": "needs_review",
+    "path": "tmp/issue143/fresh-review-fixed",
+    "command": [
+      "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+      "-m",
+      "src.simulation.observation_validation",
+      "--output",
+      "tmp/issue143/fresh-review-fixed"
+    ],
+    "report_sha256": "a6d54ebd71eba1760853e31f4d35d452d0481c69d0686c4ff63e932d12f0339a",
+    "protocol_hash": "9a148b473a76b5386630eae969f9ddf0cc3f918b9b00ab86741d30ee9cfb0a79",
+    "coverage": {
+      "required_cases": 16,
+      "executed_cases": 16,
+      "unexecuted_cases": 0,
+      "required_physics": 8,
+      "fresh_physics": 8,
+      "reused_physics_for_variants": 16,
+      "physics_attempted": 8,
+      "physics_failed": 0,
+      "required_observations": 16,
+      "fresh_observations": 16,
+      "fresh_production": 18,
+      "production_attempted": 18,
+      "production_failed": 0,
+      "observations_attempted": 16,
+      "observations_failed": 0,
+      "reused_results": 0,
+      "approved_numerical": 0,
+      "original_experimental_n": 0,
+      "unexecuted_reason": null,
+      "cache_origin": "none"
+    },
+    "endpoints": {
+      "required": 80,
+      "evaluable": 76,
+      "passed": 76,
+      "ambiguous": 1,
+      "unavailable": 3,
+      "failed": 0,
+      "functional_pass": true,
+      "accuracy_pass": false
+    },
+    "duration_s": 603.44812310001,
+    "source_changed": false
+  },
+  "checks": [
+    {
+      "path": "tmp/issue143/contracts-first.xml",
+      "passed": 172
+    },
+    {
+      "path": "tmp/issue143/expanded-first.xml",
+      "passed": 193
+    },
+    {
+      "path": "tmp/issue143/affected-first.xml",
+      "passed": 362
+    },
+    {
+      "path": "tmp/issue143/grazing-and-storage.xml",
+      "passed": 84
+    },
+    {
+      "path": "tmp/issue143/identity-fixed.xml",
+      "passed": 206
+    },
+    {
+      "path": "tmp/issue143/review-fixed.xml",
+      "passed": 279
+    }
+  ],
+  "check_count_note": "Overlapping runs; counts are not a unique-test total",
+  "native_gui": {
+    "status": "unexecuted",
+    "reason": "Actual Qt/QTest controls and widget captures verified; external Windows input/optical rendering acceptance not performed"
+  },
+  "ci": {
+    "required_job": "synthetic-integration",
+    "status": "publication gate; final-head run tracked in the PR linked from issue143",
+    "evidence_artifact": "public-validation-evidence/tmp/issue143",
+    "retention_days": 30
+  },
+  "local_before_corrections": {
+    "status": "needs_review",
+    "path": "tmp/issue143/fresh-bound-config",
+    "command": ".venv/Scripts/python.exe -m src.simulation.observation_validation --output tmp/issue143/fresh-bound-config",
+    "report_sha256": "4d53a7cf65696a0d0d0e3c9b84bf766a65fbbb5ac4461fb2045a8c05bbe34d36",
+    "protocol_hash": "9a148b473a76b5386630eae969f9ddf0cc3f918b9b00ab86741d30ee9cfb0a79",
+    "coverage": {
+      "required_cases": 16,
+      "executed_cases": 16,
+      "unexecuted_cases": 0,
+      "required_physics": 8,
+      "fresh_physics": 8,
+      "reused_physics_for_variants": 16,
+      "physics_attempted": 8,
+      "physics_failed": 0,
+      "required_observations": 16,
+      "fresh_observations": 16,
+      "fresh_production": 18,
+      "production_attempted": 18,
+      "production_failed": 0,
+      "observations_attempted": 16,
+      "observations_failed": 0,
+      "reused_results": 0,
+      "approved_numerical": 0,
+      "original_experimental_n": 0,
+      "unexecuted_reason": null,
+      "cache_origin": "none"
+    },
+    "endpoints": {
+      "required": 80,
+      "evaluable": 76,
+      "passed": 76,
+      "ambiguous": 1,
+      "unavailable": 3,
+      "failed": 0,
+      "functional_pass": true,
+      "accuracy_pass": false
+    },
+    "duration_s": 571.842120700021,
+    "source_changed": false
+  },
+  "independent_review": {
+    "original": {
+      "verdict": "request_changes",
+      "p0": 0,
+      "p1": 0,
+      "p2": 5,
+      "report": {
+        "path": "tmp/issue143/reviewer-original/report.md",
+        "sha256": "fc4eadeb52b36264804b55977d99ee184a2d9c28dd8bace9257f2bcd48615c92"
+      },
+      "tests": {
+        "observation": 90,
+        "affected": 142
+      }
+    },
+    "corrections": {
+      "verdict": "R1-R5 resolved",
+      "remaining_p0": 0,
+      "remaining_p1": 0,
+      "remaining_material_p2": 0,
+      "report": {
+        "path": "tmp/issue143/reviewer-corrections/report.md",
+        "sha256": "acd8b32de8a4845ff0388e543030d89eea9cc9e395fc09ed607ae6b77c17ab0a"
+      },
+      "tests": 236
+    },
+    "final": {
+      "verdict": "software accepted; hosted final-head CI publication gate pending",
+      "remaining_p0": 0,
+      "remaining_p1": 0,
+      "remaining_material_p2": 0,
+      "report": {
+        "path": "tmp/issue143/reviewer-corrections/final/report.md",
+        "sha256": "042cea383d354dff62bead0a42a4cae2be8aaaec753267157f7c7e7bed575c1b"
+      },
+      "results": {
+        "path": "tmp/issue143/reviewer-corrections/final/audit-results.json",
+        "sha256": "4067994863e9493642f8676156c00e06b7b1512ced988437104bb093759cce02"
+      }
+    },
+    "resolved_findings": [
+      "R1 mandatory PROC declarations",
+      "R2 declared empty capture",
+      "R3 common profile fields",
+      "R4 complete clock extrema",
+      "R5 reproducible command"
+    ],
+    "gui_footprint": "Initial reviewer Qt run regenerated four tmp/issue143/gui PNGs; original main PNG bytes not archived. Main XML preserved; current PNGs represent independent Qt rerun. Corrections/final did not mutate originals."
+  },
+  "storage_limit": {
+    "robot_proc_bytes": 143762357,
+    "rows": 1295,
+    "independent_reopen_s": 1.73,
+    "reason": "Current PROC repeats original-record metadata per row; longer-capture memory/performance unbenchmarked; no representation migration in this work"
+  }
+}

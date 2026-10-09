@@ -57,6 +57,8 @@ class DataLoader:
         data_as_list = [row for row in reader if any(cell.strip() for cell in row)]
 
         if not data_as_list:
+            from src.utils.observation_metadata import validate_records
+            validate_records(header_info['artifact_metadata'],[],[])
             return header_info, pd.DataFrame()
 
         num_columns = max_len
@@ -92,6 +94,19 @@ class DataLoader:
 
         # Validate Raw Data Structure immediately
         self.validate_raw_data(raw_df)
+        from src.utils.observation_metadata import validate_records,artifact_observation
+        from src.utils.result_time import recorded_seconds
+        validate_records(header_info['artifact_metadata'],recorded_seconds(raw_df.iloc[:,1]).to_numpy(dtype=float),
+            raw_df.iloc[:,0].to_numpy(),
+            complete='Slice File' not in lines[0] and 'Corrected Source File' not in lines[0])
+        if artifact_observation(header_info['artifact_metadata']) is not None:
+            import numpy as np
+            for i,(kind,component) in enumerate(zip(header_info['type'],component_header)):
+                if kind in ('Marker','Rigid Body Marker') and component in ('X','Y','Z'):
+                    values=raw_df.iloc[:,i].astype(str).str.strip()
+                    numeric=pd.to_numeric(values,errors='coerce').to_numpy(dtype=float)
+                    if np.any((values!='').to_numpy() & ~np.isfinite(numeric)):
+                        raise ValueError('Observed coordinates require finite numbers or explicit blank missing cells.')
         if simulation_declaration is not None:
             from src.utils.simulation_metadata import validate_recorded_times
             from src.utils.result_time import recorded_seconds

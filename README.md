@@ -1,12 +1,13 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-10
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
 ## 🚀 주요 기능
 
 ### 1. 시뮬레이션 (Simulation) - *New!*
+*   **선택형 관측 모델 (PUB10):** 가상 camera/face visibility, 그룹 가림과 실제 시간 간격을 사용하는 stationary OU noise를 물리 궤적 이후에 적용합니다. Profile API/CLI와 기존 settings/export/Step 1 흐름을 사용하며 기본 관측과 보정 OFF 정책은 유지합니다. [사용·채널·검증 계약](docs/analysis/reference/observation_model_contract.md)을 참고하세요. 실측 camera/noise 교정은 #104에서 별도로 확인합니다.
 *   **초기조건·제한 교정 (PUB09):** 명시적 위치·자세·선속도·각속도와 접촉 profile을 API/CLI로 실행하고, 수렴 진단 뒤 fit과 별도 holdout을 평가합니다. `python -m src.simulation.calibration_cli demo --output tmp/issue142/new-demo`를 사용합니다. [사용·저장·평가 계약](docs/analysis/reference/contact_calibration_contract.md)에 따라 합성 자기 일관성 검증과 실측 교정을 구분하며 기본 설정은 유지합니다.
 *   **MuJoCo 기반 디지털 트윈:** 실제 실험 데이터(CSV)가 없더라도, MuJoCo 물리 엔진을 통해 가상의 상자 낙하 데이터를 시뮬레이션할 수 있습니다.
 *   **낙하 자세 시뮬레이션:** 면(Face), 꼭짓점(Corner), 모서리 선(Edge) 자세와 강체 접촉을 생성합니다. 실제 포장재의 충돌·반발·텀블링 정확도는 검증되지 않았습니다.

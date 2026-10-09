@@ -6,6 +6,7 @@ separate routing operations. Noise is an uncalibrated model, not camera accuracy
 """
 from copy import deepcopy
 import math
+from numbers import Real
 
 import numpy as np
 
@@ -26,6 +27,9 @@ def _keys(value, required, optional, name):
 
 def _array(value, shape, name):
     try:
+        items = np.asarray(value, dtype=object)
+        if any(isinstance(x, (bool, np.bool_)) or not isinstance(x, Real) for x in items.flat):
+            raise ValueError(f'{name} must contain finite real numbers, not booleans or text.')
         raw = np.asarray(value)
         if raw.dtype.kind not in 'iuf':
             raise ValueError(f'{name} must contain finite real numbers.')
@@ -51,7 +55,7 @@ def _truth(value):
     except TypeError as error:
         raise ValueError('time_s must contain at least two samples.') from error
     times = _array(value['time_s'], (count,), 'time_s')
-    if count < 2 or not np.all(np.diff(times) > 0):
+    if count < 2 or not np.isfinite(np.diff(times)).all() or not np.all(np.diff(times) > 0):
         raise ValueError('time_s must contain at least two strictly increasing samples.')
     origins = _array(value['body_origin_mm'], (count, 3), 'body_origin_mm')
     rotations = _array(value['rotation_matrix'], (count, 3, 3), 'rotation_matrix')
@@ -76,9 +80,17 @@ def _index(value, count, name, *, endpoint=False):
 
 
 def _events(spec, marker_ids, frame, times):
-    _keys(spec, {'schema_version', 'events'}, set(), 'Corruption specification')
-    if type(spec['schema_version']) is not int or spec['schema_version'] != 1:
+    version = spec.get('schema_version') if isinstance(spec, dict) else None
+    required = {'schema_version', 'events'}
+    if type(version) is int and version == 2:
+        required |= {'plan_spec', 'observation_profile'}
+    _keys(spec, required, set(), 'Corruption specification')
+    if type(version) is not int or version not in (1, 2):
         raise ValueError('Unsupported corruption schema_version.')
+    if version == 2:
+        from src.utils.marker_profile_identity import PLAN_SPEC
+        if spec['plan_spec'] != PLAN_SPEC:
+            raise ValueError('Unsupported corruption plan_spec.')
     if not isinstance(spec['events'], list):
         raise ValueError('Corruption events must be a list.')
     count, normalized = len(times), []
@@ -143,11 +155,13 @@ def _events(spec, marker_ids, frame, times):
     return sorted(normalized, key=lambda event: (event['start_index'], event['ordinal']))
 
 
-def _channel_observations(clean, events, marker_ids, rng):
+def _channel_observations(clean, events, marker_ids, rng, *, extra_missing=None, extra_noise=None):
     """Apply stable-ID faults; freeze snapshots include prior final missing masks."""
     values = clean.copy()
     indices = {mid: index for index, mid in enumerate(marker_ids)}
     freeze_events, missing = [], np.zeros(values.shape[:2], dtype=bool)
+    if extra_missing is not None:
+        missing |= extra_missing
     for event in events:
         kind = event['kind']
         if kind not in WINDOW_KINDS:
@@ -167,6 +181,8 @@ def _channel_observations(clean, events, marker_ids, rng):
             missing[start:end, selected] = True
         else:
             freeze_events.append((event, selected))
+    if extra_noise is not None:
+        values += extra_noise
     snapshots = {}
     for sample in range(len(values)):
         for event, selected in freeze_events:
@@ -212,8 +228,16 @@ def _apply_corruption(truth_trajectory, marker_profile, corruption_spec, seed):
     # Independent child streams keep one channel's noise separate from the other.
     streams = [np.random.default_rng(child) for child in np.random.SeedSequence(seed).spawn(2)]
     observations = {}
+    extra_missing = extra_noise = evidence = None
+    if corruption_spec['schema_version'] == 2:
+        from .observation_profile import observation_effects
+        extra_missing, extra_noise, evidence = observation_effects(
+            corruption_spec['observation_profile'], profile, times, origins, rotations, truth_markers, seed)
     for channel, clean, rng in zip(CHANNELS, (truth_markers, solved), streams):
-        observations[channel] = _channel_observations(clean, [e for e in events if e['channel'] == channel], marker_ids, rng)
+        channel_mask = (extra_missing if channel == 'physical_markers' or evidence is not None
+            and evidence['adapter'] == 'visibility-mask-to-solved-v1' else None)
+        observations[channel] = _channel_observations(clean, [e for e in events if e['channel'] == channel], marker_ids, rng,
+            extra_missing=channel_mask, extra_noise=None if extra_noise is None else extra_noise[channel])
     physical = observations['physical_markers']
     id_indices = {mid: index for index, mid in enumerate(marker_ids)}
     for event in events:
@@ -244,6 +268,13 @@ def _apply_corruption(truth_trajectory, marker_profile, corruption_spec, seed):
     }
     from src.utils.marker_profile_identity import profile_identity, PLAN_SPEC
     manifest.update(plan_spec=PLAN_SPEC, marker_profile_identity=profile_identity(profile))
+    if evidence is not None:
+        manifest.update(schema_version=2, generator_version='1.1', observation_evidence=evidence,
+            observed_adapter=evidence['adapter'], calibration_status='uncalibrated')
+        manifest['operation_order'] = ['truth geometry and true-pose camera/group masks',
+            'cumulative solved local half turns', 'legacy stable-ID Gaussian noise and world offsets',
+            'stationary timestamp OU noise', 'freeze prior final pre-label sample',
+            'union of explicit missing and camera/group masks', 'physical label routing']
     return {'frame': frame, 'time_s': times, 'body_origin_mm': origins, 'rotation_matrix': rotations,
             'com_mm': com, 'truth_markers': truth_markers,
             'physical_markers': physical, 'rigid_body_markers': observations['rigid_body_markers'],

@@ -8,6 +8,8 @@ import xml.etree.ElementTree as ET
 # Explicitly inspected engine/observation-to-consumer paths. Pure array, schema,
 # policy and GUI-only checks remain Level 1 even when their fixture is public.
 SYNTHETIC_TESTS = {
+    'test_observation_integration': {'test_cli_profile_choice_actual_engine_and_metadata_reopen'},
+    'test_observation_gui': {'test_profile_settings_save_apply_export_and_open_step1'},
     'test_marker_profile_identity': {'test_ambiguous_producer_parser_pipeline_and_result_roundtrip',
         'test_declared_layout_support_producer_pipeline_and_result_roundtrip'},
     'test_capture_regression': {
