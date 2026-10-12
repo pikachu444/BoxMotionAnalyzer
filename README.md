@@ -1,6 +1,6 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-13
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
@@ -115,7 +115,7 @@ python src/main.py
     *   런처 버튼을 반복 클릭하면 새 시각화 창이 추가로 열립니다.
     *   시각화 창 안에서는 `File > New Visualization Window`로 새 창을 바로 만들 수 있습니다.
 
-### 공개 합성 capture 회귀 (#135)
+### 공개 합성 capture 회귀 (#135 / #144)
 
 전체 Raw의 승인 씬을 현재 production pipeline으로 새로 처리하고 slice/proc 재열기,
 Compare 및 scenario export를 검사하는 CLI를 제공합니다. 독립 수식·기하 기대값을 가진
@@ -130,6 +130,8 @@ Compare 및 scenario export를 검사하는 CLI를 제공합니다. 독립 수�
 출력 폴더는 매번 새로 지정해야 합니다. full은 모든 승인 씬의 fresh 처리를 요구하며,
 일부 선택은 representative로 보고합니다. 원본·기준값·승인 누락과 처리·저장 실패는
 통과하지 않습니다. [계약·기대값·검증 범위](docs/analysis/reference/capture_regression.md)를 참고하세요.
+
+PUB11은 fast/capture/representative/full 범위, 검증된 representative 재개, RunReport/JUnit/JSON/summary와 필수 CI 누락 검사를 연결합니다. [실행·재개·증거 계약](docs/analysis/reference/regression_evidence.md)을 참고하세요. Native GUI·수치 승인·실측 대기는 별도입니다.
 
 ### 3. 분석 결과 export와 visualization의 관계
 

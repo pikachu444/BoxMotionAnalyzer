@@ -1,12 +1,14 @@
 # Capture regression (#135)
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-10-13
+
+PUB11 adds frozen required-case/tier protocols, explicit representative resume with verified identity/artifacts, common JUnit/JSON/summary and required CI inventories. Existing PUB02 baseline/tolerance and production guards remain. [Tier/CI contract](regression_evidence.md).
 
 #138 binds full marker_profile_identity in newly generated fixtures to observed artifact metadata and actual consumer meanings. Existing legacy-face-assignment-v3 partial digest and approved baseline/fixture bytes are retained; missing complete semantics is not promoted to compatible or approved. [PUB05 contract](marker_profile_semantics.md) also distinguishes the existing static #135 geometry adapter from the user-excluded #113 registration feature.
 
 ## Scope
 
-`src.analysis.regression.runner` connects existing production APIs through full observed Raw load → fresh scene detection → source-bound review replay → marker-based identification → slice save/reopen → Raw processing → proc save/reopen → Compare/scenario export. This implements only #135 of parent #134. No validated experimental input is available. Public analytical observations, independent analytical expectations and reviewed detector preservation snapshots have separate roles. #104 measured accuracy and physical calibration remain pending.
+`src.analysis.regression.runner` connects existing production APIs through full observed Raw load → fresh scene detection → source-bound review replay → marker-based identification → slice save/reopen → Raw processing → proc save/reopen → Compare/scenario export. The production regression implements #135 of parent #134; PUB11 adds the tier/resume/evidence contracts linked above. No validated experimental input is available. Public analytical observations, independent analytical expectations and reviewed detector preservation snapshots have separate roles. #104 measured accuracy and physical calibration remain pending.
 
 #113 registration is not a prerequisite. Static dimensions/floor/layout and known local offsets are declared for this corpus, and conflicting embedded Raw declarations block replay. #138's future marker meaning contract is tracked separately: current `legacy-face-assignment-v3` face/normal/half-turn-map digest is bound without migrating existing layout hashes.
 
@@ -21,7 +23,7 @@ Run from the repository root on Windows:
 .venv/Scripts/python.exe -m pytest tests/test_capture_regression.py -q --junitxml=tmp/capture-tests.xml
 ```
 
-Asset/run directories must be new: no baseline overwrite, update-baseline option or proc cache. Capture tier verifies loading/detection/replay only. Representative requires explicit scene selection; approved scenes outside it remain unexecuted. Capture+selection is rejected. Full requires every declared approved scene freshly processed with exact source/row/time correspondence, save/reload and required comparisons. Fail/blocked/needs_review return nonzero. A successful core call followed by failed save remains both fresh and failed; counts describe separate dimensions. Actual optimizer fit starts survive exceptions. Partial file inventory is distinct from completed artifact triplets.
+Asset/run directories must be new: no baseline overwrite or update-baseline option. PUB11 permits only explicitly revalidated representative resume; full never reuses PROC. Capture tier verifies loading/detection/replay only. Representative requires explicit scene selection; approved scenes outside it remain unexecuted. Capture+selection is rejected. Full requires every declared approved scene freshly processed with exact source/row/time correspondence, save/reload and required comparisons. Fail/blocked/needs_review return nonzero. A successful core call followed by failed save remains both fresh and failed; counts describe separate dimensions. Actual optimizer fit starts survive exceptions. Partial file inventory is distinct from completed artifact triplets.
 
 Approvals bind raw SHA256, original record bounds, raw time and neighboring observed-data digest. Candidate ordinal/proximity never transfers approval. Split, merged, missing, ambiguous, changed_boundary, stale_anchor and new unreviewed candidates require review. Included manual ranges retain separate identities and do not approve overlapping automatic candidates.
 
@@ -72,4 +74,4 @@ Failure controls cover scene deletion, candidate split/merge/missing/ambiguity, 
 
 Initial production/scenario preservation:212passed. Independent Loader/artifact/correction/Compare/workspace/header rerun:109passed. Required public CI retains existing GUI/collision/continuity checks and adds new full integration, truth isolation and failure tests.
 
-Implementation and public automatic regression are complete subject to final review/CI publication. Native MainApp Step2 loads six fresh outputs, selects a sample, clicks the actual scenario export button and opens Compare; bytes/source hashes agree. GUI reuses6 proc/fresh0. Reviewed local screen2560×1440/DPR1.0/window1510×800. New-corpus native Step1/1.5 fresh processing and native save chooser remain pending. The local 3-D viewport was black, with cause unconfirmed, so visual playback is pending too. Existing GUI preservation evidence has separate scope. Experimental accuracy/physical calibration remains #104 pending.
+Implementation and public automatic regression are complete subject to final review/CI publication. Actual Qt MainApp Step2 loads six fresh outputs, selects a sample, clicks the actual scenario export button and opens Compare; bytes/source hashes agree. GUI reuses6 proc/fresh0. Reviewed local screen2560×1440/DPR1.0/window1510×800. New-corpus native Step1/1.5 fresh processing and native save chooser remain pending. The local 3-D viewport was black, with cause unconfirmed, so visual playback is pending too. Existing GUI preservation evidence has separate scope. Experimental accuracy/physical calibration remains #104 pending.

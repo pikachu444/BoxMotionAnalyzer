@@ -12,6 +12,12 @@ PLAN_SPEC = 'ISTA6A-PLAN-20261001-v1'
 SCHEMA_VERSION = 1
 SEMANTIC_VERSION = 'capture-replay-geocenter-v1'
 METRIC_STATUSES = {'valid', 'not_detected', 'unavailable', 'out_of_window', 'ambiguous', 'failed'}
+REFERENCE_CATEGORY_METRICS = {'reference_face','contact_state','impact_sequence',
+                              'observed_first_contact','first_contact','final_face'}
+REFERENCE_NUMERIC_METRICS = {'t1','t2','equivalent_height','vertical_velocity','horizontal_speed',
+    'angular_speed','final_rotation_deg','maximum_rotation_deg','BetaAtT1MinusDeg','ThetaLongAtT1MinusDeg',
+    'ThetaShortAtT1MinusDeg','DeltaHAtT1Minus_mm','MaxBetaDeg','MaxAbsThetaLongDeg',
+    'MaxAbsThetaShortDeg','MaxDeltaH_mm','contact_confidence','ContactConfidence'}
 
 
 def canonical(value):
@@ -32,7 +38,7 @@ def envelope(kind, **fields):
 
 
 def validate_envelope(value, kind):
-    if (value.get('schema_version') != SCHEMA_VERSION or value.get('plan_spec') != PLAN_SPEC
+    if (type(value.get('schema_version')) is not int or value.get('schema_version') != SCHEMA_VERSION or value.get('plan_spec') != PLAN_SPEC
             or value.get('object_type') != kind):
         raise ValueError(f'Unsupported {kind} schema/plan_spec.')
     canonical(value)  # Reject non-JSON and nonfinite values, including nested fields.
@@ -162,6 +168,13 @@ def validate_fixture(fixture):
                          'origin_to_geocenter_mm', 'origin_to_com_mm', 'world_transform')
     if any(k not in geom for k in required_geometry):
         raise ValueError('Incomplete canonical geometry.')
+    def numbers(value):
+        if isinstance(value, list):
+            return all(numbers(v) for v in value)
+        return type(value) in (int, float) and np.isfinite(value)
+    for key in ('box_dims_mm', 'floor_y_mm', 'origin_to_geocenter_mm', 'origin_to_com_mm', 'world_transform'):
+        if not numbers(geom[key]):
+            raise ValueError('Geometry requires finite numeric values, not bool/text: ' + key)
     dims = np.asarray(geom['box_dims_mm'], float)
     if dims.shape != (3,) or not np.isfinite(dims).all() or (dims <= 0).any():
         raise ValueError('Invalid geometry dimensions.')
@@ -183,6 +196,13 @@ def validate_fixture(fixture):
         raise ValueError('Marker correction must remain default OFF.')
     if config.get('enable_result_resampling') is not False:
         raise ValueError('Record-exact regression forbids result resampling.')
+    from src.config.config_analysis_ui import get_raw_mode_options
+    defaults = get_raw_mode_options()
+    options = config['analysis_options']
+    if (config['processing_mode'] not in ('raw', 'smoothing', 'advanced') or set(options) != set(defaults) or
+            any(not numbers(options[k]) if type(v) in (int,float) else type(options[k]) is not type(v)
+                for k,v in defaults.items())):
+        raise ValueError('Unsupported effective processing options; truth/labels are forbidden.')
     ids = []
     for d in fixture['scene_decisions']:
         ids.append(d['review_id'])
@@ -214,6 +234,55 @@ def validate_fixture(fixture):
         validate_identity(fixture['marker_profile_identity'])
         if fixture['marker_profile_identity']['source_profile'] != fixture['marker_profile']:
             raise ValueError('Stale replay profile semantic identity.')
+    from src.simulation.marker_fixtures import validate_profile
+    if (validate_profile(fixture['marker_profile']) != fixture['marker_profile_hash'] or
+            fixture['marker_profile']['profile_id'] != fixture['marker_profile_id'] or
+            fixture['marker_profile']['box_dims_mm'] != geom['box_dims_mm']):
+        raise ValueError('Marker profile identity/geometry mismatch.')
+
+
+def validate_reference(value):
+    validate_envelope(value, 'TrajectoryReference')
+    for scene in value['scenes'].values():
+        trajectory = scene['trajectory']
+        records, times, mask = (trajectory[k] for k in ('original_record_index', 'raw_time_s', 'valid_mask'))
+        if (not records or any(type(v) is not int for v in records) or
+                any(b != a + 1 for a, b in zip(records, records[1:])) or
+                len(records) != len(times) or len(times) != len(mask) or
+                any(type(v) is not bool for v in mask)):
+            raise ValueError('Invalid required reference record/mask population.')
+        def numbers(items, nullable=False):
+            if isinstance(items, list):
+                return all(numbers(v, nullable) for v in items)
+            return (nullable and items is None) or (type(items) in (int, float) and np.isfinite(items))
+        if not numbers(times) or any(b <= a for a, b in zip(times, times[1:])):
+            raise ValueError('Reference raw time must be finite numeric and increasing.')
+        for key in ('geocenter_position_mm', 'rotation_matrix', 'corners_mm', 'floor_height_mm'):
+            if not numbers(trajectory[key], True):
+                raise ValueError('Invalid reference numeric payload: ' + key)
+            data = np.asarray(trajectory[key],float)
+            suffix={'geocenter_position_mm':(3,),'rotation_matrix':(3,3),'corners_mm':(8,3),'floor_height_mm':(8,)}[key]
+            if data.shape!=(len(records),*suffix):
+                raise ValueError('Invalid required reference shape: ' + key)
+            if (not np.array_equal(np.isfinite(data.reshape(len(records),-1)).all(axis=1),mask) or
+                    not np.isnan(data[np.logical_not(mask)]).all()):
+                raise ValueError('Invalid reference valid/unavailable mask: ' + key)
+        for key,m in scene['metrics'].items():
+            if key not in REFERENCE_CATEGORY_METRICS | REFERENCE_NUMERIC_METRICS:
+                raise ValueError('Unsupported reference metric contract: ' + key)
+            if (m['status'] not in METRIC_STATUSES or (m['status'] == 'valid' and m['value'] is None)
+                    or (m['status'] != 'valid' and m['value'] is not None)):
+                raise ValueError('Invalid reference metric status/value.')
+            if type(m['value']) is bool:
+                raise ValueError('Reference metric boolean cannot masquerade as numeric/category value.')
+            if m['status']=='valid':
+                if key in REFERENCE_NUMERIC_METRICS and (type(m['value']) not in (int,float)
+                        or not np.isfinite(m['value']) or not m.get('tolerance')):
+                    raise ValueError('Numeric reference metric requires a finite number and explicit tolerance: ' + key)
+                if key in REFERENCE_CATEGORY_METRICS and (type(m['value']) is not str or not m['value'] or 'tolerance' in m):
+                    raise ValueError('Categorical reference metric requires its declared text type: ' + key)
+            if 'tolerance' in m and (type(m['value']) not in (int, float) or not np.isfinite(m['value'])):
+                raise ValueError('Reference metric requires finite numeric values.')
 
 
 def canonical_pose(origin, rotations, velocity, omega_world, origin_to_center, origin_to_com):

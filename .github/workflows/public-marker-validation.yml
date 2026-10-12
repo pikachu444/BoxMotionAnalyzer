@@ -50,6 +50,8 @@ jobs:
           git rev-parse HEAD
           git status --porcelain --untracked-files=all
           git diff --name-only
+      - name: Freeze required PUB11 jobs and test populations before execution
+        run: python -m src.simulation.ci_evidence prepare --output tmp/issue144/frozen-ci
       - name: Verify the physical Qt desktop before running GUI checks
         run: >-
           python -c "import json; from pathlib import Path; from PySide6.QtGui import QGuiApplication;
@@ -60,6 +62,7 @@ jobs:
           Path('tmp/ci-desktop.json').write_text(json.dumps(report), encoding='utf-8');
           print(report); assert physical == [1920, 1080], report"
       - name: Preserve scene review and render PUB04 at 125 percent
+        id: check_01
         env:
           QT_SCALE_FACTOR: '1.25'
         run: |
@@ -68,6 +71,7 @@ jobs:
           python -m src.simulation.scene_review_validation --output tmp/issue137/render-125
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Check public geometry, correction, persistence and Qt workflow
+        id: check_02
         run: >-
           python -m pytest -q --maxfail=1
           tests/test_comparison_layout.py
@@ -148,30 +152,51 @@ jobs:
           tests/test_scenario_6.py
           tests/test_raw_data_processing.py
           tests/test_capture_regression.py
+          tests/test_regression_evidence.py
           --junitxml=tmp/public-marker-results.xml
+      - name: Execute explicit PUB11 capture tiers with fresh production
+        id: check_03
+        run: |
+          python -m src.simulation.capture_corpus --output tmp/issue144/assets
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($tier in @('fast', 'capture', 'full')) {
+            python -m src.analysis.regression.runner --manifest tmp/issue144/assets/corpus.json --asset-root tmp/issue144/assets --output "tmp/issue144/$tier" --tier $tier
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          python -m src.analysis.regression.runner --manifest tmp/issue144/assets/corpus.json --asset-root tmp/issue144/assets --output tmp/issue144/representative --tier representative --scene tracking_OFF-scene-0
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify PUB06 mode contracts and independent transforms
+        id: check_04
         run: python -m src.simulation.mode_validation --output tmp/issue139/contracts
       - name: Verify PUB07 virtual dynamic continuity diagnostics
-        run: python -m src.simulation.robot_validation --output tmp/issue140/robot-diagnostics
+        id: check_05
+        run: python -m src.simulation.ci_evidence run --component pub07 --output tmp/issue144/pub07
       - name: Verify PUB08 contacts and production observed event comparisons
-        run: python -m src.simulation.contact_validation --output tmp/issue141/contact-diagnostics
+        id: check_06
+        run: python -m src.simulation.ci_evidence run --component pub08 --output tmp/issue144/pub08
       - name: Verify PUB09 seeds, convergence, limited fit and fresh holdout production
-        run: python -m src.simulation.calibration_cli demo --output tmp/issue142/calibration-diagnostics
+        id: check_07
+        run: python -m src.simulation.ci_evidence run --component pub09 --output tmp/issue144/pub09
       - name: Verify PUB10 virtual visibility and correlated noise through fresh production
-        run: python -m src.simulation.observation_validation --output tmp/issue143/fresh-production
+        id: check_08
+        run: python -m src.simulation.ci_evidence run --component pub10 --output tmp/issue144/pub10
       - name: Render PUB07 actual production profiles at 125 percent
+        id: check_09
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m src.simulation.robot_ui_validation --output tmp/issue140/production-125
       - name: Render PUB06 production mode settings at original FHD size
+        id: check_10
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m src.simulation.mode_ui_validation --output tmp/issue139/production-125
       - name: Generate marker observations and open Step 1 at 125 percent
+        id: check_11
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_simulation_marker_export_gui.py --junitxml=tmp/issue114/gui-125.xml
       - name: Verify PUB05 editing and render approved production profiles at 125 percent
+        id: check_12
         env:
           QT_SCALE_FACTOR: '1.25'
         run: |
@@ -180,51 +205,62 @@ jobs:
           python -m src.simulation.profile_validation --output tmp/issue138/render-125
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Inspect original motion during marker review at 125 percent
+        id: check_13
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_marker_review_context.py --junitxml=tmp/issue121/context-125.xml
       - name: Inspect responsive marker review labels and controls at 125 percent
+        id: check_14
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_marker_review_layout.py --junitxml=tmp/issue136/layout-125.xml
       - name: Verify metric variants in the real comparison GUI at 125 percent
+        id: check_15
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_metric_variants_gui.py --junitxml=tmp/issue119/gui-125.xml
       - name: Review vertical motion and preserve scene signals at 125 percent
+        id: check_16
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_scene_signal_gui.py --junitxml=tmp/issue123/gui-125.xml
       - name: Compare repeated posture and public pipeline output at 125 percent
+        id: check_17
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_posture_comparison_gui.py --junitxml=tmp/issue117/gui-125.xml -o faulthandler_timeout=90
       - name: Check comparison reference labels and shared guide at 125 percent
+        id: check_18
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_comparison_reference_gui.py --junitxml=tmp/issue122/gui-125.xml -o faulthandler_timeout=90
       - name: Check incomplete pose rows without inferring contact
+        id: check_19
         run: python -m pytest -q tests/test_drop_posture_post_processor.py -k incomplete_pose --junitxml=tmp/issue115/incomplete.xml
       - name: Verify bounded marker review and real cancellation at 125 percent
+        id: check_20
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_marker_review_gui.py --junitxml=tmp/issue112/gui-125.xml -o faulthandler_timeout=90
       - name: Replay retained public results in the release GUI at 125 percent
+        id: check_21
         env:
           QT_SCALE_FACTOR: '1.25'
         shell: pwsh
         run: |
           $trialReports = @(Get-ChildItem -LiteralPath tmp/issue75_trial_gui -Filter execution.json -Recurse -File)
           if ($trialReports.Count -ne 1) { throw 'Expected one retained trial workflow report.' }
-          python -m src.simulation.release_gui_validation --trial-report $trialReports[0].FullName --output tmp/issue78_release_gui
+          python -m src.simulation.ci_evidence run --component gui --trial-report $trialReports[0].FullName --output tmp/issue144/gui
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Summarize required public evidence levels
+        id: check_22
         if: always()
         run: >-
           python -m src.simulation.public_validation_summary
           --junit tmp/public-marker-results.xml
           --output tmp/public-validation-summary.json --public-required
       - name: Compare independent truth with public observation cases
+        id: check_23
         shell: pwsh
         run: |
           python -m src.simulation.validate_marker_fixtures --case all --negative-controls --output tmp/ci-free-fall
@@ -236,7 +272,13 @@ jobs:
             }
           }
       - name: Check independently specified continuity challenges
+        id: check_24
         run: python -m src.simulation.continuity_fixtures --output tmp/ci-continuity
+      - name: Enforce required PUB11 coverage and preserve readable evidence
+        if: always()
+        env:
+          PUB11_STEP_OUTCOMES: ${{ toJSON(steps) }}
+        run: python -m src.simulation.ci_evidence verify --protocol tmp/issue144/frozen-ci/protocol.json --output tmp/issue144/ci-summary --require-step-outcomes
       - name: Record source state after automatic validation
         if: always()
         run: |
@@ -278,6 +320,7 @@ jobs:
             tmp/issue141/**
             tmp/issue142/**
             tmp/issue143/**
+            tmp/issue144/**
             tmp/issue81_gui/**
             tmp/issue74_gui/**
           if-no-files-found: warn

@@ -1,0 +1,1695 @@
+{
+  "schema_version": 1,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "object_type": "PUB11EvidenceIndex",
+  "last_reviewed": "2026-10-13",
+  "issue": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/144",
+  "parent": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/134",
+  "starting_main": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+  "software_status": "Implementation, corrected-source local validation and independent correction review complete; final-head hosted CI and merge remain the publication gate",
+  "source": {
+    "commit": "659308b54ac848871a8162d446f91f0e1858cc2d",
+    "dirty": true,
+    "content_sha256": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+    "source_sha256": {
+      "src/__init__.py": "beb2bfb21475edeacd5357a9e2621a73ce9f1d9585df15b8166b31dbb30fa1e8",
+      "src/analysis/__init__.py": "6e30be6e6229d1b7900b7a81ded2eff16de200a26b1470ab7b746b3a5c1c8d77",
+      "src/analysis/app/__init__.py": "104151d352561b6d7ce90b9467984d54cd7217a8b27c5dcc33bba9bfac17962a",
+      "src/analysis/app/main_window.py": "50411b999c1f812386183ce8756193171672ef15d9b82d85886fc4f062d99513",
+      "src/analysis/compare/__init__.py": "c2bcf23a950e89b0ef4020ffabd4664c2a86b370d10b511ebcc129b08e1050c7",
+      "src/analysis/compare/contact_metrics.py": "385d07a50b7191aeec0a259f8c1ddb5a3e746442b860ac5f06359028cee857c6",
+      "src/analysis/compare/data_model.py": "cdb0957f02fac5c6a7b0c213384ef65fe8e8e698eedaa4eaf22f40daeb96894b",
+      "src/analysis/compare/impact_metrics.py": "9829c0b4951ace8dd429e6c4cfe5c2e46e4412f2a48bb5b64a266809f4d7e52c",
+      "src/analysis/compare/main_window.py": "1cebaf2e9523d8eab590823cfe9c7fa1214a02a80fd00ac542d32f3659b0d673",
+      "src/analysis/compare/metric_guide.py": "6986fac58cca699cb7be710231a6c6178f2e5206c4599b6748c423ad64437f50",
+      "src/analysis/compare/observation_resolution.py": "885e62692344a969e48960ad0d24933e7f96cb1240e0a51ce6b9fb7277d2e163",
+      "src/analysis/compare/playback_panel.py": "fea70723cd86c5c4694d4c488fd8c0899bed61cc0688c2d7b4f43537a2ff41b2",
+      "src/analysis/compare/posture_metrics.py": "f5938b2297f5735256489e2514cd8b09d1068746ca61c5810d2b78c625cb391a",
+      "src/analysis/compare/ui_panels.py": "f70ba8938a6c2450a44c12e0d9498b5e88c5ba05fc850944e5b7e1ee3f0010b1",
+      "src/analysis/pipeline/__init__.py": "bb0f5f31ac88cc5cca1c58ad42b9a1621f86798fd31363385eeb535674ab26ba",
+      "src/analysis/pipeline/artifact_io.py": "e7905748eab4fc440f8a9f967dd40c3a1930c948fe2ab394b9d537bc3f2ee48d",
+      "src/analysis/pipeline/data_loader.py": "db8ccc2103fad36aa98cea260a9bb0f6255c1f744e5e137024417aa66f683efc",
+      "src/analysis/pipeline/drop_posture_post_processor.py": "4643c277e816a8cf25b6e9612aceb2e0ae3e0cebc5de9cae8afd8680816136b5",
+      "src/analysis/pipeline/face_assignment.py": "5bb07a72ca48f49affa2a48e0aa3871339bc75523cb331d632f74790a8c2293e",
+      "src/analysis/pipeline/frame_analyzer.py": "fa34cbf76cb9b79ff98d963191696280288130f3c627aa093fc80b8b530e04fd",
+      "src/analysis/pipeline/intended_contact.py": "25f006c19132a4f5cb2b2287e7e98228495a433f3134627e5f1dc5b57c793ab1",
+      "src/analysis/pipeline/marker_flip.py": "f4adec6ee539ae6d1a927eb10fb5d8bf2c3d1c37b1dcfeaf962c6d4d2f8d78b0",
+      "src/analysis/pipeline/marker_review.py": "5f217494fa09b639b2bd21c802c36956c5ca8c28d4dcaf0bc09acd8911d405ab",
+      "src/analysis/pipeline/parser.py": "db28a1c0ff67c2564c1971049926734c446f4032b891103a6b0a93b9db1ad0d9",
+      "src/analysis/pipeline/pipeline_controller.py": "ddb21ee10d5faee6cf5a28cdf65a4abc1c4dccc0a71dd7c7ca140dd279623edd",
+      "src/analysis/pipeline/pose_optimizer.py": "f15c359ba8616159c9196443274f021b9b98f18df4e65e2a62df187ab455afb9",
+      "src/analysis/pipeline/processing_provenance.py": "e291265f668b933bf3ce6311be06a5a34162aa89b96bbdb3e49d5ad0ef449004",
+      "src/analysis/pipeline/resampler.py": "d917806096a06530701a8c798cdb6ac959cbdba6040d07fa7214546231b095b1",
+      "src/analysis/pipeline/resampling_options.py": "edacfb1a3698cb3da6c1cd81522f8b6fbf134290124141d9434b438a7df334d4",
+      "src/analysis/pipeline/scenario_export.py": "30f324ddaf81d776b0fe2194ad62334180db99fb569a4edf4a4a94de18df8047",
+      "src/analysis/pipeline/scene_detection.py": "b2e839c1c12987ea811cef09f92acdc844370cb4f38698e275b18888dd35f294",
+      "src/analysis/pipeline/scene_face_corrections.py": "70515c2da135e222b4e8ea8baa720c919e048bdde32e1bef6108ac7ea27b333e",
+      "src/analysis/pipeline/scene_review.py": "0177c10c45adc243b685572ab6fc2bffd3de59f76a1fefdf6be1dbdd93fcc056",
+      "src/analysis/pipeline/scene_trial_record.py": "f63770c529a51dd46baba74aeafa6c7ec275fdb8caa93f7d09e345fc9b236385",
+      "src/analysis/pipeline/scene_workflow_state.py": "87872ab914995625da56d40aa59d059745bd2c217a186beb8388272ae8c598d6",
+      "src/analysis/pipeline/scene_workspace.py": "cf03315bb194619fd351329fde4bbd6d2f6964ed58610dd4822fcd3f9248e0c9",
+      "src/analysis/pipeline/slicer.py": "9c554f1e1193ee69b25fed97da60ef5732cdc607008247262cea491d91f32ec9",
+      "src/analysis/pipeline/smoother.py": "8a5b58b5a129f1f9a6e6f2eecae3c620b8b977aa78412a05517c7df9ed761cec",
+      "src/analysis/pipeline/support_cycles.py": "e697fc13206a0a123841a770db611d82cf7333da8ffb518f39615d0c1f6686a7",
+      "src/analysis/pipeline/support_motion.py": "5f7890ab278126f011374a1701421bef85d7b89bc707b64eac16b45733b8e497",
+      "src/analysis/pipeline/validator.py": "74a439cf645876c8bb230a5349efe49b571bc04d596269e7ce50e8659ee7518e",
+      "src/analysis/pipeline/velocity_calculator.py": "521d121959c0b869ff721c9a20fea40f77fb896189e79537c43a2a1da674236e",
+      "src/analysis/regression/__init__.py": "38cf27d4a1464e48cfddd84d1f4e4377e2dcf449471b1d233cd5e094e32fd717",
+      "src/analysis/regression/contracts.py": "0987084254b003e6123e12f080711c741077dd3fb85a02764e2c7f69c0142ef4",
+      "src/analysis/regression/evidence.py": "fa0647f192460f0a8f87e6ff49250d7eab2ab6fdb0c1322ad5d434af6ee55454",
+      "src/analysis/regression/runner.py": "c72b2057655560c27ba5c4153e3e52fe7c2ad7fc371e294ba7951927b6841a42",
+      "src/analysis/regression/signatures.py": "a6e7336949f15e6960574f76c697b1fd44d78fde81c5efc3685cfb2531fcda56",
+      "src/analysis/ui/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "src/analysis/ui/data_selection_dialog.py": "79a4ffd845eb20213d06b37b8be15ac1f51225a0c1221070fc96852268e4c6be",
+      "src/analysis/ui/dialog_marker_flip_review.py": "43e74f6a8d07c68edad5cc535983d14261c324bc8cb9b01e8c8e0ccd98bda824",
+      "src/analysis/ui/dialog_metric_guide.py": "6ec121f7c47f11d2f324240d16aabba2c4a80b57a299c3987297888a1ada7647",
+      "src/analysis/ui/dialog_processing_settings.py": "c47daae01daa05e01c49019b9f630472c7906fa14de689eda0ea2700e360f707",
+      "src/analysis/ui/plot_manager.py": "4564e65189a1db5c2937501ba106d0dd305e5710443ce9f69d3aa263ea93e931",
+      "src/analysis/ui/plot_popup_dialog.py": "6f44bd4515859b29978eed35c1d5c3c596a280b3eeb755cfd6024276629f9e3c",
+      "src/analysis/ui/popup_subset_dialog.py": "50ea5a79e0835fa195a9f43a7eb6973e30c52366ddf4e25d25ef7e48cb64b0b8",
+      "src/analysis/ui/scene_review_flow.py": "8785c6b01fec0cba298dc4809993b5f5afbbaa2e64a97545d70b16b6ce8fd93c",
+      "src/analysis/ui/widget_raw_data_processing.py": "94e7e0392f1df607d5b19ed1cc2481725beabdff0339eed69024ac14da4223f8",
+      "src/analysis/ui/widget_results_analyzer.py": "7b5975118d3b55d839b8ba70c2b425071f1b6d3cf42ccf15e6965fdf2dc0a953",
+      "src/analysis/ui/widget_scene_review.py": "1662a5ce860359d713d2e10ac6e32a7063d93b66ea69f204d53cd1d263570b0c",
+      "src/analysis/ui/widget_slice_processing.py": "3b50b8430b956a0852dce86aec68b582dad3a4ba4e240ae39945a715b4062b86",
+      "src/config/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "src/config/config_analysis.py": "e28929833f31146c9c75ca901a4a10c0356c5b9ebd81761eec27c12a60621ac8",
+      "src/config/config_analysis_ui.py": "b601a088050d112b25c937a31ee2c64b2c3ae0367465af8166f642b45612d27b",
+      "src/config/config_app.py": "924d949bbd76399c8ded7351ce5a39712e036d104ed8d645b76c684d92752bec",
+      "src/config/config_visualization.py": "b34ee2394f0cc44630af4b6dbc511d5bfa135bc2b453f11237ed0e04a65c26a5",
+      "src/config/data_columns.py": "8cf0b89025c2e1977b66868d0aefb635bcb18a96691ee82b2ba5055cb0df98fe",
+      "src/config/marker_semantics.py": "5f35f9f29e96441c81846105a7eba572df0db012a9dc21d950cdb26968487837",
+      "src/config/result_metric_descriptors.py": "035e8090e1770401b6ca1a8f903b1405acadf5caccd2919489ec84befe47fe81",
+      "src/launcher.py": "40117bfa0612209e2d8140271dab85b01265e5a963fe110a77cd5af6b6b550c2",
+      "src/main.py": "52c9de9b0bd2381f41c6eaaa3966a18b4f17ee1ab1bd19b4cb648ba969c3a47d",
+      "src/simulation/calibration_cli.py": "0a59e809d32034510b24499453757b2595c14e498ee7afbacceb391ea84d66cb",
+      "src/simulation/capture_corpus.py": "a4046ccecea9e18faef4c0b429517c5a80aabf6fe132efb649653238fd5243f4",
+      "src/simulation/ci_evidence.py": "c6c4302a79d1146a0b44776976af127d1a5b0daf82d891a3caa75700f351843f",
+      "src/simulation/contact_calibration.py": "f8b7b2570bf8d3904ffd66ba57404b77836b09ed8285363897d17e3f2d560408",
+      "src/simulation/contact_comparison.py": "2d707c2a6896ee75da86dd1bdb46006f0585ef78219fca558ccd2f7af1533f84",
+      "src/simulation/contact_evaluation.py": "8b474e3c5d2ee2b71aa0c819a9ede04bfdf9107366661e4cf4a5e2dc9a0e7fbc",
+      "src/simulation/contact_fixtures.py": "89beac716b28572df0d0d5756ab9fe4dfa659050e38c90c8a112e20c730c1187",
+      "src/simulation/contact_policy.py": "4e3e0fa449c1f0f3d8cc362a0e75d88aebb3455b11d261b74dcc97ba3b9d4918",
+      "src/simulation/contact_recording.py": "023eafd87969f2f304a90b6e8ce4f10b5687e208a4b94da3ab6bc959e2ba1517",
+      "src/simulation/contact_validation.py": "5655b1448c283673c704959c39353a13974cce713534df5e02afbe4a2d2bddee",
+      "src/simulation/continuity_fixtures.py": "52426086fcfc13013f69f974d5c6fcc5eec8b5936b563e95144647709b769404",
+      "src/simulation/corruption_export.py": "2c974c9e272604a065ab5be5e6f51e5155b0fed2db95b571e1759069d9b08b2e",
+      "src/simulation/data_exporter.py": "de1fddb65bee207aba3960c5cdf845ba45bdf0e874d7bb817a5b88d37081532b",
+      "src/simulation/engine/__init__.py": "a0865b357a7f6248143f88d6b2750836ed15f272caa932b7ec06a3007ac88065",
+      "src/simulation/engine/mujoco_engine.py": "300208d765a31e633ced45195b893b08873884592733149bfbc574236defc0ff",
+      "src/simulation/engine/robot_sequence.py": "a11efdf04f401edad1b93ec6dcc180f40a46d7534cf89b2bddb023ad55fc1949",
+      "src/simulation/history_trajectory.py": "a81d818c0da09312f029c13bb25c9ac62f564a26a5fb06ab812f7008963dac9e",
+      "src/simulation/initial_conditions.py": "7a3eef9175757a65b07eff9aa774d6aca35487031b0aaafe1154d9909d54a4eb",
+      "src/simulation/marker_corruption.py": "fc63da6b2c9916221fa80af37f525fb7d1f7e3529929055f2a5423fe655bc7fd",
+      "src/simulation/marker_export.py": "f3f9395e4f98dd039f12f078ff9c5c7a25667d7c5dd7fbd08dd636bd81eea857",
+      "src/simulation/marker_fixtures.py": "f855d00b31a1b13017ef82e1d60c0d7ef19e925b7bd1eb51342998ba2c0081af",
+      "src/simulation/marker_validation_controls.py": "e9decb945eb9cf89b41cbcddab4e8d12331d01939406e1310204b9b55d008322",
+      "src/simulation/mode_profiles.py": "6e692cd8cc0d931103bd47198e45a2c69079ef7c1fecd18929b3f91af21884b9",
+      "src/simulation/mode_ui_validation.py": "636bf5b1ddd64feac3be7622e64c13f8016a9ba6a678d1f720dcb8db492dcd7b",
+      "src/simulation/mode_validation.py": "6b0f7a7586f9933417c063e33046fe5a35278b32626a32d4e65af5db3d3e3c3c",
+      "src/simulation/observation_cli.py": "92bdf81be7084f5e29b5468fc0f1c8e95e89791733b23a0cdac3ffc23184f759",
+      "src/simulation/observation_profile.py": "42a7b9707acbab49de9fd75651e90a8ee32367f7d3e539080908efe40c34740b",
+      "src/simulation/observation_validation.py": "bb5c5e70141ebfc82664c474dad6a62111f38bbd78befdca383c4bb6d0772bbd",
+      "src/simulation/profile_document.py": "dd48b7f464144dd644d01d2010a255307dbba1889b6616bbe69ed6f79834d055",
+      "src/simulation/profile_semantic_fixtures.py": "0f3364103300818518fd3bded4ac2a6b029297d1b6553dae802822ab9aaeb982",
+      "src/simulation/profile_validation.py": "e1fec98e57c22407cc7deb379519f802e98f0358e13f36ac1dcdb5b0b396a9b9",
+      "src/simulation/public_validation_summary.py": "7062fece7de9f36862d9f513bb89e8c0e291495fc2bd4275e869f961b09258a1",
+      "src/simulation/release_gui_validation.py": "1eb255b66865610a765db7c2c6d95dae84321937a35d38dca1a8907f4fa845b6",
+      "src/simulation/robot_evaluation.py": "c78e2b3fde4145b0dc35e9bf9bd2add78bf49d3971c73c22be3335ee743f1787",
+      "src/simulation/robot_partial.py": "67ff40feabfb6a4fc62cc0ec8f6380f3032cad368ae59f727175a2ea50ac2f71",
+      "src/simulation/robot_profiles.py": "5e0b903375691760256cc5379f24be285122817f834bffbc6187cce3a7891d59",
+      "src/simulation/robot_ui_validation.py": "17e9edb1d62d765db4f200ee2cd40d67a087ff4cc04661b6a45933a807bc70a9",
+      "src/simulation/robot_validation.py": "7eec9cef7849a8a57c990f4d222a415ee6011125f215270086eb49a8f9085389",
+      "src/simulation/scenarios.py": "b1498b630e0acc8db9bc0deb75118791ad8dd51f4ee786b9355a532868a43c93",
+      "src/simulation/scene_fixtures.py": "c95ff1f3a355ed608929205d270d295251ed7b07e897f76b770bf61e48f9e3d4",
+      "src/simulation/scene_review_fixtures.py": "263f1392bb36ca0e8b5d0aa95fb5170b2d10b6fbcc072824f0ef725f440aa6a9",
+      "src/simulation/scene_review_validation.py": "3d6ada6303826faa22bced8e3b0fe984162c3dab730731702f0b891e70c75ca5",
+      "src/simulation/trial_record_fixtures.py": "38b7dee05e23c7427ffe3d44f61526041a88503ad681a4abeb7e196fd54873a5",
+      "src/simulation/ui/__init__.py": "2a782bacf555355a2a37996de1bdf712ee412336fd903066870e83e1254ab56d",
+      "src/simulation/ui/main_window.py": "35dd101c41db5774be12f62339c2186a82909e900e0412010b908e1dd9400c70",
+      "src/simulation/ui/marker_export_dialog.py": "e0a3b4fa7f0fe2967c91c5826b0b9f9137dab26343f3292ae2688f2388bd2867",
+      "src/simulation/ui/marker_profile_dialog.py": "5edbba442fab553775356a6b8f8cef28d826781fcba3db4102d6e59b95f22d01",
+      "src/simulation/ui/mode_settings.py": "935ec5285e0aa2ed1bc5deb6debe0bcbbbaf15bab25b03df8abc426d9640d844",
+      "src/simulation/ui/profile_preview.py": "9f5b8364543d77346f4c8d3683d31678ad1685bab7261a8389d5e0233a9c5cf9",
+      "src/simulation/validate_marker_fixtures.py": "2dba67c64508ab92250edcdd3c9cb0357f9497e1727c91fc834a8dc6a93ca0f7",
+      "src/utils/app_identity.py": "82e09e318c54c9c36ab4aa672d1751c73923f473958ca6c3a06786635d89791b",
+      "src/utils/artifact_metadata.py": "4db34adb9844cdd2acb9649bf91afe0a2f6030b231e6a2aa80bf0198207cf71c",
+      "src/utils/first_event_evidence.py": "89c265974a624f4c2d90ac9a9fc289c7acbaa167cb8d263d40a238f9f9d24b04",
+      "src/utils/header_converter.py": "9091531479e0f92c85f5db205f95feb3df278cf4c59cb21e7812cc6b110e2568",
+      "src/utils/make_testdata.py": "25f8e18fbf55db8c4d610f5bbd6070a617ba57a740c61e897f21ec9d86ac5144",
+      "src/utils/marker_profile_identity.py": "96ce77ea08742b5324e9cfd3d4a7b544a9518d6f63ad2910fef86f1e17b651de",
+      "src/utils/observation_metadata.py": "bb35471c137f35d5495d3134409181cdaf8ab1ebc97fd2176eb2f2b279942e1b",
+      "src/utils/processing_settings.py": "c6a6e304150d85cb3366472a4e8151fc0f2cd9208957adfe224f33dbe59e8568",
+      "src/utils/qt_sections.py": "89dcb72b44780e7a28f79688afb1c0789a92053be4f35d92b5d4ccb952143dfe",
+      "src/utils/result_time.py": "26c2abf2cb259ad30a4471de61ec7e73af1464e204b00335ddf3fc5f6063bbc8",
+      "src/utils/simulation_metadata.py": "1bff60b8b8e54dc9373c8253d8c3cdf220bf44561e7263caed3afd88cf255b6a",
+      "src/visualization/animation_widget.py": "157efdff7b2d5955e713e512a06e250d719ef906f78abfab3d9d752352abdecf",
+      "src/visualization/control_panel.py": "d883b3d3c91970ee4a6faba8bd1482e9a4ad82636a56e33e978e645d282bd7e6",
+      "src/visualization/data_handler.py": "965ed47790a9c600f5ec2efe57015a854ac7f019611b497fa76344dd3c200bf9",
+      "src/visualization/info_log_widget.py": "7b9fb8af40d11081cf6ca57b23eea3941271176df97c74866294f24c95216b75",
+      "src/visualization/main_window.py": "6f912b764cc81c9621a35c373e9133b5349c83581cd5d31d7cf559ab4e450212",
+      "src/visualization/plot_dialog.py": "fdb03aa8a33199a25307bfa5394ce03c1619443eda3a4340a8ced01401efb9df",
+      "src/visualization/plot_widget.py": "d6b149a18079302ee9513cfab8fa51f978a25c9505b1eb3982221407ba440db2",
+      "src/visualization/vista_widget.py": "c626bac785ba52c2b18cc4ce033417d432facaeb0dc659576b206ba827a63b3e",
+      "src/simulation/fixtures/continuity_challenge.json": "f5d764e9a82ddbee06df7ab26cac4eebbc197e68ebad13121ef156f89b227f41",
+      "requirements.txt": "1ff464f9388114761e9a80dd135800600a411cff6b61246571fe01b8f5a67f32"
+    },
+    "semantics": "capture-replay-geocenter-v1"
+  },
+  "environment": {
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "executable": "C:\\SourceCodes\\BoxMotionAnalyzer\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "dependencies": {
+      "numpy": "2.3.5",
+      "scipy": "1.16.3",
+      "pandas": "2.3.3",
+      "PySide6": "6.10.1",
+      "mujoco": "3.6.0",
+      "pytest": "9.0.3"
+    },
+    "numerical_environment": {
+      "OMP_NUM_THREADS": "unset",
+      "OPENBLAS_NUM_THREADS": "unset",
+      "MKL_NUM_THREADS": "unset"
+    }
+  },
+  "agents": {
+    "main": {
+      "requested": "GPT-6.1 Sol/xhigh",
+      "host_session_declaration": "gpt-6.1-sol/xhigh",
+      "runtime_routing": "unverified; no authoritative service routing introspection"
+    },
+    "advisor": {
+      "requested": "GPT-6 Astra/high",
+      "dispatch": "Explicit override accepted; fresh context; read-only",
+      "runtime_routing": "unverified"
+    },
+    "reviewer": {
+      "requested": "GPT-6.1 Sol/high",
+      "dispatch": "Explicit override accepted; fresh context; read-only",
+      "runtime_routing": "unverified"
+    }
+  },
+  "scope": {
+    "algorithms": "unchanged",
+    "baseline_tolerance": "Approved PUB02 corpus and reference/tolerance bytes unchanged",
+    "correction_default": "OFF",
+    "pub09_observed_holdout": "required4/evaluable0/not_detected4/pass0",
+    "experimental": "pending/unavailable #104; measured n0",
+    "roadmap_cleanup": "Separate #145",
+    "native": "Window3D/external input/human review/new-corpus Step1/1.5/save chooser pending"
+  },
+  "capture": {
+    "fast": {
+      "report": "tmp/issue144/publish-fast/run_report.json",
+      "sha256": "64d30dee0a0df918604c33c80eec8916b448160f2d4f16d3142e1e73900f53a1",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "bdc26cc4-373f-4328-a8ac-e4875a6e7699",
+      "utc": "2026-10-12T17:23:25.382219+00:00",
+      "kst": "2026-10-13T02:23:25.382219+09:00",
+      "tier": "fast",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "loaded": 6,
+        "approved": 6,
+        "selected": 0,
+        "started": 0,
+        "completed": 0,
+        "fresh": 0,
+        "reused": 0,
+        "failed": 0,
+        "unexecuted": 6,
+        "required": 0,
+        "evaluable": 0,
+        "passed": 0
+      },
+      "duration_s": 0.9022626999649219,
+      "peak_memory_bytes": 158670848,
+      "optimizer_calls": 0
+    },
+    "capture": {
+      "report": "tmp/issue144/publish-capture/run_report.json",
+      "sha256": "2dba9993becffb060f562572b4b21a8e859b6a50e1ac21e0920e48a184f8bd14",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "6409cfd3-9147-442f-8ccb-25b9fcfb44ca",
+      "utc": "2026-10-12T17:23:28.901837+00:00",
+      "kst": "2026-10-13T02:23:28.901837+09:00",
+      "tier": "capture",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "loaded": 6,
+        "approved": 6,
+        "selected": 0,
+        "started": 0,
+        "completed": 0,
+        "fresh": 0,
+        "reused": 0,
+        "failed": 0,
+        "unexecuted": 6,
+        "required": 0,
+        "evaluable": 0,
+        "passed": 0
+      },
+      "duration_s": 4.350720199989155,
+      "peak_memory_bytes": 162930688,
+      "optimizer_calls": 0
+    },
+    "full": {
+      "report": "tmp/issue144/publish-full/run_report.json",
+      "sha256": "daa7a156fe9dbaf8b381eb744582966075de348fccb55cdccee6e5953a9016dc",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "64751269-6690-4c34-9a26-f991010131fd",
+      "utc": "2026-10-12T17:23:35.879815+00:00",
+      "kst": "2026-10-13T02:23:35.879815+09:00",
+      "tier": "full",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "loaded": 6,
+        "approved": 6,
+        "selected": 6,
+        "started": 6,
+        "completed": 6,
+        "fresh": 6,
+        "reused": 0,
+        "failed": 0,
+        "unexecuted": 0,
+        "required": 6,
+        "evaluable": 6,
+        "passed": 6
+      },
+      "duration_s": 83.92385479999939,
+      "peak_memory_bytes": 184741888,
+      "optimizer_calls": 449
+    },
+    "representative": {
+      "report": "tmp/issue144/publish-representative/run_report.json",
+      "sha256": "9058ab38e0ab73ceda93749b9b17f90524289037fd1faf3012ebef086aafda1b",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "200d0dd0-b12c-47b6-ad6e-5f49ad6197bd",
+      "utc": "2026-10-12T17:25:02.414936+00:00",
+      "kst": "2026-10-13T02:25:02.414936+09:00",
+      "tier": "representative",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "loaded": 6,
+        "approved": 6,
+        "selected": 1,
+        "started": 1,
+        "completed": 1,
+        "fresh": 1,
+        "reused": 0,
+        "failed": 0,
+        "unexecuted": 5,
+        "required": 1,
+        "evaluable": 1,
+        "passed": 1
+      },
+      "duration_s": 14.77288420003606,
+      "peak_memory_bytes": 181444608,
+      "optimizer_calls": 77
+    },
+    "resumed": {
+      "report": "tmp/issue144/publish-resumed/run_report.json",
+      "sha256": "91038c29b27c2df573bc84d8958a875e2802d35213fe52f51d691fb000887341",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "ae0076c1-00cc-4156-804e-0643b08bbce4",
+      "utc": "2026-10-12T17:25:19.737113+00:00",
+      "kst": "2026-10-13T02:25:19.737113+09:00",
+      "tier": "representative",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "loaded": 6,
+        "approved": 6,
+        "selected": 1,
+        "started": 0,
+        "completed": 1,
+        "fresh": 0,
+        "reused": 1,
+        "failed": 0,
+        "unexecuted": 5,
+        "required": 1,
+        "evaluable": 1,
+        "passed": 1
+      },
+      "duration_s": 3.9313919999985956,
+      "peak_memory_bytes": 174518272,
+      "optimizer_calls": 0
+    },
+    "final_correction_full": {
+      "report": "tmp/issue135/pytest_9ed6f549257a4a6086150b787e4c4401/full/run_report.json",
+      "sha256": "a4a1f4ccd24932c0708a029ddc53e0a0a20428ab31ad4bb41018f81d3645bb45",
+      "source": {
+        "commit": "659308b54ac848871a8162d446f91f0e1858cc2d",
+        "dirty": true,
+        "content_sha256": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "f7a22ad9-7d4f-426c-b8c7-d3111107c05b",
+      "utc": "2026-10-12T17:43:12.787031+00:00",
+      "kst": "2026-10-13T02:43:12.787031+09:00",
+      "tier": "full",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "loaded": 6,
+        "approved": 6,
+        "selected": 6,
+        "started": 6,
+        "completed": 6,
+        "fresh": 6,
+        "reused": 0,
+        "failed": 0,
+        "unexecuted": 0,
+        "required": 6,
+        "evaluable": 6,
+        "passed": 6
+      },
+      "duration_s": 75.58472059998894,
+      "peak_memory_bytes": 197931008,
+      "optimizer_calls": 449
+    }
+  },
+  "components": {
+    "pub07": {
+      "report": "tmp/issue144/pub07/run_report.json",
+      "sha256": "7a10b6259e8a5159e2ef8f341bf5364ad926f970bc18f308b4e2631c91275bd2",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "19d9d63cfb0e1bc88c8b9a34a65612afa19ba910d5d146508f964a4bc9c05b17",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "e60d80b7-f3f0-47a3-b585-f228300bf581",
+      "utc": "2026-10-12T16:23:48.082763+00:00",
+      "kst": "2026-10-13T01:23:48.082763+09:00",
+      "tier": "full",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "loaded": 4,
+        "approved": 0,
+        "fresh": 4,
+        "reused": 0,
+        "failed": 0,
+        "unexecuted": [
+          "native",
+          "experimental"
+        ],
+        "physical_families": 2,
+        "original_experimental_n": 0,
+        "reason": "Repeated same-model samples do not expand geometry/family coverage"
+      },
+      "duration_s": 26.64204270002665,
+      "peak_memory_bytes": 382160896,
+      "optimizer_calls": 0,
+      "numerical_acceptance": {
+        "status": "needs_review",
+        "required": false,
+        "reason": "Existing proposed diagnostic tolerances; no baseline promotion"
+      },
+      "original_verdict": "needs_review"
+    },
+    "pub08": {
+      "report": "tmp/issue144/pub08/run_report.json",
+      "sha256": "5d9c0a791f17abff0ab600ea003fb38d5bb436f09b6dbefd21ac0f6f0a69340a",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "19d9d63cfb0e1bc88c8b9a34a65612afa19ba910d5d146508f964a4bc9c05b17",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "a6ca2434-0b9f-48a5-8e50-2f413b28b54d",
+      "utc": "2026-10-12T16:23:48.870416+00:00",
+      "kst": "2026-10-13T01:23:48.870416+09:00",
+      "tier": "full",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "required": 13,
+        "loaded": 13,
+        "fresh": 13,
+        "reused": 0,
+        "approved": 0,
+        "failed": 0,
+        "unexecuted": 0,
+        "original_experimental_n": 0
+      },
+      "duration_s": 983.8092755000107,
+      "peak_memory_bytes": 343871488,
+      "optimizer_calls": 4878,
+      "numerical_acceptance": {
+        "status": "needs_review",
+        "required": false,
+        "reason": "Existing proposed diagnostic tolerances; no baseline promotion"
+      },
+      "original_verdict": "needs_review"
+    },
+    "pub09": {
+      "report": "tmp/issue144/pub09/run_report.json",
+      "sha256": "dea900b1b37b8ec1fa2db82f249e34800fb90108e87c25d8d0124551e8963c4f",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "19d9d63cfb0e1bc88c8b9a34a65612afa19ba910d5d146508f964a4bc9c05b17",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "1e134e68-a360-4793-a44d-a4ecf8e91c4b",
+      "utc": "2026-10-12T16:23:50.018359+00:00",
+      "kst": "2026-10-13T01:23:50.018359+09:00",
+      "tier": "full",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "engines": {
+          "required": 29,
+          "loaded": 29,
+          "fresh": 29,
+          "reused": 0,
+          "approved": 0,
+          "failed": 0,
+          "unexecuted": 0,
+          "required_reason": "frozen execution budget",
+          "cache_origin": "none",
+          "scope": "actual-engine runs; production controls run separately within case; no reused results"
+        },
+        "production_observed": {
+          "required": 4,
+          "evaluable": 0,
+          "pass_count": 0,
+          "ambiguous": 0,
+          "unavailable": 0,
+          "failed": 0,
+          "not_detected": 4,
+          "out_of_window": 0,
+          "reported": 4,
+          "within_proposed_tolerance": 0,
+          "pass": 0,
+          "denominators": {
+            "required": 4,
+            "evaluable": 0
+          },
+          "coverage": "complete",
+          "numerical_status": "needs_review",
+          "physical_status": "pending",
+          "calibration_status": "uncalibrated",
+          "all_required_evaluable": false,
+          "whole_protocol_pass": false,
+          "modality": "production-observed-Raw"
+        },
+        "synthetic_holdout": {
+          "required": 4,
+          "evaluable": 4,
+          "pass_count": 0,
+          "ambiguous": 0,
+          "unavailable": 0,
+          "failed": 0,
+          "not_detected": 0,
+          "out_of_window": 0,
+          "reported": 4,
+          "within_proposed_tolerance": 4,
+          "pass": 0,
+          "denominators": {
+            "required": 4,
+            "evaluable": 4
+          },
+          "coverage": "complete",
+          "numerical_status": "needs_review",
+          "physical_status": "pending",
+          "calibration_status": "uncalibrated",
+          "all_required_evaluable": true,
+          "whole_protocol_pass": false,
+          "modality": "synthetic-self-consistency"
+        },
+        "independent_experimental_n": 0
+      },
+      "duration_s": 660.1863977999892,
+      "peak_memory_bytes": 411619328,
+      "optimizer_calls": 906,
+      "numerical_acceptance": {
+        "status": "needs_review",
+        "required": false,
+        "reason": "Existing proposed diagnostic tolerances; no baseline promotion"
+      },
+      "original_verdict": "needs_review"
+    },
+    "pub10": {
+      "report": "tmp/issue144/pub10/run_report.json",
+      "sha256": "d95aaba66b7f1d772ec5be63cbe26c93e741da119cca52b24c8305239eb878a8",
+      "source": {
+        "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "dirty": true,
+        "content_sha256": "19d9d63cfb0e1bc88c8b9a34a65612afa19ba910d5d146508f964a4bc9c05b17",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "60139eb8-d70a-43b1-a08e-466211b293cc",
+      "utc": "2026-10-12T16:23:50.457657+00:00",
+      "kst": "2026-10-13T01:23:50.457657+09:00",
+      "tier": "full",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "operations": {
+          "required_cases": 16,
+          "executed_cases": 16,
+          "unexecuted_cases": 0,
+          "required_physics": 8,
+          "fresh_physics": 8,
+          "reused_physics_for_variants": 16,
+          "physics_attempted": 8,
+          "physics_failed": 0,
+          "required_observations": 16,
+          "fresh_observations": 16,
+          "fresh_production": 18,
+          "production_attempted": 18,
+          "production_failed": 0,
+          "observations_attempted": 16,
+          "observations_failed": 0,
+          "reused_results": 0,
+          "approved_numerical": 0,
+          "original_experimental_n": 0,
+          "unexecuted_reason": null,
+          "cache_origin": "none"
+        },
+        "endpoints": {
+          "required": 80,
+          "evaluable": 76,
+          "passed": 76,
+          "ambiguous": 1,
+          "unavailable": 3,
+          "failed": 0,
+          "functional_pass": true,
+          "accuracy_pass": false
+        },
+        "independent_experimental_n": 0
+      },
+      "duration_s": 875.4318206000025,
+      "peak_memory_bytes": 628199424,
+      "optimizer_calls": 2942,
+      "numerical_acceptance": {
+        "status": "needs_review",
+        "required": false,
+        "reason": "Existing proposed diagnostic tolerances; no baseline promotion"
+      },
+      "original_verdict": "needs_review"
+    }
+  },
+  "component_source_note": "Original fresh physics/production executed before reporting-only integrity corrections; report/source digests retained. PUB09 original artifact reevaluation uses corrected adapter without claiming fresh physics. All existing validators run fresh on final source in required hosted CI.",
+  "gui": {
+    "actual_qt": "Actual MainApp Step2/reopen/selection/export and Compare datasets exercised by test_capture_regression",
+    "render": "Local Compare widget grab black; no native3D success",
+    "trial_producer": {
+      "scale100": "Passed1 test32.55s",
+      "scale125": "Interrupted after hang; original partial files/log retained"
+    },
+    "release_gui": {
+      "original": "Failed under effectiveDPR1.875",
+      "adjusted_process_scale": "Failed Compare tooltip hover under actualDPR1.25",
+      "logs": [
+        "tmp/issue144/gui",
+        "tmp/issue144/gui-dpr125",
+        "tmp/issue144/trial-gui-aborted.json"
+      ]
+    },
+    "policy": "Original hosted FHD/125percent required checks retained; no skip or GUI acceptance promotion"
+  },
+  "tests": {
+    "final_log": "tmp/issue144/interruption-final.log",
+    "final_junit": "tmp/issue144/interruption-final.xml",
+    "passed": 130,
+    "earlier": [
+      {
+        "log": "tmp/issue144/review-corrections.log",
+        "passed": 119,
+        "failed": 2,
+        "reason": "New test missing digest import; fixed in following123-pass run"
+      },
+      {
+        "log": "tmp/issue144/review-corrections-final.log",
+        "passed": 123
+      },
+      {
+        "log": "tmp/issue144/review-final.log",
+        "passed": 127,
+        "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820"
+      }
+    ],
+    "inventory": "tests/public_ci_inventory.json",
+    "required_ci": {
+      "job": 1,
+      "steps": 24,
+      "junit_lanes": 12,
+      "testcase_executions": 1757,
+      "common_reports": 9,
+      "overlap": "Testcase executions across lanes include repeated tests; not independent motions/trials"
+    },
+    "final_delta": {
+      "log": "tmp/issue144/attempt-scope.log",
+      "passed": 2,
+      "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+      "full_cli": "tmp/issue144/publish-full/run_report.json"
+    }
+  },
+  "review": {
+    "initial": "tmp/issue144/reviewer/ReviewReport.json",
+    "correction_round1": "tmp/issue144/reviewer/CorrectionReview-round1.json",
+    "final": "tmp/issue144/reviewer/CorrectionReview.json",
+    "original_findings": {
+      "R1": "P1: typed source/clock/profile/baseline preflight",
+      "R2": "P1: PUB09 reconstruct original required artifacts/endpoints",
+      "R3": "P1: CI reopen capture artifacts and recompute coverage/protocol",
+      "R4": "P1: one-shot worker interrupt must stop subsequent production and preserve partial resume"
+    },
+    "resolution": "R1-R4 original attacks rejected on corrected positive fixtures; no material P0/P1 remains in bounded review",
+    "logs": "tmp/issue144/reviewer; original failed results preserved",
+    "final_verdict": "bounded_pass",
+    "final_sha256": "a118849818b66068c2a32ac413e137caa574ac300909b6bfac1c4a355c02dc9c",
+    "final_record": {
+      "schema_version": 1,
+      "plan_spec": "ISTA6A-PLAN-20261001-v1",
+      "object_type": "IndependentCorrectionReview",
+      "review_date": "2026-10-13",
+      "round": 2,
+      "verdict": "bounded_pass",
+      "source_content_sha256": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+      "scope": "R1 final correction controls and current-source fast/capture/full reopening plus load-event/scene/PROC corruption guards. R2/R3 original controls resolved in prior4c3 bounded review; no new physics execution claimed.",
+      "findings": [
+        {
+          "id": "R1",
+          "status": "resolved",
+          "original_severity": "P1",
+          "grounds": [
+            "capture_protocol canonical EOF boundary validation",
+            "validate_reference declared numeric/category metric key sets, strict finite numeric+tolerance requirements",
+            "all scene/flip anchors validated against original Raw",
+            "preflight_loaded_files persisted through partial preflight failure; coverage.loaded unique preflight/processing case union"
+          ],
+          "results": "All seven profile/anchor/clock/bool/numeric-string controls rejected fail1; positive fast/capture accepted with loaded6/552rows/fresh0; missing partial Raw fail1 retains4files/420rows/fresh0/unexecuted6. Actual subprocess CLI EOF returns1; report exit1; JUnit failure1; summary fail.",
+          "evidence": [
+            "correction2/results.json",
+            "correction2-probe.log",
+            "correction2/actual-cli-eof.log"
+          ]
+        },
+        {
+          "id": "R2",
+          "status": "resolved",
+          "original_severity": "P1",
+          "grounds": "Prior round1 validates real protocol/fit/holdout/source-bound production/contact/detector artifacts and reconstructs required outcome summaries; code unchanged in relevant PUB09 branch.",
+          "results": "Actual preserved-PUB09 positive control accepted and original five missing/promotion/type attacks rejected. Observed4not_detected/0pass and synthetic4evaluable/0approvedpass maintained; no physics repeat.",
+          "evidence": [
+            "CorrectionReview-round1.json",
+            "correction-component.log",
+            "correction-component-results.json"
+          ]
+        },
+        {
+          "id": "R3",
+          "status": "resolved",
+          "original_severity": "P1",
+          "grounds": "Prior round1 required nested protocol/case/scene/coverage/triplet/correspondence/current guard corrections remain. Final loader event guard also independently checked.",
+          "results": "Current-source full54a... accepted6fresh/6completed/reused0/449fit/552Raw; changed preflight load rows, scene deletion and PROC corruption rejected. Prior original six promotion/corruption/omission attacks plus UTC/context/required skip/missing tests rejected with valid new-source positive control.",
+          "evidence": [
+            "correction2/full-validation/results.json",
+            "correction2-full.log",
+            "correction-ci1/results.json",
+            "correction-ci1.log"
+          ]
+        }
+      ],
+      "commands": [
+        ".venv/Scripts/python.exe C:/Temp/boxmotion-pub11-20261013/reviewer/correction2_probe.py",
+        ".venv/Scripts/python.exe C:/Temp/boxmotion-pub11-20261013/reviewer/correction2_full.py"
+      ],
+      "reproduction_results": [
+        {
+          "fault": "profile_hash",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 4,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 420,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\profile_hash\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "ValueError",
+              "message": "Marker profile identity/geometry mismatch.",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 86, in capture_protocol\n    validate_fixture(fixture)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\contracts.py\", line 241, in validate_fixture\n    raise ValueError('Marker profile identity/geometry mismatch.')\nValueError: Marker profile identity/geometry mismatch.\n"
+            }
+          ],
+          "extra": null
+        },
+        {
+          "fault": "included_end_time_bool",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 5,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 480,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\included_end_time_bool\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "ValueError",
+              "message": "Source-bound include/exclude anchor or raw timestamp differs.",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 105, in capture_protocol\n    raise ValueError('Source-bound include/exclude anchor or raw timestamp differs.')\nValueError: Source-bound include/exclude anchor or raw timestamp differs.\n"
+            }
+          ],
+          "extra": null
+        },
+        {
+          "fault": "excluded_start_bool",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 3,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 340,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\excluded_start_bool\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "ValueError",
+              "message": "Record interval must be nonempty [start,end).",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 104, in capture_protocol\n    if digest(anchor(raw,saved['start_record'],saved['end_record_exclusive']))!=digest(saved):\n              ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\contracts.py\", line 86, in anchor\n    raise ValueError('Record interval must be nonempty [start,end).')\nValueError: Record interval must be nonempty [start,end).\n"
+            }
+          ],
+          "extra": null
+        },
+        {
+          "fault": "capture_end_text",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 5,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 480,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\capture_end_text\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "ValueError",
+              "message": "Capture EOF boundary must retain the original unavailable timestamp/basis.",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 99, in capture_protocol\n    raise ValueError('Capture EOF boundary must retain the original unavailable timestamp/basis.')\nValueError: Capture EOF boundary must retain the original unavailable timestamp/basis.\n"
+            }
+          ],
+          "extra": null
+        },
+        {
+          "fault": "flip_time_bool",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 552,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\flip_time_bool\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "ValueError",
+              "message": "Source-bound flip anchor/raw time differs.",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 110, in capture_protocol\n    raise ValueError('Source-bound flip anchor/raw time differs.')\nValueError: Source-bound flip anchor/raw time differs.\n"
+            }
+          ],
+          "extra": null
+        },
+        {
+          "fault": "numeric-baseline",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 5,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 480,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\numeric-baseline\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "ValueError",
+              "message": "Reference metric boolean cannot masquerade as numeric/category value.",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 127, in capture_protocol\n    validate_reference(reference)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\contracts.py\", line 277, in validate_reference\n    raise ValueError('Reference metric boolean cannot masquerade as numeric/category value.')\nValueError: Reference metric boolean cannot masquerade as numeric/category value.\n"
+            }
+          ],
+          "extra": null
+        },
+        {
+          "fault": "numeric_text",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 5,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 480,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\numeric_text\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "ValueError",
+              "message": "Numeric reference metric requires a finite number and explicit tolerance: MaxAbsThetaShortDeg",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 127, in capture_protocol\n    validate_reference(reference)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\contracts.py\", line 281, in validate_reference\n    raise ValueError('Numeric reference metric requires a finite number and explicit tolerance: ' + key)\nValueError: Numeric reference metric requires a finite number and explicit tolerance: MaxAbsThetaShortDeg\n"
+            }
+          ],
+          "extra": null
+        },
+        {
+          "fault": "control-fast",
+          "status": "pass",
+          "exit_code": 0,
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 552,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\fast\\run_report.json",
+          "errors": null,
+          "extra": {
+            "reopen": "accepted",
+            "case_loaded_rows": 552
+          }
+        },
+        {
+          "fault": "control-capture",
+          "status": "pass",
+          "exit_code": 0,
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 552,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\capture\\run_report.json",
+          "errors": null,
+          "extra": {
+            "reopen": "accepted",
+            "case_loaded_rows": 552
+          }
+        },
+        {
+          "fault": "missing-partial",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 4,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 420,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\missing-partial\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "FileNotFoundError",
+              "message": "[Errno 2] No such file or directory: 'C:\\\\Temp\\\\boxmotion-pub11-20261013\\\\reviewer\\\\correction2\\\\missing-assets\\\\partial\\\\observed.csv'",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 92, in capture_protocol\n    if file_digest(source) != fixture['raw_sha256']:\n       ~~~~~~~~~~~^^^^^^^^\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\contracts.py\", line 32, in file_digest\n    with Path(path).open('rb') as stream:\n         ~~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Program Files\\Python313\\Lib\\pathlib\\_local.py\", line 537, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'C:\\\\Temp\\\\boxmotion-pub11-20261013\\\\reviewer\\\\correction2\\\\missing-assets\\\\partial\\\\observed.csv'\n"
+            }
+          ],
+          "extra": null
+        },
+        {
+          "fault": "actual-cli-eof",
+          "status": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 5,
+            "approved": 6,
+            "selected": 0,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 0,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "loaded_rows": 480,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "report": "C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\correction2\\actual-cli-eof\\run_report.json",
+          "errors": [
+            {
+              "exception_type": "ValueError",
+              "message": "Capture EOF boundary must retain the original unavailable timestamp/basis.",
+              "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 432, in run_corpus\n    protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\evidence.py\", line 99, in capture_protocol\n    raise ValueError('Capture EOF boundary must retain the original unavailable timestamp/basis.')\nValueError: Capture EOF boundary must retain the original unavailable timestamp/basis.\n"
+            }
+          ],
+          "extra": {
+            "process_exit": 1,
+            "json_exit": 1,
+            "junit_failures": 1,
+            "summary_failed": true
+          }
+        }
+      ],
+      "current_full_guard_results": [
+        {
+          "fault": "control",
+          "accepted": true,
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 6,
+            "started": 6,
+            "completed": 6,
+            "fresh": 6,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 0,
+            "required": 6,
+            "evaluable": 6,
+            "passed": 6
+          },
+          "optimizer_calls": 449,
+          "loaded_rows": 552,
+          "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820",
+          "current_source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820"
+        },
+        {
+          "fault": "preflight_loads_forged",
+          "accepted": false,
+          "error": "Actual preflight file-load evidence differs from original inputs.",
+          "current_source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820"
+        },
+        {
+          "fault": "scene_deleted",
+          "accepted": false,
+          "error": "Capture declared coverage differs from actual scene states.",
+          "current_source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820"
+        },
+        {
+          "fault": "proc_corrupt",
+          "accepted": false,
+          "error": "Cached artifact missing/corrupt: proc",
+          "current_source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820"
+        }
+      ],
+      "original_logs": "ReviewReport.json, CorrectionReview-round1.json and all original probe output directories retained; original main NameError correction-suite failures remain tmp/issue144/review-corrections.log.",
+      "remaining_uncertainty": [
+        "Final published correction commit required hosted CI and repository merge gate remain mandatory; earlier659308b CI cannot replace current119803 source.",
+        "Reviewer repeated fault/control flow and read-only reopened actual resumed production evidence; no whole physics repeat. Main130-check actual suite current source passed.",
+        "Native external input/human3D/new-corpus Step1/1.5/save chooser and independent measured#104 accuracy remain separate pending.",
+        "Actual model routing remains unverified."
+      ],
+      "material_open_findings": [],
+      "P0_count": 0,
+      "P1_count": 0,
+      "P2_count": 0,
+      "publication": "This bounded pass does not approve substitution of older physical runs for final-source CI.",
+      "stage": "final bounded independent correction review",
+      "final_supplement": {
+        "schema_version": 1,
+        "plan_spec": "ISTA6A-PLAN-20261001-v1",
+        "object_type": "IndependentCorrectionReview",
+        "review_date": "2026-10-13",
+        "stage": "final tiny-delta supplemental",
+        "verdict": "bounded_pass",
+        "source_content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+        "base_commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+        "changed_since_round2": [
+          "src/analysis/regression/evidence.py",
+          "src/analysis/regression/runner.py"
+        ],
+        "delta": [
+          "runner initializes execution_coverage with actual preflight file loads before writing attempt-start.json",
+          "runner removes redundant per-production coverage.loaded increment; final unique union logic remains",
+          "capture report acceptance requires every case loaded exactly True and integer loaded_rows matching actual source Raw rows"
+        ],
+        "reference_diff_integrity": "Runner prior text reconstructed by reversing exact two-line delta and SHA256 verified against actual a8ca full report recorded runner hash153af04f...; final-delta/runner-diff.txt. Earlier delayed saved runner-a8ca snapshot actually matched final9985, so it was not relied on as old-source proof.",
+        "control_results": [
+          {
+            "tier": "fast",
+            "status": "accepted",
+            "coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 0,
+              "started": 0,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 0,
+              "unexecuted": 6,
+              "required": 0,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "attempt_coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 0,
+              "started": 0,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 0,
+              "unexecuted": 6,
+              "required": 0,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "source": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d"
+          },
+          {
+            "tier": "capture",
+            "status": "accepted",
+            "coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 0,
+              "started": 0,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 0,
+              "unexecuted": 6,
+              "required": 0,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "attempt_coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 0,
+              "started": 0,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 0,
+              "unexecuted": 6,
+              "required": 0,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "source": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d"
+          },
+          {
+            "fault": "loaded_false",
+            "accepted": false,
+            "error": "Required capture case load status/row scope differs."
+          },
+          {
+            "fault": "loaded_rows_bool",
+            "accepted": false,
+            "error": "Required capture case load status/row scope differs."
+          },
+          {
+            "fault": "loaded_rows_missing",
+            "accepted": false,
+            "error": "Required capture case load status/row scope differs."
+          }
+        ],
+        "final_full": {
+          "source": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+          "report_source": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 6,
+            "started": 6,
+            "completed": 6,
+            "fresh": 6,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 0,
+            "required": 6,
+            "evaluable": 6,
+            "passed": 6
+          },
+          "attempt_coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 6,
+            "started": 0,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 6,
+            "required": 6,
+            "evaluable": 0,
+            "passed": 0
+          },
+          "optimizer_calls": 449,
+          "raw_rows": 552,
+          "proc_rows": 452,
+          "valid_rows": 449
+        },
+        "findings": [
+          {
+            "id": "R1",
+            "status": "resolved",
+            "original_severity": "P1"
+          },
+          {
+            "id": "R2",
+            "status": "resolved",
+            "original_severity": "P1"
+          },
+          {
+            "id": "R3",
+            "status": "resolved",
+            "original_severity": "P1"
+          }
+        ],
+        "new_material_findings": [],
+        "evidence": [
+          "CorrectionReview-round1.json",
+          "CorrectionReview-round2.json",
+          "final-delta/runner-diff.txt",
+          "final-delta/results.json",
+          "final-delta/full-control.json",
+          "final-delta.log",
+          "final-delta-full.log",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/publish-fast/run_report.json",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/publish-capture/run_report.json",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/publish-full/run_report.json",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/review-final.log",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/attempt-scope.log"
+        ],
+        "test_scope": "Actual main127 passed241.38s at sourcea8ca. Final-source targeted2 passed5.03s,50deselected. Reviewer final fast/capture/full read-only reopening accepted; actual attempt-start scopes correct. Three added independent case-load status/row-type/missing attacks rejected. Earlier all R1/R2/R3 controls and current-source bounded positive controls retained.",
+        "remaining_uncertainty": [
+          "Final published-source hosted required CI and repository merge gate must still pass; local review does not replace them.",
+          "Independent final supplement did not repeat full physics validators or whole repository tests; R2 logic/production algorithms unchanged and preserved actual artifacts re-evaluated in prior review.",
+          "Native external input/human3D/new-corpus Step1/1.5/save chooser and independent measured#104 accuracy remain pending.",
+          "Actual model routing remains unverified."
+        ],
+        "known_implementation_followups": [],
+        "publication_scope": "Software/reporting guard bounded PASS; no numerical/physical/native acceptance promotion."
+      },
+      "known_implementation_followups": [],
+      "additional_finding": {
+        "id": "R4",
+        "severity": "P1",
+        "status": "resolved",
+        "title": "Explicit one-shot KeyboardInterrupt does not stop initiating required scene processing",
+        "source_commit": "659308b54ac848871a8162d446f91f0e1858cc2d",
+        "source_content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+        "grounds": [
+          "src/analysis/regression/runner.py:run_corpus per-scene except BaseException at line535 records interrupt then continues included scene loop",
+          "src/analysis/regression/runner.py:per-case except Exception at line552 would also absorb rethrown InterruptedError unless explicitly propagated"
+        ],
+        "command": ".venv/Scripts/python.exe C:/Temp/boxmotion-pub11-20261013/reviewer/interruption_probe.py",
+        "observed": {
+          "process_scene_calls": [
+            {
+              "case_id": "two_drops",
+              "review_id": "two_drops-scene-0",
+              "ordinal": 1
+            },
+            {
+              "case_id": "two_drops",
+              "review_id": "two_drops-scene-1",
+              "ordinal": 2
+            },
+            {
+              "case_id": "supported_H",
+              "review_id": "supported_H-scene-0",
+              "ordinal": 3
+            },
+            {
+              "case_id": "tracking_OFF",
+              "review_id": "tracking_OFF-scene-0",
+              "ordinal": 4
+            },
+            {
+              "case_id": "partial",
+              "review_id": "partial-scene-0",
+              "ordinal": 5
+            },
+            {
+              "case_id": "two_flips",
+              "review_id": "two_flips-scene-0",
+              "ordinal": 6
+            }
+          ],
+          "subsequent_required_scene_calls_after_explicit_interrupt": 5,
+          "run_verdict": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 6,
+            "started": 1,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 6,
+            "unexecuted": 5,
+            "required": 6,
+            "evaluable": 0,
+            "passed": 0
+          }
+        },
+        "scope": "Fault injection only. Valid unchanged corpus; first stub simulates worker progress.started then KeyboardInterrupt; later calls throw cheap controlled sentinel. No actual solver/physics run or numerical result claim.",
+        "impact": "A user interrupt is treated as recoverable per-scene failure; later production scenes may run and write artifacts despite cancellation. Correct nonzero final verdict does not satisfy canceled attempt behavior.",
+        "minimal_correction": "Retain interrupted scene reason/type/traceback and immutable attempt evidence, then terminate production initiation for entire attempt. Propagate KeyboardInterrupt and cancellation InterruptedError through per-scene and per-case catch boundaries to existing run-level handler/finally. Preserve completed checkpoints for explicit resume; remaining required scenes must stay unexecuted. Ordinary recoverable scene errors can retain existing behavior.",
+        "acceptance": "One-shot keyboard interrupt and one-shot cancel callback must each call process_scene at most once (cancel-before-worker may call it0), preserve prior completed work, record nonzero attempt with remaining required unexecuted, and allow a later fresh explicit representative resume.",
+        "original_evidence": [
+          "interruption/reproduction.json",
+          "interruption.log",
+          "interruption/attempt/run_report.json",
+          "interruption/attempt/junit.xml",
+          "interruption/attempt/summary.md"
+        ],
+        "remaining_uncertainty": "Correction not yet implemented/reviewed; no full physics repetition required for this catch/control-flow change."
+      },
+      "r4_correction": {
+        "schema_version": 1,
+        "plan_spec": "ISTA6A-PLAN-20261001-v1",
+        "object_type": "IndependentCorrectionReview",
+        "review_date": "2026-10-13",
+        "stage": "R4 interruption correction",
+        "verdict": "bounded_pass",
+        "source_content_sha256": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+        "base_head": "659308b54ac848871a8162d446f91f0e1858cc2d",
+        "dirty_correction": true,
+        "finding": {
+          "id": "R4",
+          "status": "resolved",
+          "original_severity": "P1",
+          "grounds": [
+            "runner.run_corpus per-scene handler retains interrupted item reason/type/traceback then propagates KeyboardInterrupt and InterruptedError",
+            "Per-case handler propagates both interruption types to outer run handler/finally; remaining required scenes not initiated",
+            "Successful earlier scene checkpoints/signatures/triplets remain explicitly reusable by representative resume"
+          ]
+        },
+        "independent_original_reproduction_recheck": [
+          {
+            "kind": "KeyboardInterrupt",
+            "worker_calls": [
+              "two_drops-scene-0"
+            ],
+            "cancel_calls": [],
+            "status": "fail",
+            "exit_code": 1,
+            "coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 6,
+              "started": 1,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 1,
+              "unexecuted": 5,
+              "required": 6,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "errors": [
+              {
+                "exception_type": "KeyboardInterrupt",
+                "message": "One-shot explicit worker interruption",
+                "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 502, in run_corpus\n    df, impact, artifact = process_scene(fixture, d, session, header, active, original,\n                           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        source, correction, case_output, report['run_id'], progress=item)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\interruption_fixed_probe.py\", line 16, in worker\n    if kind=='KeyboardInterrupt':raise KeyboardInterrupt('One-shot explicit worker interruption')\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyboardInterrupt: One-shot explicit worker interruption\n"
+              }
+            ],
+            "scene_exceptions": [
+              "KeyboardInterrupt"
+            ],
+            "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a"
+          },
+          {
+            "kind": "InterruptedError",
+            "worker_calls": [
+              "two_drops-scene-0"
+            ],
+            "cancel_calls": [],
+            "status": "fail",
+            "exit_code": 1,
+            "coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 6,
+              "started": 1,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 1,
+              "unexecuted": 5,
+              "required": 6,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "errors": [
+              {
+                "exception_type": "InterruptedError",
+                "message": "One-shot interrupted worker",
+                "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 502, in run_corpus\n    df, impact, artifact = process_scene(fixture, d, session, header, active, original,\n                           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        source, correction, case_output, report['run_id'], progress=item)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\interruption_fixed_probe.py\", line 17, in worker\n    if kind=='InterruptedError':raise InterruptedError('One-shot interrupted worker')\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nInterruptedError: One-shot interrupted worker\n"
+              }
+            ],
+            "scene_exceptions": [
+              "InterruptedError"
+            ],
+            "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a"
+          },
+          {
+            "kind": "one_shot_callback",
+            "worker_calls": [],
+            "cancel_calls": [
+              1
+            ],
+            "status": "fail",
+            "exit_code": 1,
+            "coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 6,
+              "started": 0,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 1,
+              "unexecuted": 6,
+              "required": 6,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "errors": [
+              {
+                "exception_type": "InterruptedError",
+                "message": "Cancelled before required scene processing; resume in a new attempt.",
+                "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 494, in run_corpus\n    raise InterruptedError('Cancelled before required scene processing; resume in a new attempt.')\nInterruptedError: Cancelled before required scene processing; resume in a new attempt.\n"
+              }
+            ],
+            "scene_exceptions": [
+              "InterruptedError"
+            ],
+            "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a"
+          }
+        ],
+        "actual_partial_success_and_resume": {
+          "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+          "interrupted_source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+          "resumed_source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+          "interrupted_status": "fail",
+          "interrupted_coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 2,
+            "started": 1,
+            "completed": 1,
+            "fresh": 1,
+            "reused": 0,
+            "failed": 1,
+            "unexecuted": 5,
+            "required": 2,
+            "evaluable": 1,
+            "passed": 1
+          },
+          "checkpoint_sha256": "cac7729d59d11fb4aac9d673b75767c3c8a247ee0b7cf5466c00a7dab2e1c65b",
+          "checkpoint_coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 2,
+            "started": 1,
+            "completed": 1,
+            "fresh": 1,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 5,
+            "required": 2,
+            "evaluable": 1,
+            "passed": 1
+          },
+          "checkpoint_successful_scene": true,
+          "resumed_status": "pass",
+          "resumed_coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 2,
+            "started": 1,
+            "completed": 2,
+            "fresh": 1,
+            "reused": 1,
+            "failed": 0,
+            "unexecuted": 4,
+            "required": 2,
+            "evaluable": 2,
+            "passed": 2
+          },
+          "resumed_optimizer_calls": 80,
+          "predecessor_report_sha256": "65db95a742fbc6b58a5df1064a39432d2364a60f714ac73d766ff8e65bf7704a",
+          "recorded_predecessor_report_sha256": "65db95a742fbc6b58a5df1064a39432d2364a60f714ac73d766ff8e65bf7704a",
+          "prior_report_unchanged": true,
+          "predecessor_run_id": "13694613-00ec-4e5d-a2ca-f00eca53c732",
+          "resumed_origin_run_id": "13694613-00ec-4e5d-a2ca-f00eca53c732",
+          "origin_preserved": true,
+          "prior_scene_signature_sha256": "e258fd43009b5e6b6c8cf73614887c0a972ae565f7a100ed46bfd3f8c32fa86b",
+          "prior_scene_signature_equals_report": true,
+          "triplet": [
+            {
+              "kind": "slice",
+              "prior_sha256": "e7d500076337c79230c5f08921c78a473c6b084b2cd14710fe03f74e7fa08d15",
+              "resumed_sha256": "e7d500076337c79230c5f08921c78a473c6b084b2cd14710fe03f74e7fa08d15",
+              "preserved": true
+            },
+            {
+              "kind": "proc",
+              "prior_sha256": "9f66c8df3f016fec42b646f54077b309693f8ebe37e9a373c21e447f1271796c",
+              "resumed_sha256": "9f66c8df3f016fec42b646f54077b309693f8ebe37e9a373c21e447f1271796c",
+              "preserved": true
+            },
+            {
+              "kind": "scenario",
+              "prior_sha256": "b8d56904388baef0983ad81cc9a27ac19947a3e279477772902fe57ed2352db8",
+              "resumed_sha256": "b8d56904388baef0983ad81cc9a27ac19947a3e279477772902fe57ed2352db8",
+              "preserved": true
+            }
+          ],
+          "resume_current_guards": "accepted",
+          "original_paths": {
+            "interrupted": "C:\\Users\\pikac\\AppData\\Local\\Temp\\pytest-of-pikac\\pytest-3666\\test_one_shot_cancel_keeps_suc0\\interrupted",
+            "resumed": "C:\\Users\\pikac\\AppData\\Local\\Temp\\pytest-of-pikac\\pytest-3666\\test_one_shot_cancel_keeps_suc0\\resumed"
+          }
+        },
+        "actual_test_suite": {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "130",
+          "time": "273.997",
+          "timestamp": "2026-10-13T02:42:35.707531+09:00",
+          "hostname": "LAPTOP-LEETAEHO"
+        },
+        "actual_current_full": {
+          "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+          "status": "pass",
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 6,
+            "started": 6,
+            "completed": 6,
+            "fresh": 6,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 0,
+            "required": 6,
+            "evaluable": 6,
+            "passed": 6
+          },
+          "optimizer_calls": 449
+        },
+        "commands": [
+          ".venv/Scripts/python.exe C:/Temp/boxmotion-pub11-20261013/reviewer/interruption_fixed_probe.py",
+          ".venv/Scripts/python.exe C:/Temp/boxmotion-pub11-20261013/reviewer/r4_resume_evidence.py"
+        ],
+        "evidence": [
+          "interruption/InterruptionReview.json",
+          "interruption/reproduction.json",
+          "interruption.log",
+          "interruption-fixed/results.json",
+          "interruption-fixed.log",
+          "interruption-fixed/resume-evidence.json",
+          "interruption-fixed/actual-interrupted",
+          "interruption-fixed/actual-resumed",
+          "interruption-fixed/actual-assets",
+          "r4-resume-evidence-fixed.log",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/interruption-final.xml",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/interruption-final.log"
+        ],
+        "preserved_review_harness_failure": "r4-resume-evidence.log retains first own collection-copy TypeError. All validator rechecks completed before that copy error; corrected collection attempt is separately logged and successful.",
+        "prior_findings": [
+          {
+            "id": "R1",
+            "status": "resolved"
+          },
+          {
+            "id": "R2",
+            "status": "resolved"
+          },
+          {
+            "id": "R3",
+            "status": "resolved"
+          }
+        ],
+        "material_open_findings": [],
+        "new_material_findings": [],
+        "known_implementation_followups": [],
+        "remaining_uncertainty": [
+          "Final published correction commit required hosted CI and repository merge gate remain mandatory; earlier659308b CI cannot replace current119803 source.",
+          "Reviewer repeated fault/control flow and read-only reopened actual resumed production evidence; no whole physics repeat. Main130-check actual suite current source passed.",
+          "Native external input/human3D/new-corpus Step1/1.5/save chooser and independent measured#104 accuracy remain separate pending.",
+          "Actual model routing remains unverified."
+        ]
+      }
+    },
+    "interruption_original": "tmp/issue144/reviewer/interruption/InterruptionReview.json"
+  },
+  "publication": {
+    "status": "Final-source CI required before merge",
+    "workflow": "Public marker validation / synthetic-integration",
+    "budget_minutes": 120,
+    "policy": "All original checks retained; no required skip or numerical promotion",
+    "status_source": "Issue144 and linked PR contain final-head CI/merge result",
+    "superseded_ci": {
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/38284498730",
+      "commit": "659308b54ac848871a8162d446f91f0e1858cc2d",
+      "reason": "Superseded after independently reproduced one-shot interruption defect; never used as final-head gate"
+    }
+  },
+  "capture_source_note": "Standalone publish-tier attempts used source998511. Final119803 cancellation-only correction also ran actual fresh full, truth isolation and GUI in the130-check suite; original attempts retained, never relabeled as the new source. Hosted final-head CLI reruns every tier."
+}

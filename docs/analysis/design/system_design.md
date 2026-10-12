@@ -1,6 +1,8 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-13
+
+PUB11 reuses the production capture runner and PUB07–10 entry points. Pre-execution required protocols, source-bound representative resume, actual row/fit/duration/memory measurements and required JUnit/step inventories connect CLI evidence to CI. [Contract](../reference/regression_evidence.md).
 
 #143 / PUB10 adds a separate opt-in virtual observation profile after the unchanged
 MuJoCo trajectory. True-pose assigned-face visibility and common group masks use

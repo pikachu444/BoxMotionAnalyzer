@@ -115,7 +115,7 @@ def compare_metrics(expected, actual, tolerance):
         if passed and before['status'] == 'valid':
             a, b = after['value'], before['value']
             if isinstance(b, (int, float)) and not isinstance(b, bool):
-                delta = float(a) - float(b) if isinstance(a, (int, float)) else None
+                delta = float(a) - float(b) if type(a) in (int, float) else None
                 spec = tolerance['bounds'][before['tolerance']]
                 passed = delta is not None and np.isfinite(delta) and abs(delta) <= spec['absolute'] + spec['relative'] * abs(b)
             else:
