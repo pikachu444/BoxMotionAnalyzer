@@ -1,6 +1,8 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-13
+
+- [O] #144 / PUB11 software implementation and independent correction review: frozen required capture cases and CI nodes/steps, explicit representative resume, overlap-safe coverage and original PUB07–10 reports with actual production measurements. Corrected-source127 affected checks, final attempt-scope2 checks and actual fast/capture/full/representative/resume CLI passed. Three independent P1 findings were reproduced and corrected. Final-head required CI/PR/merge remains the publication gate tracked in #144. See `../reference/regression_evidence.md` and its evidence index. Native/input/human and #104 measured acceptance remain separate; #145 final roadmap cleanup is not included.
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 

@@ -13,6 +13,7 @@ import sys
 import time
 import traceback
 import uuid
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -33,7 +34,8 @@ from src.config import config_app
 from src.simulation.marker_fixtures import validate_profile
 from src.utils.header_converter import convert_to_multi_header
 from .contracts import (envelope, read_json, write_new_json, file_digest, digest, canonical,
-    validate_fixture, anchor, replay_mapping, metric, SEMANTIC_VERSION)
+    validate_fixture, validate_reference, validate_envelope, anchor, replay_mapping, metric, SEMANTIC_VERSION)
+from .evidence import new_report, source_state, capture_protocol, coverage as execution_coverage, write_reports
 from .signatures import (array, pose_trajectory, residual_guard, compare_metrics,
                           scene_signature, runs, scenario_guard)
 
@@ -69,7 +71,7 @@ class ReferenceMissing(FileNotFoundError):
 
 
 def approval_check(value, label):
-    if value.get('status') != 'approved' or any(not value.get(k) for k in ('reviewer', 'date', 'basis')):
+    if value.get('status') != 'approved' or any(type(value.get(k)) is not str or not value[k].strip() for k in ('reviewer', 'date', 'basis')):
         raise ReviewRequired(label + ' is missing reviewed approval.')
 
 
@@ -245,7 +247,8 @@ def process_scene(fixture, decision, session, header, raw, original_raw, source_
     controller.pose_optimizer.process = counted
     try:
         if progress is not None:
-            progress.update(processing='failed', boundary='production_processing')
+            progress.update(processing='failed', started=True, boundary='production_processing',
+                            processing_rows=len(parsed), original_records=[a,b], raw_time_s=[start,end])
         result = controller.process_parsed_data(cfg, parsed)
         if progress is not None:
             progress.update(processing='fresh', boundary='proc_save_compare_export', optimizer_calls=len(optimizer_calls))
@@ -313,6 +316,63 @@ def process_scene(fixture, decision, session, header, raw, original_raw, source_
     return reloaded, model.impact_results[name], info
 
 
+def reuse_scene(previous, case, item, fixture, decision, original, *, publish=True):
+    """Reopen a successful prior triplet; reevaluate it below with current guards."""
+    old_case = next(c for c in previous['cases'] if c['case_id'] == case['case_id'])
+    old = next(s for s in old_case['scenes'] if s['review_id'] == decision['review_id'])
+    if old['status'] != 'pass' or old['processing'] not in ('fresh', 'reused') or not old.get('completed'):
+        raise ValueError('Prior scene failed/incomplete; fresh retry required.')
+    if old_case['cache_identity'] != case['cache_identity']:
+        raise ValueError('Stale source/profile/settings/approval/code/tolerance/environment cache identity.')
+    root = Path(previous['_path']).parent / case['case_id']
+    signature = read_json(root / (decision['review_id'] + '.signature.json'), 'SceneSignature')
+    if canonical(signature) != canonical(old['signature']):
+        raise ValueError('Cached nested signature payload changed.')
+    artifact = dict(signature['artifacts'])
+    for kind in ('slice', 'proc', 'scenario'):
+        path = Path(artifact[kind])
+        if path.is_absolute() or len(path.parts) != 1 or file_digest(root / path) != artifact[kind + '_sha256']:
+            raise ValueError('Cached artifact missing/corrupt: ' + kind)
+    sh, sr = DataLoader().load_csv(str(root / artifact['slice']))
+    if len(sr) != artifact['slice_rows']:
+        raise ValueError('Cached slice lost rows.')
+    df = DataLoader().load_result_csv(str(root / artifact['proc']))
+    linkage = json.loads(df[('Info','CaptureReplay','Json')].iloc[0])
+    validate_envelope(linkage,'CaptureReplay')
+    a,b = decision['anchor']['start_record'], decision['anchor']['end_record_exclusive']
+    indices=list(range(max(0,a-decision['padding_rows']),min(len(original),b+decision['padding_rows'])))
+    if artifact['saved_original_record_indices']!=indices:
+        raise ValueError('Cached slice original interval/padding differs.')
+    np.testing.assert_allclose(sr.iloc[:,:original.shape[1]].apply(pd.to_numeric).to_numpy(),
+        original.iloc[indices].apply(pd.to_numeric).to_numpy(),atol=1e-12,rtol=0,equal_nan=True)
+    validate_proc_linkage(df, linkage, np.arange(a,b), np.asarray(original.iloc[:,1],float)[a:b])
+    if (linkage['run_id'] != old.get('origin_run_id',previous['run_id']) or linkage['raw_sha256'] != fixture['raw_sha256']
+            or linkage['review_id'] != decision['review_id'] or linkage['geometry_sha256'] != digest(fixture['geometry'])
+            or linkage['settings_sha256'] != digest(fixture['effective_processing_config'])
+            or linkage['marker_profile_hash'] != fixture['marker_profile_hash']
+            or linkage['decision_sha256'] != digest(fixture['scene_decisions'])
+            or canonical(linkage['original_interval']) != canonical(decision['anchor'])
+            or canonical(linkage['correction_decisions']) != canonical(fixture['flip_decisions'])):
+        raise ValueError('Cached proc/source lineage differs.')
+    model = ComparisonModel(); name = model.load_file(str(root / artifact['proc']))
+    sample = df.iloc[len(df)//2]
+    offsets = automatic_offsets(sample)
+    velocities = {prefix + axis: sample[('Velocity','CoM',f'BoxLocal_V_{short}{axis}')] for prefix,short
+                  in (('ANG_VEL_','R'),('TRA_VEL_','T')) for axis in 'XYZ'}
+    if (root / artifact['scenario']).read_text(encoding='utf-8') != scenario_text(offsets,velocities,decision['review_id'],'1.0','0.001'):
+        raise ValueError('Cached scenario/reopened sample mismatch.')
+    # Copy evidence to the new immutable attempt; source linkage retains origin.
+    import shutil
+    if publish:
+        for kind in ('slice','proc','scenario'):
+            shutil.copyfile(root / artifact[kind], Path(case['_output']) / artifact[kind])
+    item.update(processing='reused', origin_run_id=linkage['run_id'], cache_origin=dict(run_id=previous['run_id'],report_sha256=file_digest(previous['_path']),
+                                                     reason='Identity, triplet hashes, reopen and current guards'),
+                original_records=[a,b], raw_time_s=[float(original.iloc[a,1]),float(original.iloc[b-1,1])])
+    if publish:artifact['optimizer_calls'] = 0
+    return df,model.impact_results[name],artifact
+
+
 def capture_signature(fixture, raw, result, initial, mapping, candidates, scenes, coverage):
     from src.analysis.pipeline.marker_flip import marker_triplet_indices
     times = np.asarray(raw.iloc[:, 1], float)
@@ -337,21 +397,23 @@ def capture_signature(fixture, raw, result, initial, mapping, candidates, scenes
         calibration_status='pending', measured_data_status='unavailable')
 
 
-def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, command=None):
+def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, command=None, resume=None, cancel=None):
     start = time.perf_counter()
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
-    report = envelope('RunReport', run_id=str(uuid.uuid4()), utc=datetime.now(timezone.utc).isoformat(),
-        kst=datetime.now(timezone(timedelta(hours=9))).isoformat(), tier='representative' if select else tier,
-        command=command or sys.argv, environment=dict(python=sys.version, platform=platform.platform(),
-            dependencies={n: importlib.metadata.version(n) for n in ('numpy', 'scipy', 'pandas', 'PySide6', 'mujoco')}),
-        code=dict(commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
-            dirty=bool(subprocess.check_output(['git', 'status', '--porcelain'], text=True)), semantics=SEMANTIC_VERSION),
+    report = new_report('representative' if select else tier, command or [sys.executable,*sys.argv])
+    report.update(
         schema_versions=dict(manifest=1, decision=1, signature=1), cases=[],
         coverage=dict(loaded=0, approved=0, fresh=0, reused=0, failed=0, unexecuted=0),
         cache_origin='none; all selected scenes freshly processed', independent_review=dict(status='pending'),
-        gui=dict(status='pending', reason='CLI execution is not native GUI verification'),
-        calibration_status='pending', measured_data_status='unavailable', status='fail', exit_code=1)
+        calibration_status='pending', measured_data_status='unavailable', status='fail', exit_code=1,
+        pass_scope=dict(fast='Contracts/profile/baseline preflight only',capture='All Raw load/detection/replay only',
+                        representative='Explicit selected scenes only',full='Every required public corpus scene fresh').get(report['tier'], 'Unsupported'),
+        resume=dict(status='not_requested',reason='New immutable attempt'))
+    previous = None
+    report['preflight_loaded_files']=[]
+    report['input_files']=dict(manifest=str(Path(manifest_path).resolve()),asset_root=str(Path(asset_root).resolve()))
+    report['gui']['status']='pending'
     try:
         manifest = read_json(manifest_path, 'CaptureCorpus')
         report['manifest_sha256'] = file_digest(manifest_path)
@@ -360,13 +422,29 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
             raise ValueError('Duplicate corpus approved scene identity.')
         report['coverage']['approved'] = len(declared)
         report['coverage']['unexecuted'] = len(declared)
-        if tier not in ('capture','representative','full') or (tier == 'capture' and select) or (tier == 'representative' and not select):
+        if tier not in ('fast','capture','representative','full') or (tier in ('fast','capture') and select) or (tier == 'representative' and not select):
             raise ValueError('Invalid tier/selection combination.')
         if tier != 'capture' and not declared:
             raise ValueError('Processing tier requires a nonempty approved scene set.')
         if select and (not set(select).issubset(declared) or len(select) != len(set(select))):
             raise ValueError('Representative selection must name distinct approved scenes.')
         approval_check(manifest['approval'], 'Corpus')
+        protocol = capture_protocol(manifest,asset_root,report['tier'],select,report['code'],report['environment'],report['preflight_loaded_files'])
+        report['protocol'] = protocol; report['protocol_sha256'] = digest(protocol)
+        write_new_json(output / 'protocol.json', protocol)
+        report['coverage']=execution_coverage([],len(declared),len(select or declared) if tier not in ('fast','capture') else 0,report['preflight_loaded_files'])
+        report['status']='running'
+        write_new_json(output / 'attempt-start.json',report)
+        if resume:
+            if report['tier'] != 'representative':
+                raise ValueError('Resume/reuse is representative only; full always requires fresh processing.')
+            previous = read_json(resume,'RunReport')
+            validate_envelope(previous['protocol'],'EvaluationProtocol')
+            if previous.get('protocol_sha256') != digest(previous['protocol']) or previous['code']['content_sha256'] != report['code']['content_sha256']:
+                raise ValueError('Prior protocol/code identity corrupt or stale.')
+            report['resume'] = dict(status='requested',run_id=previous['run_id'],report_sha256=file_digest(resume),
+                                    reason='Successful scenes revalidated; failed/incomplete scenes retry fresh')
+            previous['_path'] = str(Path(resume).resolve())
         expected_ids = []
         for entry in manifest['cases']:
             case = dict(case_id=entry['case_id'], status='fail', boundary='fixture', scenes=[], errors=[])
@@ -381,12 +459,19 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
                 case['identity'] = dict(raw_sha256=fixture['raw_sha256'], decision_sha256=digest(fixture),
                     profile=fixture['marker_profile_hash'], geometry=digest(fixture['geometry']),
                     settings=digest(fixture['effective_processing_config']), tolerance_version=fixture['tolerance']['version'])
+                case['cache_identity'] = next(c['identity'] for c in protocol['cases'] if c['case_id']==entry['case_id'])
                 case_output = output / entry['case_id']
                 case_output.mkdir()
+                case['_output'] = str(case_output)
+                loaded=next(v for v in report['preflight_loaded_files'] if v['case_id']==case['case_id'])
+                case.update(loaded=True,loaded_rows=loaded['rows'])
+                if tier == 'fast':
+                    case.update(status='pass',boundary='contracts_profile_small_artifacts',reason='No detection or production processing requested')
+                    continue
                 case['boundary'] = 'raw_load_detection_replay'
                 values = production_capture(Path(asset_root) / fixture['relative_path'], fixture, case_output)
                 header, active, original, detection, initial, mapping, candidates, session, source, correction = values
-                report['coverage']['loaded'] += 1
+                case['loaded'] = True; case['loaded_rows'] = len(original)
                 mapping_bad = any(m['status'] not in ('matched', 'manual_bound') for m in mapping) or any(c['mapping_status'] == 'unreviewed' for c in candidates)
                 if mapping_bad or not session.all_reviewed:
                     case['status'] = 'needs_review'
@@ -395,7 +480,8 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
                     case['status'] = 'pass'
                 artifacts = []
                 for d in included:
-                    item = dict(review_id=d['review_id'], status='skipped', processing='unexecuted', boundary='selection')
+                    item = dict(review_id=d['review_id'], status='skipped', processing='unexecuted', boundary='selection',
+                                required=tier!='capture' and (not select or d['review_id'] in select),started=False,completed=False)
                     case['scenes'].append(item)
                     if tier == 'capture' or (select and d['review_id'] not in select):
                         item['reason'] = 'Capture tier or outside representative selection'
@@ -404,10 +490,19 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
                         item.update(status='needs_review', reason='Source-bound replay cannot be applied')
                         continue
                     try:
+                        if cancel and cancel():
+                            raise InterruptedError('Cancelled before required scene processing; resume in a new attempt.')
                         item['boundary'] = 'slice_processing_proc_compare_export'
-                        df, impact, artifact = process_scene(fixture, d, session, header, active, original,
-                            source, correction, case_output, report['run_id'], progress=item)
-                        item['processing'] = 'fresh'
+                        cached = None if previous is None else next((s for c in previous['cases'] if c['case_id']==case['case_id']
+                            for s in c['scenes'] if s['review_id']==d['review_id']),None)
+                        if cached and cached['status']=='pass':
+                            df,impact,artifact = reuse_scene(previous,case,item,fixture,d,original)
+                        else:
+                            item['cache_origin'] = dict(status='fresh_retry' if previous else 'none',reason='No successful prior scene')
+                            df, impact, artifact = process_scene(fixture, d, session, header, active, original,
+                                source, correction, case_output, report['run_id'], progress=item)
+                            item['processing'] = 'fresh'
+                            item['origin_run_id'] = report['run_id']
                         artifacts.append(artifact)
                         item['boundary'] = 'reference_residual_signature'
                         ref_path = Path(asset_root) / fixture['reference']['relative_path']
@@ -416,6 +511,7 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
                         if file_digest(ref_path) != fixture['reference']['sha256']:
                             raise ValueError('Trajectory reference SHA256 mismatch.')
                         reference = read_json(ref_path, 'TrajectoryReference')
+                        validate_reference(reference)
                         approval_check(reference['approval'], 'Trajectory reference')
                         if reference['raw_sha256'] != fixture['raw_sha256'] or reference['geometry'] != fixture['geometry']:
                             raise ValueError('Reference source/frame/geometry mismatch.')
@@ -430,18 +526,22 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
                         guard = residual_guard(pose_trajectory(df, fixture['geometry']), ref['trajectory'], fixture['tolerance'])
                         signature = scene_signature(df, fixture, d, impact, artifact, guard)
                         checks = compare_metrics(ref['metrics'], signature['metrics'], fixture['tolerance'])
+                        item['evaluable'] = True
                         signature['artifacts']['scenario_guard'] = scenario_guard(artifact,ref['trajectory'],fixture['tolerance'])
                         item.update(status='pass' if guard['status'] == 'pass' and signature['artifacts']['scenario_guard']['status']=='pass' and all(v['status'] == 'pass' for v in checks.values()) else 'fail',
                                     comparisons=checks, signature=signature)
                         write_new_json(case_output / (d['review_id'] + '.signature.json'), signature)
-                    except Exception as error:
+                        item['completed'] = item['status']=='pass'
+                    except BaseException as error:
                         item.update(status='blocked' if isinstance(error, ReferenceMissing) else 'needs_review' if isinstance(error, ReviewRequired) else 'fail',
                                     reason=str(error), exception_type=type(error).__name__, traceback=traceback.format_exc())
                     if item['status'] != 'pass':
                         case['status'] = item['status']
-                coverage = dict(approved=len(included), fresh=sum(s['processing'] == 'fresh' for s in case['scenes']),
-                    reused=0, failed=sum(s['status'] == 'fail' for s in case['scenes']),
-                    unexecuted=sum(s['processing'] == 'unexecuted' for s in case['scenes']))
+                    checkpoint=deepcopy(report)
+                    checkpoint['coverage']=execution_coverage(report['cases'],len(declared),len(select or declared),report['preflight_loaded_files'])
+                    for c in checkpoint['cases']:c.pop('_output',None)
+                    write_new_json(output / ('checkpoint-'+str(sum(len(c['scenes']) for c in report['cases']))+'.json'),checkpoint)
+                coverage = execution_coverage([case],len(included),sum(s['required'] for s in case['scenes']))
                 case['signature'] = capture_signature(fixture, original, detection, initial, mapping, candidates,
                     dict(header=header, artifacts=artifacts, inventory=[dict(path=p.name,
                         kind='scenario' if p.name.endswith('.scenario.csv') else p.suffix[1:],sha256=file_digest(p))
@@ -462,24 +562,34 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
         report['status'] = 'fail' if report.get('errors') or 'fail' in statuses else 'blocked' if 'blocked' in statuses else 'needs_review' if 'needs_review' in statuses else 'pass'
         if report['tier'] == 'full' and report['coverage']['fresh'] != len(declared):
             report['status'] = 'fail'
-        if report['tier'] == 'representative' and report['coverage']['fresh'] != len(select or []):
+        if report['tier'] == 'representative' and sum(s['status']=='pass' and s['processing'] in ('fresh','reused') for s in all_scenes) != len(select or []):
             report['status'] = 'fail'
         if not manifest['cases']:
             report['status'] = 'fail'
         report['exit_code'] = 0 if report['status'] == 'pass' else 1
-    except Exception as error:
-        report.update(status='needs_review' if isinstance(error, ReviewRequired) else 'fail',
+    except BaseException as error:
+        report.update(status='blocked' if isinstance(error,ReferenceMissing) else 'needs_review' if isinstance(error, ReviewRequired) else 'fail',
                       errors=[dict(exception_type=type(error).__name__, message=str(error), traceback=traceback.format_exc())])
     finally:
         all_scenes = [s for c in report['cases'] for s in c['scenes']]
-        report['coverage']['fresh'] = sum(s['processing'] == 'fresh' for s in all_scenes)
-        report['coverage']['failed'] = sum(s['status'] == 'fail' for s in all_scenes)
-        report['coverage']['unexecuted'] = max(0, report['coverage']['approved'] - sum(s['processing'] in ('fresh', 'failed') for s in all_scenes))
+        report['coverage'] = execution_coverage(report['cases'],report['coverage']['approved'],
+            len(select or declared) if tier not in ('capture','fast') and 'declared' in locals() else 0,report['preflight_loaded_files'])
+        for c in report['cases']: c.pop('_output',None)
+        report['cache_origin'] = dict(status='explicit_reuse' if report['coverage']['reused'] else 'none',
+            predecessor=report['resume'],reason='Only successfully revalidated representative scenes reused' if report['coverage']['reused'] else 'No production results reused')
+        report['required_scope_status']=dict(status='valid' if 'protocol' in report else 'unavailable',
+            reason='Frozen protocol' if 'protocol' in report else 'Required protocol could not be validated; see original errors')
+        report['source_sha256_at_completion'] = source_state()['content_sha256']
+        if report['source_sha256_at_completion'] != report['code']['content_sha256']:
+            report.update(status='fail',reason='Source changed during execution')
+        report['exit_code'] = 0 if report['status']=='pass' else 1
         report['duration_s'] = time.perf_counter() - start
         report['peak_memory_bytes'] = peak_memory_bytes()
+        report['peak_memory_status'] = dict(status='valid' if report['peak_memory_bytes'] is not None else 'unavailable',
+            reason='Process peak working set including imports' if report['peak_memory_bytes'] is not None else 'OS memory API unavailable')
         report['memory_scope'] = 'Process peak working set, includes imports; not incremental allocations'
         report['optimizer_calls'] = sum(s.get('optimizer_calls', 0) for c in report['cases'] for s in c['scenes'])
-        write_new_json(output / 'run_report.json', report)
+        write_reports(output, report)
     return report
 
 
@@ -487,16 +597,18 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--manifest', required=True)
     parser.add_argument('--asset-root', required=True)
-    parser.add_argument('--output', required=True, help='New output directory only; no overwrite or proc reuse.')
-    parser.add_argument('--tier', choices=('capture', 'representative', 'full'), default='full')
+    parser.add_argument('--output', required=True, help='New immutable attempt directory only.')
+    parser.add_argument('--tier', choices=('fast','capture', 'representative', 'full'), default='full')
+    parser.add_argument('--resume', help='Prior PUB11 RunReport; revalidated successful representative scenes only')
     parser.add_argument('--scene', action='append', help='Explicit scene selection always reports representative.')
     args = parser.parse_args(argv)
     if args.tier == 'representative' and not args.scene:
         parser.error('representative requires at least one --scene')
-    if args.tier == 'capture' and args.scene:
-        parser.error('capture cannot be combined with --scene')
+    if args.tier in ('fast','capture') and args.scene:
+        parser.error('fast/capture cannot be combined with --scene')
     try:
-        report = run_corpus(args.manifest, args.asset_root, args.output, tier=args.tier, select=args.scene)
+        report = run_corpus(args.manifest, args.asset_root, args.output, tier=args.tier, select=args.scene, resume=args.resume,
+                            command=[sys.executable,'-m','src.analysis.regression.runner',*(sys.argv[1:] if argv is None else argv)])
     except Exception as error:
         parser.exit(2, f'Runner failed: {error}\n')
     print(json.dumps(dict(status=report['status'], tier=report['tier'], coverage=report['coverage'],

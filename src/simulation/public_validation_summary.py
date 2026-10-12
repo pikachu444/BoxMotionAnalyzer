@@ -88,7 +88,7 @@ def evidence_level(module, test_name):
     return 'synthetic_integration' if name in SYNTHETIC_TESTS.get(module, ()) else 'unit_contract'
 
 
-def summarize_junit(path, *, public_required=False):
+def summarize_junit(path, *, public_required=False, required_nodes=None):
     levels = {name: {'level': number, 'testcases': [], 'counts': {state: 0 for state in
               ('passed', 'failed', 'error', 'skipped')}} for number, name in
               ((1, 'unit_contract'), (2, 'synthetic_integration'), (3, 'public_external'), (4, 'internal_real'))}
@@ -105,7 +105,14 @@ def summarize_junit(path, *, public_required=False):
         cases = []
     if not cases:
         report['errors'].append('JUnit contains no testcases.')
+    seen = []
     for case in cases:
+        nodes = [p.get('value') for p in case.findall('./properties/property') if p.get('name') == 'nodeid']
+        if required_nodes is not None:
+            if len(nodes)!=1:
+                report['errors'].append('Missing/duplicate testcase nodeid.')
+            else:
+                seen.append(nodes[0])
         labels = [prop.get('value') for prop in case.findall('./properties/property')
                   if prop.get('name') == 'evidence_level']
         level = labels[0] if len(labels) == 1 else None
@@ -126,6 +133,14 @@ def summarize_junit(path, *, public_required=False):
                 report['errors'].append(f'{identity}: {level} cannot satisfy the required public software gate.')
         if status in ('failed', 'error') or (public_required and status == 'skipped'):
             report['errors'].append(f'{identity}: {status}.')
+    if required_nodes is not None:
+        if not required_nodes or len(required_nodes)!=len(set(required_nodes)):
+            report['errors'].append('Invalid frozen required test inventory.')
+        if len(seen)!=len(set(seen)) or sorted(seen)!=sorted(required_nodes):
+            report['errors'].append('Required test population differs: missing/extra/duplicate testcases.')
+        report['required'] = len(required_nodes)
+        report['reported'] = len(seen)
+        report['missing'] = sorted(set(required_nodes)-set(seen))
     if public_required:
         for level in ('unit_contract', 'synthetic_integration'):
             if not levels[level]['testcases']:

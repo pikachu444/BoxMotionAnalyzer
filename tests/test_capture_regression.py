@@ -11,7 +11,7 @@ import pytest
 from scipy.spatial.transform import Rotation
 
 from src.analysis.regression.contracts import (anchor, candidate_anchor, replay_mapping,
-    canonical_pose, read_json, validate_fixture, file_digest, metric, envelope)
+    canonical_pose, read_json, validate_fixture, file_digest, metric, envelope, digest)
 from src.analysis.regression.signatures import residual_guard, compare_metrics
 from src.analysis.regression.runner import run_corpus, production_capture, process_scene, validate_proc_linkage, validate_trial_counts
 from src.analysis.pipeline.data_loader import DataLoader
@@ -469,7 +469,8 @@ def fresh_full():
 def test_fresh_full_capture_pipeline_preserves_every_approved_scene(fresh_full):
     root,source,report,isolation=fresh_full
     assert report['status']=='pass',str(root/'full/run_report.json')
-    assert report['coverage']==dict(loaded=6,approved=6,fresh=6,reused=0,failed=0,unexecuted=0)
+    assert report['coverage']==dict(loaded=6,approved=6,selected=6,started=6,completed=6,
+                                  fresh=6,reused=0,failed=0,unexecuted=0,required=6,evaluable=6,passed=6)
     assert report['optimizer_calls']==449
     assert isolation['source_reference_truth_manifest_unchanged'] and isolation['blocked_reads']==[]
     scenes=[s for c in report['cases'] for s in c['scenes']]
@@ -481,6 +482,28 @@ def test_fresh_full_capture_pipeline_preserves_every_approved_scene(fresh_full):
         assert all(v['status']=='pass' for v in s['comparisons'].values())
         assert s['signature']['artifacts']['scenario_guard']['status']=='pass'
     assert report['gui']['status']=='pending' and report['calibration_status']=='pending'
+    from src.analysis.regression.evidence import validate_capture_report
+    assert validate_capture_report(root/'full/run_report.json',expected_tier='full')['status']=='pass'
+
+
+@pytest.mark.parametrize('fault',['scene_deleted','cases_deleted','proc_corrupt','scene_reused','protocol_case_deleted','nested_schema_bool','comparison_changed'])
+def test_ci_reopens_full_evidence_and_rejects_independent_review_failures(fresh_full,tmp_path,fault):
+    import shutil
+    from src.analysis.regression.evidence import validate_capture_report
+    root,*_=fresh_full
+    copied=tmp_path/'full';shutil.copytree(root/'full',copied)
+    path=copied/'run_report.json';value=read_json(path,'RunReport')
+    if fault=='scene_deleted':value['cases'][0]['scenes'].pop()
+    elif fault=='cases_deleted':value['cases']=[]
+    elif fault=='scene_reused':value['cases'][0]['scenes'][0]['processing']='reused'
+    elif fault=='proc_corrupt':
+        proc=next(copied.rglob('*.proc'))
+        with proc.open('a') as stream:stream.write('CORRUPTION')
+    elif fault=='protocol_case_deleted':value['protocol']['cases'].pop();value['protocol_sha256']=digest(value['protocol'])
+    elif fault=='nested_schema_bool':value['protocol']['schema_version']=True;value['protocol_sha256']=digest(value['protocol'])
+    else:value['cases'][0]['scenes'][0]['comparisons']['t1']['status']='fail'
+    path.write_text(json.dumps(value),encoding='utf-8')
+    with pytest.raises((ValueError,KeyError,AssertionError)):validate_capture_report(path,expected_tier='full')
 
 
 def test_deleted_truth_and_changed_labels_leave_actual_processing_equal(fresh_full,tmp_path):

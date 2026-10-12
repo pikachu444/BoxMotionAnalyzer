@@ -1,6 +1,6 @@
 # Documentation Index
 
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-13
 
 이 문서는 `docs/` 아래 문서를 목적별로 안내하는 인덱스다. 루트 `README.md`가 프로젝트 전체 개요와 실행 방법을 설명한다면, 이 문서는 세부 문서를 어디서 찾아야 하는지 정리한다.
 
@@ -35,6 +35,8 @@ Last Reviewed: 2026-10-10
 - `docs/analysis/design/workflow.txt`
 - `docs/analysis/reference/csv_multi_header_schema.md`
 - `docs/analysis/reference/result_schema_notes.md`
+- [PUB11 회귀 단계·검증 재개·필수 CI 증거](analysis/reference/regression_evidence.md)
+- [PUB11 실행·독립 검수 증거 index](analysis/reference/regression_evidence_v1.json)
 - [PUB10 관측 profile·채널·검증 계약](analysis/reference/observation_model_contract.md)
 - `docs/visualization/guide.md`
 - `docs/launcher/launcher_layout_sketch.txt`

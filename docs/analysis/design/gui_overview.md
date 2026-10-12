@@ -1,6 +1,8 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-13
+
+PUB11 reports actual widget/QTest/render-buffer scope separately from native window visibility, external input and human review. Existing Step 1/1.5/2 is unchanged; pending native paths remain pending. [Regression evidence](../reference/regression_evidence.md).
 
 #143 / PUB10 adds opt-in virtual camera/group visibility and stationary OU noise
 through profile API/CLI and existing settings/export/open controls. Production
