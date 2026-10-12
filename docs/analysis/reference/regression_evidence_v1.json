@@ -8,9 +8,9 @@
   "starting_main": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
   "software_status": "Implementation, corrected-source local validation and independent correction review complete; final-head hosted CI and merge remain the publication gate",
   "source": {
-    "commit": "5ecfdb88f780f38115cc998a33db3e963fe6abb4",
+    "commit": "659308b54ac848871a8162d446f91f0e1858cc2d",
     "dirty": true,
-    "content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+    "content_sha256": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
     "source_sha256": {
       "src/__init__.py": "beb2bfb21475edeacd5357a9e2621a73ce9f1d9585df15b8166b31dbb30fa1e8",
       "src/analysis/__init__.py": "6e30be6e6229d1b7900b7a81ded2eff16de200a26b1470ab7b746b3a5c1c8d77",
@@ -57,7 +57,7 @@
       "src/analysis/regression/__init__.py": "38cf27d4a1464e48cfddd84d1f4e4377e2dcf449471b1d233cd5e094e32fd717",
       "src/analysis/regression/contracts.py": "0987084254b003e6123e12f080711c741077dd3fb85a02764e2c7f69c0142ef4",
       "src/analysis/regression/evidence.py": "fa0647f192460f0a8f87e6ff49250d7eab2ab6fdb0c1322ad5d434af6ee55454",
-      "src/analysis/regression/runner.py": "ed64732c92ba734402dd8eed1dd1c38c4f2a810ab761e78c5d9fab9a197036b1",
+      "src/analysis/regression/runner.py": "c72b2057655560c27ba5c4153e3e52fe7c2ad7fc371e294ba7951927b6841a42",
       "src/analysis/regression/signatures.py": "a6e7336949f15e6960574f76c697b1fd44d78fde81c5efc3685cfb2531fcda56",
       "src/analysis/ui/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "src/analysis/ui/data_selection_dialog.py": "79a4ffd845eb20213d06b37b8be15ac1f51225a0c1221070fc96852268e4c6be",
@@ -366,6 +366,39 @@
       "duration_s": 3.9313919999985956,
       "peak_memory_bytes": 174518272,
       "optimizer_calls": 0
+    },
+    "final_correction_full": {
+      "report": "tmp/issue135/pytest_9ed6f549257a4a6086150b787e4c4401/full/run_report.json",
+      "sha256": "a4a1f4ccd24932c0708a029ddc53e0a0a20428ab31ad4bb41018f81d3645bb45",
+      "source": {
+        "commit": "659308b54ac848871a8162d446f91f0e1858cc2d",
+        "dirty": true,
+        "content_sha256": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+        "semantics": "capture-replay-geocenter-v1"
+      },
+      "run_id": "f7a22ad9-7d4f-426c-b8c7-d3111107c05b",
+      "utc": "2026-10-12T17:43:12.787031+00:00",
+      "kst": "2026-10-13T02:43:12.787031+09:00",
+      "tier": "full",
+      "status": "pass",
+      "exit_code": 0,
+      "coverage": {
+        "loaded": 6,
+        "approved": 6,
+        "selected": 6,
+        "started": 6,
+        "completed": 6,
+        "fresh": 6,
+        "reused": 0,
+        "failed": 0,
+        "unexecuted": 0,
+        "required": 6,
+        "evaluable": 6,
+        "passed": 6
+      },
+      "duration_s": 75.58472059998894,
+      "peak_memory_bytes": 197931008,
+      "optimizer_calls": 449
     }
   },
   "components": {
@@ -612,9 +645,9 @@
     "policy": "Original hosted FHD/125percent required checks retained; no skip or GUI acceptance promotion"
   },
   "tests": {
-    "final_log": "tmp/issue144/review-final.log",
-    "final_junit": "tmp/issue144/review-final.xml",
-    "passed": 127,
+    "final_log": "tmp/issue144/interruption-final.log",
+    "final_junit": "tmp/issue144/interruption-final.xml",
+    "passed": 130,
     "earlier": [
       {
         "log": "tmp/issue144/review-corrections.log",
@@ -625,6 +658,11 @@
       {
         "log": "tmp/issue144/review-corrections-final.log",
         "passed": 123
+      },
+      {
+        "log": "tmp/issue144/review-final.log",
+        "passed": 127,
+        "source": "a8ca8fbcc8fbfd1e312f9fdb20c51bcff564a241920eaa2988a92a41485ae820"
       }
     ],
     "inventory": "tests/public_ci_inventory.json",
@@ -632,14 +670,14 @@
       "job": 1,
       "steps": 24,
       "junit_lanes": 12,
-      "testcase_executions": 1754,
+      "testcase_executions": 1757,
       "common_reports": 9,
       "overlap": "Testcase executions across lanes include repeated tests; not independent motions/trials"
     },
     "final_delta": {
       "log": "tmp/issue144/attempt-scope.log",
       "passed": 2,
-      "source": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+      "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
       "full_cli": "tmp/issue144/publish-full/run_report.json"
     }
   },
@@ -650,12 +688,13 @@
     "original_findings": {
       "R1": "P1: typed source/clock/profile/baseline preflight",
       "R2": "P1: PUB09 reconstruct original required artifacts/endpoints",
-      "R3": "P1: CI reopen capture artifacts and recompute coverage/protocol"
+      "R3": "P1: CI reopen capture artifacts and recompute coverage/protocol",
+      "R4": "P1: one-shot worker interrupt must stop subsequent production and preserve partial resume"
     },
-    "resolution": "Original attacks rejected on corrected positive fixtures; no material P0/P1 remains in bounded review",
+    "resolution": "R1-R4 original attacks rejected on corrected positive fixtures; no material P0/P1 remains in bounded review",
     "logs": "tmp/issue144/reviewer; original failed results preserved",
     "final_verdict": "bounded_pass",
-    "final_sha256": "67dd09e5a405f8c2ba6b596186ae829d8aaee886d875d265fc9b6b5ccfe4b931",
+    "final_sha256": "a118849818b66068c2a32ac413e137caa574ac300909b6bfac1c4a355c02dc9c",
     "final_record": {
       "schema_version": 1,
       "plan_spec": "ISTA6A-PLAN-20261001-v1",
@@ -663,7 +702,7 @@
       "review_date": "2026-10-13",
       "round": 2,
       "verdict": "bounded_pass",
-      "source_content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+      "source_content_sha256": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
       "scope": "R1 final correction controls and current-source fast/capture/full reopening plus load-event/scene/PROC corruption guards. R2/R3 original controls resolved in prior4c3 bounded review; no new physics execution claimed.",
       "findings": [
         {
@@ -1088,9 +1127,9 @@
       ],
       "original_logs": "ReviewReport.json, CorrectionReview-round1.json and all original probe output directories retained; original main NameError correction-suite failures remain tmp/issue144/review-corrections.log.",
       "remaining_uncertainty": [
-        "Final published-source hosted required CI and repository merge gate must still pass; local review does not replace them.",
-        "Independent final supplement did not repeat full physics validators or whole repository tests; R2 logic/production algorithms unchanged and preserved actual artifacts re-evaluated in prior review.",
-        "Native external input/human3D/new-corpus Step1/1.5/save chooser and independent measured#104 accuracy remain pending.",
+        "Final published correction commit required hosted CI and repository merge gate remain mandatory; earlier659308b CI cannot replace current119803 source.",
+        "Reviewer repeated fault/control flow and read-only reopened actual resumed production evidence; no whole physics repeat. Main130-check actual suite current source passed.",
+        "Native external input/human3D/new-corpus Step1/1.5/save chooser and independent measured#104 accuracy remain separate pending.",
         "Actual model routing remains unverified."
       ],
       "material_open_findings": [],
@@ -1279,14 +1318,378 @@
         "known_implementation_followups": [],
         "publication_scope": "Software/reporting guard bounded PASS; no numerical/physical/native acceptance promotion."
       },
-      "known_implementation_followups": []
-    }
+      "known_implementation_followups": [],
+      "additional_finding": {
+        "id": "R4",
+        "severity": "P1",
+        "status": "resolved",
+        "title": "Explicit one-shot KeyboardInterrupt does not stop initiating required scene processing",
+        "source_commit": "659308b54ac848871a8162d446f91f0e1858cc2d",
+        "source_content_sha256": "998511d0f5549e3c7c2590f1e1ff44e1adc7ce574ebde9fdaa835542f7ebec5d",
+        "grounds": [
+          "src/analysis/regression/runner.py:run_corpus per-scene except BaseException at line535 records interrupt then continues included scene loop",
+          "src/analysis/regression/runner.py:per-case except Exception at line552 would also absorb rethrown InterruptedError unless explicitly propagated"
+        ],
+        "command": ".venv/Scripts/python.exe C:/Temp/boxmotion-pub11-20261013/reviewer/interruption_probe.py",
+        "observed": {
+          "process_scene_calls": [
+            {
+              "case_id": "two_drops",
+              "review_id": "two_drops-scene-0",
+              "ordinal": 1
+            },
+            {
+              "case_id": "two_drops",
+              "review_id": "two_drops-scene-1",
+              "ordinal": 2
+            },
+            {
+              "case_id": "supported_H",
+              "review_id": "supported_H-scene-0",
+              "ordinal": 3
+            },
+            {
+              "case_id": "tracking_OFF",
+              "review_id": "tracking_OFF-scene-0",
+              "ordinal": 4
+            },
+            {
+              "case_id": "partial",
+              "review_id": "partial-scene-0",
+              "ordinal": 5
+            },
+            {
+              "case_id": "two_flips",
+              "review_id": "two_flips-scene-0",
+              "ordinal": 6
+            }
+          ],
+          "subsequent_required_scene_calls_after_explicit_interrupt": 5,
+          "run_verdict": "fail",
+          "exit_code": 1,
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 6,
+            "started": 1,
+            "completed": 0,
+            "fresh": 0,
+            "reused": 0,
+            "failed": 6,
+            "unexecuted": 5,
+            "required": 6,
+            "evaluable": 0,
+            "passed": 0
+          }
+        },
+        "scope": "Fault injection only. Valid unchanged corpus; first stub simulates worker progress.started then KeyboardInterrupt; later calls throw cheap controlled sentinel. No actual solver/physics run or numerical result claim.",
+        "impact": "A user interrupt is treated as recoverable per-scene failure; later production scenes may run and write artifacts despite cancellation. Correct nonzero final verdict does not satisfy canceled attempt behavior.",
+        "minimal_correction": "Retain interrupted scene reason/type/traceback and immutable attempt evidence, then terminate production initiation for entire attempt. Propagate KeyboardInterrupt and cancellation InterruptedError through per-scene and per-case catch boundaries to existing run-level handler/finally. Preserve completed checkpoints for explicit resume; remaining required scenes must stay unexecuted. Ordinary recoverable scene errors can retain existing behavior.",
+        "acceptance": "One-shot keyboard interrupt and one-shot cancel callback must each call process_scene at most once (cancel-before-worker may call it0), preserve prior completed work, record nonzero attempt with remaining required unexecuted, and allow a later fresh explicit representative resume.",
+        "original_evidence": [
+          "interruption/reproduction.json",
+          "interruption.log",
+          "interruption/attempt/run_report.json",
+          "interruption/attempt/junit.xml",
+          "interruption/attempt/summary.md"
+        ],
+        "remaining_uncertainty": "Correction not yet implemented/reviewed; no full physics repetition required for this catch/control-flow change."
+      },
+      "r4_correction": {
+        "schema_version": 1,
+        "plan_spec": "ISTA6A-PLAN-20261001-v1",
+        "object_type": "IndependentCorrectionReview",
+        "review_date": "2026-10-13",
+        "stage": "R4 interruption correction",
+        "verdict": "bounded_pass",
+        "source_content_sha256": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+        "base_head": "659308b54ac848871a8162d446f91f0e1858cc2d",
+        "dirty_correction": true,
+        "finding": {
+          "id": "R4",
+          "status": "resolved",
+          "original_severity": "P1",
+          "grounds": [
+            "runner.run_corpus per-scene handler retains interrupted item reason/type/traceback then propagates KeyboardInterrupt and InterruptedError",
+            "Per-case handler propagates both interruption types to outer run handler/finally; remaining required scenes not initiated",
+            "Successful earlier scene checkpoints/signatures/triplets remain explicitly reusable by representative resume"
+          ]
+        },
+        "independent_original_reproduction_recheck": [
+          {
+            "kind": "KeyboardInterrupt",
+            "worker_calls": [
+              "two_drops-scene-0"
+            ],
+            "cancel_calls": [],
+            "status": "fail",
+            "exit_code": 1,
+            "coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 6,
+              "started": 1,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 1,
+              "unexecuted": 5,
+              "required": 6,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "errors": [
+              {
+                "exception_type": "KeyboardInterrupt",
+                "message": "One-shot explicit worker interruption",
+                "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 502, in run_corpus\n    df, impact, artifact = process_scene(fixture, d, session, header, active, original,\n                           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        source, correction, case_output, report['run_id'], progress=item)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\interruption_fixed_probe.py\", line 16, in worker\n    if kind=='KeyboardInterrupt':raise KeyboardInterrupt('One-shot explicit worker interruption')\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyboardInterrupt: One-shot explicit worker interruption\n"
+              }
+            ],
+            "scene_exceptions": [
+              "KeyboardInterrupt"
+            ],
+            "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a"
+          },
+          {
+            "kind": "InterruptedError",
+            "worker_calls": [
+              "two_drops-scene-0"
+            ],
+            "cancel_calls": [],
+            "status": "fail",
+            "exit_code": 1,
+            "coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 6,
+              "started": 1,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 1,
+              "unexecuted": 5,
+              "required": 6,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "errors": [
+              {
+                "exception_type": "InterruptedError",
+                "message": "One-shot interrupted worker",
+                "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 502, in run_corpus\n    df, impact, artifact = process_scene(fixture, d, session, header, active, original,\n                           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        source, correction, case_output, report['run_id'], progress=item)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Temp\\boxmotion-pub11-20261013\\reviewer\\interruption_fixed_probe.py\", line 17, in worker\n    if kind=='InterruptedError':raise InterruptedError('One-shot interrupted worker')\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nInterruptedError: One-shot interrupted worker\n"
+              }
+            ],
+            "scene_exceptions": [
+              "InterruptedError"
+            ],
+            "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a"
+          },
+          {
+            "kind": "one_shot_callback",
+            "worker_calls": [],
+            "cancel_calls": [
+              1
+            ],
+            "status": "fail",
+            "exit_code": 1,
+            "coverage": {
+              "loaded": 6,
+              "approved": 6,
+              "selected": 6,
+              "started": 0,
+              "completed": 0,
+              "fresh": 0,
+              "reused": 0,
+              "failed": 1,
+              "unexecuted": 6,
+              "required": 6,
+              "evaluable": 0,
+              "passed": 0
+            },
+            "errors": [
+              {
+                "exception_type": "InterruptedError",
+                "message": "Cancelled before required scene processing; resume in a new attempt.",
+                "traceback": "Traceback (most recent call last):\n  File \"C:\\SourceCodes\\BoxMotionAnalyzer\\src\\analysis\\regression\\runner.py\", line 494, in run_corpus\n    raise InterruptedError('Cancelled before required scene processing; resume in a new attempt.')\nInterruptedError: Cancelled before required scene processing; resume in a new attempt.\n"
+              }
+            ],
+            "scene_exceptions": [
+              "InterruptedError"
+            ],
+            "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a"
+          }
+        ],
+        "actual_partial_success_and_resume": {
+          "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+          "interrupted_source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+          "resumed_source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+          "interrupted_status": "fail",
+          "interrupted_coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 2,
+            "started": 1,
+            "completed": 1,
+            "fresh": 1,
+            "reused": 0,
+            "failed": 1,
+            "unexecuted": 5,
+            "required": 2,
+            "evaluable": 1,
+            "passed": 1
+          },
+          "checkpoint_sha256": "cac7729d59d11fb4aac9d673b75767c3c8a247ee0b7cf5466c00a7dab2e1c65b",
+          "checkpoint_coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 2,
+            "started": 1,
+            "completed": 1,
+            "fresh": 1,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 5,
+            "required": 2,
+            "evaluable": 1,
+            "passed": 1
+          },
+          "checkpoint_successful_scene": true,
+          "resumed_status": "pass",
+          "resumed_coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 2,
+            "started": 1,
+            "completed": 2,
+            "fresh": 1,
+            "reused": 1,
+            "failed": 0,
+            "unexecuted": 4,
+            "required": 2,
+            "evaluable": 2,
+            "passed": 2
+          },
+          "resumed_optimizer_calls": 80,
+          "predecessor_report_sha256": "65db95a742fbc6b58a5df1064a39432d2364a60f714ac73d766ff8e65bf7704a",
+          "recorded_predecessor_report_sha256": "65db95a742fbc6b58a5df1064a39432d2364a60f714ac73d766ff8e65bf7704a",
+          "prior_report_unchanged": true,
+          "predecessor_run_id": "13694613-00ec-4e5d-a2ca-f00eca53c732",
+          "resumed_origin_run_id": "13694613-00ec-4e5d-a2ca-f00eca53c732",
+          "origin_preserved": true,
+          "prior_scene_signature_sha256": "e258fd43009b5e6b6c8cf73614887c0a972ae565f7a100ed46bfd3f8c32fa86b",
+          "prior_scene_signature_equals_report": true,
+          "triplet": [
+            {
+              "kind": "slice",
+              "prior_sha256": "e7d500076337c79230c5f08921c78a473c6b084b2cd14710fe03f74e7fa08d15",
+              "resumed_sha256": "e7d500076337c79230c5f08921c78a473c6b084b2cd14710fe03f74e7fa08d15",
+              "preserved": true
+            },
+            {
+              "kind": "proc",
+              "prior_sha256": "9f66c8df3f016fec42b646f54077b309693f8ebe37e9a373c21e447f1271796c",
+              "resumed_sha256": "9f66c8df3f016fec42b646f54077b309693f8ebe37e9a373c21e447f1271796c",
+              "preserved": true
+            },
+            {
+              "kind": "scenario",
+              "prior_sha256": "b8d56904388baef0983ad81cc9a27ac19947a3e279477772902fe57ed2352db8",
+              "resumed_sha256": "b8d56904388baef0983ad81cc9a27ac19947a3e279477772902fe57ed2352db8",
+              "preserved": true
+            }
+          ],
+          "resume_current_guards": "accepted",
+          "original_paths": {
+            "interrupted": "C:\\Users\\pikac\\AppData\\Local\\Temp\\pytest-of-pikac\\pytest-3666\\test_one_shot_cancel_keeps_suc0\\interrupted",
+            "resumed": "C:\\Users\\pikac\\AppData\\Local\\Temp\\pytest-of-pikac\\pytest-3666\\test_one_shot_cancel_keeps_suc0\\resumed"
+          }
+        },
+        "actual_test_suite": {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "130",
+          "time": "273.997",
+          "timestamp": "2026-10-13T02:42:35.707531+09:00",
+          "hostname": "LAPTOP-LEETAEHO"
+        },
+        "actual_current_full": {
+          "source": "119803b23bb0d16b9d9a474f79685f0f94afb90c40caef166690969bd11b5c2a",
+          "status": "pass",
+          "coverage": {
+            "loaded": 6,
+            "approved": 6,
+            "selected": 6,
+            "started": 6,
+            "completed": 6,
+            "fresh": 6,
+            "reused": 0,
+            "failed": 0,
+            "unexecuted": 0,
+            "required": 6,
+            "evaluable": 6,
+            "passed": 6
+          },
+          "optimizer_calls": 449
+        },
+        "commands": [
+          ".venv/Scripts/python.exe C:/Temp/boxmotion-pub11-20261013/reviewer/interruption_fixed_probe.py",
+          ".venv/Scripts/python.exe C:/Temp/boxmotion-pub11-20261013/reviewer/r4_resume_evidence.py"
+        ],
+        "evidence": [
+          "interruption/InterruptionReview.json",
+          "interruption/reproduction.json",
+          "interruption.log",
+          "interruption-fixed/results.json",
+          "interruption-fixed.log",
+          "interruption-fixed/resume-evidence.json",
+          "interruption-fixed/actual-interrupted",
+          "interruption-fixed/actual-resumed",
+          "interruption-fixed/actual-assets",
+          "r4-resume-evidence-fixed.log",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/interruption-final.xml",
+          "C:/SourceCodes/BoxMotionAnalyzer/tmp/issue144/interruption-final.log"
+        ],
+        "preserved_review_harness_failure": "r4-resume-evidence.log retains first own collection-copy TypeError. All validator rechecks completed before that copy error; corrected collection attempt is separately logged and successful.",
+        "prior_findings": [
+          {
+            "id": "R1",
+            "status": "resolved"
+          },
+          {
+            "id": "R2",
+            "status": "resolved"
+          },
+          {
+            "id": "R3",
+            "status": "resolved"
+          }
+        ],
+        "material_open_findings": [],
+        "new_material_findings": [],
+        "known_implementation_followups": [],
+        "remaining_uncertainty": [
+          "Final published correction commit required hosted CI and repository merge gate remain mandatory; earlier659308b CI cannot replace current119803 source.",
+          "Reviewer repeated fault/control flow and read-only reopened actual resumed production evidence; no whole physics repeat. Main130-check actual suite current source passed.",
+          "Native external input/human3D/new-corpus Step1/1.5/save chooser and independent measured#104 accuracy remain separate pending.",
+          "Actual model routing remains unverified."
+        ]
+      }
+    },
+    "interruption_original": "tmp/issue144/reviewer/interruption/InterruptionReview.json"
   },
   "publication": {
     "status": "Final-source CI required before merge",
     "workflow": "Public marker validation / synthetic-integration",
     "budget_minutes": 120,
     "policy": "All original checks retained; no required skip or numerical promotion",
-    "status_source": "Issue144 and linked PR contain final-head CI/merge result"
-  }
+    "status_source": "Issue144 and linked PR contain final-head CI/merge result",
+    "superseded_ci": {
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/38284498730",
+      "commit": "659308b54ac848871a8162d446f91f0e1858cc2d",
+      "reason": "Superseded after independently reproduced one-shot interruption defect; never used as final-head gate"
+    }
+  },
+  "capture_source_note": "Standalone publish-tier attempts used source998511. Final119803 cancellation-only correction also ran actual fresh full, truth isolation and GUI in the130-check suite; original attempts retained, never relabeled as the new source. Hosted final-head CLI reruns every tier."
 }

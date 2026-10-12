@@ -170,6 +170,40 @@ def test_cancellation_preserves_attempt_and_required_unexecuted(corpus,tmp_path)
     assert any('Cancelled' in s.get('reason','') for c in report['cases'] for s in c['scenes'])
 
 
+@pytest.mark.parametrize('error',[KeyboardInterrupt,InterruptedError])
+def test_one_shot_worker_interruption_stops_later_production(corpus,tmp_path,monkeypatch,error):
+    calls=[]
+    def interrupted(self,*args,**kwargs):
+        calls.append(True)
+        raise error('One-shot worker stop; later required processing must not start')
+    monkeypatch.setattr('src.analysis.regression.runner.PipelineController.process_parsed_data',interrupted)
+    report=run_corpus(corpus/'corpus.json',corpus,tmp_path/'run')
+    assert len(calls)==1 and report['exit_code']==1
+    assert report['coverage']['started']==report['coverage']['failed']==1
+    assert report['coverage']['loaded']==6 and report['coverage']['unexecuted']==5
+    assert report['coverage']['fresh']==report['coverage']['completed']==report['optimizer_calls']==0
+    first=report['cases'][0]['scenes'][0]
+    assert first['exception_type']==error.__name__ and first['traceback']
+    assert (tmp_path/'run/attempt-start.json').is_file() and (tmp_path/'run/junit.xml').is_file()
+
+
+def test_one_shot_cancel_keeps_successful_checkpoint_and_explicit_resume(corpus,tmp_path):
+    selected=['two_drops-scene-0','two_drops-scene-1'];calls=[]
+    def cancelled():
+        calls.append(True);return len(calls)==2
+    first=run_corpus(corpus/'corpus.json',corpus,tmp_path/'interrupted',select=selected,cancel=cancelled)
+    assert len(calls)==2 and first['exit_code']==1
+    assert first['coverage']['fresh']==first['coverage']['completed']==1
+    assert first['coverage']['unexecuted']==5 and first['coverage']['required']==2
+    checkpoint=next((tmp_path/'interrupted').glob('checkpoint-*.json'))
+    assert any(s['completed'] for c in read_json(checkpoint,'RunReport')['cases'] for s in c['scenes'])
+    prior=tmp_path/'interrupted/run_report.json';before=file_digest(prior)
+    resumed=run_corpus(corpus/'corpus.json',corpus,tmp_path/'resumed',select=selected,resume=prior)
+    assert resumed['status']=='pass' and resumed['coverage']['fresh']==resumed['coverage']['reused']==1
+    assert resumed['coverage']['completed']==2 and resumed['coverage']['unexecuted']==4
+    assert file_digest(prior)==before and resumed['resume']['run_id']==first['run_id']
+
+
 def test_fresh_and_failed_overlap_after_real_processing_save_error(corpus,tmp_path,monkeypatch):
     def broken(*args,**kwargs):raise OSError('Injected save failure after actual production processing')
     monkeypatch.setattr('src.analysis.regression.runner.save_proc_file',broken)

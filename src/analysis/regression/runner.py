@@ -535,6 +535,9 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
                     except BaseException as error:
                         item.update(status='blocked' if isinstance(error, ReferenceMissing) else 'needs_review' if isinstance(error, ReviewRequired) else 'fail',
                                     reason=str(error), exception_type=type(error).__name__, traceback=traceback.format_exc())
+                        if isinstance(error, (KeyboardInterrupt, InterruptedError)):
+                            case['status']=item['status']
+                            raise
                     if item['status'] != 'pass':
                         case['status'] = item['status']
                     checkpoint=deepcopy(report)
@@ -549,6 +552,8 @@ def run_corpus(manifest_path, asset_root, output, *, tier='full', select=None, c
                 write_new_json(case_output / 'capture.signature.json', case['signature'])
                 if file_digest(Path(asset_root) / fixture['relative_path']) != fixture['raw_sha256']:
                     raise ValueError('Original Raw changed during run.')
+            except (KeyboardInterrupt, InterruptedError):
+                raise
             except Exception as error:
                 case.update(status='needs_review' if isinstance(error, ReviewRequired) else 'fail')
                 case['errors'].append(dict(exception_type=type(error).__name__, message=str(error), traceback=traceback.format_exc()))

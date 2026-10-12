@@ -1728,6 +1728,9 @@
       "tests/test_regression_evidence.py::test_cache_corruption_or_stale_identity_is_never_success[environment]",
       "tests/test_regression_evidence.py::test_identity_path_move_and_relevant_changes",
       "tests/test_regression_evidence.py::test_cancellation_preserves_attempt_and_required_unexecuted",
+      "tests/test_regression_evidence.py::test_one_shot_worker_interruption_stops_later_production[KeyboardInterrupt]",
+      "tests/test_regression_evidence.py::test_one_shot_worker_interruption_stops_later_production[InterruptedError]",
+      "tests/test_regression_evidence.py::test_one_shot_cancel_keeps_successful_checkpoint_and_explicit_resume",
       "tests/test_regression_evidence.py::test_fresh_and_failed_overlap_after_real_processing_save_error",
       "tests/test_regression_evidence.py::test_junit_required_inventory_rejects_omission_or_skip[missing]",
       "tests/test_regression_evidence.py::test_junit_required_inventory_rejects_omission_or_skip[skipped]",
@@ -1810,5 +1813,5 @@
       "tests/test_marker_review_gui.py::test_actual_review_cancel_save_and_close_at_125_percent"
     ]
   },
-  "correction_basis": "Add independently reproduced R1/R3 failures and actual preflight loading controls; every original required node retained"
+  "correction_basis": "Add independently reproduced R1/R3/R4 failures and actual preflight loading/cancellation/resume controls; every original required node retained"
 }

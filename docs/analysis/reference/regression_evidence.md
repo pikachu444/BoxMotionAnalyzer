@@ -72,6 +72,12 @@ or incomplete scenes retry fresh in the new attempt. An existing output director
 is refused. I/O failures remain nonzero; a filesystem unable to write a report
 can only retain its prior files and the calling process error/log.
 
+A one-shot worker interrupt or cancellation stops initiating subsequent
+production scenes. The first exception/traceback, prior successful checkpoints,
+required protocol and actual unexecuted scope remain in the failed attempt.
+Explicit representative resume revalidates completed scenes and retries missing
+or interrupted scenes fresh in a new directory.
+
 Reuse checks full input/content identities, successful completed scene status,
 saved signature equality, slice/PROC/scenario hashes, exact original record/time
 correspondence, source/settings/profile/correction linkage, actual PROC reopening,
@@ -138,9 +144,10 @@ evidence index and issue #144 after execution, without replacing earlier failure
 
 The [versioned local evidence index](regression_evidence_v1.json) links source
 digests, original logs, current tier attempts, review findings and preserved GUI
-failures. The corrected implementation passed127 affected checks; a final small
-attempt-start/load-status correction passed2 focused checks and a new CLI full.
-The read-only independent reviewer reproduced three P1 findings; corrected
+failures. The corrected implementation passed130 affected checks, including actual
+full processing, one-shot worker cancellation and partial-success explicit resume.
+Earlier127 checks,2 focused checks and standalone CLI attempts remain separate.
+The read-only independent reviewer reproduced four P1 findings; corrected
 positive fixtures pass and all original attacks fail. Required final-head hosted
 CI and merge are tracked in [#144](https://github.com/pikachu444/BoxMotionAnalyzer/issues/144).
 Local supporting runs do not replace that gate.
