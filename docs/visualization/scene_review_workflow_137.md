@@ -1,6 +1,8 @@
 # Scene review workflow (#137 / PUB04)
 
-Last Reviewed: 2026-10-04
+Last Reviewed: 2026-10-13
+
+Current publication: PR #148 merged after final-head a6760c9 CI37135346939 succeeded. #137 remains OPEN for the native acceptance listed below; #113 registration remains excluded. [Cross-PUB audit](../analysis/reference/pub_delivery_status.md). Earlier publication waits describe their own checkpoint.
 
 Plan Spec: ISTA6A-PLAN-20261001-v1. Parent: #134.
 Status: approved production implementation and automatic checks are available.

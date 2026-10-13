@@ -2,6 +2,8 @@
 
 Last Reviewed: 2026-10-13
 
+PUB02–11 소프트웨어는 병합·필수 CI를 마쳤습니다. [PUB별 구현·원본 증거·완료와 대기](docs/analysis/reference/pub_delivery_status.md)를 참고하세요. #136–#140 native 검수, 추가 수치 승인과 #104 실측은 별도 대기이며, #113 등록 기능은 사용자 결정으로 제외되었습니다. #152 언어 선택은 별도 작업입니다.
+
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
 ## 🚀 주요 기능
@@ -106,7 +108,7 @@ pip install -r requirements.txt
 ```bash
 python src/main.py
 ```
-실행 시 **Launcher Window**가 열리며, 여기서 아래 세 가지 흐름 중 하나를 시작할 수 있습니다.
+실행 시 **Launcher Window**가 열리며, 여기서 아래 네 가지 흐름 중 하나를 시작할 수 있습니다.
 
 *   **Simulation**: MuJoCo를 활용하여 박스 크기/질량/낙하 조건을 설정하고 가상의 낙하 실험 데이터를 `.proc`로 생성
 *   **Data Processing**: 실제 원본 모션 캡처 데이터(CSV)를 불러와 분석하고, 필요 시 최종 결과를 시간축에서 보간한 `.proc` 중심 workflow로 저장

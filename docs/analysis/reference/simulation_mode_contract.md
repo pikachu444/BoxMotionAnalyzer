@@ -1,6 +1,8 @@
 # Simulation mode and output contracts (PUB06 / PUB07 checkpoint)
 
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-13
+
+Current PUB06/PUB07/PUB10 integration is delivered in PR #150/#151/#155; source-head CI and remaining native/numerical/measured waits are linked in [delivery audit](pub_delivery_status.md). Historical execution checkpoints below retain their own source/environment.
 
 PUB10 optionally adds `marker.observation_profile` without changing mode/config
 schema1 or existing defaults. Public marker settings hash binds both legacy
@@ -21,8 +23,8 @@ partial retention. The user confirmed described virtual software controls; final
 GUI confirmation and additional numeric diagnostic approval remain pending. The
 new engine, proposed virtual fixtures/tolerances, incomplete-result status and
 evaluation-only transition evidence are described in
-[robot_sequence_contract.md](robot_sequence_contract.md). Neither the backend
-checkpoint nor diagnostic success completes #140 or certifies an ISTA procedure.
+[robot_sequence_contract.md](robot_sequence_contract.md). PUB07 software and production GUI binding are merged in PR #151. Backend
+diagnostics do not complete native/numerical/measured #140 acceptance or certify an ISTA procedure.
 
 The following PUB06 flow is preserved alongside explicit PUB07 execution.
 This document describes the backend and production UI bindings. The human approved
@@ -36,7 +38,7 @@ directory creation. Final affected producer checks passed89; existing marker,
 artifact, capture-regression and scene preservation checks passed265. These are
 scoped software checks, not production UI/native or final #139 acceptance.
 
-The latest review-only UI proposal uses one shared preset-browser/settings/
+The delivered UI uses the approved shared preset-browser/settings/
 preview arrangement. It shows the existing G17 or H12 lists; `single_drop`
 still has one selected planned drop regardless of visible browser row count.
 Preset rows are not experimental repetitions `n`. The lists are current
@@ -61,9 +63,12 @@ Single displays the current category browser; selecting a Settings row previews
 the draft without applying or discarding other draft fields. Use in Simulation
 applies the selection before Run; the existing main controls show applied inputs.
 Robot initializes an ordered current-category plan, supports order/pose editing,
-and disables Run/Run all presets/Marker CSV with the issue140 execution reason.
-Programmatic calls are also blocked before file pickers or engine construction.
-G17 hazard and H supported-motion rows disclose their unavailable scope.
+and requires an applicable PUB07 execution plan for Run/Marker CSV.
+Config-only robot documents remain blocked before file pickers or engine construction.
+G17 hazard remains unavailable. H tip/rotation rows without an applicable
+floor-supported plan remain unavailable; selected steps in an explicit
+`floor_supported` plan display `Floor tip (virtual)` and can execute.
+This virtual supported motion does not certify the ISTA apparatus or procedure.
 
 Open settings loads a draft for review. Save settings validates and atomically
 stores both mode configurations, source snapshots and edit history, without
@@ -135,8 +140,8 @@ engine. The PUB07 opt-in producer accepts only an explicit applicable execution
 plan, requires matching marker/box geometry, and selects `RobotSequenceEngine`.
 Existing callers without this new configuration retain their original output
 contract; missing historical mode/profile/release semantics remain unknown.
-Production UI already passes the PUB06 snapshot; its new robot execution-plan
-binding and automatic partial-result retention remain pending #140 integration.
+Production UI passes the PUB06 snapshot and now binds PUB07 execution plans,
+Run/Marker CSV and automatic partial-result retention (PR #151).
 
 `SimulationMetadata` is the full direct/evaluation record: captured configuration
 and hash, actual compiled timestep/gravity/inertia/contact settings, actual engine
@@ -211,14 +216,13 @@ handled by existing geometry/semantic/correspondence equivalence. Source-kind,
 model, processing, reviewed scene/trial identity and observation resolution still
 apply. UUIDs, files and settings do not manufacture trial repetition count `n`.
 
-`robot_sequence` provides an editable configuration contract only. Its current
-generator cannot declare successful output. `require_executable` gives the
-specific missing attach/pickup/release engine reason. #140 can consume ordered
-steps and physics/observation snapshots, add explicit phase/release records and
-connect the producer at this guard. It must introduce a supported generator/
-schema contract before robot output passes validation. Dynamic robots, IK,
-attachment, pickup and multiple releases are outside PUB06; #143 observation
-expansion and #104 measured calibration are separate.
+`robot_sequence` config-only documents retain the PUB06 execution block.
+An explicit applicable PUB07 plan passes `require_executable` and selects
+`RobotSequenceEngine` with attach/pickup/release, continuous state/clock and
+partial retention. The supported producer is `pub07-dynamic-gripper-v1`.
+Articulated-arm IK and measured apparatus certification remain outside this
+implementation. PUB10 observation expansion is delivered separately; #104
+measured calibration remains pending.
 
 ## Verification checkpoint
 

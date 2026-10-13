@@ -1,6 +1,8 @@
 # Initial conditions and limited contact fitting — PUB09
 
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-13
+
+PUB09 software is published: PR #154 merged after final-head d0abe7c CI37750977113 succeeded. [Current delivery/evidence mapping](pub_delivery_status.md). Historical source/CI checkpoints below remain evidence of their own execution, not current publication waits. Observed4 not_detected and numerical/measured pending are unchanged.
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. Implementation starts from refreshed
 `origin/main@da4a91048692f0cc5a5769028f4299ac8c61583c`, including PR151/PUB07 and

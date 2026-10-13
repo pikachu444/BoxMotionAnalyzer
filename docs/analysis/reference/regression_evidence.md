@@ -2,6 +2,8 @@
 
 Last Reviewed: 2026-10-13
 
+PUB11 software is published: PR #156 merged after head492322c CI38286906108 succeeded; merge698c0d5 main CI38297290908 also succeeded. [PUB12 source/CI/original-report mapping and waits](pub_delivery_status.md). Historical evidence-index publication fields describe their capture time; issue #144 records the completed publication.
+
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. PUB11 extends the existing PUB02 runner
 and measures the existing PUB07–10 validation CLIs. Production algorithms,
 approved PUB02 reference/tolerance bytes, correction OFF, chronological t2,

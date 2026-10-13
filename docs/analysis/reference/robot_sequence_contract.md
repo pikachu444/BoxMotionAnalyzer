@@ -1,6 +1,8 @@
 # Dynamic gripper sequence implementation — PUB07
 
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-13
+
+PUB12 audit: [source-head publication, executed populations and remaining acceptance](pub_delivery_status.md). Development evidence below describes its own dated source; final PUB07 software merged in PR #151. Native, additional numerical and measured acceptance remain pending.
 
 PUB07 software source `f1a66c9` passed required CI37579195396 and PR #151
 merged as `78b6c797916f421530327b061ced098fc30060d8`. Native viewer/input and

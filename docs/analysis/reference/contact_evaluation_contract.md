@@ -1,6 +1,8 @@
 # First and subsequent floor-impact evaluation — PUB08
 
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-13
+
+PUB08 software is published: PR #153 merged after final-source CI37699587089 succeeded. [Cross-PUB delivery and remaining numerical/native/measured acceptance](pub_delivery_status.md). Historical pending publication sentences below describe their original checkpoint.
 
 PUB09 extends recordings with opt-in seed/contact-profile inputs and actual
 combined contact settings. A precontact seed has unknown prior release history:
@@ -207,5 +209,6 @@ and merge remain publication gates on PR #153.
 
 The prior complete required run #37579195396 took 51.08 minutes. The local fresh
 PUB08 tier took 12.72 minutes, exceeding the previous 60-minute combined budget.
-The workflow therefore retains every required check and uses a 90-minute job
-limit. This execution budget changes no event threshold or accuracy criterion.
+At the PUB08 checkpoint the workflow retained every required check and used
+a 90-minute job limit. PUB10/PUB11 subsequently set the current limit to120 minutes;
+all required checks remain. See [current CI contract](regression_evidence.md). This execution budget changes no event threshold or accuracy criterion.

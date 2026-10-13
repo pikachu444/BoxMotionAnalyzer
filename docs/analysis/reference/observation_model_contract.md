@@ -1,6 +1,8 @@
 # Virtual observation model (PUB10)
 
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-13
+
+PUB10 software is published: PR #155 merged after final-head5a08ce3 CI37965002261 succeeded. [Current delivery/evidence mapping](pub_delivery_status.md). Numerical/camera/noise/accuracy acceptance remains unapproved; native/measured follow-ups remain separate.
 
 ## Scope and use
 

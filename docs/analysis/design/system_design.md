@@ -2,6 +2,8 @@
 
 Last Reviewed: 2026-10-13
 
+PUB12 current delivery audit: [PUB01–12 status and original evidence](../reference/pub_delivery_status.md). PUB02–11 software is merged; native/input/human and numerical/measured acceptance remain separate. #113 registration is excluded; #152 is independent.
+
 PUB11 reuses the production capture runner and PUB07–10 entry points. Pre-execution required protocols, source-bound representative resume, actual row/fit/duration/memory measurements and required JUnit/step inventories connect CLI evidence to CI. [Contract](../reference/regression_evidence.md).
 
 #143 / PUB10 adds a separate opt-in virtual observation profile after the unchanged
@@ -35,7 +37,7 @@ software delivery after GUI corrections. Native/experimental checks and addition
 numeric diagnostic acceptance remain separate. Metadata/export reuse PUB06;
 sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/robot_sequence_contract.md).
 
-#139 / PUB06 reuses the existing simulation producers and adapters. ModeProfiles validates isolated schema1/plan-bound sequence, physics and observation settings with source/edit snapshots. The production GUI captures immutable jobs, adopts only the matching generation after QThread.finished and preserves earlier files/history on cancellation or source changes. Public SimulationMetadataJson propagates through existing artifact/read/write/Compare routes; full release state and corruption truth stay evaluation-only. Robot engine execution is added by issue140 on the development branch. [Contract](../reference/simulation_mode_contract.md) records legacy unknown semantics and native/measured verification limits.
+#139 / PUB06 reuses the existing simulation producers and adapters. ModeProfiles validates isolated schema1/plan-bound sequence, physics and observation settings with source/edit snapshots. The production GUI captures immutable jobs, adopts only the matching generation after QThread.finished and preserves earlier files/history on cancellation or source changes. Public SimulationMetadataJson propagates through existing artifact/read/write/Compare routes; full release state and corruption truth stay evaluation-only. Robot engine execution and production UI binding were delivered in PR #151; config-only robot documents remain blocked. [Contract](../reference/simulation_mode_contract.md) records legacy unknown semantics and native/measured verification limits.
 
 #138 adds schema1/plan-bound marker source/geometry/correspondence/meaning identities and atomic ProfileEditorState documents, while retaining original profile hashes and host Artifact SchemaVersion1. Actual producer/reader/Raw/corrected/slice/proc/Compare paths propagate the nested semantic declaration; source/generation guards reject obsolete jobs. Same-face mapping changes do not imply a changed Raw centre/pose. [PUB05 contract](../reference/marker_profile_semantics.md) records scoped compatibility, legacy/migration limits and the excluded #113 user feature.
 

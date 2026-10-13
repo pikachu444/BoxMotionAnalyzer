@@ -2,13 +2,13 @@
 
 Last Reviewed: 2026-10-13
 
-- [O] #144 / PUB11 software implementation and independent correction review: frozen required capture cases and CI nodes/steps, explicit representative resume, overlap-safe coverage and original PUB07–10 reports with actual production measurements. Corrected-source130 affected checks include actual full processing, one-shot worker cancellation and partial-success explicit resume. Earlier127 checks, attempt-scope2 checks and standalone CLI results are retained separately. Four independent P1 findings were reproduced and corrected. Final-head required CI/PR/merge remains the publication gate tracked in #144. See `../reference/regression_evidence.md` and its evidence index. Native/input/human and #104 measured acceptance remain separate; #145 final roadmap cleanup is not included.
-
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
 ## TODO List
+- [O] #145 / PUB12 document mapping and independent audit: [PUB01–12 delivery/evidence/status](../reference/pub_delivery_status.md) maps current code, source-head CI, original reports, independent findings, exclusions and waits. Link/CLI/schema checks passed; the new-context Astra/high reviewer accepted the corrected documents after H scope P2 was resolved. Final commit required CI/merge and issue completion remain the publication gate tracked in #145; other native/numerical/measured waits remain below.
+- [O] #144 / PUB11 software, independent correction review and publication: PR #156 / head492322c required CI38286906108 / merge698c0d5 main CI38297290908 succeeded. Four P1 corrections and actual fresh full/cancellation/resume evidence are retained in `../reference/regression_evidence.md`. Native/input/human, numerical and #104 measured acceptance remain separate.
 - [O] #143 / PUB10 software implementation and independent correction review: optional virtual
   camera/assigned-face visibility, group occlusions and stationary timestamp OU
   through existing profile/settings/export/production save/reopen. Legacy arrays
@@ -17,7 +17,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   runs:80 required endpoints,76 evaluable/pass,1 ambiguous,3 unavailable,0 failed.
   Main279 and independent236 affected checks passed; all5 original integrity/evidence
   findings are resolved, with no material P0/P1/P2 remaining in inspected scope.
-  Final-head required CI/PR/merge remain the publication gate tracked in #143.
+  PR #155 merged; final-head5a08ce3 required CI37965002261 succeeded.
   Initial CI exposed legacy optional-column test assumptions;5 explicit contract
   cases replace2 wrong assumptions, main157 and independent115 checks passed,
   with no product/threshold changes or skips. Original CI failure is retained.
@@ -25,15 +25,15 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
 - [ ] PUB10 camera/noise calibration, proposed numerical ranges/tolerances and
   measured accuracy remain pending separately in #104; no baseline promotion.
 - [O] #142 / PUB09 software implementation and independent correction review:
-  opt-in seed/contact API, source-bound export/reopen, native convergence,
+  opt-in seed/contact API, source-bound export/reopen, actual-timestep convergence,
   frozen limited fit and separate holdout, production observation paths.
   29/29 local fresh runs and419 final local affected checks passed; independent220 checks,
-  all26 native records and two Raw/PROC paths passed. Five original findings
+  all26 MuJoCo contact/evaluation records and two Raw/PROC paths passed. Five original findings
   and three final integrity findings are closed; independent final delta95 tests
   and2 fresh holdout engines passed. Observed holdout retains4required/0evaluable/4not_detected.
   See `../reference/contact_calibration_contract.md` and its evidence index.
-  Final-source CI/merge are publication gates in the PR linked from #142;
-  their actual status is tracked there, not inferred from local runs.
+  PR #154 merged; final-headd0abe7c required CI37750977113 succeeded.
+  Historical local runs remain their own source evidence.
 - [ ] PUB09 numeric ranges/tolerances/baseline promotion remain proposed;
   observed detector limitations and #104 measured calibration are separate.
 - [O] #141 / PUB08 software implementation and independent local review:
@@ -43,63 +43,20 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   Thirteen fresh functional cases and six bounded comparison replays are retained.
   Independent GPT-6 Astra xhigh review closed six correction groups; 47 event
   checks pass, and six independent physics runs preserve recorder OFF/ON state.
-  Original failures and correction results are separate. Final-source complete
-  required CI and merge are publication gates tracked in PR #153; do not infer
-  their success from these local records. User approved both t2 kinds, while
+  Original failures and correction results are separate. PR #153 merged after final-head1a057d2 required CI37699587089 succeeded;
+  historical local records remain separate. User approved both t2 kinds, while
   synthetic numeric thresholds remain proposed/needs_review.
   See `../reference/contact_evaluation_contract.md`. #142/#143/#152 excluded;
   numerical accuracy/baseline promotion and #104 measured verification separate.
-- [O] #140 / PUB07 software implementation and independent acceptance review:
-  opt-in dynamic gripper backend and explicit execution
-  profiles are implemented on `issue140-dynamic-robot-sequence`; continuous clock,
-  two releases/pickup/orient, supported H template, independent toggle/coverage
-  controls and actual producer/analysis truth-isolation diagnostics are recorded
-  in `../reference/robot_sequence_contract.md`. Reviewed FHD/narrow proposal was
-  shown. User confirmed described virtual software controls2026-10-07 and requested
-  GUI readability corrections, then explicitly instructed continued software
-  delivery without another waiting/approval pause.
-  Production Preview/Apply, explicit scope, Run/Marker CSV, real progress and
-  partial retention are connected;159 affected checks pass, including15 new GUI
-  checks. Actual widget renders7 and preserved PUB06 renders12 are retained.
-  Whole public G16 diagnostic runs one engine/16 releases/95.69 actual seconds.
-  Independent GUI audit closed all4 P2 corrections with no material P0/P1/P2
-  remaining in that bounded scope. Publication/current CI/merge and native
-  confirmation is tracked in PR151. Final source f1a66c9 passed required CI37579195396;
-  PR151 merged as78b6c79. Native/experimental acceptance remains separate.
-  Existing single-drop and #139 source/history paths stay in production.
-  #141/#142 are delivered in PR153/154; #143 software is complete with publication
-  tracked in its issue; #104 remains separate.
-  Follow-up readability change replaces debug prose with a compact card and
-  Details tabs; Rotation/Motion/Drops to run labels explain actual meanings.
-  Fresh actual11-state renders,49-pass affected GUI run and4-pass grip-geometry
-  correction recheck are retained separately.
-  Same-agent clarity recheck closed the lost-radius P2; no material P0/P1/P2
-  remains in that correction scope. Final-head required CI remains pending;
-  native verification is separate.
-  Second user readability correction: four labelled content-sized pre-run rows,
-  two-row invalid/stale guidance, Korean rotation/motion labels and separate
-  display/saved automatic-face values. Related GUI49 and final layout4 pass;
-  corrected actual11-state renders plus summary close-up are in summary_rows125.
-  Original FHD target-clip failure is retained; final independent review/current
-  source CI/publication are tracked in PR151. Prior be3e52b CI37549796822 passed.
-  Same-agent row-layout review and header/unit correction recheck are complete;
-  final3 detail checks and11-state renders pass. No material P0/P1/P2 remains
-  in that scope. User then requested English consistency (Korean localization
-  later) and a larger initial window because the bottom was cut off. English
-  four-row summary and1280×900 logical startup capped to the usable screen are
-  implemented; mode/manual resizing remains intact. Affected GUI40, final layout5,
-  separate small-screen startup1 and refreshed13-state actual widget render pass.
-  Original failed small-screen test assertion is retained; narrow target/Settings
-  surfaces are now checked directly. Same-reviewer bounded English/startup audit
-  passes. Originals are in english_rows125. Final acceptance audit found no
-  concrete missing software requirement or remaining material P0/P1/P2. Final-head
-  required CI and software publication are tracked in PR151.
-  Hosted CI37576477292 passed1378 core checks+11 subtests and robot diagnostics,
-  then exposed FHD target clipping with Qt6.11.2. Original failure and local
-  reproduction are preserved. Compact spacing/margins fix the actual layout;
-  GUI41, final layout6 and actual13-state renders pass separately on Qt6.10.1
-  and6.11.2. The fit gate now includes the whole frame; independent recheck passes
-  with no remaining material P0/P1/P2. Current CI is tracked in PR151.
+- [O] #140 / PUB07 software and independent corrections: explicit opt-in dynamic
+  plan/backend, continuous Run/Marker CSV, Preview/Apply, progress, selection and
+  partial retention are delivered in PR #151. Final headf1a66c9 required
+  CI37579195396 passed; merge78b6c79. Virtual operational controls were confirmed;
+  native and additional numerical acceptance are separate below. The original
+  tracking/H/layout failures, GUI corrections and Qt6.11.2 CI37576477292 failure
+  remain in `../reference/robot_sequence_contract.md`; no historical attempt is
+  relabelled as final-source evidence. Public G16 has one engine/16 releases,
+  not16 independent measured trials. #113 excluded; #152 independent.
 - [ ] #140 / PUB07 native and experimental acceptance: native Windows input,
   viewer and actual OS125 remain unexecuted; #104 measured validation is separate
   and unavailable. Additional numerical diagnostic promotion, baseline/trial
@@ -114,14 +71,14 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   and expanding target preview. Fresh layout/mode24 checks passed; existing GUI9 passed
   initially and2 resource-failed cases passed on unchanged-code retry. Original
   failures, FHD/small-window evidence and review corrections are
-  recorded in the PUB06 documents. Required CI/merge status is tracked in PR150.
+  recorded in the PUB06 documents. PR #150 merged; head2afdfb6 required CI37491215034 passed.
 - [ ] #139 / PUB06 native acceptance and full issue closure: human approved the shared G17/H12 settings/target-preview
   mockup ("이제 좀 낫긴하네 이거로 해봐"). Production mode binding, per-mode
   settings save/open/Apply/Cancel, robot execution guard, versioned producer
   metadata and stale-worker cancellation/retry are implemented. Fresh scoped
   production GUI checks and restored FHD/widget render12 states each at1.5/1.25
   are recorded separately with failures and retries. Same independent reviewer closed all
-  production findings; required CI/publication are tracked in PR150. The work
+  production findings; head2afdfb6 required CI37491215034 passed and PR #150 merged. The work
   remains open for native Windows input/viewer/actual OS125 confirmation:
   fresh production-window activation and recovery failed GetCursorPos access
   denied0x80070005. Original failures and Qt evidence are preserved separately.
@@ -134,8 +91,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   identity, Copy/Edit/Reset/Preview/Apply, atomic draft/applied documents and
   generation guards. Corrected core91, consumer/Compare146, Qt125 editor/export14,
   final wording50/9 and30 renders per DPR passed. Same-reviewer independent
-  production APPROVE has no remaining P0/P1/P2. Required clean-commit hosted CI
-  gates merge; final CI/publication status is recorded in the linked PR.
+  production APPROVE has no remaining P0/P1/P2. PR #149 merged; head4b06c46 required CI37395011061 succeeded.
   Existing example hashes and #135 historical baselines remain unchanged.
   Same-face name swaps do not imply Raw centre/pose changed; mapping-only reuse
   requires scoped review. See `../reference/marker_profile_semantics.md` and
@@ -145,8 +101,7 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   rotation/pan/zoom/face drag, selection, invalid/legacy/blocked state, native
   save/error/retry/reopen. Qt process scaling/widget/QTest is separate evidence.
   #113 registration user feature is excluded; existing static adapter and
-  lineage remain verified. #104 measured validation is separate. Do not start
-  #139 onward or #143 automatically; do not close #138 for unexecuted native.
+  lineage remain verified. #104 measured validation is separate. PUB06–10 are already delivered; do not close #138 for unexecuted native.
 - [O] #137 / PUB04 implementation: approved FHD/minimum-window mockup; scoped
   viewport persistence, Revert, shared save counts/gates and Type/edit history.
   Automatic preservation found two regressions; both were corrected and passed
@@ -155,8 +110,8 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   outstanding findings; corrected clean head passed 42 checks and 19 renders.
   Hosted initial FHD client-size fitting was corrected in the validation harness;
   same-reviewer recheck and local 125% replay passed 25 GUI/19 render cases.
-  Required CI is enforced before merge; final CI/publication
-  evidence is recorded in `../../visualization/scene_review_workflow_137.md`.
+  PR #148 merged; heada6760c9 required CI37135346939 succeeded.
+  Historical validation evidence is recorded in `../../visualization/scene_review_workflow_137.md`.
 - [ ] #137 native follow-up: FHD production window/accessibility was enumerated,
   but black capture and activation failure prevented visual/external input
   acceptance. Keep issue open for native checks at 820x600/FHD/target size,

@@ -28,6 +28,7 @@ Last Reviewed: 2026-10-13
   - 런처 창과 관련된 레이아웃 스케치와 메모
 
 ## 현재 핵심 문서 예시
+- [PUB01–12 구현·출판·증거와 남은 검수](analysis/reference/pub_delivery_status.md)
 - `docs/analysis/design/system_design.md`
 - `docs/analysis/design/gui_overview.md`
 - `docs/analysis/design/implementation_todo.md`
