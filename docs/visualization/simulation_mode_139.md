@@ -1,10 +1,12 @@
 # Simulation mode contract — PUB06
 
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-10-13
+
+Current publication: PR #150 merged after final-head2afdfb6 CI37491215034 succeeded. PUB07 execution-plan GUI/producer/partial retention is also delivered in PR #151; only config-only robot profiles remain blocked. #139 native/input/OS125 stays OPEN. [Cross-PUB audit](../analysis/reference/pub_delivery_status.md). The dated checkpoints below are historical, including “#140 not started” and publication waits.
 
 Plan Spec: ISTA6A-PLAN-20261001-v1
 
-## Current production checkpoint (2026-10-07)
+## Historical production checkpoint (2026-10-07)
 
 Latest originals are `mockups/simulation_mode_139/production_restored125` and
 `production_restored150` (12 states each), superseding the earlier `production125/150`

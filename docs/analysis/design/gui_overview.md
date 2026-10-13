@@ -2,6 +2,8 @@
 
 Last Reviewed: 2026-10-13
 
+PUB12 current delivery audit: [PUB01–12 status and original evidence](../reference/pub_delivery_status.md). PUB02–11 software is merged; native/input/human and numerical/measured acceptance remain separate. #113 registration is excluded; #152 is independent.
+
 PUB11 reports actual widget/QTest/render-buffer scope separately from native window visibility, external input and human review. Existing Step 1/1.5/2 is unchanged; pending native paths remain pending. [Regression evidence](../reference/regression_evidence.md).
 
 #143 / PUB10 adds opt-in virtual camera/group visibility and stationary OU noise
@@ -22,8 +24,7 @@ are preserved; simulator contact truth is never analysis input.
 [Evaluator contract](../reference/contact_evaluation_contract.md).
 
 #140 connects editable sequence handling/attachment/scope Preview and Apply to
-actual continuous Run/Marker CSV, progress and partial retention on the development
-branch. Loaded subset IDs remain explicit. Related159 checks pass; actual FHD/narrow
+actual continuous Run/Marker CSV, progress and partial retention in main (PR #151). Loaded subset IDs remain explicit. Related159 checks pass; actual FHD/narrow
 widget renders are retained. The user confirmed described virtual software
 controls and explicitly instructed continued software delivery after the requested
 GUI corrections. Native input/viewer verification remains separate.

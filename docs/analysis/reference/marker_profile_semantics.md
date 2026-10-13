@@ -1,6 +1,8 @@
 # Marker profile interpretation and compatibility — PUB05
 
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-13
+
+PUB05 software was published in PR #149 after source-head CI37395011061 succeeded. #138 remains OPEN for native acceptance. [Current cross-PUB evidence and waits](pub_delivery_status.md).
 
 Plan Spec: ISTA6A-PLAN-20261001-v1
 

@@ -1,6 +1,8 @@
 # Marker profile semantics and editing — #138 / PUB05
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-10-13
+
+Current publication: PR #149 merged after final-head4b06c46 CI37395011061 succeeded. #138 remains OPEN for native acceptance. [Cross-PUB audit](../analysis/reference/pub_delivery_status.md). Historical mockup/CI waits below retain their original scope.
 
 Current status, 2026-10-06: the user approved the final interactive mockup.
 Production implementation, automatic verification and independent review are

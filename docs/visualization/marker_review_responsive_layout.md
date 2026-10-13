@@ -1,6 +1,6 @@
 # Marker review responsive layout (#136 / PUB03)
 
-Last Reviewed: 2026-10-02
+Last Reviewed: 2026-10-13
 
 Plan Spec: ISTA6A-PLAN-20261001-v1. Parent: #134. This changes only the
 remaining layout delta after #121 / PR #129; #112 / PR #126 lifecycle and
@@ -180,6 +180,7 @@ were terminated without verdicts and have no pass claim. Copy path is the
 existing shared helper, statically reviewed with fullPath/tooltip checks; its
 native menu operation was not exercised. `git diff --check` passed.
 
-Publication must keep #136 open and the PR draft while required
-native confirmation is missing, even if automated CI passes. #104 remains
+PR #147 is merged after source-head CI37011751480 passed under software-delivery
+authorization. #136 stays OPEN for required native confirmation. The earlier
+draft-publication checkpoint is superseded; native acceptance was not promoted. #104 remains
 the separate measured calibration/accuracy pending track.
