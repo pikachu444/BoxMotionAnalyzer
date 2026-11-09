@@ -19,6 +19,7 @@ from src.simulation.profile_document import read_document
 from src.utils.marker_profile_identity import profile_identity
 from src.utils.marker_profile_identity import digest
 from .marker_profile_dialog import MarkerProfileDialog
+from src.utils.ui_language import tr
 
 
 def preset_steps(category, size, mass):
@@ -45,91 +46,91 @@ class ModeSettings(QWidget):
         self.tabs = QTabWidget(); layout.addWidget(self.tabs)
         sequence = QWidget(); seq = QVBoxLayout(sequence);seq.setSpacing(3)
         names = QFormLayout();names.setVerticalSpacing(3)
-        self.sequence_name = QLineEdit(); names.addRow('Sequence profile', self.sequence_name)
-        self.robot_model = QComboBox(); self.robot_model.addItem('Gripper proxy', 'gripper_proxy')
-        names.addRow('Robot model', self.robot_model); seq.addLayout(names)
+        self.sequence_name = QLineEdit(); names.addRow(tr('Sequence profile'), self.sequence_name)
+        self.robot_model = QComboBox(); self.robot_model.addItem(tr('Gripper proxy'), 'gripper_proxy')
+        names.addRow(tr('Robot model'), self.robot_model); seq.addLayout(names)
         self.handling = QComboBox()
         for label,key in [('Choose handling',None),('G: Lift and release','airborne'),
                 ('H: Virtual tip on floor','floor_supported'),('Hold without release','held_only')]:self.handling.addItem(label,key)
-        self.attachment_face = QComboBox();self.attachment_face.addItem('Top-facing face (auto)','upward')
+        self.attachment_face = QComboBox();self.attachment_face.addItem(tr('Top-facing face (auto)'),'upward')
         for face in ['+X','-X','+Y','-Y','+Z','-Z']:self.attachment_face.addItem(face,face)
-        self.attachment_face.setToolTip('Faces use box-local axes. Auto selects the face currently pointing upward.')
-        self.run_scope = QComboBox();self.run_scope.addItem('Entire plan','entire');self.run_scope.addItem('Selected drop','selected')
-        self.run_scope.addItem('Saved selection','captured')
-        self.preview_button=QPushButton('Preview sequence');self.preview_button.clicked.connect(self.preview_sequence)
+        self.attachment_face.setToolTip(tr('Faces use box-local axes. Auto selects the face currently pointing upward.'))
+        self.run_scope = QComboBox();self.run_scope.addItem(tr('Entire plan'),'entire');self.run_scope.addItem(tr('Selected drop'),'selected')
+        self.run_scope.addItem(tr('Saved selection'),'captured')
+        self.preview_button=QPushButton(tr('Preview sequence'));self.preview_button.clicked.connect(self.preview_sequence)
         self.robot_fields=QWidget();fields=QFormLayout(self.robot_fields);fields.setContentsMargins(0,0,0,0);fields.setVerticalSpacing(3)
-        row=QHBoxLayout();row.addWidget(self.handling,2);row.addWidget(QLabel('Grip face'));row.addWidget(self.attachment_face,1)
-        fields.addRow('Handling',row)
-        row=QHBoxLayout();row.addWidget(self.run_scope,1);row.addWidget(self.preview_button);fields.addRow('Drops to run',row)
+        row=QHBoxLayout();row.addWidget(self.handling,2);row.addWidget(QLabel(tr('Grip face')));row.addWidget(self.attachment_face,1)
+        fields.addRow(tr('Handling'),row)
+        row=QHBoxLayout();row.addWidget(self.run_scope,1);row.addWidget(self.preview_button);fields.addRow(tr('Drops to run'),row)
         seq.addWidget(self.robot_fields)
         self.table = QTableWidget(0, 6)
-        self.table.setHorizontalHeaderLabels(['Preset', 'Clearance (mm)', 'X rotation (°)', 'Y rotation (°)', 'Z rotation (°)', 'Motion type'])
+        self.table.setHorizontalHeaderLabels([tr('Preset'), tr('Clearance (mm)'), tr('X rotation (°)'), tr('Y rotation (°)'), tr('Z rotation (°)'), tr('Motion type')])
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         for column in range(1, 6): self.table.horizontalHeader().setSectionResizeMode(column, QHeaderView.ResizeToContents)
-        self.table.setToolTip('Box orientation: rotate about the scene X, then Y, then Z axes. Z points up. These are angles, not positions or axis locks.')
+        self.table.setToolTip(tr('Box orientation: rotate about the scene X, then Y, then Z axes. Z points up. These are angles, not positions or axis locks.'))
         for column,axis in enumerate('XYZ',2):
-            self.table.horizontalHeaderItem(column).setToolTip(f'Box rotation about the scene {axis} axis, in degrees. Applied in X → Y → Z order; Z points up.')
-        self.table.horizontalHeaderItem(5).setToolTip('Motion required by this test: free fall, floor-supported motion or unavailable handling.')
+            self.table.horizontalHeaderItem(column).setToolTip(tr('Box rotation about the scene {} axis, in degrees. Applied in X → Y → Z order; Z points up.').format(axis))
+        self.table.horizontalHeaderItem(5).setToolTip(tr('Motion required by this test: free fall, floor-supported motion or unavailable handling.'))
         self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
             +5*self.table.verticalHeader().defaultSectionSize()+2*self.table.frameWidth())
         seq.addWidget(self.table)
-        self.rotation_hint=QLabel('Rotation about scene axes: X → Y → Z. Z points up.');self.rotation_hint.setWordWrap(True);seq.addWidget(self.rotation_hint)
+        self.rotation_hint=QLabel(tr('Rotation about scene axes: X → Y → Z. Z points up.'));self.rotation_hint.setWordWrap(True);seq.addWidget(self.rotation_hint)
         actions = QHBoxLayout(); self.order_buttons = []
         for text, action in [('Add drop', self.add_drop), ('Remove', self.remove_drop),
                 ('Move up', lambda: self.move_drop(-1)), ('Move down', lambda: self.move_drop(1))]:
-            button = QPushButton(text); button.clicked.connect(action); actions.addWidget(button); self.order_buttons.append(button)
+            button = QPushButton(tr(text)); button.clicked.connect(action); actions.addWidget(button); self.order_buttons.append(button)
         seq.addLayout(actions)
         self.sequence_hint = QLabel(); seq.addWidget(self.sequence_hint)
-        self.preview_box=QGroupBox('Pre-run summary');self.preview_form=QFormLayout(self.preview_box)
+        self.preview_box=QGroupBox(tr('Pre-run summary'));self.preview_form=QFormLayout(self.preview_box)
         self.preview_form.setContentsMargins(10,5,10,5);self.preview_form.setVerticalSpacing(2)
         self.preview_count=QLabel();self.preview_count.setWordWrap(True)
         self.preview_time=QLabel();self.preview_face=QLabel()
         self.sequence_preview=QLabel();self.sequence_preview.setWordWrap(True);self.sequence_preview.setTextFormat(Qt.PlainText)
-        self.details_button=QPushButton('Details…');self.details_button.clicked.connect(self.show_sequence_details)
+        self.details_button=QPushButton(tr('Details…'));self.details_button.clicked.connect(self.show_sequence_details)
         row=QHBoxLayout();row.addWidget(self.preview_count,1);row.addWidget(self.details_button)
-        self.preview_labels=[QLabel(text) for text in ('Drops','Motion','Grip face','Time limit')]
+        self.preview_labels=[QLabel(tr(text)) for text in ('Drops','Motion','Grip face','Time limit')]
         for label,value in zip(self.preview_labels,[row,self.sequence_preview,self.preview_face,self.preview_time]):self.preview_form.addRow(label,value)
         self.preview_box.hide();seq.addWidget(self.preview_box)
-        self.tabs.addTab(sequence, 'Sequence')
+        self.tabs.addTab(sequence, tr('Sequence'))
         physics = QWidget(); form = QFormLayout(physics)
-        self.physics_name = QLineEdit(); form.addRow('Physics profile', self.physics_name)
+        self.physics_name = QLineEdit(); form.addRow(tr('Physics profile'), self.physics_name)
         self.physics_controls = []
         for label, low, high in [('Mass (kg)', .1, 10000), ('Friction', 0, 5), ('Contact damping', 0, 1),
                 ('COM X (mm)', -2500, 2500), ('COM Y (mm)', -2500, 2500), ('COM Z (mm)', -2500, 2500)]:
-            control = self.spin(low, high); form.addRow(label, control); self.physics_controls.append(control)
-        self.tabs.addTab(physics, 'Physics')
+            control = self.spin(low, high); form.addRow(tr(label), control); self.physics_controls.append(control)
+        self.tabs.addTab(physics, tr('Physics'))
         observation = QWidget(); form = QFormLayout(observation)
-        self.observation_name = QLineEdit(); form.addRow('Observation profile', self.observation_name)
-        self.corner_enabled = QCheckBox('Gaussian'); form.addRow('Direct corner noise', self.corner_enabled)
+        self.observation_name = QLineEdit(); form.addRow(tr('Observation profile'), self.observation_name)
+        self.corner_enabled = QCheckBox(tr('Gaussian')); form.addRow(tr('Direct corner noise'), self.corner_enabled)
         row = QHBoxLayout(); self.corner_std = self.spin(.01, 100); self.corner_seed = QSpinBox(); self.corner_seed.setRange(0, 2147483647)
-        row.addWidget(QLabel('Std (mm)')); row.addWidget(self.corner_std); row.addWidget(QLabel('Seed')); row.addWidget(self.corner_seed)
-        form.addRow('Corner noise', row)
-        self.marker_combo = QComboBox(); self.marker_combo.addItem('Public example 18', '18'); self.marker_combo.addItem('Public example 32', '32')
+        row.addWidget(QLabel(tr('Std (mm)'))); row.addWidget(self.corner_std); row.addWidget(QLabel(tr('Seed'))); row.addWidget(self.corner_seed)
+        form.addRow(tr('Corner noise'), row)
+        self.marker_combo = QComboBox(); self.marker_combo.addItem(tr('Public example 18'), '18'); self.marker_combo.addItem(tr('Public example 32'), '32')
         row = QHBoxLayout(); row.addWidget(self.marker_combo, 1)
         for text, action in [('Import layout…', self.import_marker), ('Edit marker layout…', self.edit_marker)]:
-            button = QPushButton(text); button.clicked.connect(action); row.addWidget(button)
-        form.addRow('Marker profile', row)
-        self.use_layout_box = QCheckBox('Use layout box dimensions'); form.addRow('', self.use_layout_box)
+            button = QPushButton(tr(text)); button.clicked.connect(action); row.addWidget(button)
+        form.addRow(tr('Marker profile'), row)
+        self.use_layout_box = QCheckBox(tr('Use layout box dimensions')); form.addRow('', self.use_layout_box)
         self.fault_kind = QComboBox()
         for label, key in [('None', None), ('Missing samples', 'missing'), ('Local 180° half-turn', 'flip_180_local_axis'), ('Gaussian noise', 'gaussian_noise')]: self.fault_kind.addItem(label, key)
-        form.addRow('Marker faults', self.fault_kind)
-        self.channel = QComboBox(); self.channel.addItem('Solved rigid-body markers', 'rigid_body_markers'); self.channel.addItem('Physical markers', 'physical_markers')
-        form.addRow('Marker channel', self.channel)
+        form.addRow(tr('Marker faults'), self.fault_kind)
+        self.channel = QComboBox(); self.channel.addItem(tr('Solved rigid-body markers'), 'rigid_body_markers'); self.channel.addItem(tr('Physical markers'), 'physical_markers')
+        form.addRow(tr('Marker channel'), self.channel)
         row = QHBoxLayout(); self.start = self.spin(0, 60, 4); self.end = self.spin(0, 60, 4)
-        row.addWidget(self.start); row.addWidget(self.end); form.addRow('Recorded interval (s)', row)
+        row.addWidget(self.start); row.addWidget(self.end); form.addRow(tr('Recorded interval (s)'), row)
         row = QHBoxLayout(); self.axis = QComboBox(); self.axis.addItems(['X', 'Y', 'Z']); self.marker_std = self.spin(.001, 100, 3)
-        row.addWidget(QLabel('Local axis')); row.addWidget(self.axis); row.addWidget(QLabel('Std (mm)')); row.addWidget(self.marker_std); form.addRow('Marker fault', row)
-        self.marker_seed = QSpinBox(); self.marker_seed.setRange(0, 2147483647); form.addRow('Marker seed', self.marker_seed)
-        self.tabs.addTab(observation, 'Markers and noise')
-        self.status = QLabel('Current preset plan; ISTA procedure validation is pending.'); self.status.setWordWrap(True); self.status.setTextFormat(Qt.PlainText); layout.addWidget(self.status)
+        row.addWidget(QLabel(tr('Local axis'))); row.addWidget(self.axis); row.addWidget(QLabel(tr('Std (mm)'))); row.addWidget(self.marker_std); form.addRow(tr('Marker fault'), row)
+        self.marker_seed = QSpinBox(); self.marker_seed.setRange(0, 2147483647); form.addRow(tr('Marker seed'), self.marker_seed)
+        self.tabs.addTab(observation, tr('Markers and noise'))
+        self.status = QLabel(tr('Current preset plan; ISTA procedure validation is pending.')); self.status.setWordWrap(True); self.status.setTextFormat(Qt.PlainText); layout.addWidget(self.status)
         actions = QHBoxLayout()
-        self.open_button = QPushButton('Open settings…'); self.open_button.clicked.connect(self.open_settings); actions.addWidget(self.open_button)
-        self.save_button = QPushButton('Save settings…'); self.save_button.clicked.connect(self.save_settings); actions.addWidget(self.save_button)
+        self.open_button = QPushButton(tr('Open settings…')); self.open_button.clicked.connect(self.open_settings); actions.addWidget(self.open_button)
+        self.save_button = QPushButton(tr('Save settings…')); self.save_button.clicked.connect(self.save_settings); actions.addWidget(self.save_button)
         actions.addStretch()
-        self.apply_button = QPushButton('Use in Simulation'); self.apply_button.clicked.connect(self.apply_settings); actions.addWidget(self.apply_button)
-        self.cancel_button = QPushButton('Cancel'); self.cancel_button.clicked.connect(self.cancel_settings); actions.addWidget(self.cancel_button)
+        self.apply_button = QPushButton(tr('Use in Simulation')); self.apply_button.clicked.connect(self.apply_settings); actions.addWidget(self.apply_button)
+        self.cancel_button = QPushButton(tr('Cancel')); self.cancel_button.clicked.connect(self.cancel_settings); actions.addWidget(self.cancel_button)
         layout.addLayout(actions)
         self.table.itemSelectionChanged.connect(self.select_row)
         self.table.cellChanged.connect(lambda row, column: self.select_row() if column in (1, 2, 3, 4) else None)
@@ -176,11 +177,11 @@ class ModeSettings(QWidget):
         scope=(1 if len(plan['selected_step_ids'])==1 and len(sequence['steps'])>1 else
             2 if plan['selected_step_ids']!=[s['step_id'] for s in sequence['steps']] else 0) if plan else 0
         self.run_scope.model().item(2).setEnabled(plan is not None)
-        self.run_scope.setItemText(2,f"Saved selection ({len(plan['selected_step_ids'])} / {len(sequence['steps'])})" if plan else 'Saved selection')
+        self.run_scope.setItemText(2,f"Saved selection ({len(plan['selected_step_ids'])} / {len(sequence['steps'])})" if plan else tr('Saved selection'))
         self.run_scope.setItemData(2,', '.join(plan['selected_step_ids']) if plan else '',Qt.ToolTipRole)
         self.run_scope.setCurrentIndex(scope)
         self.preview_box.hide();self._preview_signature=None;self._preview_plan=None;self._preview_duration=config['duration_s']
-        self.mode_label.setText('Robot sequence' if robot else 'Single drop')
+        self.mode_label.setText(tr('Robot sequence') if robot else tr('Single drop'))
         self.sequence_name.setText(sequence['profile_id']); self.robot_model.setEnabled(robot)
         for button in self.order_buttons: button.setEnabled(robot)
         selected = sequence['steps'][0]
@@ -216,7 +217,7 @@ class ModeSettings(QWidget):
                 'Floor tip (virtual)' if virtual_support else
                 'Floor tip (unavailable)' if spec.kind in ('tip', 'rotational_edge') else 'Free fall')
             for column, value in enumerate([step['preset_id'].replace('_', ' '), step['clearance_mm'], *step['fixed_xyz_deg'], scope]):
-                text = f'{value:g}' if isinstance(value, (int, float)) else value
+                text = f'{value:g}' if isinstance(value, (int, float)) else tr(value) if column == 5 else value
                 item = self.table.item(row, column)
                 if item is None:
                     item = QTableWidgetItem(text); self.table.setItem(row, column, item)
@@ -231,9 +232,13 @@ class ModeSettings(QWidget):
         self._active_rows[self.draft.mode] = active
         robot = self.draft.mode == 'robot_sequence'
         plan=self.draft.configs[self.draft.mode]['sequence_profile'].get('execution_plan')
-        self.sequence_hint.setText((f"{len(plan['selected_step_ids'])} selected / {len(self.rows)} planned drops." if plan else
-            f'{len(self.rows)} planned drops. Choose handling, then Preview sequence.') if robot else
-            f'1 selected / {len(self.rows)} presets. Use in Simulation to run this preset.')
+        if not robot:
+            hint = tr('1 selected / {} presets. Use in Simulation to run this preset.').format(len(self.rows))
+        elif plan:
+            hint = tr('{} selected / {} planned drops.').format(len(plan['selected_step_ids']), len(self.rows))
+        else:
+            hint = tr('{} planned drops. Choose handling, then Preview sequence.').format(len(self.rows))
+        self.sequence_hint.setText(hint)
         self.sequence_hint.show()
 
     def read_rows(self):
@@ -302,7 +307,7 @@ class ModeSettings(QWidget):
             self.fit_tab()
 
     def preview_issue(self,title,message):
-        self.preview_labels[0].setText('Status');self.preview_labels[1].setText('Next step')
+        self.preview_labels[0].setText(tr('Status'));self.preview_labels[1].setText(tr('Next step'))
         self.preview_count.setText(title);self.sequence_preview.setText(message)
         self.preview_time.clear();self.preview_face.clear();self.details_button.setEnabled(False)
         self.preview_form.setRowVisible(2,False);self.preview_form.setRowVisible(3,False)
@@ -329,9 +334,9 @@ class ModeSettings(QWidget):
             count=f"{len(selected)} of {len(config['sequence_profile']['steps'])} planned drops"
             if len(selected)==1:count=f"Drop {next(i+1 for i,s in enumerate(config['sequence_profile']['steps']) if s['step_id']==selected[0])} only"
             if plan['omitted_step_ids']:count+=f" ({len(plan['omitted_step_ids'])} excluded)"
-            for label,text in zip(self.preview_labels,('Drops','Motion','Grip face','Time limit')):label.setText(text)
+            for label,text in zip(self.preview_labels,('Drops','Motion','Grip face','Time limit')):label.setText(tr(text))
             self.preview_form.setRowVisible(2,True);self.preview_form.setRowVisible(3,True)
-            self.preview_count.setText(count);self.preview_time.setText(f'Max {self._preview_duration:g} s after Apply')
+            self.preview_count.setText(count);self.preview_time.setText(tr('Max {} s after Apply').format(f'{self._preview_duration:g}'))
             motion={'airborne':'Lift and release for free fall','floor_supported':'Tip while supported on floor (virtual)','held_only':'Grip and hold (no release)'}[family]
             kinds={p['kind'] for p in plan['phases']}
             if 'release' not in kinds:motion='Grip and hold (no release)' if 'hold' in kinds else 'No release in this plan'
@@ -341,30 +346,30 @@ class ModeSettings(QWidget):
             face='Top-facing face (auto)' if plan['attachment_face']=='upward' else 'Box '+plan['attachment_face']+' face'
             self.preview_face.setText(face);self.sequence_preview.setText(motion)
             self._preview_config=deepcopy(config);self.details_button.setEnabled(True);self.sequence_hint.hide()
-            self.status.setText('Ready. Use in Simulation to apply.')
+            self.status.setText(tr('Ready. Use in Simulation to apply.'))
         except ValueError as error:
             self._preview_signature=None
             message=str(error)
             if 'Hazard block' in message:message='Hazard drop is unavailable.\nExclude it or select the drops to run.'
             self.preview_issue('Cannot run this plan',message);self.sequence_hint.hide()
-            self.status.setText('Change the plan, then Preview sequence again.')
+            self.status.setText(tr('Change the plan, then Preview sequence again.'))
         self.preview_box.show();self.fit_tab()
 
     def sequence_details_dialog(self):
         """Review actual selected/omitted drops and phase targets without debug prose."""
-        dialog=QDialog(self);dialog.setWindowTitle('Sequence details');dialog.resize(850,500)
+        dialog=QDialog(self);dialog.setWindowTitle(tr('Sequence details'));dialog.resize(850,500)
         layout=QVBoxLayout(dialog);tabs=QTabWidget();layout.addWidget(tabs)
         config=self._preview_config;plan=self._preview_plan
         drops=QTableWidget(len(config['sequence_profile']['steps']),3)
-        drops.setHorizontalHeaderLabels(['Drop','Preset','Run']);drops.setEditTriggers(QTableWidget.NoEditTriggers)
+        drops.setHorizontalHeaderLabels([tr('Drop'),tr('Preset'),tr('Run')]);drops.setEditTriggers(QTableWidget.NoEditTriggers)
         drops.horizontalHeader().setSectionResizeMode(1,QHeaderView.Stretch)
         for row,step in enumerate(config['sequence_profile']['steps']):
             for column,value in enumerate([str(row+1),step['preset_id'].replace('_',' '),'Yes' if step['step_id'] in plan['selected_step_ids'] else 'Excluded']):
                 drops.setItem(row,column,QTableWidgetItem(value))
-        tabs.addTab(drops,'Drops')
+        tabs.addTab(drops,tr('Drops'))
         phases=QTableWidget(len(plan['phases']),4)
-        phases.setHorizontalHeaderLabels(['Drop','Action','Planned duration (s)','Target rotation X / Y / Z (°)']);phases.setEditTriggers(QTableWidget.NoEditTriggers)
-        phases.horizontalHeaderItem(2).setToolTip('Planned motion duration or minimum wait. Tracking/contact may extend this up to the phase timeout.')
+        phases.setHorizontalHeaderLabels([tr('Drop'),tr('Action'),tr('Planned duration (s)'),tr('Target rotation X / Y / Z (°)')]);phases.setEditTriggers(QTableWidget.NoEditTriggers)
+        phases.horizontalHeaderItem(2).setToolTip(tr('Planned motion duration or minimum wait. Tracking/contact may extend this up to the phase timeout.'))
         for column in (0,1,2):phases.horizontalHeader().setSectionResizeMode(column,QHeaderView.ResizeToContents)
         phases.horizontalHeader().setSectionResizeMode(3,QHeaderView.Stretch)
         actions={'approach':'Move to box','attach':'Grip','pickup':'Re-grip','lift':'Move vertically','orient':'Turn',
@@ -376,16 +381,16 @@ class ModeSettings(QWidget):
                 item=QTableWidgetItem(value)
                 if 'support_pivot_local_mm' in phase:item.setToolTip('Floor support point on box (mm): '+' / '.join(f'{v:g}' for v in phase['support_pivot_local_mm']))
                 phases.setItem(row,column,item)
-        tabs.addTab(phases,'Actions')
+        tabs.addTab(phases,tr('Actions'))
         conditions=QWidget();form=QFormLayout(conditions);limits=plan['transition']
-        form.addRow('Grip geometry',QLabel(f"Sphere, radius {plan['physics']['radius_mm']:g} mm"))
+        form.addRow(tr('Grip geometry'),QLabel(tr('Sphere, radius {} mm').format(f"{plan['physics']['radius_mm']:g}")))
         for label,value in [('Grip distance',f"≤ {limits['distance_mm']:g} mm"),('Grip alignment',f"≤ {limits['normal_deg']:g}°"),
                 ('Relative grip speed',f"≤ {limits['relative_speed_mm_s']:g} mm/s"),('Relative grip spin',f"≤ {limits['relative_spin_rad_s']:g} rad/s"),
                 ('Tracking error',f"{limits['position_mm']:g} mm / {limits['attitude_deg']:g}°"),
                 ('Rest limits',f"{limits['rest_speed_mm_s']:g} mm/s / {limits['rest_spin_rad_s']:g} rad/s for {limits['dwell_s']:g} s"),
                 ('Phase timeout',f"{limits['timeout_s']:g} s"),('Extra grip attempts',str(limits['retries']))]:form.addRow(label,QLabel(value))
-        form.addRow(QLabel('Virtual simulation conditions. ISTA procedure validation is separate.'));tabs.addTab(conditions,'Conditions')
-        close=QPushButton('Close');close.clicked.connect(dialog.accept);layout.addWidget(close)
+        form.addRow(QLabel(tr('Virtual simulation conditions. ISTA procedure validation is separate.')));tabs.addTab(conditions,tr('Conditions'))
+        close=QPushButton(tr('Close'));close.clicked.connect(dialog.accept);layout.addWidget(close)
         return dialog
 
     def show_sequence_details(self):
@@ -409,7 +414,7 @@ class ModeSettings(QWidget):
         self.invalidate_sequence_preview()
 
     def remove_drop(self):
-        if len(self.rows) == 1: self.status.setText('Keep at least one planned drop.'); return
+        if len(self.rows) == 1: self.status.setText(tr('Keep at least one planned drop.')); return
         try: self.rows = self.read_rows()
         except ValueError as error: self.status.setText(str(error)); return
         row = max(0, self.table.currentRow()); self.rows.pop(row); self._paint_rows(min(row, len(self.rows)-1)); self.select_row()
@@ -452,7 +457,7 @@ class ModeSettings(QWidget):
         finally: editor.deleteLater()
 
     def import_marker(self):
-        path, _ = QFileDialog.getOpenFileName(self, 'Import marker layout', '', 'JSON files (*.json)')
+        path, _ = QFileDialog.getOpenFileName(self, tr('Import marker layout'), '', 'JSON files (*.json)')
         if not path: return
         try:
             value = json.loads(Path(path).read_text(encoding='utf-8-sig'))
@@ -466,13 +471,13 @@ class ModeSettings(QWidget):
         except ValueError as error: self.status.setText(str(error)+' Changes were not applied.'); return
         self.applied.emit(ModeProfiles.from_document(self.draft.document()))
         config=self.draft.configs[self.draft.mode]
-        self.status.setText('Settings applied. '+(BLOCKED_REASON if self.draft.mode=='robot_sequence' and 'execution_plan' not in config['sequence_profile'] else ''))
+        self.status.setText(tr('Settings applied.')+' '+(BLOCKED_REASON if self.draft.mode=='robot_sequence' and 'execution_plan' not in config['sequence_profile'] else ''))
 
     def cancel_settings(self):
-        self.reset(self.live_state); self.status.setText('Changes cancelled. Previous results are preserved.')
+        self.reset(self.live_state); self.status.setText(tr('Changes cancelled. Previous results are preserved.'))
 
     def open_settings(self):
-        path, _ = QFileDialog.getOpenFileName(self, 'Open simulation settings', '', 'JSON files (*.json)')
+        path, _ = QFileDialog.getOpenFileName(self, tr('Open simulation settings'), '', 'JSON files (*.json)')
         if not path: return
         try: candidate = read_profiles(path)
         except (OSError, ValueError, TypeError, KeyError) as error: self.status.setText(str(error)+' Settings were not loaded.'); return
@@ -483,6 +488,6 @@ class ModeSettings(QWidget):
     def save_settings(self):
         try:
             candidate = ModeProfiles.from_document(self.draft.document()); candidate.set_config(self.candidate())
-            path, _ = QFileDialog.getSaveFileName(self, 'Save simulation settings', '', 'JSON files (*.json)')
-            if path: save_profiles(path, candidate); self.status.setText('Settings saved. Simulation inputs are unchanged.')
+            path, _ = QFileDialog.getSaveFileName(self, tr('Save simulation settings'), '', 'JSON files (*.json)')
+            if path: save_profiles(path, candidate); self.status.setText(tr('Settings saved. Simulation inputs are unchanged.'))
         except (OSError, ValueError, TypeError, KeyError) as error: self.status.setText(str(error)+' Settings were not saved.')

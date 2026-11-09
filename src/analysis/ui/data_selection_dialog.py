@@ -2,11 +2,12 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QListWidget, QDialogButtonBox, QListWidgetItem
 )
+from src.utils.ui_language import tr
 
 class DataSelectionDialog(QDialog):
     def __init__(self, all_items: list[str], selected_items: list[str], parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Select Data to Plot")
+        self.setWindowTitle(tr("Select Data to Plot"))
         self.resize(300, 400)
 
         self.list_widget = QListWidget()

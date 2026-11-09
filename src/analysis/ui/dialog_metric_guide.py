@@ -14,18 +14,18 @@ from src.config.result_metric_descriptors import (
     DropPostureSummaryGroup,
     ResultMetricDescriptor,
 )
+from src.utils.ui_language import tr
 
 
 class DropPostureMetricGuideDialog(QDialog):
     def __init__(self, descriptors: tuple[ResultMetricDescriptor, ...], parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Drop Posture Metric Guide")
+        self.setWindowTitle(tr("Drop Posture Metric Guide"))
         self.resize(800, 600)
 
         root_layout = QVBoxLayout(self)
         intro = QLabel(
-            "Drop Posture metrics describe the selected experiment's posture and contact summary. "
-            "The same descriptor metadata drives this guide, summary table labels, and tooltips."
+            tr("Drop Posture metrics describe the selected experiment's posture and contact summary. The same descriptor metadata drives this guide, summary table labels, and tooltips.")
         )
         intro.setWordWrap(True)
         root_layout.addWidget(intro)
@@ -45,7 +45,7 @@ class DropPostureMetricGuideDialog(QDialog):
 
         for group, group_descriptors in groups.items():
             group_layout = QVBoxLayout()
-            group_label = QLabel(group.value)
+            group_label = QLabel(tr(group.value))
             group_label.setStyleSheet("font-size: 16px; font-weight: 600; margin-top: 12px; margin-bottom: 8px;")
             group_layout.addWidget(group_label)
 
@@ -63,15 +63,15 @@ class DropPostureMetricGuideDialog(QDialog):
                     img_label.setPixmap(pixmap.scaledToWidth(600, Qt.TransformationMode.SmoothTransformation))
                     img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 else:
-                    img_label.setText(f"[Image not found: {image_name}]")
+                    img_label.setText(tr('[Image not found: {}]').format(image_name))
                     img_label.setStyleSheet("color: red;")
                 group_layout.addWidget(img_label)
 
             for descriptor in group_descriptors:
                 text = QLabel(
-                    f"<b>{descriptor.display_name}</b>"
+                    f"<b>{tr(descriptor.display_name)}</b>"
                     f"{f' ({descriptor.unit})' if descriptor.unit else ''}<br>"
-                    f"{descriptor.long_description}"
+                    f"{tr(descriptor.long_description)}"
                 )
                 text.setWordWrap(True)
                 text.setTextFormat(Qt.TextFormat.RichText)

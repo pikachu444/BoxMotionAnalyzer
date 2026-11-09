@@ -74,6 +74,7 @@ jobs:
         id: check_02
         run: >-
           python -m pytest -q --maxfail=1
+          tests/test_ui_language.py
           tests/test_comparison_layout.py
           tests/test_collinear_profile_recovery.py
           tests/test_marker_profile_identity.py

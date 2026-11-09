@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
 from src.utils.qt_sections import CollapsibleSection
 from src.analysis.pipeline.intended_contact import feature_options, feature_label, feature_corners
 from src.analysis.pipeline.scene_trial_record import eligibility_suggestion
+from src.utils.ui_language import tr
 
 
 MOTION_LABELS = {'stationary': 'Stationary', 'free_fall': 'Free-fall candidate',
@@ -70,32 +71,32 @@ class SceneReviewWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
         tools = QHBoxLayout()
-        self.detect_button = QPushButton('Detect scenes')
-        self.open_review_button = QPushButton('Open review...')
-        self.save_review_button = QPushButton('Save review...')
-        self.geometry_button = QPushButton('Geometry...')
-        self.geometry_button.setToolTip('Optional marker coordinates in box axes, floor height and COM.')
-        self.trial_record_button = QPushButton('Test record...')
+        self.detect_button = QPushButton(tr('Detect scenes'))
+        self.open_review_button = QPushButton(tr('Open review...'))
+        self.save_review_button = QPushButton(tr('Save review...'))
+        self.geometry_button = QPushButton(tr('Geometry...'))
+        self.geometry_button.setToolTip(tr('Optional marker coordinates in box axes, floor height and COM.'))
+        self.trial_record_button = QPushButton(tr('Test record...'))
         record_menu = QMenu(self.trial_record_button)
-        self.load_trial_record_action = record_menu.addAction('Load...')
-        self.clear_trial_record_action = record_menu.addAction('Clear')
+        self.load_trial_record_action = record_menu.addAction(tr('Load...'))
+        self.clear_trial_record_action = record_menu.addAction(tr('Clear'))
         self.trial_record_button.setMenu(record_menu)
-        self.add_button = QPushButton('Add range')
-        self.remove_button = QPushButton('Remove')
-        self.include_button = QPushButton('Include')
-        self.exclude_button = QPushButton('Exclude')
-        self.revert_button = QPushButton('Revert detected range')
+        self.add_button = QPushButton(tr('Add range'))
+        self.remove_button = QPushButton(tr('Remove'))
+        self.include_button = QPushButton(tr('Include'))
+        self.exclude_button = QPushButton(tr('Exclude'))
+        self.revert_button = QPushButton(tr('Revert detected range'))
         for button in (self.detect_button, self.add_button,
                        self.remove_button, self.include_button, self.exclude_button, self.revert_button):
             tools.addWidget(button)
         tools.addStretch()
-        self.count_label = QLabel('No scenes')
+        self.count_label = QLabel(tr('No scenes'))
         tools.addWidget(self.count_label)
         layout.addLayout(tools)
-        self.range_label = QLabel('No scene selected')
+        self.range_label = QLabel(tr('No scene selected'))
         layout.addWidget(self.range_label)
         self.table = QTableWidget(0, 9)
-        self.table.setHorizontalHeaderLabels(['Scene', 'Start (s)', 'End (s)', 'Motion', 'Rotation (deg)', 'Review', 'Item', 'Intended contact', 'Observed'])
+        self.table.setHorizontalHeaderLabels([tr('Scene'), tr('Start (s)'), tr('End (s)'), tr('Motion'), tr('Rotation (deg)'), tr('Review'), tr('Item'), tr('Intended contact'), tr('Observed')])
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -107,37 +108,38 @@ class SceneReviewWidget(QWidget):
         self.table.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)
         layout.addWidget(self.table)
         identity = QHBoxLayout()
-        identity.addWidget(QLabel('Type'))
+        identity.addWidget(QLabel(tr('Type')))
         self.type_combo = QComboBox()
-        self.type_combo.addItems(['Unknown', 'G', 'H'])
+        for kind in ('Unknown', 'G', 'H'):
+            self.type_combo.addItem(tr(kind), kind)
         identity.addWidget(self.type_combo)
         self.edition_combo = QComboBox()
-        self.edition_combo.addItem('Edition unknown', None)
+        self.edition_combo.addItem(tr('Edition unknown'), None)
         self.edition_combo.addItem('2018-03', '2018-03')
-        self.edition_combo.setToolTip('Applied edition from the test record. The available catalogue is 2018-03.')
+        self.edition_combo.setToolTip(tr('Applied edition from the test record. The available catalogue is 2018-03.'))
         identity.addWidget(self.edition_combo)
-        self.identify_button = QPushButton('Identify items')
+        self.identify_button = QPushButton(tr('Identify items'))
         identity.addWidget(self.identify_button)
         self.item_combo = QComboBox()
         self.item_combo.setMinimumWidth(140)
         identity.addWidget(self.item_combo)
-        self.confirm_button = QPushButton('Confirm item')
-        self.confirm_button.setToolTip('Confirm only after checking eligibility and sequence in the test record.')
+        self.confirm_button = QPushButton(tr('Confirm item'))
+        self.confirm_button.setToolTip(tr('Confirm only after checking eligibility and sequence in the test record.'))
         identity.addWidget(self.confirm_button)
         self.intended_combo = QComboBox()
-        self.intended_combo.addItem('Contact unspecified', None)
+        self.intended_combo.addItem(tr('Contact unspecified'), None)
         for faces in feature_options():
             self.intended_combo.addItem(feature_label(faces), faces)
             corners = ', '.join(f'C{i}' for i in feature_corners(faces))
             self.intended_combo.setItemData(self.intended_combo.count() - 1, corners, Qt.ToolTipRole)
         self.intended_combo.setMinimumWidth(170)
         self.intended_combo.setMaximumWidth(230)
-        self.intended_combo.setToolTip('Intended contact in registered box-local axes. Independent of the detected item.')
+        self.intended_combo.setToolTip(tr('Intended contact in registered box-local axes. Independent of the detected item.'))
         identity.addWidget(self.intended_combo)
-        self.set_intended_button = QPushButton('Set contact')
+        self.set_intended_button = QPushButton(tr('Set contact'))
         identity.addWidget(self.set_intended_button)
         identity.addStretch()
-        self.save_all_button = QPushButton('Save included...')
+        self.save_all_button = QPushButton(tr('Save included...'))
         details = QWidget()
         details_layout = QVBoxLayout(details)
         details_layout.setContentsMargins(0, 0, 0, 0)
@@ -146,7 +148,7 @@ class SceneReviewWidget(QWidget):
             files.addWidget(button)
         files.addStretch()
         details_layout.addLayout(files)
-        self.type_basis_label = QLabel('Type basis: Unconfirmed')
+        self.type_basis_label = QLabel(tr('Type basis: Unconfirmed'))
         details_layout.addWidget(self.type_basis_label)
         # Two short rows avoid making every optional trial control part of the
         # minimum window width.
@@ -164,7 +166,7 @@ class SceneReviewWidget(QWidget):
         self.details_scroll.setFrameShape(QScrollArea.NoFrame)
         self.details_scroll.setWidget(details)
         self.details_scroll.setMaximumHeight(150)
-        self.details_section = CollapsibleSection('Details', self.details_scroll)
+        self.details_section = CollapsibleSection(tr('Details'), self.details_scroll)
         layout.addWidget(self.details_section)
         for column in (4, 6, 7, 8):
             self.table.setColumnHidden(column, True)
@@ -177,7 +179,7 @@ class SceneReviewWidget(QWidget):
         self.exclude_button.clicked.connect(lambda: self._decide('exclude'))
         self.remove_button.clicked.connect(self._remove)
         self.revert_button.clicked.connect(self._revert)
-        self.type_combo.currentTextChanged.connect(self._context_changed)
+        self.type_combo.currentIndexChanged.connect(self._context_changed)
         self.type_combo.activated.connect(self._type_selected)
         self.edition_combo.currentIndexChanged.connect(self._context_changed)
         self.identify_button.clicked.connect(self._identify)
@@ -239,7 +241,7 @@ class SceneReviewWidget(QWidget):
                     item.setToolTip(row.get('observed_consistency', {}).get('reason', 'No test record linked.'))
                 self.table.setItem(i, j, item)
         self.table.blockSignals(False)
-        self.count_label.setText(f"{sum(r['decision'] != 'unreviewed' for r in rows)} / {len(rows)} reviewed" if rows else 'No scenes')
+        self.count_label.setText(tr("{} / {} reviewed").format(sum(r['decision'] != 'unreviewed' for r in rows), len(rows)) if rows else tr('No scenes'))
         enabled = bool(rows)
         self.trial_record_button.setEnabled(enabled)
         self.clear_trial_record_action.setEnabled(bool(self.session and self.session.trial_record))
@@ -248,7 +250,7 @@ class SceneReviewWidget(QWidget):
         basis_label = {'operator': 'Operator selection', 'test_record': 'Test record',
                        'source_declaration': 'Source declaration; confirm Type',
                        'legacy_unconfirmed': 'Previous selection; confirm Type', 'unconfirmed': 'Unconfirmed'}[basis]
-        self.type_basis_label.setText('Type basis: ' + basis_label)
+        self.type_basis_label.setText(tr('Type basis: {}').format(tr(basis_label)))
         tip = 'Select Type against the test record. Filename, mass or row order cannot confirm a trial.'
         if suggestion:
             tip += f' 2018-03 p.2 suggests Type {suggestion}; verify test eligibility.'
@@ -271,7 +273,7 @@ class SceneReviewWidget(QWidget):
         row = self.selected_row()
         self._update_range_display(row)
         self.item_combo.clear()
-        self.item_combo.addItem('Unconfirmed', None)
+        self.item_combo.addItem(tr('Unconfirmed'), None)
         self.item_combo.setToolTip(_item_tooltip(row) if row else '')
         if row:
             for item in row['item_candidates']:
@@ -305,15 +307,15 @@ class SceneReviewWidget(QWidget):
         if row is None:
             text, tip = 'No scene selected', 'Select an edited detected scene.'
         elif row['origin'] == 'manual':
-            text = f"Manual: {row['start']:.6g}–{row['end']:.6g} s    No detected range"
+            text = tr("Manual: {:.6g}–{:.6g} s    No detected range").format(row['start'], row['end'])
             tip = 'Manual scenes have no detected range to restore.'
         else:
             edited = (row['start'], row['end']) != (row['auto_start'], row['auto_end'])
-            text = (f"Edited: {row['start']:.6g}–{row['end']:.6g} s    " if edited else '')
-            text += f"Detected: {row['auto_start']:.6g}–{row['auto_end']:.6g} s"
+            text = (tr("Edited: {:.6g}–{:.6g} s    ").format(row['start'], row['end']) if edited else '')
+            text += tr("Detected: {:.6g}–{:.6g} s").format(row['auto_start'], row['auto_end'])
             tip = 'Restore detected bounds; review Include/Exclude again.'
-        self.range_label.setText(text)
-        self.revert_button.setToolTip(tip)
+        self.range_label.setText(tr(text))
+        self.revert_button.setToolTip(tr(tip))
 
     def _revert(self):
         if self.session and self.can_revert():
@@ -371,13 +373,13 @@ class SceneReviewWidget(QWidget):
 
     def _context_changed(self):
         if self.session:
-            self.session.set_context(self.type_combo.currentText(), self.edition_combo.currentData())
+            self.session.set_context(self.type_combo.currentData(), self.edition_combo.currentData())
             self.refresh()
 
     def _type_selected(self):
         if self.session:
-            self.session.set_context(self.type_combo.currentText(), self.edition_combo.currentData(),
-                type_basis='unconfirmed' if self.type_combo.currentText() == 'Unknown' else 'operator')
+            self.session.set_context(self.type_combo.currentData(), self.edition_combo.currentData(),
+                type_basis='unconfirmed' if self.type_combo.currentData() == 'Unknown' else 'operator')
             self.refresh()
 
     def _identify(self):

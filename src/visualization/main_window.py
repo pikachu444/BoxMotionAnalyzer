@@ -16,6 +16,7 @@ from .plot_dialog import PlotDialog
 from .animation_widget import AnimationWidget
 from .info_log_widget import InfoLogWidget
 from src.utils.app_identity import configure_qt_application, get_window_icon
+from src.utils.ui_language import tr
 
 class MainWindow(QMainWindow):
     open_windows = []
@@ -63,7 +64,7 @@ class MainWindow(QMainWindow):
         main_layout.setStretchFactor(top_layout, 1) # Give more space to the top part
 
         self._create_menu_bar()
-        self.statusBar().showMessage("Ready. Please open a result file.")
+        self.statusBar().showMessage(tr("Ready. Please open a result file."))
 
         self.animation_timer = QTimer(self)
         self.animation_timer.timeout.connect(self.advance_frame)
@@ -98,58 +99,58 @@ class MainWindow(QMainWindow):
         menu_bar = self.menuBar()
 
         # File Menu
-        file_menu = menu_bar.addMenu("&File")
-        open_action = QAction("&Open Result File...", self)
+        file_menu = menu_bar.addMenu(tr("&File"))
+        open_action = QAction(tr("&Open Result File..."), self)
         open_action.triggered.connect(self.open_result_file)
         file_menu.addAction(open_action)
         file_menu.addSeparator()
-        new_window_action = QAction("&New Visualization Window", self)
+        new_window_action = QAction(tr("&New Visualization Window"), self)
         new_window_action.setShortcut("Ctrl+N")
         new_window_action.triggered.connect(self.open_new_visualization_window)
         file_menu.addAction(new_window_action)
         file_menu.addSeparator()
-        exit_action = QAction("&Exit", self)
+        exit_action = QAction(tr("&Exit"), self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
         # View Menu
-        view_menu = menu_bar.addMenu("&View")
+        view_menu = menu_bar.addMenu(tr("&View"))
 
-        reset_view_action = QAction("&Reset Camera (Fit)", self)
+        reset_view_action = QAction(tr("&Reset Camera (Fit)"), self)
         reset_view_action.setShortcut("R")
         reset_view_action.triggered.connect(self.vista_widget.reset_camera_view)
         view_menu.addAction(reset_view_action)
 
         view_menu.addSeparator()
 
-        view_xy_action = QAction("View &XY Plane (Alt+1)", self)
+        view_xy_action = QAction(tr("View &XY Plane (Alt+1)"), self)
         view_xy_action.setShortcut("Alt+1")
         view_xy_action.triggered.connect(self.vista_widget.view_xy_plane)
         view_menu.addAction(view_xy_action)
 
-        view_xz_action = QAction("View X&Z Plane (Alt+2)", self)
+        view_xz_action = QAction(tr("View X&Z Plane (Alt+2)"), self)
         view_xz_action.setShortcut("Alt+2")
         view_xz_action.triggered.connect(self.vista_widget.view_xz_plane)
         view_menu.addAction(view_xz_action)
 
-        view_yz_action = QAction("View &YZ Plane (Alt+3)", self)
+        view_yz_action = QAction(tr("View &YZ Plane (Alt+3)"), self)
         view_yz_action.setShortcut("Alt+3")
         view_yz_action.triggered.connect(self.vista_widget.view_yz_plane)
         view_menu.addAction(view_yz_action)
 
-        view_iso_action = QAction("View &Isometric (Alt+4)", self)
+        view_iso_action = QAction(tr("View &Isometric (Alt+4)"), self)
         view_iso_action.setShortcut("Alt+4")
         view_iso_action.triggered.connect(self.vista_widget.view_isometric)
         view_menu.addAction(view_iso_action)
 
         view_menu.addSeparator()
 
-        self.perspective_projection_action = QAction("&Perspective Projection (Alt+5)", self)
+        self.perspective_projection_action = QAction(tr("&Perspective Projection (Alt+5)"), self)
         self.perspective_projection_action.setShortcut("Alt+5")
         self.perspective_projection_action.triggered.connect(self.enable_perspective_projection)
         view_menu.addAction(self.perspective_projection_action)
 
-        self.parallel_projection_action = QAction("&Parallel Projection (Alt+6)", self)
+        self.parallel_projection_action = QAction(tr("&Parallel Projection (Alt+6)"), self)
         self.parallel_projection_action.setShortcut("Alt+6")
         self.parallel_projection_action.triggered.connect(self.enable_parallel_projection)
         view_menu.addAction(self.parallel_projection_action)
@@ -157,9 +158,9 @@ class MainWindow(QMainWindow):
         self._sync_projection_actions()
 
     def open_result_file(self):
-        filepath, _ = QFileDialog.getOpenFileName(self, "Open Result File", "", result_file_filter())
+        filepath, _ = QFileDialog.getOpenFileName(self, tr("Open Result File"), "", result_file_filter())
         if filepath:
-            self.statusBar().showMessage(f"Loading {filepath}...")
+            self.statusBar().showMessage(tr('Loading {}...').format(filepath))
             success = self.data_handler.load_analysis_result(filepath)
             if success:
                 self.loaded_result_path = filepath
@@ -177,9 +178,9 @@ class MainWindow(QMainWindow):
                 # Auto-fit camera to scene
                 # Defer the call slightly to ensure the rendering pipeline has updated the actors
                 QTimer.singleShot(100, self.vista_widget.reset_camera_view)
-                self.statusBar().showMessage("File loaded successfully.", 5000)
+                self.statusBar().showMessage(tr("File loaded successfully."), 5000)
             else:
-                self.statusBar().showMessage("Failed to load file.", 5000)
+                self.statusBar().showMessage(tr("Failed to load file."), 5000)
 
     def open_csv_file(self):
         self.open_result_file()
@@ -202,12 +203,12 @@ class MainWindow(QMainWindow):
         return window
 
     def _update_window_title(self):
-        base_title = "3D Motion Analyzer"
+        base_title = tr("3D Motion Analyzer")
         if self.loaded_result_path:
             self.setWindowTitle(f"{base_title} - {os.path.basename(self.loaded_result_path)}")
             return
 
-        self.setWindowTitle(f"{base_title} - Window {self.window_sequence}")
+        self.setWindowTitle(tr('{} - Window {}').format(base_title, self.window_sequence))
 
     def open_new_visualization_window(self):
         offset_position = (self.x() + 40, self.y() + 40)
@@ -223,12 +224,12 @@ class MainWindow(QMainWindow):
     def enable_perspective_projection(self):
         self.vista_widget.set_parallel_projection(False)
         self._sync_projection_actions()
-        self.statusBar().showMessage("Perspective projection enabled.", 3000)
+        self.statusBar().showMessage(tr("Perspective projection enabled."), 3000)
 
     def enable_parallel_projection(self):
         self.vista_widget.set_parallel_projection(True)
         self._sync_projection_actions()
-        self.statusBar().showMessage("Parallel projection enabled.", 3000)
+        self.statusBar().showMessage(tr("Parallel projection enabled."), 3000)
 
     def set_frame(self, frame_number: int):
         self.current_frame = frame_number

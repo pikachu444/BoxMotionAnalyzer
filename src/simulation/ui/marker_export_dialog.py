@@ -21,6 +21,7 @@ from src.utils.marker_profile_identity import profile_identity, validate_identit
 from src.utils.artifact_metadata import metadata_from_source_rows
 from .marker_profile_dialog import MarkerProfileDialog
 from src.utils.qt_sections import CollapsibleSection
+from src.utils.ui_language import tr
 
 
 class MarkerExportWorker(QThread):
@@ -80,7 +81,7 @@ class MarkerExportDialog(QDialog):
         self.partial_history=[]
         self.close_requested = False
         self.source_stale = False
-        self.setWindowTitle('Synthetic marker CSV')
+        self.setWindowTitle(tr('Synthetic marker CSV'))
         self.resize(1000, 700)
         self.setMinimumSize(820, 600)
         layout = QVBoxLayout(self)
@@ -88,20 +89,20 @@ class MarkerExportDialog(QDialog):
         form = QVBoxLayout(self.controls)
         form.setContentsMargins(0, 0, 0, 0)
         row = QHBoxLayout()
-        row.addWidget(QLabel('Layout'))
+        row.addWidget(QLabel(tr('Layout')))
         self.profile_combo = QComboBox()
         self.profile_combo.setMinimumContentsLength(28)
         self.profile_combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
-        self.profile_combo.addItem('Public example: 18 markers', '18')
-        self.profile_combo.addItem('Public example: 32 markers', '32')
+        self.profile_combo.addItem(tr('Public example: 18 markers'), '18')
+        self.profile_combo.addItem(tr('Public example: 32 markers'), '32')
         row.addWidget(self.profile_combo, 1)
-        self.import_button = QPushButton('Import JSON…')
+        self.import_button = QPushButton(tr('Import JSON…'))
         row.addWidget(self.import_button)
-        self.copy_button = QPushButton('Copy…'); self.edit_button = QPushButton('Edit…')
+        self.copy_button = QPushButton(tr('Copy…')); self.edit_button = QPushButton(tr('Edit…'))
         row.addWidget(self.copy_button); row.addWidget(self.edit_button)
         form.addLayout(row)
         self.dimensions = QCheckBox()
-        self.dimensions.setToolTip('Use these absolute layout dimensions for this export. Simulation controls are preserved.')
+        self.dimensions.setToolTip(tr('Use these absolute layout dimensions for this export. Simulation controls are preserved.'))
         form.addWidget(self.dimensions)
         self.figure = Figure(figsize=(8, 4), layout='constrained')
         self.canvas = FigureCanvasQTAgg(self.figure)
@@ -114,12 +115,12 @@ class MarkerExportDialog(QDialog):
         for label, key in [('None', None), ('Missing samples', 'missing'),
                            ('Local 180° half-turn', 'flip_180_local_axis'), ('Gaussian noise', 'gaussian_noise')]:
             self.kind.addItem(label, key)
-        fields.addRow('Fault', self.kind)
+        fields.addRow(tr('Fault'), self.kind)
         self.channel = QComboBox()
-        self.channel.addItem('Solved rigid-body markers', 'rigid_body_markers')
-        self.channel.addItem('Physical markers', 'physical_markers')
-        self.channel.setToolTip('Step 1 uses the solved channel. Physical-marker faults do not simulate a tracking solver response.')
-        fields.addRow('Channel', self.channel)
+        self.channel.addItem(tr('Solved rigid-body markers'), 'rigid_body_markers')
+        self.channel.addItem(tr('Physical markers'), 'physical_markers')
+        self.channel.setToolTip(tr('Step 1 uses the solved channel. Physical-marker faults do not simulate a tracking solver response.'))
+        fields.addRow(tr('Channel'), self.channel)
         time_row = QHBoxLayout()
         self.start = QDoubleSpinBox(); self.end = QDoubleSpinBox()
         for control in (self.start, self.end):
@@ -128,32 +129,30 @@ class MarkerExportDialog(QDialog):
             control.setSuffix(' s')
         self.start.setValue(min(.24, simulation['duration'] / 3))
         self.end.setValue(min(.32, simulation['duration'] * 2 / 3))
-        time_row.addWidget(self.start); time_row.addWidget(QLabel('to')); time_row.addWidget(self.end)
-        fields.addRow('Recorded interval', time_row)
+        time_row.addWidget(self.start); time_row.addWidget(QLabel(tr('to'))); time_row.addWidget(self.end)
+        fields.addRow(tr('Recorded interval'), time_row)
         options = QHBoxLayout()
         self.axis = QComboBox(); self.axis.addItems(['X', 'Y', 'Z'])
         self.std = QDoubleSpinBox(); self.std.setRange(.001, 100); self.std.setDecimals(3)
         self.std.setValue(.02); self.std.setSuffix(' mm')
         self.seed = QSpinBox(); self.seed.setRange(0, 2147483647); self.seed.setValue(74082)
-        options.addWidget(QLabel('Axis')); options.addWidget(self.axis)
-        options.addWidget(QLabel('Std')); options.addWidget(self.std)
-        options.addWidget(QLabel('Seed')); options.addWidget(self.seed)
+        options.addWidget(QLabel(tr('Axis'))); options.addWidget(self.axis)
+        options.addWidget(QLabel(tr('Std'))); options.addWidget(self.std)
+        options.addWidget(QLabel(tr('Seed'))); options.addWidget(self.seed)
         fields.addRow(options)
-        self.fault_section = CollapsibleSection('Faults', fault_widget)
+        self.fault_section = CollapsibleSection(tr('Faults'), fault_widget)
         form.addWidget(self.fault_section)
         names = QHBoxLayout()
-        names.addWidget(QLabel('Output folder name'))
+        names.addWidget(QLabel(tr('Output folder name')))
         self.output_name = QLineEdit('synthetic_markers')
         names.addWidget(self.output_name, 1)
         form.addLayout(names)
         layout.addWidget(self.controls, 1)
-        self.note = QLabel('Synthetic observations. Truth and event files are separate evaluation outputs.')
+        self.note = QLabel(tr('Synthetic observations. Truth and event files are separate evaluation outputs.'))
         self.note.setWordWrap(True)
-        self.note.setToolTip(f"Simulation snapshot: {simulation['duration']:g} s, clearance {simulation['height']:g} mm, "
-            f"mass {simulation['mass']:g} kg, local COM {simulation['com_offset']} mm. "
-            'Initial orientation and contact inputs are copied from Simulation. Direct corner noise is not applied.')
+        self.note.setToolTip(tr('Simulation snapshot: {} s, clearance {} mm, mass {} kg, local COM {} mm. Initial orientation and contact inputs are copied from Simulation. Direct corner noise is not applied.').format(f"{simulation['duration']:g}", f"{simulation['height']:g}", f"{simulation['mass']:g}", simulation['com_offset']))
         layout.addWidget(self.note)
-        self.status = QLabel('Choose a layout and generate observations.')
+        self.status = QLabel(tr('Choose a layout and generate observations.'))
         self.status.setTextFormat(Qt.PlainText)
         self.status.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.status.setWordWrap(True)
@@ -161,9 +160,9 @@ class MarkerExportDialog(QDialog):
         self.progress = QProgressBar(); self.progress.hide()
         layout.addWidget(self.progress)
         actions = QHBoxLayout()
-        self.generate_button = QPushButton('Generate…')
-        self.cancel_button = QPushButton('Cancel'); self.cancel_button.setEnabled(False)
-        self.open_button = QPushButton('Open in Step 1'); self.open_button.setEnabled(False)
+        self.generate_button = QPushButton(tr('Generate…'))
+        self.cancel_button = QPushButton(tr('Cancel')); self.cancel_button.setEnabled(False)
+        self.open_button = QPushButton(tr('Open in Step 1')); self.open_button.setEnabled(False)
         actions.addWidget(self.generate_button); actions.addWidget(self.cancel_button)
         actions.addStretch(); actions.addWidget(self.open_button)
         layout.addLayout(actions)
@@ -209,7 +208,7 @@ class MarkerExportDialog(QDialog):
         self.axes.clear()
         draw_profile(self.profile, self.axes)
         self.axes.legend(loc='upper left', bbox_to_anchor=(-.55, 1.))
-        self.axes.set_title('Box-local marker layout')
+        self.axes.set_title(tr('Box-local marker layout'))
         self.canvas.draw_idle()
         self._update_compatibility()
         self._update_actions()
@@ -242,13 +241,13 @@ class MarkerExportDialog(QDialog):
         try:
             if editor.exec() == QDialog.Accepted:
                 if profile_identity(self.profile) != original_identity:
-                    self.status.setText('Source changed while editing. This Apply was not adopted.')
+                    self.status.setText(tr('Source changed while editing. This Apply was not adopted.'))
                     return
                 self._set_custom(editor.state.applied, editor.state.document())
         finally: editor.deleteLater()
 
     def _import_profile(self):
-        path, _ = QFileDialog.getOpenFileName(self, 'Import marker layout', '', 'JSON files (*.json)')
+        path, _ = QFileDialog.getOpenFileName(self, tr('Import marker layout'), '', 'JSON files (*.json)')
         if not path:
             return
         try:
@@ -256,7 +255,7 @@ class MarkerExportDialog(QDialog):
             document = read_document(path).document() if isinstance(value, dict) and value.get('object_type') == 'MarkerProfileDocument' else None
             profile = load_profile(path)
         except (OSError, ValueError, KeyError, TypeError, AttributeError, IndexError) as error:
-            QMessageBox.warning(self, 'Invalid layout', str(error))
+            QMessageBox.warning(self, tr('Invalid layout'), str(error))
             return
         self._set_custom(profile, document, imported=True)
 
@@ -273,7 +272,7 @@ class MarkerExportDialog(QDialog):
 
     def _update_actions(self):
         support = layout_support(self.profile)
-        reason = support['reason'] if support['status'] != 'supported' else None
+        reason = tr(support['reason']) if support['status'] != 'supported' else None
         self.controls.setEnabled(not self.busy)
         self.generate_button.setEnabled(not self.busy and not self.source_stale and self.dimensions.isChecked() and reason is None)
         self.generate_button.setToolTip(reason or '')
@@ -283,7 +282,7 @@ class MarkerExportDialog(QDialog):
             if reason:
                 self.status.setText(reason)
             elif self.status.text() == self._layout_block_reason:
-                self.status.setText('Choose a layout and generate observations.')
+                self.status.setText(tr('Choose a layout and generate observations.'))
         self._layout_block_reason = reason
 
     def generate(self):
@@ -291,17 +290,17 @@ class MarkerExportDialog(QDialog):
             return
         support = layout_support(self.profile)
         if support['status'] != 'supported':
-            self.status.setText(support['reason']); return
+            self.status.setText(tr(support['reason'])); return
         name = self.output_name.text().strip()
         if not name or name in ('.', '..') or any(c in name for c in '<>:"/\\|?*') or name.endswith(('.', ' ')):
-            QMessageBox.warning(self, 'Output folder', 'Enter a new folder name without path separators.')
+            QMessageBox.warning(self, tr('Output folder'), tr('Enter a new folder name without path separators.'))
             return
-        parent = QFileDialog.getExistingDirectory(self, 'Choose parent folder for a new capture', str(Path('data')))
+        parent = QFileDialog.getExistingDirectory(self, tr('Choose parent folder for a new capture'), str(Path('data')))
         if not parent:
             return
         destination = str(Path(parent) / name)
         if Path(destination).exists():
-            QMessageBox.warning(self, 'Output exists', 'Choose a new folder name. Existing files are preserved.')
+            QMessageBox.warning(self, tr('Output exists'), tr('Choose a new folder name. Existing files are preserved.'))
             return
         faults = dict(kind=self.kind.currentData(), channel=self.channel.currentData(),
             start=self.start.value(), end=self.end.value(), axis=self.axis.currentText(), std_mm=self.std.value())
@@ -323,7 +322,7 @@ class MarkerExportDialog(QDialog):
         worker.cancelled.connect(lambda:self._cancelled(worker))
         worker.finished.connect(lambda:self._finished(worker))
         self.progress.setValue(0); self.progress.show()
-        self.status.setText('Generating synthetic marker observations…')
+        self.status.setText(tr('Generating synthetic marker observations…'))
         self._update_actions()
         self.worker.start()
 
@@ -334,11 +333,11 @@ class MarkerExportDialog(QDialog):
 
     def _cancelled(self, worker):
         if self.worker is worker:
-            self.status.setText(self._cancel_reason or 'Cancelled. Previous results are preserved.')
+            self.status.setText(tr(self._cancel_reason or 'Cancelled. Previous results are preserved.'))
 
     def _progress(self, value, text):
         self.progress.setValue(value)
-        self.status.setText(text)
+        self.status.setText(tr(text))
 
     def _ready(self, path):
         try:
@@ -350,19 +349,19 @@ class MarkerExportDialog(QDialog):
         self.observed_path = path
         self.result_identity = copy.deepcopy(self.worker.profile_identity)
         self.result_compatibility = compatibility(self.result_identity, profile_identity(self.profile))
-        self.status.setText('Ready: ' + Path(path).parent.name + '/observed.csv')
+        self.status.setText(tr('Ready: {}').format(Path(path).parent.name + '/observed.csv'))
         self.status.setToolTip(path)
 
     def _failed(self, message):
-        self.status.setText('Export failed: ' + message)
+        self.status.setText(tr('Export failed: {}').format(message))
 
     def _finished(self, completed):
         if self.worker is not completed: return
         worker, self.worker = self.worker, None
         if worker.partial_path:
             self.partial_history.append(dict(path=worker.partial_path,simulation=copy.deepcopy(worker.arguments[2])))
-            self.status.setText(self.status.text()+' Partial simulation PROC: '+worker.partial_path)
-        elif worker.partial_error:self.status.setText(self.status.text()+' Partial capture was not saved: '+worker.partial_error)
+            self.status.setText(self.status.text()+' '+tr('Partial simulation PROC: {}').format(worker.partial_path))
+        elif worker.partial_error:self.status.setText(self.status.text()+' '+tr('Partial capture was not saved: {}').format(worker.partial_error))
         worker.deleteLater()
         self.progress.hide()
         self._update_actions()
@@ -377,7 +376,7 @@ class MarkerExportDialog(QDialog):
             self._generation += 1; self._cancel_reason = reason
             self.worker.requestInterruption()
             self.cancel_button.setEnabled(False)
-            self.status.setText('Cancelling… '+reason)
+            self.status.setText(tr('Cancelling…')+' '+tr(reason))
 
     def _open(self):
         if not self.busy and self.observed_path is not None:

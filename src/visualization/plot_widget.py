@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QFrame
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PySide6.QtCore import Signal
+from src.utils.ui_language import tr
 
 class PlotWidget(QWidget):
     doubleClicked = Signal()
@@ -43,7 +44,7 @@ class PlotWidget(QWidget):
             self.ax.plot(args["x"], args["y"], label=args["label"])
 
         self.ax.set_title("")
-        self.ax.set_xlabel("Time (s)")
+        self.ax.set_xlabel(tr("Time (s)"))
         self.ax.set_ylabel(self.DEFAULT_Y_AXIS_LABEL)
 
         if plot_args:

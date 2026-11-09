@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QDialog, QMessageBox, QSizePolicy, QSplitter, QScrollArea, QCheckBox, QProgressBar, QToolButton
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
 from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
@@ -51,6 +51,7 @@ from src.analysis.pipeline.face_assignment import (
 from src.analysis.pipeline.marker_review import (
     REVIEW_VERSION, canonical_key, copy_observations, file_digest, review_observations, analyzer_configuration,
 )
+from src.utils.ui_language import tr
 
 
 class MarkerReviewWorker(QThread):
@@ -174,7 +175,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
 
-        group_box = QGroupBox("Capture")
+        group_box = QGroupBox(tr("Capture"))
         group_layout = QVBoxLayout(group_box)
 
         main_splitter = QSplitter(Qt.Orientation.Vertical)
@@ -208,7 +209,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.plot_manager.ax.xaxis.label.set_fontsize(9)
         self.plot_manager.ax.yaxis.label.set_fontsize(9)
         self.canvas.mpl_connect('resize_event', self._fit_capture_plot_labels)
-        self.plot_manager.ax.text(0.5, 0.5, "Load a CSV file to start.", ha='center', va='center')
+        self.plot_manager.ax.text(0.5, 0.5, tr("Load a CSV file to start."), ha='center', va='center')
         self.plot_manager.canvas.draw()
         top_splitter.addWidget(plot_container)
 
@@ -216,8 +217,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         right_panel = QWidget()
         right_panel_layout = QVBoxLayout()
         right_panel.setLayout(right_panel_layout)
-        self.load_csv_button = QPushButton("Open capture...")
-        self.file_path_label = ElidedPathLabel("No file selected.")
+        self.load_csv_button = QPushButton(tr("Open capture..."))
+        self.file_path_label = ElidedPathLabel(tr("No file selected."))
         self.file_path_label.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
@@ -226,7 +227,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         right_panel_layout.addWidget(self.file_path_label)
 
         # Box Dimensions
-        self.box_dims_group = QGroupBox("Box Dimensions (mm)")
+        self.box_dims_group = QGroupBox(tr("Box Dimensions (mm)"))
         box_dims_layout = QGridLayout(self.box_dims_group)
         box_dims_layout.addWidget(QLabel("L:"), 0, 0)
         self.le_box_l = QLineEdit(str(config_app.BOX_DIMS[0]))
@@ -237,39 +238,39 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         box_dims_layout.addWidget(QLabel("H:"), 2, 0)
         self.le_box_h = QLineEdit(str(config_app.BOX_DIMS[2]))
         box_dims_layout.addWidget(self.le_box_h, 2, 1)
-        self.box_section = CollapsibleSection('Box dimensions', self.box_dims_group)
+        self.box_section = CollapsibleSection(tr('Box dimensions'), self.box_dims_group)
 
         self.marker_review_group = QGroupBox()
         marker_review_layout = QVBoxLayout(self.marker_review_group)
-        self.marker_review_summary_label = QLabel("Not reviewed")
+        self.marker_review_summary_label = QLabel(tr("Not reviewed"))
         self.marker_review_summary_label.setWordWrap(True)
         marker_review_layout.addWidget(self.marker_review_summary_label)
-        self.marker_review_source_label = QLabel("Source: original")
+        self.marker_review_source_label = QLabel(tr("Source: original"))
         self.marker_review_source_label.setWordWrap(True)
         self.marker_review_source_label.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
         marker_review_layout.addWidget(self.marker_review_source_label)
-        self.confirm_review_dimensions = QCheckBox('Confirm dimensions for this capture')
+        self.confirm_review_dimensions = QCheckBox(tr('Confirm dimensions for this capture'))
         marker_review_layout.addWidget(self.confirm_review_dimensions)
         marker_review_button_row = QHBoxLayout()
-        self.review_marker_flips_button = QPushButton("Review")
+        self.review_marker_flips_button = QPushButton(tr("Review"))
         self.review_marker_flips_button.setEnabled(False)
-        self.save_corrected_source_button = QPushButton("Save corrected")
+        self.save_corrected_source_button = QPushButton(tr("Save corrected"))
         self.save_corrected_source_button.setEnabled(False)
         marker_review_button_row.addWidget(self.review_marker_flips_button)
         marker_review_button_row.addWidget(self.save_corrected_source_button)
         marker_review_layout.addLayout(marker_review_button_row)
         progress_row = QHBoxLayout()
         self.marker_review_progress = QProgressBar()
-        self.cancel_marker_review_button = QPushButton('Cancel')
+        self.cancel_marker_review_button = QPushButton(tr('Cancel'))
         progress_row.addWidget(self.marker_review_progress, 1)
         progress_row.addWidget(self.cancel_marker_review_button)
         # Keep calculation cancellation outside the scrolling Details panel.
         right_panel_layout.addLayout(progress_row)
         self.marker_review_progress.hide()
         self.cancel_marker_review_button.hide()
-        self.marker_review_section = CollapsibleSection('Marker correction', self.marker_review_group)
+        self.marker_review_section = CollapsibleSection(tr('Marker correction'), self.marker_review_group)
 
         # Log Output (Local to this widget for immediate feedback, or shared?)
         # The plan says "Encapsulates...". MainApp has a log output. 
@@ -277,9 +278,9 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         # In the original UI, the log output was in the right panel of Original Analysis.
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
-        self.log_output.setPlaceholderText("[INFO] Load a CSV file to start.")
+        self.log_output.setPlaceholderText(tr("[INFO] Load a CSV file to start."))
         self.log_output.setMinimumHeight(100)
-        self.log_section = CollapsibleSection('Log', self.log_output)
+        self.log_section = CollapsibleSection(tr('Log'), self.log_output)
         details = QWidget()
         details_layout = QVBoxLayout(details)
         details_layout.setContentsMargins(0, 0, 0, 0)
@@ -310,13 +311,13 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         h_controls_layout.setSpacing(4)
 
         # Plot Options
-        plot_options_group = QGroupBox("Plot Options")
+        plot_options_group = QGroupBox(tr("Plot Options"))
         plot_options_layout = QVBoxLayout(plot_options_group)
         plot_options_layout.setContentsMargins(6, 5, 6, 5)
         plot_options_layout.setSpacing(3)
         plot_options_top_row = QHBoxLayout()
-        self.select_data_button = QPushButton("Markers...")
-        self.selected_data_label = QLabel("Selected: None")
+        self.select_data_button = QPushButton(tr("Markers..."))
+        self.selected_data_label = QLabel(tr("Selected: None"))
         self.selected_data_label.setWordWrap(True)
 
         plot_options_top_row.addWidget(self.select_data_button)
@@ -324,13 +325,13 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         plot_options_layout.addLayout(plot_options_top_row)
 
         plot_options_bottom_row = QHBoxLayout()
-        plot_options_bottom_row.addWidget(QLabel("Signal:"))
+        plot_options_bottom_row.addWidget(QLabel(tr("Signal:")))
         self.combo_plot_axis = QComboBox()
         self.combo_plot_axis.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
         self.combo_plot_axis.setMinimumContentsLength(12)
-        self.combo_plot_axis.addItem("Position-X", userData=PoseCols.POS_X)
-        self.combo_plot_axis.addItem("Position-Y", userData=PoseCols.POS_Y)
-        self.combo_plot_axis.addItem("Position-Z", userData=PoseCols.POS_Z)
+        self.combo_plot_axis.addItem(tr("Position-X"), userData=PoseCols.POS_X)
+        self.combo_plot_axis.addItem(tr("Position-Y"), userData=PoseCols.POS_Y)
+        self.combo_plot_axis.addItem(tr("Position-Z"), userData=PoseCols.POS_Z)
         plot_options_bottom_row.addWidget(self.combo_plot_axis)
         plot_options_bottom_row.addStretch()
         plot_options_layout.addLayout(plot_options_bottom_row)
@@ -338,7 +339,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         h_controls_layout.addWidget(plot_options_group)
 
         # Slice Range
-        self.slice_group = QGroupBox("Range (s)")
+        self.slice_group = QGroupBox(tr("Range (s)"))
         self.slice_group.setCheckable(True)
         self.slice_group.setChecked(False)
         slice_layout = QVBoxLayout(self.slice_group)
@@ -346,31 +347,31 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         slice_layout.setSpacing(3)
 
         slice_start_row = QHBoxLayout()
-        slice_start_row.addWidget(QLabel("Start:"))
+        slice_start_row.addWidget(QLabel(tr("Start:")))
         self.le_slice_start = QLineEdit()
         slice_start_row.addWidget(self.le_slice_start)
         slice_layout.addLayout(slice_start_row)
 
         slice_end_row = QHBoxLayout()
-        slice_end_row.addWidget(QLabel("End:"))
+        slice_end_row.addWidget(QLabel(tr("End:")))
         self.le_slice_end = QLineEdit()
         slice_end_row.addWidget(self.le_slice_end)
         slice_layout.addLayout(slice_end_row)
         h_controls_layout.addWidget(self.slice_group)
 
-        self.slice_output_group = QGroupBox("Scene")
+        self.slice_output_group = QGroupBox(tr("Scene"))
         slice_output_layout = QGridLayout(self.slice_output_group)
         slice_output_layout.setContentsMargins(6, 5, 6, 5)
         slice_output_layout.setSpacing(3)
-        slice_output_layout.addWidget(QLabel("Name:"), 0, 0)
+        slice_output_layout.addWidget(QLabel(tr("Name:")), 0, 0)
         self.le_scene_name = QLineEdit("scene")
         slice_output_layout.addWidget(self.le_scene_name, 0, 1)
-        slice_output_layout.addWidget(QLabel("Padding:"), 1, 0)
-        self.slice_padding_label = QLabel(f"{DEFAULT_SLICE_PADDING_ROWS} rows per side")
+        slice_output_layout.addWidget(QLabel(tr("Padding:")), 1, 0)
+        self.slice_padding_label = QLabel(tr('{} rows per side').format(DEFAULT_SLICE_PADDING_ROWS))
         self.slice_padding_label.setWordWrap(True)
         slice_output_layout.addWidget(self.slice_padding_label, 1, 1)
-        slice_output_layout.addWidget(QLabel("Saved:"), 2, 0)
-        self.slice_path_label = QLabel("Not saved yet.")
+        slice_output_layout.addWidget(QLabel(tr("Saved:")), 2, 0)
+        self.slice_path_label = QLabel(tr("Not saved yet."))
         self.slice_path_label.setWordWrap(True)
         slice_output_layout.addWidget(self.slice_path_label, 2, 1)
         h_controls_layout.addWidget(self.slice_output_group)
@@ -386,11 +387,11 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         # Run/Export Buttons
         run_button_layout = QVBoxLayout()
         run_button_layout.setSpacing(3)
-        self.save_slice_button = QPushButton("Save slice...")
+        self.save_slice_button = QPushButton(tr("Save slice..."))
         self.save_slice_button.setEnabled(False)
         run_button_layout.addWidget(self.save_slice_button)
         run_button_layout.addWidget(self.scene_panel.save_all_button)
-        self.save_process_button = QPushButton('Save and Process')
+        self.save_process_button = QPushButton(tr('Save and Process'))
         self.save_process_button.setEnabled(False)
         run_button_layout.addWidget(self.save_process_button)
         self.save_status_label = QLabel('')
@@ -507,16 +508,15 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         reviewed_count = len(normalize_marker_corrections(self.marker_correction_decisions))
         approved_count = len(self._approved_marker_corrections())
         if self._review_invalidated:
-            self.marker_review_summary_label.setText('Source or geometry changed; review again')
+            self.marker_review_summary_label.setText(tr('Source or geometry changed; review again'))
         elif self.marker_review_dirty:
             self.marker_review_section.setExpanded(True)
             self.marker_review_summary_label.setText(
-                f"{reviewed_count} reviewed, {approved_count} approved; unsaved"
+                tr('{} reviewed, {} approved; unsaved').format(reviewed_count, approved_count)
             )
         elif self.correction_source_metadata is not None:
             self.marker_review_summary_label.setText(
-                f"{self.correction_source_metadata.event_count} reviewed, "
-                f"{self.correction_source_metadata.approved_event_count} approved"
+                tr('{} reviewed, {} approved').format(self.correction_source_metadata.event_count, self.correction_source_metadata.approved_event_count)
             )
         elif self.marker_flip_candidates:
             recommended_count = sum(
@@ -524,11 +524,11 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 for candidate in self.marker_flip_candidates
             )
             self.marker_review_summary_label.setText(
-                f"{len(self.marker_flip_candidates)} events, {recommended_count} recommended"
+                tr('{} events, {} recommended').format(len(self.marker_flip_candidates), recommended_count)
             )
         else:
             self.marker_review_summary_label.setText(
-                "Not reviewed"
+                tr("Not reviewed")
             )
 
         if self.correction_source_metadata is not None and self.source_path:
@@ -550,7 +550,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
     def open_csv_file(self):
         if self.scene_busy or self.marker_review_busy:
             return
-        filepath, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", raw_csv_file_filter())
+        filepath, _ = QFileDialog.getOpenFileName(self, tr("Select CSV File"), "", raw_csv_file_filter())
         if filepath:
             try:
                 self.load_csv_path(filepath)
@@ -637,13 +637,16 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             self.current_selected_targets = [DisplayNames.RB_CENTER]
         else:
             self.current_selected_targets = all_targets[:1]
-        self.selected_data_label.setText('Selected: ' + (', '.join(self.current_selected_targets) or 'None'))
+        self.selected_data_label.setText(
+            tr('Selected: {}').format(', '.join(self.current_selected_targets))
+            if self.current_selected_targets else tr('Selected: None')
+        )
 
         self.update_plot()
         self.slice_group.setChecked(False)
         self.save_slice_button.setEnabled(True)
         self.review_marker_flips_button.setEnabled(True)
-        self.slice_path_label.setText("Not saved yet.")
+        self.slice_path_label.setText(tr("Not saved yet."))
         self._update_marker_review_summary()
 
         if emit:
@@ -713,13 +716,13 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self._confirmed_dimensions = None
         try:
             label = ' × '.join(f'{v:g}' for v in self._read_box_dimensions())
-            self.confirm_review_dimensions.setText(f'Use {label} mm for review')
+            self.confirm_review_dimensions.setText(tr('Use {} mm for review').format(label))
         except ValueError:
-            self.confirm_review_dimensions.setText('Enter valid dimensions for review')
+            self.confirm_review_dimensions.setText(tr('Enter valid dimensions for review'))
         self.cancel_marker_review()
         if self.marker_correction_decisions or self.marker_flip_candidates:
             self._review_invalidated = True
-            self.marker_review_summary_label.setText('Dimensions changed; review again')
+            self.marker_review_summary_label.setText(tr('Dimensions changed; review again'))
         self._update_scene_gates()
 
     def cancel_marker_review(self):
@@ -728,7 +731,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             worker.cancel_requested = True
             worker.requestInterruption()
             self.cancel_marker_review_button.setEnabled(False)
-            self.marker_review_summary_label.setText('Cancelling review...')
+            self.marker_review_summary_label.setText(tr('Cancelling review...'))
 
     def _review_progress(self, worker, phase, done, total):
         if worker is not self.review_worker or worker.cancel_requested or worker.isInterruptionRequested():
@@ -778,7 +781,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.marker_review_busy = bool(busy)
         self.load_csv_button.setEnabled(not busy)
         self.review_marker_flips_button.setEnabled(not busy)
-        self.review_marker_flips_button.setText('Reviewing...' if busy else 'Review')
+        self.review_marker_flips_button.setText('Reviewing...' if busy else tr('Review'))
         self.box_dims_group.setEnabled(not busy)
         self.confirm_review_dimensions.setEnabled(not busy)
         self.marker_review_progress.setVisible(busy)
@@ -786,7 +789,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.cancel_marker_review_button.setEnabled(busy)
         if busy:
             self.marker_review_section.setExpanded(True)
-            self.marker_review_summary_label.setText('Preparing review')
+            self.marker_review_summary_label.setText(tr('Preparing review'))
             self.save_slice_button.setEnabled(False)
             self.save_corrected_source_button.setEnabled(False)
         else:
@@ -830,13 +833,13 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
     def _marker_review_failed(self, message):
         self._set_review_busy(False)
         self.append_log(f"[ERROR] Marker flip review failed: {message}")
-        QMessageBox.warning(self, "Marker Flip Review Failed", message)
+        QMessageBox.warning(self, tr("Marker Flip Review Failed"), message)
 
     def _finish_marker_review(self, candidates):
         self._set_review_busy(False)
         if not candidates and not (self._review_invalidated or self.marker_correction_decisions or self.marker_flip_candidates):
-            self.marker_review_summary_label.setText('No review candidates')
-            QMessageBox.information(self, "Marker Flip Review", "No reviewable candidate discontinuities were found.")
+            self.marker_review_summary_label.setText(tr('No review candidates'))
+            QMessageBox.information(self, tr("Marker Flip Review"), tr("No reviewable candidate discontinuities were found."))
             return
         context = self._pending_review_context
         identity = getattr(self, '_pending_review_identity', None)
@@ -921,7 +924,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         default_name = build_corrected_source_default_name(self.source_path)
         filepath, _ = QFileDialog.getSaveFileName(
             self,
-            "Save Corrected Source",
+            tr("Save Corrected Source"),
             os.path.join(os.path.dirname(self.source_path), default_name),
             corrected_source_file_filter(),
         )
@@ -958,7 +961,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             )
         except Exception as e:
             self.append_log(f"[ERROR] Failed to save corrected source: {e}")
-            QMessageBox.warning(self, "Corrected Source Save Failed", str(e))
+            QMessageBox.warning(self, tr("Corrected Source Save Failed"), str(e))
             return
 
         self.source_path = filepath
@@ -977,7 +980,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.marker_correction_decisions = list(metadata.decisions)
         self.marker_review_dirty = False
         self._reset_scenes()
-        self.slice_path_label.setText("Not saved yet.")
+        self.slice_path_label.setText(tr("Not saved yet."))
         self.update_plot()
         self._update_marker_review_summary()
         self.file_loaded.emit(self.header_info, self.raw_data, self.parsed_data)
@@ -1037,12 +1040,12 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             self.plot_manager.draw_plot(plot_data, [selected_axis_generic])
             self.plot_manager.ax.set_ylabel(selected_axis_generic)
             if not np.isfinite(plot_data[selected_axis_generic].to_numpy(dtype=float)).any():
-                self.plot_manager.ax.set_title('Signal unavailable')
+                self.plot_manager.ax.set_title(tr('Signal unavailable'))
             if selected_axis_generic == 'Vertical speed (mm/s)':
                 registration = self.scene_session.result.registration
                 point = ('marker-layout reference point (box center and COM unverified)' if registration is None
                          else 'center of mass' if registration.com_offset_mm is not None else 'box center')
-                self.combo_plot_axis.setToolTip(f'World Y velocity of the {point}; positive is upward.')
+                self.combo_plot_axis.setToolTip(tr('World Y velocity of the {}; positive is upward.').format(point))
             self.plot_manager.enable_interactions(df)
             if row:
                 self.plot_manager.set_selector_active(True)
@@ -1060,7 +1063,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             declared_unit = (self.header_info or {}).get("export_metadata", {}).get("Length Units", "")
             unit = {"millimeters": "mm", "centimeters": "cm", "meters": "m"}.get(
                 str(declared_unit).strip().lower(), "unit unknown")
-            self.plot_manager.ax.set_ylabel(f"Position ({unit})")
+            self.plot_manager.ax.set_ylabel(tr('Position ({})').format(unit))
         # Clearing the axes also removes the selector's artists. Reattach them
         # before restoring the selected scene or the manual CSV slice range.
         self.plot_manager.enable_interactions(df)
@@ -1106,7 +1109,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         dialog = DataSelectionDialog(all_targets, self.current_selected_targets, self)
         if dialog.exec():
             self.current_selected_targets = dialog.get_selected_items()
-            self.selected_data_label.setText(f"Selected: {', '.join(self.current_selected_targets)}")
+            self.selected_data_label.setText(tr('Selected: {}').format(', '.join(self.current_selected_targets)))
             self.update_plot()
 
     def on_region_changed(self, xmin: float, xmax: float):
@@ -1176,7 +1179,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             request_key = self._scene_save_request_key()
             filepath, _ = QFileDialog.getSaveFileName(
                 self,
-                "Save Scene Slice",
+                tr("Save Scene Slice"),
                 os.path.join(os.path.dirname(self.source_path or ""), default_name),
                 slice_file_filter(),
             )

@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QStatusBar, QMessageBox, QTabWidget
 )
 import matplotlib
+from src.utils.ui_language import tr
 try:
     matplotlib.use('QtAgg')
 except ImportError:
@@ -53,33 +54,33 @@ class MainApp(QMainWindow):
         if scene_worker is not None and scene_worker.isRunning():
             scene_worker.requestInterruption()
             event.ignore()
-            self.statusBar().showMessage('Cancelling scene detection...')
+            self.statusBar().showMessage(tr('Cancelling scene detection...'))
             return
         worker = self.original_widget.review_worker
         if worker is not None:
             self.original_widget._close_after_review = True
             self.original_widget.cancel_marker_review()
             event.ignore()
-            self.statusBar().showMessage('Cancelling marker review...')
+            self.statusBar().showMessage(tr('Cancelling marker review...'))
             return
         processing_worker = getattr(self, 'worker', None)
         if processing_worker is not None and processing_worker.isRunning():
             event.ignore()
-            self.statusBar().showMessage('Wait for processing to finish before closing.')
+            self.statusBar().showMessage(tr('Wait for processing to finish before closing.'))
             return
         if self.processing_widget.single_running:
             event.ignore()
-            self.statusBar().showMessage('Wait for the processing result before closing.')
+            self.statusBar().showMessage(tr('Wait for the processing result before closing.'))
             return
         if self.processing_widget.batch_running:
             event.ignore()
-            self.statusBar().showMessage('Wait for batch processing to finish before closing.')
+            self.statusBar().showMessage(tr('Wait for batch processing to finish before closing.'))
             return
         super().closeEvent(event)
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Box Motion Analyzer v2.2")
+        self.setWindowTitle(tr("Box Motion Analyzer v2.2"))
         self.setWindowIcon(get_window_icon())
         self.resize(1200, 760)
         self.comparison_opener = None
@@ -112,9 +113,9 @@ class MainApp(QMainWindow):
         self.processing_widget = WidgetSliceProcessing(self.data_loader, self.parser)
         self.result_widget = WidgetResultsAnalyzer(self.data_loader)
 
-        self.tab_widget.addTab(self.original_widget, "Step 1: Scenes")
-        self.tab_widget.addTab(self.processing_widget, "Step 1.5: Process")
-        self.tab_widget.addTab(self.result_widget, "Step 2: Results")
+        self.tab_widget.addTab(self.original_widget, tr("Step 1: Scenes"))
+        self.tab_widget.addTab(self.processing_widget, tr("Step 1.5: Process"))
+        self.tab_widget.addTab(self.result_widget, tr("Step 2: Results"))
 
         self.setStatusBar(QStatusBar())
 
@@ -154,15 +155,15 @@ class MainApp(QMainWindow):
                 self.current_timeline_context['full_start_sec'] = None
                 self.current_timeline_context['full_end_sec'] = None
 
-        self.statusBar().showMessage("File loaded and parsed.")
+        self.statusBar().showMessage(tr("File loaded and parsed."))
 
     def on_slice_saved(self, slice_path):
-        self.statusBar().showMessage(f"Scene slice saved: {slice_path}")
+        self.statusBar().showMessage(tr('Scene slice saved: {}').format(slice_path))
 
     def process_saved_scenes(self):
         worker = getattr(self, 'worker', None)
         if worker is not None and worker.isRunning():
-            self.statusBar().showMessage('Processing is still running.')
+            self.statusBar().showMessage(tr('Processing is still running.'))
             return
         session = self.original_widget.scene_session
         included_count = sum(row['decision'] == 'include' for row in session.rows) if session else 1
@@ -171,7 +172,7 @@ class MainApp(QMainWindow):
         paths = self.original_widget.save_for_processing()
         if paths and self.processing_widget.load_processing_inputs(paths, confirm=False):
             self.tab_widget.setCurrentWidget(self.processing_widget)
-            self.statusBar().showMessage('Ready to process.')
+            self.statusBar().showMessage(tr('Ready to process.'))
 
     def view_saved_results(self, paths):
         if self.result_widget.open_result_files(paths):
@@ -204,7 +205,7 @@ class MainApp(QMainWindow):
         from copy import deepcopy
         self.processing_timeline_context = deepcopy(timeline_context or {})
         self.processing_outcome = None
-        self.statusBar().showMessage("Running processing...")
+        self.statusBar().showMessage(tr("Running processing..."))
         self.worker = PipelineWorker(
             self.pipeline_controller,
             config,
@@ -237,17 +238,17 @@ class MainApp(QMainWindow):
     def on_processing_finished(self, result_df):
         if result_df.empty:
             self.processing_widget.on_processing_finished(result_df)
-            self.statusBar().showMessage("Processing failed.")
+            self.statusBar().showMessage(tr("Processing failed."))
             return
 
         processed_with_context = add_timeline_context_columns(result_df, self.processing_timeline_context)
         self.processing_widget.on_processing_finished(processed_with_context)
-        self.statusBar().showMessage("Processing complete.")
+        self.statusBar().showMessage(tr("Processing complete."))
 
     def on_processing_failed(self, error_message):
-        QMessageBox.critical(self, "Processing Failed", f"An error occurred during processing:\n{error_message}")
+        QMessageBox.critical(self, tr("Processing Failed"), tr('An error occurred during processing:\n{}').format(error_message))
         self.processing_widget.on_processing_failed()
-        self.statusBar().showMessage("Processing failed.")
+        self.statusBar().showMessage(tr("Processing failed."))
 
 
 if __name__ == '__main__':

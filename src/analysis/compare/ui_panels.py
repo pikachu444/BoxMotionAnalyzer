@@ -19,6 +19,7 @@ from src.analysis.compare.metric_guide import MetricGuideDialog, guide_key_for_s
 from src.config.data_columns import (get_result_metric_display_name, get_result_metric_tooltip,
                                      format_result_value, is_corner_id_column)
 from src.utils.qt_sections import CollapsibleSection, find_result_column_index
+from src.utils.ui_language import tr
 
 SOURCE_LABELS = {'real': 'Real', 'mujoco_synthetic': 'MuJoCo',
                  'handcrafted_dummy': 'Constructed', 'public_external': 'Public',
@@ -50,7 +51,7 @@ class CompareTablePanel(QGroupBox):
     resolution_details_changed = Signal(str)
 
     def __init__(self):
-        super().__init__("Summary")
+        super().__init__(tr("Summary"))
         # Keep at least one metric row beneath the controls and table header.
         self.setMinimumHeight(150)
         layout = QVBoxLayout(self)
@@ -58,17 +59,18 @@ class CompareTablePanel(QGroupBox):
         layout.setSpacing(4)
         modes = QHBoxLayout()
         self.view_combo = QComboBox()
-        self.view_combo.addItems(['Pre-contact', 'Repeats', 'Details', 'Contact', 'Posture', 'Posture repeats'])
+        self.view_combo.addItems([tr(label) for label in
+                                 ('Pre-contact', 'Repeats', 'Details', 'Contact', 'Posture', 'Posture repeats')])
         modes.addWidget(self.view_combo)
-        self.validation_badge = QLabel('Experimental')
+        self.validation_badge = QLabel(tr('Experimental'))
         self.validation_badge.setStyleSheet('color: #805d00;')
-        self.validation_badge.setToolTip('Not independently calibrated against measured trials.')
+        self.validation_badge.setToolTip(tr('Not independently calibrated against measured trials.'))
         self.validation_badge.hide()
         modes.addWidget(self.validation_badge)
         self.cohort_label = _ElidedContextLabel()
         modes.addWidget(self.cohort_label, stretch=1)
-        self.guide_button = QPushButton('Metric guide')
-        self.guide_button.setToolTip('Definitions, units and comparison limits')
+        self.guide_button = QPushButton(tr('Metric guide'))
+        self.guide_button.setToolTip(tr('Definitions, units and comparison limits'))
         self.guide_button.clicked.connect(self._open_metric_guide)
         modes.addWidget(self.guide_button)
         self._metric_guide = None
@@ -173,7 +175,7 @@ class CompareTablePanel(QGroupBox):
         self.resolution_label.clear()
         mode = self.view_combo.currentIndex()
         self.resolution_label.setVisible(mode in (1, 5))
-        self.validation_badge.setText('Diagnostic' if impact is None or mode in (2, 4, 5) else 'Experimental')
+        self.validation_badge.setText('Diagnostic' if impact is None or mode in (2, 4, 5) else tr('Experimental'))
         self.validation_badge.setVisible(bool(diff_data))
         if self.view_combo.currentIndex() == 3 and self._contact_data is not None:
             self._render_contact(self._contact_data)
@@ -212,15 +214,15 @@ class CompareTablePanel(QGroupBox):
         self.table.setColumnCount(5 if files else 0)
         if not files:
             return
-        self.table.setHorizontalHeaderLabels(['File', 'Intended', 'Observed (estimated)', 'Result', 'Contact (s)'])
+        self.table.setHorizontalHeaderLabels([tr('File'), tr('Intended'), tr('Observed (estimated)'), tr('Result'), tr('Contact (s)')])
         stats = contact['statistics']
         if contact['intended']:
-            self.cohort_label.setText(f"Local n={stats['n']}   Match {stats['Match']}   Different {stats['Different']}   Unclear {stats['Unclear']}   Conflict {stats['conflicts']}")
+            self.cohort_label.setText(tr('Local n={}   Match {}   Different {}   Unclear {}   Conflict {}').format(stats['n'], stats['Match'], stats['Different'], stats['Unclear'], stats['conflicts']))
             self.cohort_label.setToolTip('Compatible, distinct observations with baseline intent: '
                 + contact['intended'] + f". {stats['excluded']} non-contributing files (including duplicate variants)."
                 + (' Fewer than 3 comparable observations.' if stats['n'] < 3 else ''))
         else:
-            self.cohort_label.setText('Baseline contact unspecified')
+            self.cohort_label.setText(tr('Baseline contact unspecified'))
         for row, (name, data) in enumerate(files.items()):
             result = data['result']
             resolution = data['metric_resolution']['contact']
@@ -331,7 +333,7 @@ class CompareTablePanel(QGroupBox):
         self.table.setRowCount(len(descriptors))
         headers = ['Metric', 'n', 'Mean', 'Min', 'Max', 'Range', 'Counts', 'Match baseline']
         self.table.setColumnCount(len(headers))
-        self.table.setHorizontalHeaderLabels(headers)
+        self.table.setHorizontalHeaderLabels(list(map(tr, headers)))
         self.table.horizontalHeaderItem(7).setToolTip(
             self._file_identity(self._table_data[1]) + '\nCategory agreement, not intended-contact agreement.')
         for r, key in enumerate(descriptors):
@@ -353,7 +355,7 @@ class CompareTablePanel(QGroupBox):
             self.table.setItem(r, 6, counts_item)
             matches = stats.get('matching')
             item = QTableWidgetItem(f'{matches}/{n}' if matches is not None and n else '\u2014')
-            item.setToolTip('Diagnostic agreement with the baseline category; not agreement with an intended trial target.')
+            item.setToolTip(tr('Diagnostic agreement with the baseline category; not agreement with an intended trial target.'))
             self.table.setItem(r, 7, item)
 
         keys = list(descriptors)
@@ -425,7 +427,7 @@ class CompareTablePanel(QGroupBox):
                 details.extend(['', self._variant_detail(name, data['metric_resolution'][key]),
                                 '; '.join(data['reasons'])])
         details.append('\nPolicy: ' + impact.get('resolution_policy', ''))
-        self.resolution_label.setText(f'Duplicate {duplicates}   Invalid {invalid}   Conflict {conflicts}   Details at left')
+        self.resolution_label.setText(tr('Duplicate {}   Invalid {}   Conflict {}   Details at left').format(duplicates, invalid, conflicts))
         self.resolution_details_changed.emit('\n'.join(details))
 
     def _render_diagnostics(self, diff_data, baseline_name):
@@ -501,7 +503,7 @@ class CompareTablePanel(QGroupBox):
                     if reason:
                         confidence_error = ds_info.get('diagnostic_field_errors', {}).get('contact_confidence', '')
                         if metric == 'ContactConfidence' and event.get('status') == 'no-impact' and not confidence_error:
-                            item.setText(f'{val} ({event["state"]}; not pooled)')
+                            item.setText(tr('{} ({}; not pooled)').format(val, event['state']))
                         else:
                             item.setText(self._unavailable_text(confidence_error if metric == 'ContactConfidence' and confidence_error else reason))
                             if confidence_error and metric == 'ContactConfidence':
@@ -524,14 +526,14 @@ class CompareTablePanel(QGroupBox):
             self.table.setColumnWidth(column, min(220, max(155, self.table.columnWidth(column))))
         self.table.resizeRowsToContents()
 
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
 
 class CompareGraphPanel(QGroupBox):
     """File colours and canonical metric keys are shared with the other views."""
     plot_target_changed = Signal(object)
 
     def __init__(self):
-        super().__init__("Graph")
+        super().__init__(tr("Graph"))
         self.setMinimumHeight(270)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(6, 6, 6, 6)
@@ -583,7 +585,7 @@ class CompareGraphPanel(QGroupBox):
         self.cb_plot_target.blockSignals(True)
         self.cb_plot_target.clear()
         for column in targets:
-            self.cb_plot_target.addItem(get_result_metric_display_name(*column), column)
+            self.cb_plot_target.addItem(tr(get_result_metric_display_name(*column)), column)
             self.cb_plot_target.setItemData(self.cb_plot_target.count() - 1,
                                            get_result_metric_tooltip(column), Qt.ToolTipRole)
         index = find_result_column_index(self.cb_plot_target, current)
@@ -631,9 +633,9 @@ class CompareGraphPanel(QGroupBox):
         if column:
             configure_result_axis(ax, [column])
         if not series_dict:
-            ax.text(.5, .5, 'No data for this view', transform=ax.transAxes,
+            ax.text(.5, .5, tr('No data for this view'), transform=ax.transAxes,
                     ha='center', va='center', color='#666666')
-        ax.set_xlabel(xlabel)
+        ax.set_xlabel(tr(xlabel))
         ax.grid(True)
         self.plot_manager._initialize_hover_annotation()
         self.fig.tight_layout(pad=.3)
@@ -656,12 +658,12 @@ class CompareControlPanel(QGroupBox):
     labels_changed = Signal(bool)
 
     def __init__(self):
-        super().__init__('Files')
+        super().__init__(tr('Files'))
         layout = QVBoxLayout(self)
         buttons = QHBoxLayout()
-        self.btn_add_files = QPushButton('Open')
+        self.btn_add_files = QPushButton(tr('Open'))
         self.btn_add_files.clicked.connect(self.add_files_requested.emit)
-        self.btn_remove_file = QPushButton('Remove')
+        self.btn_remove_file = QPushButton(tr('Remove'))
         self.btn_remove_file.clicked.connect(self._on_remove_clicked)
         buttons.addWidget(self.btn_add_files)
         buttons.addWidget(self.btn_remove_file)
@@ -672,23 +674,23 @@ class CompareControlPanel(QGroupBox):
         layout.addWidget(self.file_list, stretch=1)
         form = QFormLayout()
         self.cb_view = QComboBox()
-        self.cb_view.addItem('Individual', 'individual')
-        self.cb_view.addItem('Aligned', 'aligned')
+        self.cb_view.addItem(tr('Individual'), 'individual')
+        self.cb_view.addItem(tr('Aligned'), 'aligned')
         self.cb_view.setItemData(1, 'Time zero is the last sample before contact. Includes later samples.', Qt.ToolTipRole)
         self.cb_view.currentIndexChanged.connect(lambda *_: self.view_changed.emit())
-        form.addRow('View', self.cb_view)
+        form.addRow(tr('View'), self.cb_view)
         self.cb_baseline = QComboBox()
         self.cb_baseline.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
         self.cb_baseline.setMinimumContentsLength(10)
         self.cb_baseline.currentIndexChanged.connect(
             lambda *_: self.baseline_changed.emit(self.cb_baseline.currentData() or ''))
-        form.addRow('Baseline', self.cb_baseline)
+        form.addRow(tr('Baseline'), self.cb_baseline)
         layout.addLayout(form)
         self.details = QPlainTextEdit()
         self.details.setReadOnly(True)
         self.details.setMinimumHeight(70)
         self.details.setMaximumHeight(145)
-        self.details_section = CollapsibleSection('Details', self.details)
+        self.details_section = CollapsibleSection(tr('Details'), self.details)
         settings = QWidget()
         settings_form = QFormLayout(settings)
         settings_form.setContentsMargins(0, 0, 0, 0)
@@ -697,13 +699,13 @@ class CompareControlPanel(QGroupBox):
         self.gap_limit.setRange(.0001, 3600)
         self.gap_limit.setValue(.1)
         self.gap_limit.setSuffix(' s')
-        self.gap_limit.setToolTip('Display continuity only. Do not connect samples across a longer gap.')
+        self.gap_limit.setToolTip(tr('Display continuity only. Do not connect samples across a longer gap.'))
         self.gap_limit.valueChanged.connect(lambda *_: self.view_changed.emit())
-        settings_form.addRow('Gap limit', self.gap_limit)
-        self.labels_check = QCheckBox('Labels')
+        settings_form.addRow(tr('Gap limit'), self.gap_limit)
+        self.labels_check = QCheckBox(tr('Labels'))
         self.labels_check.toggled.connect(self.labels_changed.emit)
         settings_form.addRow(self.labels_check)
-        self.settings_section = CollapsibleSection('Settings', settings)
+        self.settings_section = CollapsibleSection(tr('Settings'), settings)
         layout.addWidget(self.details_section)
         layout.addWidget(self.settings_section)
         self.file_list.currentItemChanged.connect(self._on_selection_changed)

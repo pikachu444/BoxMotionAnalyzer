@@ -22,6 +22,8 @@ from src.simulation.data_exporter import DataExporter
 from src.utils.qt_sections import CollapsibleSection
 from src.simulation.mode_profiles import ModeProfiles, require_executable, BLOCKED_REASON, drop_step
 from .mode_settings import ModeSettings, preset_steps
+from src.utils.app_identity import configure_qt_application
+from src.utils.ui_language import tr
 
 
 class OrientationPreviewWidget(QWidget):
@@ -224,14 +226,14 @@ class OrientationPreviewWidget(QWidget):
         self._draw_fixed_axes(painter)
 
         painter.setPen(QColor("#455a64"))
-        painter.drawText(10, 16, "Initial pose")
+        painter.drawText(10, 16, tr("Initial pose"))
         painter.setPen(QColor("#546e7a"))
         painter.drawText(10, self.height() - 26, self._contact_text())
         painter.setPen(QColor("#607d8b"))
         painter.drawText(
             10,
             self.height() - 10,
-            f"Box rotation (°) X / Y / Z: {self.euler[0]:.1f}, {self.euler[1]:.1f}, {self.euler[2]:.1f}"
+            tr("Box rotation (°) X / Y / Z: {}, {}, {}").format(*(f"{angle:.1f}" for angle in self.euler))
         )
 
 def simulation_error_message(error):
@@ -309,7 +311,7 @@ class SimulationUI(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Simulation")
+        self.setWindowTitle(tr("Simulation"))
         # Leave room for the robot settings and target at startup, while keeping
         # the native title bar and borders inside the screen's usable area.
         available = self.screen().availableGeometry()
@@ -329,9 +331,9 @@ class SimulationUI(QWidget):
         self.analysis_windows = []
 
         self.layout = QVBoxLayout(self)
-        self.experimental_label = QLabel("Experimental")
+        self.experimental_label = QLabel(tr("Experimental"))
         self.experimental_label.setStyleSheet("color: #916000;")
-        self.experimental_label.setToolTip("Uncalibrated free-fall presets; supported Type H rotation and the Type G hazard block are not simulated.")
+        self.experimental_label.setToolTip(tr("Uncalibrated free-fall presets; supported Type H rotation and the Type G hazard block are not simulated."))
         self.layout.addWidget(self.experimental_label)
 
         self.form_scroll = QScrollArea()
@@ -351,15 +353,15 @@ class SimulationUI(QWidget):
         self.form_layout.addStretch()
 
         btn_layout = QHBoxLayout()
-        self.run_btn = QPushButton("Run")
+        self.run_btn = QPushButton(tr("Run"))
         self.run_btn.clicked.connect(self.run_simulation)
 
-        self.batch_btn = QPushButton("Run all presets")
-        self.batch_btn.setToolTip("Run the existing free-fall presets; this is not a complete ISTA test sequence.")
+        self.batch_btn = QPushButton(tr("Run all presets"))
+        self.batch_btn.setToolTip(tr("Run the existing free-fall presets; this is not a complete ISTA test sequence."))
         self.batch_btn.clicked.connect(self.run_batch_simulation)
 
-        self.marker_btn = QPushButton("Marker CSV…")
-        self.marker_btn.setToolTip('Generate synthetic observations for Step 1 using the current simulation inputs.')
+        self.marker_btn = QPushButton(tr("Marker CSV…"))
+        self.marker_btn.setToolTip(tr('Generate synthetic observations for Step 1 using the current simulation inputs.'))
         self.marker_btn.clicked.connect(self.open_marker_export)
 
         btn_layout.addWidget(self.run_btn)
@@ -378,10 +380,10 @@ class SimulationUI(QWidget):
         self._configuration_changed()
 
     def _init_mode_workspace(self, buttons):
-        mode_row = QHBoxLayout(); mode_row.addWidget(QLabel('Mode'))
-        self.mode_combo = QComboBox(); self.mode_combo.addItem('Single drop', 'single_drop'); self.mode_combo.addItem('Robot sequence', 'robot_sequence')
+        mode_row = QHBoxLayout(); mode_row.addWidget(QLabel(tr('Mode')))
+        self.mode_combo = QComboBox(); self.mode_combo.addItem(tr('Single drop'), 'single_drop'); self.mode_combo.addItem(tr('Robot sequence'), 'robot_sequence')
         mode_row.addWidget(self.mode_combo, 1)
-        self.settings_button = QPushButton('Settings…'); mode_row.addWidget(self.settings_button)
+        self.settings_button = QPushButton(tr('Settings…')); mode_row.addWidget(self.settings_button)
         self.drop_combo.parentWidget().layout().takeRow(self.orientation_preview)
         self.orientation_preview.setParent(None)
         self.layout.removeWidget(self.experimental_label)
@@ -390,7 +392,7 @@ class SimulationUI(QWidget):
         self.left_panel = QWidget(); left = QVBoxLayout(self.left_panel); left.setContentsMargins(0, 0, 0, 0)
         left.addWidget(self.experimental_label); left.addLayout(mode_row)
         left.addWidget(self.form_scroll, 1); left.addLayout(buttons); left.addWidget(self.progress_bar)
-        self.cancel_run = QPushButton('Cancel'); self.cancel_run.clicked.connect(self.cancel_simulation); self.cancel_run.hide(); left.addWidget(self.cancel_run)
+        self.cancel_run = QPushButton(tr('Cancel')); self.cancel_run.clicked.connect(self.cancel_simulation); self.cancel_run.hide(); left.addWidget(self.cancel_run)
         self.result_label = QLabel(); self.result_label.setWordWrap(True); self.result_label.setTextFormat(Qt.PlainText); self.result_label.hide(); left.addWidget(self.result_label)
         left.addStretch()
         self.left_panel.setMaximumWidth(430); self.workspace.addWidget(self.left_panel, 1)
@@ -398,7 +400,7 @@ class SimulationUI(QWidget):
         self.right_scroll = QScrollArea(); self.right_scroll.setWidgetResizable(True)
         right_widget = QWidget(); right = QVBoxLayout(right_widget); right.setContentsMargins(4, 4, 4, 4);right.setSpacing(3)
         right.addWidget(self.settings)
-        preview = QGroupBox('Preset target'); preview_layout = QVBoxLayout(preview); preview_layout.addWidget(self.orientation_preview)
+        preview = QGroupBox(tr('Preset target')); preview_layout = QVBoxLayout(preview); preview_layout.addWidget(self.orientation_preview)
         preview_layout.setContentsMargins(8,8,8,8)
         self.orientation_preview.setMinimumHeight(160)
         preview.setMinimumHeight(200); right.addWidget(preview, 1)
@@ -446,7 +448,7 @@ class SimulationUI(QWidget):
         if not self._narrow:
             self.right_scroll.ensureWidgetVisible(self.settings); self.settings.tabs.setFocus(); return
         if self.settings_dialog is not None: self.settings_dialog.raise_(); return
-        dialog = QDialog(self); dialog.setWindowTitle('Simulation settings'); dialog.resize(820, 600)
+        dialog = QDialog(self); dialog.setWindowTitle(tr('Simulation settings')); dialog.resize(820, 600)
         layout = QVBoxLayout(dialog); scroll = QScrollArea(); scroll.setWidgetResizable(True)
         self.right_layout.removeWidget(self.settings); scroll.setWidget(self.settings); layout.addWidget(scroll)
         self.settings_dialog = dialog
@@ -492,7 +494,7 @@ class SimulationUI(QWidget):
         if marker_source_changed and dialog is not None:
             dialog.source_stale = True
             if dialog.busy: dialog.cancel()
-            dialog.status.setText('Simulation source changed. Reopen Marker CSV to use the current settings.')
+            dialog.status.setText(tr('Simulation source changed. Reopen Marker CSV to use the current settings.'))
             dialog._update_actions()
         if self._busy: self.cancel_simulation(message)
         elif self.previous_result:
@@ -544,7 +546,7 @@ class SimulationUI(QWidget):
     def _select_settings_step(self, step):
         if self._busy: return
         if step is None:
-            self.preview_group.setTitle('Previous valid preview'); return
+            self.preview_group.setTitle(tr('Previous valid preview')); return
         draft = self.settings.draft.configs[self.settings.draft.mode]
         # Selecting a draft row previews it; it never applies or discards draft
         # physics/observation fields or searches an unrelated live category.
@@ -554,7 +556,7 @@ class SimulationUI(QWidget):
         self.orientation_preview.set_preview_state(tuple(draft['size_mm']), tuple(step['fixed_xyz_deg']), spec, step['category'])
         live = self.profiles.configs[self.profiles.mode]
         applied = self.profiles.mode == self.settings.draft.mode and step in live['sequence_profile']['steps'] and draft['size_mm'] == live['size_mm']
-        self.preview_group.setTitle('Preset target' if applied else 'Settings preview')
+        self.preview_group.setTitle(tr('Preset target') if applied else tr('Settings preview'))
         self._fit_form()
 
     def _apply_profiles(self, state):
@@ -581,7 +583,7 @@ class SimulationUI(QWidget):
         self.batch_btn.setEnabled(not busy and not robot)
         self.batch_btn.setToolTip('Use Run for one continuous robot plan.' if robot and reason is None else reason or self._action_tooltips[self.batch_btn])
         label=self.duration_input.parentWidget().layout().labelForField(self.duration_input)
-        if label is not None:label.setText('Run time limit (s):' if robot else 'Duration (s):')
+        if label is not None:label.setText(tr('Run time limit (s):') if robot else tr('Duration (s):'))
         self.progress_bar.setVisible(busy); self.cancel_run.setVisible(busy)
         self.cancel_run.setEnabled(busy and getattr(self, '_cancel_message', None) is None)
         if not busy: self.settings.select_row()
@@ -599,7 +601,7 @@ class SimulationUI(QWidget):
     def open_marker_export(self):
         if self._busy: return
         try: config = self._execution_config()
-        except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
+        except ValueError as error: QMessageBox.warning(self, tr('Cannot run'), str(error)); return
         from src.simulation.ui.marker_export_dialog import MarkerExportDialog
         physics=config['physics_profile']
         simulation=dict(self._params(config),mass=physics['mass_kg'],friction=physics['friction'],
@@ -634,16 +636,16 @@ class SimulationUI(QWidget):
         except Exception as error:
             window.close()
             window.deleteLater()
-            QMessageBox.warning(self.marker_dialog or self, 'Cannot open observations', str(error))
+            QMessageBox.warning(self.marker_dialog or self, tr('Cannot open observations'), str(error))
             return
         window.setAttribute(Qt.WA_DeleteOnClose)
-        window.setWindowTitle('Synthetic observations: ' + Path(filepath).parent.name)
+        window.setWindowTitle(tr('Synthetic observations: {}').format(Path(filepath).parent.name))
         self.analysis_windows.append(window)
         window.destroyed.connect(lambda: self.analysis_windows.remove(window))
         window.show()
 
     def _init_box_group(self):
-        group = QGroupBox("Box")
+        group = QGroupBox(tr("Box"))
         form = QFormLayout(group)
 
         self.w_input = QDoubleSpinBox()
@@ -667,14 +669,14 @@ class SimulationUI(QWidget):
         self.friction_input.setRange(0.0, 5.0)
         self.friction_input.setSingleStep(0.1)
         self.friction_input.setValue(0.5)
-        self.friction_input.setToolTip("MuJoCo sliding friction input; validate it against the intended surfaces.")
+        self.friction_input.setToolTip(tr("MuJoCo sliding friction input; validate it against the intended surfaces."))
 
         # Preserve the legacy numeric control while describing its actual mapping.
         self.elasticity_input = QDoubleSpinBox()
         self.elasticity_input.setRange(0.0, 1.0)
         self.elasticity_input.setSingleStep(0.05)
         self.elasticity_input.setValue(0.15)
-        self.elasticity_input.setToolTip("Sets solref damping ratio = max(0.01, 1 - value), with time constant 0.02 s. This is not a coefficient of restitution.")
+        self.elasticity_input.setToolTip(tr("Sets solref damping ratio = max(0.01, 1 - value), with time constant 0.02 s. This is not a coefficient of restitution."))
 
         self.com_x = QDoubleSpinBox()
         self.com_x.setRange(-2500, 2500)
@@ -687,34 +689,34 @@ class SimulationUI(QWidget):
         self.com_z.setValue(0.0)
 
         self.com_y.setValue(-200.0) # Y is the height axis in legacy, offset here for tumbling
-        self.com_y.setToolTip("Assumed local COM offset; it can change contact dynamics. It is not required for all tumbling motion.")
+        self.com_y.setToolTip(tr("Assumed local COM offset; it can change contact dynamics. It is not required for all tumbling motion."))
 
         for widget, axis, meaning in ((self.w_input, "X", "width"), (self.d_input, "Y", "height"), (self.h_input, "Z", "depth")):
-            widget.setToolTip(f"Box local {axis} {meaning} in mm. Simulation world Z is up; analysis world Y is up.")
-        form.addRow("Width X (mm):", self.w_input)
-        form.addRow("Height Y (mm):", self.d_input)
-        form.addRow("Depth Z (mm):", self.h_input)
-        form.addRow("Mass (kg):", self.mass_input)
+            widget.setToolTip(tr('Box local {} {} in mm. Simulation world Z is up; analysis world Y is up.').format(axis, meaning))
+        form.addRow(tr("Width X (mm):"), self.w_input)
+        form.addRow(tr("Height Y (mm):"), self.d_input)
+        form.addRow(tr("Depth Z (mm):"), self.h_input)
+        form.addRow(tr("Mass (kg):"), self.mass_input)
         self.form_layout.addWidget(group)
 
         physics = QWidget()
         physics_form = QFormLayout(physics)
         physics_form.setContentsMargins(8, 0, 0, 0)
-        physics_form.addRow("Friction:", self.friction_input)
-        physics_form.addRow("Contact damping:", self.elasticity_input)
+        physics_form.addRow(tr("Friction:"), self.friction_input)
+        physics_form.addRow(tr("Contact damping:"), self.elasticity_input)
         for axis, control in (("X", self.com_x), ("Y", self.com_y), ("Z", self.com_z)):
             control.setToolTip(f"Local {axis} offset from the geometric box centre in mm. " + control.toolTip())
-            physics_form.addRow(f"COM {axis} (mm):", control)
-        self.physics_section = CollapsibleSection("Physics", physics)
+            physics_form.addRow(tr('COM {} (mm):').format(axis), control)
+        self.physics_section = CollapsibleSection(tr("Physics"), physics)
 
     def _init_scenario_group(self):
-        group = QGroupBox("Scenario")
+        group = QGroupBox(tr("Scenario"))
         form = QFormLayout(group)
 
         self.cat_combo = QComboBox()
         for category in Scenarios.get_categories():
-            self.cat_combo.addItem("Type G" if "Type G" in category else "Type H", category)
-        self.cat_combo.setToolTip("SIOC free-fall presets. Type H supported rotation and the G17 hazard block are not simulated.")
+            self.cat_combo.addItem(tr("Type G" if "Type G" in category else "Type H"), category)
+        self.cat_combo.setToolTip(tr("SIOC free-fall presets. Type H supported rotation and the G17 hazard block are not simulated."))
         self.cat_combo.currentIndexChanged.connect(self._on_cat_changed)
 
         self.drop_combo = QComboBox()
@@ -726,7 +728,7 @@ class SimulationUI(QWidget):
         self.custom_h_input = QDoubleSpinBox()
         self.custom_h_input.setRange(10, 10000)
         self.custom_h_input.setValue(810)
-        self.custom_h_input.setToolTip("Initial vertical clearance from the lowest box corner to the floor, in mm.")
+        self.custom_h_input.setToolTip(tr("Initial vertical clearance from the lowest box corner to the floor, in mm."))
 
         self.custom_r_input = QDoubleSpinBox()
         self.custom_r_input.setRange(-180, 180)
@@ -741,7 +743,7 @@ class SimulationUI(QWidget):
         self.custom_y_input.setValue(0)
 
         self.orientation_preview = OrientationPreviewWidget()
-        self.orientation_preview.setToolTip("Simulation world Z is up. Highlight shows the preset target, not a predicted contact after manual rotation.")
+        self.orientation_preview.setToolTip(tr("Simulation world Z is up. Highlight shows the preset target, not a predicted contact after manual rotation."))
 
         self.warning_label = QLabel("")
         self.warning_label.setStyleSheet("color: #916000;")
@@ -764,17 +766,17 @@ class SimulationUI(QWidget):
 
         self.base_h, self.base_r, self.base_p, self.base_y = 810, 0, 0, 0
 
-        form.addRow("Type:", self.cat_combo)
-        form.addRow("Preset:", self.drop_combo)
-        form.addRow("Initial clearance (mm):", self.custom_h_input)
+        form.addRow(tr("Type:"), self.cat_combo)
+        form.addRow(tr("Preset:"), self.drop_combo)
+        form.addRow(tr("Initial clearance (mm):"), self.custom_h_input)
         form.addRow(self.orientation_preview)
         rotation = QWidget()
         rotation_form = QFormLayout(rotation)
         rotation_form.setContentsMargins(8, 0, 0, 0)
         for axis, control in (("X", self.custom_r_input), ("Y", self.custom_p_input), ("Z", self.custom_y_input)):
-            control.setToolTip("Box orientation: rotate about the scene X, then Y, then Z axes. Z points up. Values are angles in degrees.")
-            rotation_form.addRow(f"{axis} rotation (°):", control)
-        self.rotation_section = CollapsibleSection("Rotation", rotation)
+            control.setToolTip(tr("Box orientation: rotate about the scene X, then Y, then Z axes. Z points up. Values are angles in degrees."))
+            rotation_form.addRow(tr('{} rotation (°):').format(axis), control)
+        self.rotation_section = CollapsibleSection(tr("Rotation"), rotation)
         form.addRow(self.rotation_section)
         form.addRow(self.warning_label)
 
@@ -846,8 +848,8 @@ class SimulationUI(QWidget):
         if (abs(h - self.base_h) > 0.1 or abs(r - self.base_r) > 0.1 or
             abs(p - self.base_p) > 0.1 or abs(y - self.base_y) > 0.1):
 
-            self.warning_label.setText("Custom")
-            self.warning_label.setToolTip(f"Preset clearance {self.base_h:g} mm; fixed XYZ {self.base_r:g}, {self.base_p:g}, {self.base_y:g} degrees.")
+            self.warning_label.setText(tr("Custom"))
+            self.warning_label.setToolTip(tr('Preset clearance {} mm; fixed XYZ {}, {}, {} degrees.').format(f'{self.base_h:g}', f'{self.base_r:g}', f'{self.base_p:g}', f'{self.base_y:g}'))
             self.warning_label.show()
         else:
             self.warning_label.setText("")
@@ -870,8 +872,8 @@ class SimulationUI(QWidget):
         group = QWidget()
         layout = QVBoxLayout(group)
 
-        self.noise_cb = QCheckBox("Corner noise")
-        self.noise_cb.setToolTip("Seed 0 for repeatable stress data, not calibrated sensor noise. Body pose remains simulation truth.")
+        self.noise_cb = QCheckBox(tr("Corner noise"))
+        self.noise_cb.setToolTip(tr("Seed 0 for repeatable stress data, not calibrated sensor noise. Body pose remains simulation truth."))
         self.noise_std_input = QDoubleSpinBox()
         self.noise_std_input.setRange(0.01, 100)
         self.noise_std_input.setValue(1.0)
@@ -879,11 +881,11 @@ class SimulationUI(QWidget):
 
         layout.addWidget(self.noise_cb)
         layout.addWidget(self.noise_std_input)
-        self.noise_section = CollapsibleSection("Noise", group)
+        self.noise_section = CollapsibleSection(tr("Noise"), group)
         self.form_layout.addWidget(self.noise_section)
 
     def _init_export_group(self):
-        group = QGroupBox("Run options")
+        group = QGroupBox(tr("Run options"))
         form = QFormLayout(group)
 
         self.duration_input = QDoubleSpinBox()
@@ -891,12 +893,12 @@ class SimulationUI(QWidget):
         self.duration_input.setSingleStep(0.5)
         self.duration_input.setValue(2.0)
 
-        self.viewer_cb = QCheckBox("Show viewer")
+        self.viewer_cb = QCheckBox(tr("Show viewer"))
         self.viewer_cb.setChecked(True)
 
-        self.viewer_cb.setToolTip("Drag to rotate, right-drag to pan, scroll to zoom. Double-click applies a force to the box.")
+        self.viewer_cb.setToolTip(tr("Drag to rotate, right-drag to pan, scroll to zoom. Double-click applies a force to the box."))
 
-        form.addRow("Duration (s):", self.duration_input)
+        form.addRow(tr("Duration (s):"), self.duration_input)
         form.addRow("", self.viewer_cb)
         self.form_layout.addWidget(group)
 
@@ -919,8 +921,8 @@ class SimulationUI(QWidget):
     def run_simulation(self):
         if self._busy: return
         try: self._execution_config()
-        except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
-        filepath, _ = QFileDialog.getSaveFileName(self, 'Save Simulation Data', str(Path('data') / 'sim_data.proc'), 'PROC Files (*.proc)')
+        except ValueError as error: QMessageBox.warning(self, tr('Cannot run'), str(error)); return
+        filepath, _ = QFileDialog.getSaveFileName(self, tr('Save Simulation Data'), str(Path('data') / 'sim_data.proc'), 'PROC Files (*.proc)')
         if not filepath: return
         try:
             config = self._execution_config(); params = self._params(config); engine = self._engine(config)
@@ -1005,13 +1007,13 @@ class SimulationUI(QWidget):
     def run_batch_simulation(self):
         if self._busy: return
         try: self._execution_config()
-        except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
+        except ValueError as error: QMessageBox.warning(self, tr('Cannot run'), str(error)); return
         if self.profiles.mode=='robot_sequence':
-            QMessageBox.warning(self,'Cannot run','Use Run for the captured continuous robot plan.');return
-        directory = QFileDialog.getExistingDirectory(self, 'Select Directory to Save Batch Data', str(Path('data')))
+            QMessageBox.warning(self,tr('Cannot run'),tr('Use Run for the captured continuous robot plan.'));return
+        directory = QFileDialog.getExistingDirectory(self, tr('Select Directory to Save Batch Data'), str(Path('data')))
         if not directory: return
         try: self._batch_config = self._execution_config()
-        except ValueError as error: QMessageBox.warning(self, 'Cannot run', str(error)); return
+        except ValueError as error: QMessageBox.warning(self, tr('Cannot run'), str(error)); return
         self._batch_cat = self._batch_config['sequence_profile']['steps'][0]['category']
         self._batch_sequences = Scenarios.get_drop_sequence_specs(self._batch_cat)
         self._batch_current_idx = 0; self._batch_dir = directory; self._batch_success_paths = []
@@ -1047,7 +1049,7 @@ class SimulationUI(QWidget):
 
     def _on_batch_completed(self):
         self._set_busy(False)
-        QMessageBox.information(self, 'Batch Success', f'Successfully generated {len(self._batch_success_paths)} files in:\n{self._batch_dir}')
+        QMessageBox.information(self, tr('Batch Success'), tr('Successfully generated {} files in:\n{}').format(len(self._batch_success_paths), self._batch_dir))
 
     def on_sim_finished(self, output_path):
         self._remember_result(output_path); self._set_busy(False)
@@ -1059,10 +1061,11 @@ class SimulationUI(QWidget):
     def on_sim_error(self, err_msg):
         self._set_busy(False)
         self.result_label.setText('Failed. Previous results are preserved.'+(' Previous result: '+self.previous_result if self.previous_result else '')); self.result_label.show()
-        QMessageBox.critical(self, 'Error', err_msg)
+        QMessageBox.critical(self, tr('Error'), err_msg)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    configure_qt_application(app)
     win = SimulationUI()
     win.show()
     sys.exit(app.exec())

@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QHeaderView
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
 from matplotlib.figure import Figure
 
 from src.analysis.pipeline.artifact_io import (
@@ -31,6 +31,7 @@ from src.analysis.ui.plot_manager import PlotManager
 from src.config import config_app, config_analysis_ui
 from src.config.data_columns import DisplayNames, PoseCols, RawMarkerCols, RigidBodyCols
 from src.utils.qt_sections import CollapsibleSection, set_path_label
+from src.utils.ui_language import tr
 
 
 class WidgetSliceProcessing(QWidget):
@@ -77,15 +78,15 @@ class WidgetSliceProcessing(QWidget):
         controls = QVBoxLayout(left)
         controls.setContentsMargins(0, 0, 8, 0)
         self.input_mode_combo = QComboBox()
-        self.input_mode_combo.addItems(['Single', 'Batch'])
+        self.input_mode_combo.addItems([tr('Single'), tr('Batch')])
         controls.addWidget(self.input_mode_combo)
         self.input_stack = QStackedWidget()
         single_input, batch_input = QWidget(), QWidget()
         single_layout, batch_layout = QVBoxLayout(single_input), QVBoxLayout(batch_input)
         for layout in (single_layout, batch_layout):
             layout.setContentsMargins(0, 0, 0, 0)
-        self.load_slice_button.setText('Open slice...')
-        self.select_slice_folder_button.setText('Open folder...')
+        self.load_slice_button.setText(tr('Open slice...'))
+        self.select_slice_folder_button.setText(tr('Open folder...'))
         for widget in (self.load_slice_button, self.slice_path_label):
             single_layout.addWidget(widget)
         for widget in (self.select_slice_folder_button, self.batch_folder_label, self.overwrite_proc_checkbox):
@@ -98,7 +99,7 @@ class WidgetSliceProcessing(QWidget):
         method = QWidget()
         method_layout = QVBoxLayout(method)
         method_layout.setContentsMargins(0, 0, 0, 0)
-        method_layout.addWidget(QLabel('Method'))
+        method_layout.addWidget(QLabel(tr('Method')))
         choices = QHBoxLayout()
         for widget in (self.rb_processing_raw, self.rb_processing_standard, self.rb_processing_advanced):
             choices.addWidget(widget)
@@ -112,20 +113,20 @@ class WidgetSliceProcessing(QWidget):
         settings = QWidget()
         settings_layout = QVBoxLayout(settings)
         settings_layout.setContentsMargins(0, 0, 4, 0)
-        self.box_section = CollapsibleSection('Box dimensions', self.box_dims_group)
-        self.details_section = CollapsibleSection('Input details', self.slice_summary_group)
+        self.box_section = CollapsibleSection(tr('Box dimensions'), self.box_dims_group)
+        self.details_section = CollapsibleSection(tr('Input details'), self.slice_summary_group)
         self.resampling_group.setMinimumWidth(0)
         self.resampling_group.setTitle('')
-        self.resampling_section = CollapsibleSection('Resampling', self.resampling_group)
+        self.resampling_section = CollapsibleSection(tr('Resampling'), self.resampling_group)
         self.processing_settings_button.setMinimumWidth(0)
-        self.processing_settings_button.setText('Processing settings...')
+        self.processing_settings_button.setText(tr('Processing settings...'))
         advanced = QWidget()
         advanced_layout = QVBoxLayout(advanced)
         advanced_layout.setContentsMargins(0, 0, 0, 0)
         advanced_layout.addWidget(self.processing_settings_button)
-        self.advanced_section = CollapsibleSection('Advanced', advanced)
+        self.advanced_section = CollapsibleSection(tr('Advanced'), advanced)
         self.log_output.setMinimumHeight(100)
-        self.log_section = CollapsibleSection('Log', self.log_output)
+        self.log_section = CollapsibleSection(tr('Log'), self.log_output)
         for section in (self.box_section, self.details_section, self.resampling_section,
                         self.advanced_section, self.log_section):
             settings_layout.addWidget(section)
@@ -141,9 +142,9 @@ class WidgetSliceProcessing(QWidget):
         action_layout, batch_action_layout = QVBoxLayout(single_actions), QVBoxLayout(batch_actions)
         for layout in (action_layout, batch_action_layout):
             layout.setContentsMargins(0, 0, 0, 0)
-        self.run_button.setText('Run')
-        self.save_proc_button.setText('Save...')
-        self.save_view_button = QPushButton('Save and View')
+        self.run_button.setText(tr('Run'))
+        self.save_proc_button.setText(tr('Save...'))
+        self.save_view_button = QPushButton(tr('Save and View'))
         self.save_view_button.setEnabled(False)
         action_layout.addWidget(self.result_status_label)
         action_layout.addWidget(self.proc_path_label)
@@ -152,8 +153,8 @@ class WidgetSliceProcessing(QWidget):
         save_row.addWidget(self.save_proc_button)
         save_row.addWidget(self.save_view_button)
         action_layout.addLayout(save_row)
-        self.run_batch_button.setText('Run batch')
-        self.view_batch_button = QPushButton('View Results')
+        self.run_batch_button.setText(tr('Run batch'))
+        self.view_batch_button = QPushButton(tr('View Results'))
         self.view_batch_button.setEnabled(False)
         for widget in (self.batch_summary_label, self.run_batch_button, self.view_batch_button):
             batch_action_layout.addWidget(widget)
@@ -168,14 +169,14 @@ class WidgetSliceProcessing(QWidget):
         preview_layout = QVBoxLayout(preview)
         preview_layout.setContentsMargins(0, 0, 0, 0)
         plot_controls = QHBoxLayout()
-        self.select_data_button.setText('Markers...')
+        self.select_data_button.setText(tr('Markers...'))
         for widget in (self.select_data_button, self.combo_plot_axis, self.selected_data_label):
             plot_controls.addWidget(widget)
         preview_layout.addLayout(plot_controls)
         preview_layout.addWidget(self.toolbar)
         preview_layout.addWidget(self.canvas, 1)
         self.batch_table = QTableWidget(0, 2)
-        self.batch_table.setHorizontalHeaderLabels(['Slice', 'Result'])
+        self.batch_table.setHorizontalHeaderLabels([tr('Slice'), tr('Result')])
         self.batch_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.batch_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.batch_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
@@ -186,7 +187,7 @@ class WidgetSliceProcessing(QWidget):
             set_path_label(label, '')
         for field in (self.le_box_l, self.le_box_w, self.le_box_h):
             field.clear()
-        self.box_dims_warning.setText('No slice loaded.')
+        self.box_dims_warning.setText(tr('No slice loaded.'))
         self.input_mode_combo.currentIndexChanged.connect(self._set_input_mode)
         self.save_view_button.clicked.connect(self.save_and_view)
         self.view_batch_button.clicked.connect(lambda: self.results_ready.emit(self.batch_success_paths.copy()))
@@ -208,14 +209,14 @@ class WidgetSliceProcessing(QWidget):
         self.plot_manager = PlotManager(self.canvas, self.fig)
         self.plot_manager.draw_plot(None, [])
 
-        self.load_slice_button = QPushButton('Open slice...')
+        self.load_slice_button = QPushButton(tr('Open slice...'))
         self.slice_path_label = QLabel()
         self.slice_summary_group = QGroupBox()
         summary = QGridLayout(self.slice_summary_group)
         self.slice_source_label = QLabel()
         self.slice_user_range_label = QLabel('N/A')
         self.slice_padded_range_label = QLabel('N/A')
-        self.slice_marker_correction_label = QLabel('None')
+        self.slice_marker_correction_label = QLabel(tr('None'))
         for row, (title, label) in enumerate((('Source', self.slice_source_label),
                 ('Range (s)', self.slice_user_range_label), ('Padded (s)', self.slice_padded_range_label),
                 ('Corrections', self.slice_marker_correction_label))):
@@ -230,38 +231,38 @@ class WidgetSliceProcessing(QWidget):
             edit.setEnabled(False)
             dimensions.addWidget(QLabel(title), row, 0)
             dimensions.addWidget(edit, row, 1)
-        self.box_dims_warning = QLabel('No slice loaded.')
+        self.box_dims_warning = QLabel(tr('No slice loaded.'))
         self.box_dims_warning.setWordWrap(True)
         dimensions.addWidget(self.box_dims_warning, 3, 0, 1, 2)
-        self.save_box_dims_to_slice_checkbox = QCheckBox('Save dimensions to slice')
+        self.save_box_dims_to_slice_checkbox = QCheckBox(tr('Save dimensions to slice'))
         self.save_box_dims_to_slice_checkbox.hide()
         dimensions.addWidget(self.save_box_dims_to_slice_checkbox, 4, 0, 1, 2)
-        self.apply_box_dims_button = QPushButton('Apply dimensions')
+        self.apply_box_dims_button = QPushButton(tr('Apply dimensions'))
         self.apply_box_dims_button.setEnabled(False)
         self.apply_box_dims_button.hide()
         dimensions.addWidget(self.apply_box_dims_button, 5, 0, 1, 2)
 
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
-        self.select_data_button = QPushButton('Markers...')
-        self.selected_data_label = QLabel('Selected: None')
+        self.select_data_button = QPushButton(tr('Markers...'))
+        self.selected_data_label = QLabel(tr('Selected: None'))
         self.selected_data_label.setWordWrap(True)
         self.combo_plot_axis = QComboBox()
         for label, column in (('Position X', PoseCols.POS_X), ('Position Y', PoseCols.POS_Y), ('Position Z', PoseCols.POS_Z)):
-            self.combo_plot_axis.addItem(label, column)
+            self.combo_plot_axis.addItem(tr(label), column)
 
         self.resampling_group = QGroupBox()
         resampling = QGridLayout(self.resampling_group)
-        self.cb_enable_resampling = QCheckBox('Resample results')
-        self.cb_enable_resampling.setToolTip(config_analysis_ui.RESAMPLING_DESCRIPTION)
+        self.cb_enable_resampling = QCheckBox(tr('Resample results'))
+        self.cb_enable_resampling.setToolTip(tr(config_analysis_ui.RESAMPLING_DESCRIPTION))
         resampling.addWidget(self.cb_enable_resampling, 0, 0, 1, 2)
         self.combo_resampling_factor = QComboBox()
         for label, factor in config_analysis_ui.RESAMPLING_FACTOR_CHOICES:
             self.combo_resampling_factor.addItem(label, factor)
         self.combo_resampling_factor.setEnabled(False)
-        resampling.addWidget(QLabel('Factor'), 1, 0)
+        resampling.addWidget(QLabel(tr('Factor')), 1, 0)
         resampling.addWidget(self.combo_resampling_factor, 1, 1)
-        self.cb_limit_resampling_range = QCheckBox('Limit time range')
+        self.cb_limit_resampling_range = QCheckBox(tr('Limit time range'))
         self.cb_limit_resampling_range.setEnabled(False)
         resampling.addWidget(self.cb_limit_resampling_range, 2, 0, 1, 2)
         self.le_resampling_range_start, self.le_resampling_range_end = QLineEdit(), QLineEdit()
@@ -271,26 +272,26 @@ class WidgetSliceProcessing(QWidget):
             edit.setEnabled(False)
             resampling.addWidget(QLabel(title), row, 0)
             resampling.addWidget(edit, row, 1)
-        self.rb_processing_raw = QRadioButton(config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_RAW])
-        self.rb_processing_standard = QRadioButton(config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_STANDARD])
-        self.rb_processing_advanced = QRadioButton(config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_ADVANCED])
+        self.rb_processing_raw = QRadioButton(tr(config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_RAW]))
+        self.rb_processing_standard = QRadioButton(tr(config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_STANDARD]))
+        self.rb_processing_advanced = QRadioButton(tr(config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_ADVANCED]))
         self.rb_processing_raw.setChecked(self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_RAW)
         self.rb_processing_standard.setChecked(self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_STANDARD)
         self.rb_processing_advanced.setChecked(self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_ADVANCED)
-        self.processing_settings_button = QPushButton('Processing settings...')
+        self.processing_settings_button = QPushButton(tr('Processing settings...'))
         self.processing_mode_description = QLabel()
-        self.result_status_label = QLabel('Not processed')
+        self.result_status_label = QLabel(tr('Not processed'))
         self.result_status_label.setWordWrap(True)
         self.proc_path_label = QLabel()
-        self.select_slice_folder_button = QPushButton('Open folder...')
+        self.select_slice_folder_button = QPushButton(tr('Open folder...'))
         self.batch_folder_label = QLabel()
-        self.overwrite_proc_checkbox = QCheckBox('Overwrite existing results')
-        self.batch_summary_label = QLabel('No slices')
+        self.overwrite_proc_checkbox = QCheckBox(tr('Overwrite existing results'))
+        self.batch_summary_label = QLabel(tr('No slices'))
         self.batch_summary_label.setWordWrap(True)
-        self.run_batch_button = QPushButton('Run batch')
-        self.run_button = QPushButton('Run')
+        self.run_batch_button = QPushButton(tr('Run batch'))
+        self.run_button = QPushButton(tr('Run'))
         self.run_button.setEnabled(False)
-        self.save_proc_button = QPushButton('Save...')
+        self.save_proc_button = QPushButton(tr('Save...'))
         self.save_proc_button.setEnabled(False)
 
     def _connect_signals(self):
@@ -318,7 +319,7 @@ class WidgetSliceProcessing(QWidget):
             self.slice_source_label.setText("N/A")
             self.slice_user_range_label.setText("N/A")
             self.slice_padded_range_label.setText("N/A")
-            self.slice_marker_correction_label.setText("None")
+            self.slice_marker_correction_label.setText(tr("None"))
             return
 
         set_path_label(self.slice_source_label, self.slice_metadata.source)
@@ -333,7 +334,7 @@ class WidgetSliceProcessing(QWidget):
         self.slice_marker_correction_label.setText(
             f"{reviewed_count} reviewed event(s), {approved_count} approved"
             if self.slice_metadata.correction_schema_version
-            else "None"
+            else tr("None")
         )
         self._set_default_resampling_range()
 
@@ -409,7 +410,7 @@ class WidgetSliceProcessing(QWidget):
         self.save_box_dims_to_slice_checkbox.setChecked(False)
         self.save_box_dims_to_slice_checkbox.setVisible(False)
         self.box_dims_warning.setText(
-            "From slice."
+            tr("From slice.")
         )
         self.box_dims_warning.setStyleSheet("color: #666666;")
 
@@ -420,7 +421,7 @@ class WidgetSliceProcessing(QWidget):
         self.apply_box_dims_button.setVisible(True)
         self.save_box_dims_to_slice_checkbox.setVisible(True)
         self.box_dims_warning.setText(
-            "Enter missing dimensions."
+            tr("Enter missing dimensions.")
         )
         self.box_dims_warning.setStyleSheet("color: #b45309;")
         self.run_button.setEnabled(False)
@@ -480,12 +481,12 @@ class WidgetSliceProcessing(QWidget):
             self.apply_box_dims_button.setVisible(False)
             self.save_box_dims_to_slice_checkbox.setVisible(False)
             self.box_dims_warning.setText(
-                "Ready."
+                tr("Ready.")
             )
             self.box_dims_warning.setStyleSheet("color: #666666;")
             self.run_button.setEnabled(self.parsed_data is not None)
         except Exception as e:
-            QMessageBox.warning(self, "Box Dimensions Required", str(e))
+            QMessageBox.warning(self, tr("Box Dimensions Required"), str(e))
             self.append_log(f"[ERROR] Invalid box dimensions: {e}")
 
     def _load_slice_bundle(self, filepath: str):
@@ -495,7 +496,7 @@ class WidgetSliceProcessing(QWidget):
         return metadata, header_info, raw_data, parsed_data
 
     def open_slice_file(self):
-        filepath, _ = QFileDialog.getOpenFileName(self, "Select Slice File", "", slice_file_filter())
+        filepath, _ = QFileDialog.getOpenFileName(self, tr("Select Slice File"), "", slice_file_filter())
         if filepath:
             self.load_slice_file(filepath)
 
@@ -505,7 +506,7 @@ class WidgetSliceProcessing(QWidget):
             return False
         if (replace_single and self.current_processed_result is not None
                 and not self.current_processed_result.empty and not self.current_proc_path):
-            choice = QMessageBox.question(self, 'Unsaved result', 'Save the current result?',
+            choice = QMessageBox.question(self, tr('Unsaved result'), tr('Save the current result?'),
                 QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel, QMessageBox.Save)
             if choice == QMessageBox.Cancel:
                 return False
@@ -533,7 +534,7 @@ class WidgetSliceProcessing(QWidget):
         self.batch_success_paths = []
         set_path_label(self.batch_folder_label, self.batch_slice_folder)
         self._populate_batch_table()
-        self.batch_summary_label.setText(f'{len(paths)} slices ready')
+        self.batch_summary_label.setText(tr('{} slices ready').format(len(paths)))
         self.view_batch_button.setEnabled(False)
         self.input_mode_combo.setCurrentIndex(1)
 
@@ -544,7 +545,7 @@ class WidgetSliceProcessing(QWidget):
             item.setToolTip(path)
             item.setData(Qt.UserRole, path)
             self.batch_table.setItem(index, 0, item)
-            self.batch_table.setItem(index, 1, QTableWidgetItem('Ready'))
+            self.batch_table.setItem(index, 1, QTableWidgetItem(tr('Ready')))
 
     def load_slice_file(self, filepath: str, confirm=True):
         if not filepath or (confirm and not self.prepare_for_input_change()):
@@ -568,21 +569,21 @@ class WidgetSliceProcessing(QWidget):
             self.current_proc_path = None
             self.current_processed_result = None
             self.completed_processing_mode = None
-            self.proc_path_label.setText("Not saved yet.")
-            self.result_status_label.setText("Ready to process.")
+            self.proc_path_label.setText(tr("Not saved yet."))
+            self.result_status_label.setText(tr("Ready to process."))
             self.save_proc_button.setEnabled(False)
             self.save_view_button.setEnabled(False)
             self.run_button.setEnabled(self._metadata_has_box_dimensions(self.slice_metadata))
 
             if DisplayNames.RB_CENTER in all_targets:
                 self.current_selected_targets = [DisplayNames.RB_CENTER]
-                self.selected_data_label.setText(f"Selected: {DisplayNames.RB_CENTER}")
+                self.selected_data_label.setText(tr('Selected: {}').format(DisplayNames.RB_CENTER))
             elif all_targets:
                 self.current_selected_targets = [all_targets[0]]
-                self.selected_data_label.setText(f"Selected: {all_targets[0]}")
+                self.selected_data_label.setText(tr('Selected: {}').format(all_targets[0]))
             else:
                 self.current_selected_targets = []
-                self.selected_data_label.setText("Selected: None")
+                self.selected_data_label.setText(tr("Selected: None"))
 
             self.update_plot()
             self.append_log(f"[INFO] Loaded slice file: {filepath}")
@@ -598,8 +599,8 @@ class WidgetSliceProcessing(QWidget):
                 self.append_log("[WARNING] Box dimensions are missing from slice metadata.")
                 QMessageBox.warning(
                     self,
-                    "Box Dimensions Required",
-                    "Enter the missing box dimensions to run.",
+                    tr("Box Dimensions Required"),
+                    tr("Enter the missing box dimensions to run."),
                 )
             self.append_log("[INFO] Slice parsed and ready for processing.")
             self.input_mode_combo.setCurrentIndex(0)
@@ -693,7 +694,7 @@ class WidgetSliceProcessing(QWidget):
         dialog = DataSelectionDialog(all_targets, self.current_selected_targets, self)
         if dialog.exec():
             self.current_selected_targets = dialog.get_selected_items()
-            self.selected_data_label.setText(f"Selected: {', '.join(self.current_selected_targets)}")
+            self.selected_data_label.setText(tr('Selected: {}').format(', '.join(self.current_selected_targets)))
             self.update_plot()
 
     def _on_processing_mode_changed(self):
@@ -710,7 +711,7 @@ class WidgetSliceProcessing(QWidget):
             self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_ADVANCED
         )
         self.processing_mode_description.setText(
-            'Resampling on' if self.cb_enable_resampling.isChecked() else 'Original sampling'
+            tr('Resampling on' if self.cb_enable_resampling.isChecked() else 'Original sampling')
         )
 
     def open_processing_settings_dialog(self):
@@ -816,8 +817,8 @@ class WidgetSliceProcessing(QWidget):
             self.run_button.setEnabled(False)
             self.save_proc_button.setEnabled(False)
             self.current_proc_path = None
-            self.proc_path_label.setText("Not saved yet.")
-            self.result_status_label.setText("Processing...")
+            self.proc_path_label.setText(tr("Not saved yet."))
+            self.result_status_label.setText(tr("Processing..."))
             self.append_log("[INFO] Starting processing...")
             self.processing_requested.emit(
                 config,
@@ -838,13 +839,13 @@ class WidgetSliceProcessing(QWidget):
         self.current_processed_result = processed_df
         self.completed_processing_mode = self._running_processing_mode or self.current_processing_mode
         if processed_df is not None and not processed_df.empty:
-            self.result_status_label.setText("Processed result ready.")
+            self.result_status_label.setText(tr("Processed result ready."))
             self.save_proc_button.setEnabled(True)
             self.save_view_button.setEnabled(True)
             self.append_log("[INFO] Processing completed successfully.")
             self.append_log("[INFO] Save the processed result as a .proc file for Step 2 analysis.")
         else:
-            self.result_status_label.setText("Processing failed.")
+            self.result_status_label.setText(tr("Processing failed."))
             self.save_proc_button.setEnabled(False)
             self.save_view_button.setEnabled(False)
             self.append_log("[ERROR] Processing failed.")
@@ -853,14 +854,14 @@ class WidgetSliceProcessing(QWidget):
         self.single_running = False
         self._set_batch_controls_enabled(True)
         self.run_button.setEnabled(True)
-        self.result_status_label.setText("Processing failed.")
+        self.result_status_label.setText(tr("Processing failed."))
         self.save_proc_button.setEnabled(False)
         self.save_view_button.setEnabled(False)
 
     def select_slice_folder(self):
         if not self.prepare_for_input_change(replace_single=False):
             return
-        folder_path = QFileDialog.getExistingDirectory(self, "Select Slice Folder")
+        folder_path = QFileDialog.getExistingDirectory(self, tr("Select Slice Folder"))
         if not folder_path:
             return
 
@@ -903,7 +904,7 @@ class WidgetSliceProcessing(QWidget):
             return
 
         if not paths:
-            self.batch_summary_label.setText("No .slice files found.")
+            self.batch_summary_label.setText(tr("No .slice files found."))
             self.append_log(f"[ERROR] No .slice files found in {folder_path}")
             return
 
@@ -923,7 +924,7 @@ class WidgetSliceProcessing(QWidget):
             self.batch_success_paths = []
             self._populate_batch_table()
             self._set_batch_controls_enabled(False)
-            self.batch_summary_label.setText("Running...")
+            self.batch_summary_label.setText(tr("Running..."))
             self.append_log(
                 f"[INFO] Starting batch processing in {folder_path} "
                 f"(total={total_files}, overwrite={overwrite_existing})"
@@ -936,7 +937,7 @@ class WidgetSliceProcessing(QWidget):
                 if os.path.exists(proc_path) and not overwrite_existing:
                     skipped_count += 1
                     self.append_log(f"[INFO] Skipped existing proc: {proc_path}")
-                    self.batch_table.item(row_index, 1).setText('Already exists')
+                    self.batch_table.item(row_index, 1).setText(tr('Already exists'))
                     continue
 
                 try:
@@ -953,12 +954,12 @@ class WidgetSliceProcessing(QWidget):
                     save_proc_file(proc_path, processed_with_context)
                     processed_count += 1
                     self.batch_success_paths.append(os.path.abspath(proc_path))
-                    self.batch_table.item(row_index, 1).setText('Saved')
+                    self.batch_table.item(row_index, 1).setText(tr('Saved'))
                     self.batch_table.item(row_index, 1).setToolTip(proc_path)
                     self.append_log(f"[INFO] Batch saved: {proc_path}")
                 except Exception as e:
                     failed_count += 1
-                    self.batch_table.item(row_index, 1).setText('Failed')
+                    self.batch_table.item(row_index, 1).setText(tr('Failed'))
                     self.batch_table.item(row_index, 1).setToolTip(str(e))
                     self.append_log(f"[ERROR] Batch processing failed for {slice_path}: {e}")
 
@@ -966,7 +967,7 @@ class WidgetSliceProcessing(QWidget):
                 f"Batch complete: total={total_files}, processed={processed_count}, "
                 f"skipped={skipped_count}, failed={failed_count}"
             )
-            self.batch_summary_label.setText(f'{processed_count} saved, {failed_count} failed, {skipped_count} skipped')
+            self.batch_summary_label.setText(tr('{} saved, {} failed, {} skipped').format(processed_count, failed_count, skipped_count))
             self.append_log(f"[INFO] {summary}")
         finally:
             config_app.BOX_DIMS = original_box_dims
@@ -981,7 +982,7 @@ class WidgetSliceProcessing(QWidget):
         default_name = build_proc_default_name(self.slice_path or "", self.completed_processing_mode or self.current_processing_mode)
         filepath, _ = QFileDialog.getSaveFileName(
             self,
-            "Save Processed Result",
+            tr("Save Processed Result"),
             os.path.join(os.path.dirname(self.slice_path or ""), default_name),
             proc_file_filter(),
         )

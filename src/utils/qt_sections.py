@@ -3,6 +3,7 @@ import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QLabel, QMenu, QSizePolicy, QToolButton, QVBoxLayout, QWidget
+from src.utils.ui_language import tr
 
 
 def find_result_column_index(combo, column):
@@ -61,7 +62,7 @@ def set_path_label(label, path, empty='No file'):
     """Show the filename; retain the full path for inspection and copying."""
     path = os.fspath(path) if path else ''
     label.setTextFormat(Qt.TextFormat.PlainText)
-    label.setText(os.path.basename(path) if path else empty)
+    label.setText(os.path.basename(path) if path else tr(empty))
     label.setToolTip(path)
     label.setProperty('fullPath', path)
     label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
@@ -72,7 +73,7 @@ def set_path_label(label, path, empty='No file'):
 
         def show_menu(position):
             menu = QMenu(label)
-            action = menu.addAction('Copy path')
+            action = menu.addAction(tr('Copy path'))
             action.setEnabled(bool(label.property('fullPath')))
             if menu.exec(label.mapToGlobal(position)) is action:
                 QApplication.clipboard().setText(label.property('fullPath'))

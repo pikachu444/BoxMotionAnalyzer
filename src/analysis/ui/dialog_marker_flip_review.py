@@ -4,7 +4,8 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar2QT
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -35,6 +36,7 @@ from src.analysis.pipeline.marker_flip import (
     SUPPORTED_LOCAL_AXES,
     normalize_marker_corrections,
 )
+from src.utils.ui_language import tr
 
 
 class _ElidedSourceLabel(QLabel):
@@ -78,7 +80,7 @@ class MarkerFlipReviewDialog(QDialog):
         self._tabbed_plots = False
         self._active_plot_tab = 0
 
-        self.setWindowTitle("Marker correction")
+        self.setWindowTitle(tr("Marker correction"))
         self.resize(960, 680)
         self.setMinimumSize(820, 600)
         self._setup_ui()
@@ -86,16 +88,15 @@ class MarkerFlipReviewDialog(QDialog):
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
         if not self.candidates:
-            message = QLabel('No candidates for the current source and dimensions.\n'
-                             'Done records a review with no approvals; Cancel keeps the previous review.')
+            message = QLabel(tr('No candidates for the current source and dimensions.\nDone records a review with no approvals; Cancel keeps the previous review.'))
             message.setWordWrap(True)
             layout.addWidget(message)
         self.table = QTableWidget(len(self.candidates), 4, self)
         self.table.setHorizontalHeaderLabels(
-            ["Event (s)", "Recommendation", "Apply", "Local axis"]
+            [tr("Event (s)"), tr("Recommendation"), tr("Apply"), tr("Local axis")]
         )
-        self.table.horizontalHeaderItem(1).setToolTip("Recommended half-turn restores continuity conditionally; it does not confirm a tracking error.")
-        self.table.horizontalHeaderItem(3).setToolTip("180° about the selected box-local axis.")
+        self.table.horizontalHeaderItem(1).setToolTip(tr("Recommended half-turn restores continuity conditionally; it does not confirm a tracking error."))
+        self.table.horizontalHeaderItem(3).setToolTip(tr("180° about the selected box-local axis."))
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -124,9 +125,9 @@ class MarkerFlipReviewDialog(QDialog):
             recommendation_item.setToolTip(candidate.reason)
             self.table.setItem(row, 1, recommendation_item)
 
-            approval = QCheckBox('OFF')
-            approval.setAccessibleName(f"Apply correction at {candidate.boundary_time_sec:.6f} seconds")
-            approval.toggled.connect(lambda checked, checkbox=approval: checkbox.setText('ON' if checked else 'OFF'))
+            approval = QCheckBox(tr('OFF'))
+            approval.setAccessibleName(tr('Apply correction at {} seconds').format(f'{candidate.boundary_time_sec:.6f}'))
+            approval.toggled.connect(lambda checked, checkbox=approval: checkbox.setText(tr('ON') if checked else tr('OFF')))
             approval.setChecked(bool(existing and existing.approved))
             approval_container = QWidget()
             approval_layout = QVBoxLayout(approval_container)
@@ -137,10 +138,10 @@ class MarkerFlipReviewDialog(QDialog):
 
             axis_combo = QComboBox()
             axis_combo.setAccessibleName(
-                f"Local correction axis at {candidate.boundary_time_sec:.6f} seconds"
+                tr('Local correction axis at {} seconds').format(f'{candidate.boundary_time_sec:.6f}')
             )
-            axis_combo.setToolTip("180° about the selected box-local axis. Changing the preview does not enable Apply.")
-            axis_combo.addItem("None", userData=None)
+            axis_combo.setToolTip(tr("180° about the selected box-local axis. Changing the preview does not enable Apply."))
+            axis_combo.addItem(tr("None"), userData=None)
             for axis in SUPPORTED_LOCAL_AXES:
                 axis_combo.addItem(axis, userData=axis)
             axis_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -173,15 +174,15 @@ class MarkerFlipReviewDialog(QDialog):
         )
         self.candidate_details.setMinimumHeight(82)
         self.candidate_details.setMaximumHeight(115)
-        self.candidate_details.setAccessibleName("Selected marker flip candidate details")
-        self.details_section = CollapsibleSection("Details", self.candidate_details)
+        self.candidate_details.setAccessibleName(tr("Selected marker flip candidate details"))
+        self.details_section = CollapsibleSection(tr("Details"), self.candidate_details)
 
         self.preview_status = QLabel()
         self.preview_status.setStyleSheet("color: #916000;")
 
         self.plots = QHBoxLayout()
         self.plot_tabs = QTabWidget()
-        self.plot_tabs.setAccessibleName('Marker review graphs')
+        self.plot_tabs.setAccessibleName(tr('Marker review graphs'))
         self.plot_tabs.currentChanged.connect(self._plot_tab_changed)
         self.plot_tabs.hide()
         self.plots.addWidget(self.plot_tabs)
@@ -193,10 +194,10 @@ class MarkerFlipReviewDialog(QDialog):
         context_layout.addWidget(self.context_source)
         controls = QHBoxLayout()
         self.context_target = QComboBox()
-        self.context_target.setAccessibleName('Original observation target')
+        self.context_target.setAccessibleName(tr('Original observation target'))
         self.context_target.setMinimumContentsLength(14)
         self.context_target.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
-        self.around_event_button = QPushButton('Around event')
+        self.around_event_button = QPushButton(tr('Around event'))
         controls.addWidget(self.context_target, 1)
         controls.addWidget(self.around_event_button)
         context_layout.addLayout(controls)
@@ -237,7 +238,7 @@ class MarkerFlipReviewDialog(QDialog):
         )
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
-        self.button_box.button(QDialogButtonBox.StandardButton.Ok).setText("Done")
+        self.button_box.button(QDialogButtonBox.StandardButton.Ok).setText(tr("Done"))
         layout.addWidget(self.button_box)
 
     def resizeEvent(self, event):
@@ -426,8 +427,8 @@ class MarkerFlipReviewDialog(QDialog):
             else:
                 axis.axhline(selected.residual_deg, linestyle="--", label=f"Predicted {selected_axis} mean")
         axis.axvline(0.0, linestyle=":", linewidth=1.0, color="0.5")
-        axis.set_xlabel("Time from event (s)")
-        axis.set_ylabel("Relative rotation (°)")
+        axis.set_xlabel(tr("Time from event (s)"))
+        axis.set_ylabel(tr("Relative rotation (°)"))
         axis.grid(True, alpha=0.25)
         if axis.get_legend_handles_labels()[0]:
             axis.legend(loc="best", fontsize=8)
@@ -513,6 +514,6 @@ class MarkerFlipReviewDialog(QDialog):
         try:
             self.get_decisions()
         except ValueError as exc:
-            QMessageBox.warning(self, "Correction Axis Required", str(exc))
+            QMessageBox.warning(self, tr("Correction Axis Required"), str(exc))
             return
         super().accept()
