@@ -21,12 +21,12 @@ jobs:
           python-version: '3.13'
       - name: Test the kernel, public adapter, and FRAME reference profile
         run: |
-          python -m pip install numpy pandas scipy pytest jsonschema mujoco==3.6.0
+          python -m pip install -c requirements.txt numpy pandas scipy pytest jsonschema mujoco==3.6.0
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           New-Item -ItemType Directory -Path shared-core-evidence | Out-Null
           git rev-parse HEAD | Set-Content shared-core-evidence/checkout-sha.txt
           "${{ github.event.pull_request.head.sha || github.sha }}" | Set-Content shared-core-evidence/public-head-sha.txt
-          python -m pytest -q tests/test_shared_time_selection.py tests/test_shared_row_adapter.py tests/test_shared_frame_reference.py tests/test_compare_model.py --junitxml=shared-core-evidence/contracts.xml
+          python -m pytest -q tests/test_shared_time_selection.py tests/test_shared_row_adapter.py tests/test_shared_frame_reference.py tests/test_compare_model.py tests/test_artifact_provenance.py::test_opaque_identity_strings_survive_serialized_loading --junitxml=shared-core-evidence/contracts.xml
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/check_shared_core_adoption.py | Set-Content shared-core-evidence/adoption.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -650,5 +650,108 @@
   },
   "downstream_adoption": "pending",
   "measured": "unverified",
-  "publication": "not-published"
+  "publication": "not-published",
+  "follow_up": {
+    "source_commit": "070180ae2850ea8c8ca9bce1a34494366b621118",
+    "shared_core_hosted": {
+      "run_id": 42571720510,
+      "status": "pass",
+      "checkout": "31ff43e213ba67df2f2afa5b54d24103e372dde9",
+      "python": "3.13.17",
+      "numpy": "2.5.4",
+      "wheel_sha256": "8857d3eb6f738c17efbc0b9f6e91e1cabd2eb5e48f406d0a227a4bd395f44d23"
+    },
+    "windows_hosted": {
+      "run_id": 42571720390,
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "fail",
+          "reason": "Mesa archive download returned HTTP errors"
+        },
+        {
+          "attempt": 2,
+          "status": "fail",
+          "pandas": "3.1.1",
+          "passed_before_failure": 1083,
+          "test": "tests/test_artifact_provenance.py::test_opaque_identity_strings_survive_serialized_loading",
+          "expected": "NA",
+          "observed": null
+        }
+      ],
+      "correction": "pandas<3.1; previous passing baseline used pandas 3.0.6; existing reader and expectations preserved",
+      "independent_review": "PASS, GPT-6.1 Sol High"
+    },
+    "local_after_correction": {
+      "command": "python -m pytest -q tests/test_artifact_provenance.py tests/test_shared_time_selection.py tests/test_shared_row_adapter.py tests/test_shared_frame_reference.py tests/test_compare_model.py",
+      "pandas": "2.3.3",
+      "results": {
+        "tests": 110,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "qt_regression": {
+      "command": "QT_QPA_PLATFORM=windows python -m pytest -q tests/test_comparison_gui.py tests/test_comparison_layout.py tests/test_scene_workflow_gui.py tests/test_marker_flip_review_dialog.py tests/test_marker_profile_gui.py tests/test_simulation_layout.py tests/test_simulation_modes_gui.py tests/test_robot_sequence_gui.py",
+      "results": {
+        "tests": 94,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "qt_real_comparison_probe": {
+      "scope": "Qt events, real VistaWidget, VTK render buffer; native pointer and visible desktop separate",
+      "empty": "No file",
+      "initial": {
+        "sample": 0,
+        "position_label": "Sample 1  1.000 s",
+        "box_center_mm": [
+          10.0,
+          0.0,
+          0.0
+        ],
+        "render_buffer_nonuniform": true
+      },
+      "model_identity_only": {
+        "rows": [
+          0,
+          0
+        ],
+        "summary_diff": null,
+        "overlay_curves": 2,
+        "explicit_mode_preserved": true
+      },
+      "replace_short_no_t1": {
+        "rows": 1,
+        "slider": 0,
+        "aligned": false,
+        "viewer_visible": true
+      },
+      "close_while_playing": {
+        "timer_active_before": true,
+        "timer_active_after": false
+      }
+    },
+    "native_windows": {
+      "status": "partial",
+      "physical": [
+        2560,
+        1440
+      ],
+      "logical_available": [
+        2560,
+        1392
+      ],
+      "dpr": 1.0,
+      "scene_review": "Details, Include, Exclude, native save/reopen, 8 Review again after regenerated evidence",
+      "flip_review": "two plots and native Apply toggle, Cancel clicked",
+      "marker_profile": "32-marker editor, native face switching",
+      "simulation_modes": "Single drop to Robot sequence via native selector",
+      "robot_sequence": "selected-drop Preview, Apply, Run enabled",
+      "compare": "native add, arrow-key selection, play, remove; 3D viewport blank in capture",
+      "actual_windows_125_percent": "unverified"
+    }
+  }
 }

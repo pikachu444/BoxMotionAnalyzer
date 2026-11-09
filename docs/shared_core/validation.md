@@ -37,11 +37,11 @@ defect. Task 12 records evidence as the other tasks advance.
 | #119 | Metric-level duplicate and conflict resolution in comparison | Representative reprocessing selection remains excluded |
 | #120 | First-contact investigation recorded | Bounded contact policy deferred pending a new decision |
 | #134 | Existing roadmap and [delivery audit](../analysis/reference/pub_delivery_status.md) | Preserve software, native, numerical, and measured evidence separately |
-| #136 | Flip review layout and lifecycle, PR #147 | Native display and input verification |
-| #137 | Scene review, workspace save and reopen, PR #148 | Native editing, saving, and reopening |
-| #138 | Profile editor, identity and GUI tests, PR #149 | Native input and Windows 125% |
-| #139 | Single and continuous modes, PR #150 | Native input and Windows 125% |
-| #140 | Suction and regrasp UI and sequence controls, PR #151 | Native input, Windows 125%, numerical bound and baseline/trial approval, measured evidence |
+| #136 | Flip review layout and lifecycle, PR #147. Current-scale native Apply and Cancel controls exercised | Complete remaining native states and sizes |
+| #137 | Scene review, workspace save and reopen, PR #148. Current-scale native save/reopen and changed-evidence handling exercised | Verify native unchanged-evidence restoration, remaining editing and export paths |
+| #138 | Profile editor, identity and GUI tests, PR #149. Current-scale native profile views and face switching exercised | Verify remaining input paths and Windows 125% |
+| #139 | Single and continuous modes, PR #150. Current-scale native mode switching exercised | Verify full native mode round trip and Windows 125% |
+| #140 | Suction and regrasp UI and sequence controls, PR #151. Current-scale native selected-drop Preview and Apply exercised | Verify native run/viewer, Windows 125%, numerical bounds, baseline/trial and measured evidence |
 | #135, #141–#144 | Merged software and hosted evidence in the delivery audit | Native and physical acceptance retain their own gates |
 | #152 | Language Options issue | Separate plan, review, and PR |
 | #104 | Independent measured validation issue | Calibrated real captures and synchronized references unavailable in this run |
@@ -71,7 +71,7 @@ separately.
 | Adoption schema | Three valid and 14 invalid examples under Draft 2020-12 |
 | Isolated wheel | Python 3.13.5, NumPy 2.5.4. Six archive entries. Canonical, wheel, and installed runtime bytes match. Runtime executed outside the checkout with `-I` |
 | Qt baseline | 163 existing comparison, processing, scene, flip, profile and simulation checks passed. Qt logic, input injection, and widget rendering are recorded by their actual scope |
-| Native Windows | Desktop met the FHD minimum. External pointer access failed with `GetCursorPos` access denied (0x80070005). Native interaction and Windows OS 125% remain blocked in this run |
+| Native Windows | 2560×1440 physical desktop, DPR 1.0. Initial `GetCursorPos` access was denied. A later Windows capture and input session exercised the controls listed below. Comparison 3D display and actual Windows OS 125% remain unverified |
 | Real measurements | Pending calibrated independent data |
 
 Main and independent review session metadata recorded GPT-6.1 Sol and High.
@@ -85,6 +85,51 @@ behavior, installs the CI dependency, and rejects altered metadata. The
 reviewer rechecked all four changes. The initial ROW test expectation for
 an invalid gap string was corrected from `TypeError` to the observed baseline
 `ValueError` before changing the production adapter.
+
+## Hosted checks and later Windows observations
+
+PR [#171](https://github.com/pikachu444/BoxMotionAnalyzer/pull/171) first ran at
+`070180ae2850ea8c8ca9bce1a34494366b621118`. The
+[shared core check](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/42571720510)
+passed, including the isolated wheel on Python 3.13.17 and NumPy 2.5.4.
+The [Windows integration run](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/42571720390)
+first stopped at the Mesa archive download. Its second attempt passed the
+download and then failed the unchanged serialized-identity test after 1,083
+tests passed. It used pandas 3.1.1, which treats the converted opaque ID
+`NA` as missing. A fresh local pandas 3.1.1 environment reproduced the
+same expected `NA` versus observed `None` failure. The baseline's passing
+hosted run used pandas 3.0.6. The
+application requirement now limits pandas to versions below 3.1, and the
+shared core CI job uses the same constraint and runs the existing identity
+regression. The reader's opaque-ID and missing-value policies are retained.
+[Pandas 3.1 I/O changes](https://pandas.pydata.org/docs/whatsnew/v3.1.0.html#i-o)
+
+The later Qt run passed 94 checks across comparison, flip, scenes, profile
+editing, simulation layouts, modes and robot sequence. A generated
+`.proc` probe used the real `VistaWidget`. It dispatched row 0 before
+playback, rendered the generated box to the VTK buffer, and reset to row 0
+when reloading a one-row result without t1. The timer stopped on close.
+Changing model identity preserved both numerical lookups and both curves,
+while excluding the incompatible result from comparable metrics. The
+existing repeat-statistic regression also passed for `ModelId`.
+
+The later native session used a 2560×1440 desktop at DPR 1.0 and the
+existing application windows with generated input:
+
+- Step 1 at 1100×720 accepted Details, Include and Exclude. The native
+  chooser saved and reopened the review file. Recalculation of the seeded
+  fixture changed scene evidence and showed `Review again` in eight rows.
+- The flip dialog at 1280×960 showed both plots and accepted the event
+  Apply toggle. The 32-marker editor at 1280×960 showed both views and
+  updated the selected face and marker count after a native click.
+- Simulation at 1510×800 switched from Single drop to Robot sequence.
+  Selecting one drop showed `Drop 1 only (16 excluded)` in Preview.
+  Apply enabled Run. Numerical approval and a native engine run are separate.
+- Comparison at 1100×720 accepted the native result chooser, arrow-key
+  file selection, playback and file removal. Windows capture showed the
+  sample label and graph updating, with a blank native 3D capture area
+  before and during playback. The VTK render-buffer result is recorded
+  separately. The three-cycle native closure gate is still open.
 
 ## Consumer handoff
 
