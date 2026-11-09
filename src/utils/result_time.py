@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 from src.utils.artifact_metadata import DIMENSIONS
+from src.utils.sample_selection import nearest_sample_position
 
 TIME_COLUMN = ('Info', 'Time', 'Time')
 LEGACY_TIME_COLUMN = ('Time', 'Time', 'Time')
@@ -137,6 +138,17 @@ class ResultTimeline:
             return right
         if right == 0 or right == len(times) or exceeds_gap_limit(self.times[right - 1], self.times[right], max_gap_sec):
             return None
+        # The reader uses float64. Direct callers may rely on other dtypes or
+        # on the existing search over an axis the strict kernel rejects.
+        if (type(self.times) is np.ndarray and self.times.dtype == np.dtype(float)
+                and type(target) in (float, np.float64)):
+            try:
+                # Full-axis validation can overflow on an unrelated interval.
+                # The legacy calculation below touches only the chosen interval.
+                with np.errstate(over='raise'):
+                    return nearest_sample_position(self.times, target)
+            except (ValueError, FloatingPointError):
+                pass
         return right - 1 if target - self.times[right - 1] <= self.times[right] - target else right
 
 
