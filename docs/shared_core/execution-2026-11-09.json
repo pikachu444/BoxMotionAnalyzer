@@ -1,0 +1,757 @@
+{
+  "issue": 158,
+  "date": "2026-11-09",
+  "baseline": "d7d61435c89bacda0d87175c06887b1d85f24e2e",
+  "candidate_code_commit": "fdcb7d2d6e2196538b931b386767bf132eb696a2",
+  "environment": {
+    "python": "3.13.5",
+    "numpy": "2.3.5",
+    "pandas": "2.3.3",
+    "qt": "6.10.1",
+    "pytest": "9.0.3",
+    "mujoco": "3.6.0",
+    "platform": "Windows",
+    "main_model": "gpt-6.1-sol",
+    "review_model": "gpt-6.1-sol",
+    "reasoning_effort": "high",
+    "configured_service_tier": "default",
+    "resolved_service_tier": null
+  },
+  "fixtures": {
+    "kernel_contract_sha256": "7ff1781a9baa5678f01ec829581aed4b0047c35ec4109b217558477efc7eb113",
+    "profile_vectors_sha256": "c665cf6b847a7d3eb5ada63820508b366acfce4955a385957aa97f11514d6df1",
+    "serialized": "tests/comparison_fixtures.py::write_proc; handcrafted_dummy"
+  },
+  "row_before": {
+    "command": "python -m pytest -q tests/test_shared_row_adapter.py",
+    "source": "d7d61435c89bacda0d87175c06887b1d85f24e2e",
+    "exit_code": 0,
+    "observed": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "candidate": {
+    "command": "python -m pytest -q tests/test_shared_time_selection.py tests/test_shared_row_adapter.py tests/test_shared_frame_reference.py tests/test_compare_model.py",
+    "source": "fdcb7d2d6e2196538b931b386767bf132eb696a2",
+    "exit_code": 0,
+    "observed": {
+      "tests": 104,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "fixed_profiles": [
+    {
+      "id": "C01-frame-identity",
+      "expected": {
+        "kernel": 1,
+        "row_aligned": true,
+        "row": 1,
+        "frame_aligned": true,
+        "frame": 4,
+        "time": 10.03125,
+        "error": 0.0
+      },
+      "result": "pass"
+    },
+    {
+      "id": "C02-gap-policy",
+      "expected": {
+        "kernel": 1,
+        "row_aligned": true,
+        "row": null,
+        "frame_aligned": true,
+        "frame": 4,
+        "time": 0.125,
+        "error": 0.03125
+      },
+      "result": "pass"
+    },
+    {
+      "id": "C03-duplicate-time",
+      "expected": {
+        "kernel": "ValueError",
+        "row_aligned": false,
+        "row": null,
+        "frame_aligned": true,
+        "frame": 4,
+        "time": 0.125,
+        "error": 0.0
+      },
+      "result": "pass"
+    },
+    {
+      "id": "C04-decreasing-time",
+      "expected": {
+        "kernel": "ValueError",
+        "row_aligned": false,
+        "row": null,
+        "frame_aligned": true,
+        "frame": 8,
+        "time": 0.125,
+        "error": 0.0
+      },
+      "result": "pass"
+    },
+    {
+      "id": "C05-fallback-tie",
+      "expected": {
+        "kernel": "ValueError",
+        "row_aligned": false,
+        "row": null,
+        "frame_aligned": true,
+        "frame": 0,
+        "time": 0.125,
+        "error": 0.0625
+      },
+      "result": "pass"
+    },
+    {
+      "id": "C06-near-gap-end",
+      "expected": {
+        "kernel": 0,
+        "row_aligned": true,
+        "row": null,
+        "frame_aligned": true,
+        "frame": 0,
+        "time": 0.0,
+        "error": 0.01
+      },
+      "result": "pass"
+    },
+    {
+      "id": "C07-t1-in-gap",
+      "expected": {
+        "kernel": 1,
+        "row_aligned": true,
+        "row": 1,
+        "frame_aligned": false,
+        "frame": null
+      },
+      "result": "pass"
+    },
+    {
+      "id": "C08-surrounding-gap",
+      "expected": {
+        "kernel": 1,
+        "row_aligned": true,
+        "row": null,
+        "frame_aligned": true,
+        "frame": null
+      },
+      "result": "pass"
+    },
+    {
+      "id": "C09-exact-gap-end",
+      "expected": {
+        "kernel": 1,
+        "row_aligned": true,
+        "row": 1,
+        "frame_aligned": true,
+        "frame": 4,
+        "time": 1.0,
+        "error": 0.0
+      },
+      "result": "pass"
+    }
+  ],
+  "review": {
+    "reviewer": "independent shared_core_review",
+    "row_before_after": 9792,
+    "status": "pass",
+    "comparisons": [
+      "return values",
+      "exception type and message",
+      "warnings"
+    ],
+    "resolved_findings": [
+      "unrelated time axis overflow",
+      "FRAME first summary row coverage",
+      "CI MuJoCo dependency",
+      "wheel metadata-only drift"
+    ]
+  },
+  "schema": {
+    "command": "python scripts/check_shared_core_adoption.py",
+    "draft": "2020-12",
+    "valid": 3,
+    "invalid": 14,
+    "exit_code": 0
+  },
+  "isolated_install": {
+    "status": "pass",
+    "build_environment": {
+      "python": "3.13.5",
+      "build": "1.6.1",
+      "pip": "25.1.1",
+      "setuptools": "84.2.1",
+      "wheel": "0.48.0"
+    },
+    "wheel": {
+      "wheel_sha256": "fba127e02823bccc0583c76c5b46e92d9ab6a7d373c6d5d806d04e042266ab94",
+      "entries": [
+        "bma_shared_core-0.1.0.dev0.dist-info/METADATA",
+        "bma_shared_core-0.1.0.dev0.dist-info/RECORD",
+        "bma_shared_core-0.1.0.dev0.dist-info/WHEEL",
+        "bma_shared_core-0.1.0.dev0.dist-info/top_level.txt",
+        "bma_shared_core/__init__.py",
+        "bma_shared_core/time_selection.py"
+      ]
+    },
+    "runtime_environment": {
+      "python": "3.13.5",
+      "numpy": "2.5.4",
+      "package_version": "0.1.0.dev0",
+      "location": "<runtime-site-packages>/bma_shared_core",
+      "kernel_sha256": "824bf08d3852dc25b2e1856ebf55dbd14e527e7dfbb93519d40cfb013190b970"
+    },
+    "vectors": {
+      "contract": "TIME-KERNEL/1",
+      "success_vectors": 16,
+      "invalid_vectors": 11,
+      "readonly_view_unchanged": true
+    },
+    "commands": [
+      {
+        "command": [
+          "<host-python>",
+          "-m",
+          "venv",
+          "build-env"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "<temp>\\build-env\\Scripts\\python.exe",
+          "-m",
+          "pip",
+          "install",
+          "build",
+          "setuptools>=68",
+          "wheel"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "<temp>\\build-env\\Scripts\\python.exe",
+          "-I",
+          "-c",
+          "import json, sys, importlib.metadata as m; print(json.dumps(dict(python=sys.version.split()[0], **{p:m.version(p) for p in ('build','pip','setuptools','wheel')})))"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "<temp>\\build-env\\Scripts\\python.exe",
+          "-m",
+          "build",
+          "--no-isolation",
+          "--wheel",
+          "--outdir",
+          "artifacts",
+          "<temp>\\bma_shared_core"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "<host-python>",
+          "-m",
+          "venv",
+          "runtime-env"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "<temp>\\runtime-env\\Scripts\\python.exe",
+          "-m",
+          "pip",
+          "install",
+          "<temp>\\artifacts\\bma_shared_core-0.1.0.dev0-py3-none-any.whl"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "<temp>\\runtime-env\\Scripts\\python.exe",
+          "-m",
+          "pip",
+          "check"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "<temp>\\runtime-env\\Scripts\\python.exe",
+          "-I",
+          "-c",
+          "<installed-identity-probe>",
+          "<temp>\\bma_shared_core",
+          "0.1.0.dev0"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "<temp>\\runtime-env\\Scripts\\python.exe",
+          "-I",
+          "<temp>\\contract_vectors.py"
+        ],
+        "exit_code": 0
+      }
+    ]
+  },
+  "qt_baseline": {
+    "command": "QT_QPA_PLATFORM=windows python -m pytest -q tests/test_compare_model.py tests/test_comparison_layout.py tests/test_processing_window_layout.py tests/test_scene_workflow_gui.py tests/test_marker_review_layout.py tests/test_marker_profile_gui.py tests/test_simulation_modes_gui.py tests/test_robot_sequence_gui.py",
+    "source": "d7d61435c89bacda0d87175c06887b1d85f24e2e",
+    "exit_code": 0,
+    "observed": {
+      "tests": 163,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "gui_geometry": {
+    "baseline": {
+      "dpr": 1.0,
+      "available": [
+        2560,
+        1392
+      ],
+      "qt_platform": "windows",
+      "font_pt": 9.0,
+      "input": "8 synthetic scene ranges",
+      "toolbar": [
+        "Home",
+        "Back",
+        "Forward",
+        "Pan",
+        "Zoom",
+        "Subplots",
+        "Customize",
+        "Save"
+      ],
+      "geometry": [
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": false,
+          "viewport_height": 82,
+          "row_heights": [
+            30,
+            30,
+            30,
+            30
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1
+          ],
+          "axes_pixels": [
+            62.69,
+            47.44,
+            1032.14,
+            278.39
+          ],
+          "axes_label_pt": [
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": true,
+          "viewport_height": 82,
+          "row_heights": [
+            30,
+            30,
+            30,
+            30
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1
+          ],
+          "axes_pixels": [
+            62.57,
+            47.44,
+            1032.26,
+            144.39
+          ],
+          "axes_label_pt": [
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": false,
+          "viewport_height": 216,
+          "row_heights": [
+            30,
+            30,
+            30,
+            30
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "axes_pixels": [
+            78.77,
+            47.44,
+            703.06,
+            64.39
+          ],
+          "axes_label_pt": [
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": true,
+          "viewport_height": 66,
+          "row_heights": [
+            30,
+            30,
+            30,
+            30
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1
+          ],
+          "axes_pixels": [
+            62.57,
+            47.44,
+            719.26,
+            156.39
+          ],
+          "axes_label_pt": [
+            10.0,
+            10.0
+          ]
+        }
+      ]
+    },
+    "proposal": {
+      "dpr": 1.0,
+      "available": [
+        2560,
+        1392
+      ],
+      "qt_platform": "windows",
+      "font_pt": 9.0,
+      "input": "8 synthetic scene ranges",
+      "toolbar": [
+        "Home",
+        "Back",
+        "Forward",
+        "Pan",
+        "Zoom",
+        "Subplots",
+        "Customize",
+        "Save"
+      ],
+      "geometry": [
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": false,
+          "viewport_height": 108,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.69,
+            46.44,
+            1167.14,
+            259.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": true,
+          "viewport_height": 108,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            1167.26,
+            201.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": false,
+          "viewport_height": 108,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            760.26,
+            179.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": true,
+          "viewport_height": 108,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            760.26,
+            121.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        }
+      ]
+    }
+  },
+  "native": {
+    "status": "blocked",
+    "reason": "External Windows pointer access GetCursorPos failed (0x80070005)",
+    "actual_windows_125_percent": "unverified",
+    "physical_display_minimum": "1920x1080"
+  },
+  "downstream_adoption": "pending",
+  "measured": "unverified",
+  "publication": "not-published",
+  "follow_up": {
+    "source_commit": "070180ae2850ea8c8ca9bce1a34494366b621118",
+    "shared_core_hosted": {
+      "run_id": 42571720510,
+      "status": "pass",
+      "checkout": "31ff43e213ba67df2f2afa5b54d24103e372dde9",
+      "python": "3.13.17",
+      "numpy": "2.5.4",
+      "wheel_sha256": "8857d3eb6f738c17efbc0b9f6e91e1cabd2eb5e48f406d0a227a4bd395f44d23"
+    },
+    "windows_hosted": {
+      "run_id": 42571720390,
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "fail",
+          "reason": "Mesa archive download returned HTTP errors"
+        },
+        {
+          "attempt": 2,
+          "status": "fail",
+          "pandas": "3.1.1",
+          "passed_before_failure": 1083,
+          "test": "tests/test_artifact_provenance.py::test_opaque_identity_strings_survive_serialized_loading",
+          "expected": "NA",
+          "observed": null
+        }
+      ],
+      "correction": "pandas<3.1; previous passing baseline used pandas 3.0.6; existing reader and expectations preserved",
+      "independent_review": "PASS, GPT-6.1 Sol High"
+    },
+    "local_after_correction": {
+      "command": "python -m pytest -q tests/test_artifact_provenance.py tests/test_shared_time_selection.py tests/test_shared_row_adapter.py tests/test_shared_frame_reference.py tests/test_compare_model.py",
+      "pandas": "2.3.3",
+      "results": {
+        "tests": 110,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "qt_regression": {
+      "command": "QT_QPA_PLATFORM=windows python -m pytest -q tests/test_comparison_gui.py tests/test_comparison_layout.py tests/test_scene_workflow_gui.py tests/test_marker_flip_review_dialog.py tests/test_marker_profile_gui.py tests/test_simulation_layout.py tests/test_simulation_modes_gui.py tests/test_robot_sequence_gui.py",
+      "results": {
+        "tests": 94,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "qt_real_comparison_probe": {
+      "scope": "Qt events, real VistaWidget, VTK render buffer; native pointer and visible desktop separate",
+      "empty": "No file",
+      "initial": {
+        "sample": 0,
+        "position_label": "Sample 1  1.000 s",
+        "box_center_mm": [
+          10.0,
+          0.0,
+          0.0
+        ],
+        "render_buffer_nonuniform": true
+      },
+      "model_identity_only": {
+        "rows": [
+          0,
+          0
+        ],
+        "summary_diff": null,
+        "overlay_curves": 2,
+        "explicit_mode_preserved": true
+      },
+      "replace_short_no_t1": {
+        "rows": 1,
+        "slider": 0,
+        "aligned": false,
+        "viewer_visible": true
+      },
+      "close_while_playing": {
+        "timer_active_before": true,
+        "timer_active_after": false
+      }
+    },
+    "native_windows": {
+      "status": "partial",
+      "physical": [
+        2560,
+        1440
+      ],
+      "logical_available": [
+        2560,
+        1392
+      ],
+      "dpr": 1.0,
+      "scene_review": "Details, Include, Exclude, native save/reopen, 8 Review again after regenerated evidence",
+      "flip_review": "two plots and native Apply toggle, Cancel clicked",
+      "marker_profile": "32-marker editor, native face switching",
+      "simulation_modes": "Single drop to Robot sequence via native selector",
+      "robot_sequence": "selected-drop Preview, Apply, Run enabled",
+      "compare": "native add, arrow-key selection, play, remove; 3D viewport blank in capture",
+      "actual_windows_125_percent": "unverified"
+    }
+  }
+}

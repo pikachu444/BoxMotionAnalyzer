@@ -1,4 +1,6 @@
-pandas
+# Last Reviewed: 2026-11-09
+# pandas 3.1 treats literal NA as missing even in converted identity columns.
+pandas<3.1
 scipy
 PySide6
 matplotlib

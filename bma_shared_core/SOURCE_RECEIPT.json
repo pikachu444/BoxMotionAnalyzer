@@ -1,0 +1,14 @@
+{
+  "package": "bma-shared-core",
+  "package_version": "0.1.0.dev0",
+  "kernel_contract": "TIME-KERNEL/1",
+  "canonical_repository": "https://github.com/pikachu444/BoxMotionAnalyzer",
+  "public_baseline": "d7d61435c89bacda0d87175c06887b1d85f24e2e",
+  "published_commit": null,
+  "files": {
+    "__init__.py": "5453c294f6c39797e4abcf114572ab80d0d76b1745b9ad76c39b2bea408bb253",
+    "time_selection.py": "824bf08d3852dc25b2e1856ebf55dbd14e527e7dfbb93519d40cfb013190b970",
+    "pyproject.toml": "d4a63ab5942640fb5afd390453f58cbc0fe3da27d2ea2c849561aead63dd5897",
+    "README.md": "2a21db30f4c75e0b1d746215f621acfef051d944f8ca206e488d12bbd757fd5e"
+  }
+}

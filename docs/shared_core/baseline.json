@@ -1,0 +1,236 @@
+{
+  "canonical_repository": "https://github.com/pikachu444/BoxMotionAnalyzer",
+  "baseline_commit": "d7d61435c89bacda0d87175c06887b1d85f24e2e",
+  "reviewed_on": "2026-11-09",
+  "tracked_dirty_at_start": false,
+  "unrelated_untracked_files_at_start": true,
+  "hash_basis": "git object bytes; Windows working-copy hashes are listed separately",
+  "source_files": {
+    "src/utils/result_time.py": {
+      "git_sha256": "e680e5e9a076487dc62a602fd992ee7865db4f85df7866b994419722ce8f852f",
+      "working_copy_sha256": "26c2abf2cb259ad30a4471de61ec7e73af1464e204b00335ddf3fc5f6063bbc8"
+    },
+    "src/analysis/app/main_window.py": {
+      "git_sha256": "39309f472bd928798c56f9bc502232597f2a42bb8c22a8699c95afb95232bb27",
+      "working_copy_sha256": "50411b999c1f812386183ce8756193171672ef15d9b82d85886fc4f062d99513"
+    },
+    "src/analysis/ui/widget_raw_data_processing.py": {
+      "git_sha256": "5a3185db1ae9b7e2ff7ccc0685783f39d26f3ead01f3b852f9e406ce36b9f6ac",
+      "working_copy_sha256": "94e7e0392f1df607d5b19ed1cc2481725beabdff0339eed69024ac14da4223f8"
+    },
+    "src/analysis/ui/widget_scene_review.py": {
+      "git_sha256": "7b413b7f72759dfabdac47450b212dacfe6f2267b87cf97c40399b80ac5009bb",
+      "working_copy_sha256": "1662a5ce860359d713d2e10ac6e32a7063d93b66ea69f204d53cd1d263570b0c"
+    },
+    "src/utils/qt_sections.py": {
+      "git_sha256": "1ffc10ab8b145d6023f2cc74fddff9f90f1d49243a79327f636e4decb358bf25",
+      "working_copy_sha256": "89dcb72b44780e7a28f79688afb1c0789a92053be4f35d92b5d4ccb952143dfe"
+    },
+    "src/visualization/vista_widget.py": {
+      "git_sha256": "a56f1b23beb7a12f844d7155d209f2a0912bee631a1747d7a45e9dfc7842f3ab",
+      "working_copy_sha256": "c626bac785ba52c2b18cc4ce033417d432facaeb0dc659576b206ba827a63b3e"
+    },
+    "tests/test_processing_window_layout.py": {
+      "git_sha256": "fac8913edb787e441529a23f967be7c1fc5fe158a42ac39fe3dd5f16f8be2ec5",
+      "working_copy_sha256": "6d0f1de81cbf7f6c037cc3a21bc22117b42ec95765ea25a31bbb7261086f6157"
+    },
+    "tests/test_comparison_layout.py": {
+      "git_sha256": "c95bbfd3155fbae3a3bf324c21bb01bacb51461584c2cc8be006c883348cc47c",
+      "working_copy_sha256": "b1c19ae89a8518d5d900953fcff0c95f76d7b409849640c7a468a686b8a4c08f"
+    },
+    "tests/test_compare_model.py": {
+      "git_sha256": "fb90368a18f9914b65e023c3f6abf45bd263526b23c3e8264677b8c901eb1da1",
+      "working_copy_sha256": "2f0776d0608d55c0d8e33e9bbbd6084bafbad76e517e8cc4fcbe4f1213819e16"
+    },
+    "tests/comparison_fixtures.py": {
+      "git_sha256": "2e5872b010fc113e5c2328de63d0016489e07c2217a19a6dc76b68f92a3ce911",
+      "working_copy_sha256": "d55babd7605aca5df849e1eaf4786380d06d8d0c345d17eed18c9c0ac36187b0"
+    },
+    "src/analysis/compare/__init__.py": {
+      "git_sha256": "2f0748d2f0032dbeb437ee92123281f3982e7a9ed98516841e2c95fabcb9448a",
+      "working_copy_sha256": "c2bcf23a950e89b0ef4020ffabd4664c2a86b370d10b511ebcc129b08e1050c7"
+    },
+    "src/analysis/compare/contact_metrics.py": {
+      "git_sha256": "050f2d617e4c2f8b9f93d0a315843bf4b9c23fbd3023e8fe8fa9e2ec382da000",
+      "working_copy_sha256": "385d07a50b7191aeec0a259f8c1ddb5a3e746442b860ac5f06359028cee857c6"
+    },
+    "src/analysis/compare/data_model.py": {
+      "git_sha256": "c77365bdffcbeac660e24a0fad91da20112ca7ee51eba87a3147156046053f9f",
+      "working_copy_sha256": "cdb0957f02fac5c6a7b0c213384ef65fe8e8e698eedaa4eaf22f40daeb96894b"
+    },
+    "src/analysis/compare/impact_metrics.py": {
+      "git_sha256": "5a00bcdd3a4c6ba2808a68dcb88b6252abf9526397dd2908e34b5ed37cd029cc",
+      "working_copy_sha256": "9829c0b4951ace8dd429e6c4cfe5c2e46e4412f2a48bb5b64a266809f4d7e52c"
+    },
+    "src/analysis/compare/main_window.py": {
+      "git_sha256": "a1ac9f1fe32dd946615b0aa328aa6ef0d83abc784c4cd5cf2b06981b2276f12d",
+      "working_copy_sha256": "1cebaf2e9523d8eab590823cfe9c7fa1214a02a80fd00ac542d32f3659b0d673"
+    },
+    "src/analysis/compare/metric_guide.py": {
+      "git_sha256": "ecadd6ba6aa06ba78476f5cc572c21cf43d0c5be55844b17770cdf8d82c6b6e4",
+      "working_copy_sha256": "6986fac58cca699cb7be710231a6c6178f2e5206c4599b6748c423ad64437f50"
+    },
+    "src/analysis/compare/observation_resolution.py": {
+      "git_sha256": "7c08ba8b25fe632e0a96fc787ecc8cf175c8b5572f5a2d8953707163f980c7e7",
+      "working_copy_sha256": "885e62692344a969e48960ad0d24933e7f96cb1240e0a51ce6b9fb7277d2e163"
+    },
+    "src/analysis/compare/playback_panel.py": {
+      "git_sha256": "134c66d3a68bbe3b55b46e2ae85ffdfc4f201eba00fc57391a6f0283c9ac0250",
+      "working_copy_sha256": "fea70723cd86c5c4694d4c488fd8c0899bed61cc0688c2d7b4f43537a2ff41b2"
+    },
+    "src/analysis/compare/posture_metrics.py": {
+      "git_sha256": "d8aa1129a3a1e3fa814d59e8680ab3f867195c717a89a49895495ae74ee952be",
+      "working_copy_sha256": "f5938b2297f5735256489e2514cd8b09d1068746ca61c5810d2b78c625cb391a"
+    },
+    "src/analysis/compare/ui_panels.py": {
+      "git_sha256": "b9ad702c3498833660bbf28caf231057643c8aab51bd24df3c7a4c4d0567d744",
+      "working_copy_sha256": "f70ba8938a6c2450a44c12e0d9498b5e88c5ba05fc850944e5b7e1ee3f0010b1"
+    }
+  },
+  "applicability": {
+    "158-01": "verification-only",
+    "158-02": "pending",
+    "158-03": "pending",
+    "158-04": "pending",
+    "158-05": "verification-only",
+    "158-06": "verification-only",
+    "158-07": "verification-only",
+    "158-08": "change",
+    "158-09": "change",
+    "158-10": "change",
+    "158-11": "change",
+    "158-12": "change"
+  },
+  "parent_issue": 158,
+  "child_issues": {
+    "158-01": {
+      "issue": 159,
+      "title": "[158-01] 기준 commit·적용 여부와 출처 고정",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/159",
+      "dependency": "None",
+      "related": "#111, #134"
+    },
+    "158-02": {
+      "issue": 160,
+      "title": "[158-02] 기존 Step 1에서 4행 씬 목록과 버튼 접근성 확보",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/160",
+      "dependency": "158-01 and GUI direction approval",
+      "related": "#137 (related workflow, different acceptance)"
+    },
+    "158-03": {
+      "issue": 161,
+      "title": "[158-03] 그래프 도구·라벨을 유지하면서 실제 플롯 공간 개선",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/161",
+      "dependency": "158-01–02 and GUI direction approval",
+      "related": "#136 (different window), #137"
+    },
+    "158-04": {
+      "issue": 162,
+      "title": "[158-04] 긴 이름·축 제목·배율별 가독성 확인",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/162",
+      "dependency": "158-01–02 and GUI direction approval",
+      "related": "#136–#140 (separate native acceptance)"
+    },
+    "158-05": {
+      "issue": 163,
+      "title": "[158-05] 개별 결과의 첫 샘플과 실제 3D 초기 표시 확인",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/163",
+      "dependency": "158-01; approval before a reproduced defect is changed",
+      "related": "#106 (prior comparison work)"
+    },
+    "158-06": {
+      "issue": 164,
+      "title": "[158-06] 결과 선택·명시적 보기 모드·카메라 유지 확인",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/164",
+      "dependency": "158-01; approval before a reproduced defect is changed",
+      "related": "#106 (prior comparison work)"
+    },
+    "158-07": {
+      "issue": 165,
+      "title": "[158-07] 변경된 3D 뷰어만 교체하고 안전하게 종료",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/165",
+      "dependency": "158-01; approval before a reproduced defect is changed",
+      "related": "#106 (prior comparison work)"
+    },
+    "158-08": {
+      "issue": 166,
+      "title": "[158-08] TIME-KERNEL/1 순수 함수와 고정 기대값 구현",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/166",
+      "dependency": "158-01",
+      "related": "#158"
+    },
+    "158-09": {
+      "issue": 167,
+      "title": "[158-09] ROW-1 공개 adapter를 정책 변경 없이 연결",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/167",
+      "dependency": "158-08",
+      "related": "#158"
+    },
+    "158-10": {
+      "issue": 168,
+      "title": "[158-10] FRAME-1 소비자 계약·도입·복원 절차 제공",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/168",
+      "dependency": "158-08–09",
+      "related": "#158"
+    },
+    "158-11": {
+      "issue": 169,
+      "title": "[158-11] 공통 함수만 독립 패키지로 검증",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/169",
+      "dependency": "158-08–10",
+      "related": "#158"
+    },
+    "158-12": {
+      "issue": 170,
+      "title": "[158-12] 근거 종류별 검증 보고와 최종 전달물 정리",
+      "url": "https://github.com/pikachu444/BoxMotionAnalyzer/issues/170",
+      "dependency": "Close applicable evidence after 158-01–11",
+      "related": "#104, #111, #134, #136–#140"
+    }
+  },
+  "previous_parent_issues": {
+    "111": [
+      112,
+      113,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123
+    ],
+    "134": [
+      135,
+      136,
+      137,
+      138,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145
+    ]
+  },
+  "initially_open_issues": [
+    104,
+    111,
+    112,
+    113,
+    119,
+    120,
+    134,
+    136,
+    137,
+    138,
+    139,
+    140,
+    152,
+    158
+  ]
+}

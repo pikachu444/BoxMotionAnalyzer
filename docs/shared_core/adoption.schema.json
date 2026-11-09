@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BoxMotionAnalyzer shared core adoption record",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "nonEmpty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "commit": {
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 40,
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "digest": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "canonical_repository": { "const": "https://github.com/pikachu444/BoxMotionAnalyzer" },
+    "canonical_commit": {
+      "anyOf": [
+        { "$ref": "#/$defs/commit" },
+        { "type": "null" }
+      ]
+    },
+    "package_version": { "$ref": "#/$defs/nonEmpty" },
+    "kernel_contract": { "const": "TIME-KERNEL/1" },
+    "consumer_profile": {
+      "enum": [
+        "ROW-1/1",
+        "FRAME-1/1"
+      ]
+    },
+    "consumer_baseline": {
+      "anyOf": [
+        { "$ref": "#/$defs/nonEmpty" },
+        { "type": "null" }
+      ]
+    },
+    "adapter_version": {
+      "anyOf": [
+        { "$ref": "#/$defs/nonEmpty" },
+        { "type": "null" }
+      ]
+    },
+    "adopted_kernel_sha256": {
+      "anyOf": [
+        { "$ref": "#/$defs/digest" },
+        { "type": "null" }
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmpty" }
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "rolled_back"
+      ]
+    },
+    "approved_by": {
+      "anyOf": [
+        { "$ref": "#/$defs/nonEmpty" },
+        { "type": "null" }
+      ]
+    },
+    "previous_adoption": {
+      "anyOf": [
+        { "$ref": "#/$defs/nonEmpty" },
+        { "type": "null" }
+      ]
+    },
+    "rollback_dependency_pin": {
+      "anyOf": [
+        { "$ref": "#/$defs/nonEmpty" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": { "const": "approved" }
+        }
+      },
+      "then": {
+        "properties": {
+          "canonical_commit": { "$ref": "#/$defs/commit" },
+          "adopted_kernel_sha256": { "$ref": "#/$defs/digest" },
+          "evidence": { "minItems": 1 },
+          "consumer_baseline": { "$ref": "#/$defs/nonEmpty" },
+          "adapter_version": { "$ref": "#/$defs/nonEmpty" },
+          "approved_by": { "$ref": "#/$defs/nonEmpty" },
+          "rollback_dependency_pin": { "$ref": "#/$defs/nonEmpty" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": { "const": "rolled_back" }
+        }
+      },
+      "then": {
+        "properties": {
+          "evidence": { "minItems": 1 }
+        }
+      }
+    }
+  ],
+  "required": [
+    "schema_version",
+    "canonical_repository",
+    "canonical_commit",
+    "package_version",
+    "kernel_contract",
+    "consumer_profile",
+    "consumer_baseline",
+    "adapter_version",
+    "adopted_kernel_sha256",
+    "evidence",
+    "status",
+    "approved_by",
+    "previous_adoption",
+    "rollback_dependency_pin"
+  ]
+}
