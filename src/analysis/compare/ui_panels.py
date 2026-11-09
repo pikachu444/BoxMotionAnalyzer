@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QGroupBox, QFrame, QListWidgetItem, QPlainTextEdit, QDoubleSpinBox,
     QScrollArea, QSizePolicy, QFormLayout, QCheckBox, QLayout
 )
+from PySide6.QtWidgets import QToolButton
 from PySide6.QtCore import Qt, Signal, QSize
 from PySide6.QtGui import QColor, QIcon, QPixmap
 from matplotlib.figure import Figure
@@ -548,6 +549,8 @@ class CompareGraphPanel(QGroupBox):
         self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Ignored)
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.toolbar.setIconSize(QSize(16, 16))
+        for button in self.toolbar.findChildren(QToolButton):
+            button.setFocusPolicy(Qt.StrongFocus)
         self.toolbar.locLabel.setVisible(False)
         for action in self.toolbar.actions():
             tooltip = action.toolTip() or ''
@@ -571,6 +574,8 @@ class CompareGraphPanel(QGroupBox):
         target_layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas, stretch=1)
         self.plot_manager = PlotManager(self.canvas, self.fig)
+        self.plot_manager.ax.xaxis.label.set_fontsize(9)
+        self.plot_manager.ax.yaxis.label.set_fontsize(9)
         self.cursor = None
 
     def set_plot_targets(self, targets):
@@ -589,8 +594,12 @@ class CompareGraphPanel(QGroupBox):
         self.plot_target_changed.emit(self.cb_plot_target.currentData())
 
     def update_plot(self, series_dict, column, *, xlabel='Time from pre-contact (s)', colors=None, paths=None):
-        self.plot_manager.reset_axes()
         ax = self.plot_manager.ax
+        xlabel_size = ax.xaxis.label.get_fontsize()
+        ylabel_size = ax.yaxis.label.get_fontsize()
+        self.plot_manager.reset_axes()
+        ax.xaxis.label.set_fontsize(xlabel_size)
+        ax.yaxis.label.set_fontsize(ylabel_size)
         self.cursor = None
         while self.legend_layout.count():
             item = self.legend_layout.takeAt(0)

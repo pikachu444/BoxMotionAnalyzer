@@ -94,28 +94,79 @@ def test_slice_actions_remain_visible_when_optional_settings_expand(size):
         app.processEvents()
 
 
-def test_capture_allows_1100_width_with_details_open_and_closed():
+def test_capture_allows_1100_width_with_details_open_and_closed(tmp_path):
     app = QApplication.instance() or QApplication([])
     window = MainApp()
     try:
         window.tab_widget.setCurrentIndex(0)
         capture = window.original_widget
+        from src.simulation.scene_review_fixtures import install_ui_fixture, public_raw
+
+        source = public_raw(tmp_path)
+        source = source.rename(source.with_name('긴_장면_' * 20 + '.csv'))
+        install_ui_fixture(capture, source)
+        table = capture.scene_panel.table
+        axes = capture.plot_manager.ax
+        assert axes.xaxis.label.get_fontsize() == axes.yaxis.label.get_fontsize() == 9
+        axes.yaxis.label.set_fontsize(13)
         window.show()
         assert QTest.qWaitForWindowExposed(window, 2000)
-        for expanded in (False, True, False):
-            if capture.scene_panel.details_section.button.isChecked() != expanded:
-                capture.scene_panel.details_section.button.click()
-            app.processEvents()
-            window.resize(1100, 720)
-            app.processEvents()
-            assert (window.width(), window.height()) == (1100, 720)
-            for control in (capture.load_csv_button, capture.scene_panel.detect_button,
-                            capture.scene_panel.include_button, capture.scene_panel.exclude_button,
-                            capture.le_slice_start, capture.le_slice_end, capture.save_process_button):
-                position = control.mapTo(window, QPoint(0, 0))
-                assert control.isVisible() and not control.visibleRegion().isEmpty()
-                assert 0 <= position.x() and position.x() + control.width() <= window.width()
-                assert 0 <= position.y() and position.y() + control.height() <= window.height()
+        for width, height in ((1510, 800), (1100, 720)):
+            window.resize(width, height)
+            closed_plot_height = None
+            for expanded in (False, True, False):
+                capture.scene_panel.details_section.setExpanded(expanded)
+                QTest.qWait(50)
+                assert (window.width(), window.height()) == (width, height)
+                assert axes.yaxis.label.get_fontsize() == 13
+                if not expanded:
+                    plot_height = axes.get_window_extent().height
+                    if closed_plot_height is not None:
+                        assert plot_height == pytest.approx(closed_plot_height, abs=1)
+                    closed_plot_height = plot_height
+                table.scrollToTop()
+                for row in range(4):
+                    assert table.viewport().rect().contains(table.visualItemRect(table.item(row, 0)))
+                for control in (capture.load_csv_button, capture.scene_panel.detect_button,
+                                capture.scene_panel.include_button, capture.scene_panel.exclude_button,
+                                capture.le_slice_start, capture.le_slice_end, capture.save_slice_button,
+                                capture.scene_panel.save_all_button, capture.save_process_button):
+                    position = control.mapTo(window, QPoint(0, 0))
+                    assert control.isVisible() and control.visibleRegion().contains(control.rect())
+                    assert 0 <= position.x() and position.x() + control.width() <= window.width()
+                    assert 0 <= position.y() and position.y() + control.height() <= window.height()
+                for action in capture.toolbar.actions():
+                    if action.text():
+                        button = capture.toolbar.widgetForAction(action)
+                        assert button.isVisible() and button.focusPolicy() & Qt.TabFocus
+        actions = {action.text(): action for action in capture.toolbar.actions() if action.text()}
+        for label in ('Pan', 'Zoom'):
+            button = capture.toolbar.widgetForAction(actions[label])
+            button.setFocus()
+            QTest.keyClick(button, Qt.Key_Space)
+            assert capture.toolbar.mode.name == label.upper()
+            QTest.keyClick(button, Qt.Key_Space)
+            assert not capture.toolbar.mode
+        row = table.item(3, 0)
+        QTest.mouseClick(table.viewport(), Qt.LeftButton, pos=table.visualItemRect(row).center())
+        assert capture.scene_panel.selected_id() == row.text()
+        QTest.mouseClick(capture.scene_panel.include_button, Qt.LeftButton)
+        assert capture.scene_panel.selected_row()['decision'] == 'include'
+        QTest.mouseClick(capture.scene_panel.exclude_button, Qt.LeftButton)
+        assert capture.scene_panel.selected_row()['decision'] == 'exclude'
+
+        window.resize(820, 600)
+        capture.scene_panel.details_section.setExpanded(True)
+        QTest.qWait(50)
+        assert window.width() < 1100 or window.height() < 720
+        desktop = window.screen().availableGeometry()
+        assert window.frameGeometry().width() <= desktop.width()
+        assert window.frameGeometry().height() <= desktop.height()
+        table.scrollToBottom()
+        last = table.item(table.rowCount() - 1, 0)
+        assert table.viewport().rect().contains(table.visualItemRect(last))
+        assert capture.scene_panel.details_scroll.verticalScrollBar().maximum() > 0
+        assert capture.save_process_button.visibleRegion().contains(capture.save_process_button.rect())
     finally:
         window.close()
         window.deleteLater()

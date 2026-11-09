@@ -104,7 +104,7 @@ class SceneReviewWidget(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
-        self.table.setMinimumHeight(110)
+        self.table.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)
         layout.addWidget(self.table)
         identity = QHBoxLayout()
         identity.addWidget(QLabel('Type'))
@@ -170,7 +170,8 @@ class SceneReviewWidget(QWidget):
             self.table.setColumnHidden(column, True)
         self.details_section.button.toggled.connect(
             lambda expanded: [self.table.setColumnHidden(column, not expanded) for column in (4, 6, 7, 8)])
-        self.details_section.button.toggled.connect(self._layout_details)
+        self.details_section.button.toggled.connect(self.update_viewport_minimum)
+        self.table.horizontalScrollBar().rangeChanged.connect(self.update_viewport_minimum)
         self.table.itemSelectionChanged.connect(self._selection_changed)
         self.include_button.clicked.connect(lambda: self._decide('include'))
         self.exclude_button.clicked.connect(lambda: self._decide('exclude'))
@@ -183,6 +184,7 @@ class SceneReviewWidget(QWidget):
         self.confirm_button.clicked.connect(self._confirm)
         self.set_intended_button.clicked.connect(self._set_intended)
         self.refresh()
+        self.update_viewport_minimum()
 
     def selected_id(self):
         if not self.table.selectionModel().selectedRows():
@@ -323,13 +325,23 @@ class SceneReviewWidget(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self._layout_details()
+        self.update_viewport_minimum()
 
-    def _layout_details(self):
-        narrow = self.width() < 1100
-        self.details_scroll.setMinimumHeight(54 if narrow else 130)
-        self.details_scroll.setMaximumHeight(68 if narrow else 150)
-        self.table.setMinimumHeight(94 if narrow and self.details_section.button.isChecked() else 110)
+    def update_viewport_minimum(self):
+        table = self.table
+        rows_header = table.verticalHeader()
+        rows_header.setDefaultSectionSize(max(24, table.fontMetrics().height() + 7))
+        row_height = rows_header.defaultSectionSize()
+        window = self.window()
+        rows = 4 if window.width() >= 1100 and window.height() >= 720 else 2
+        header_height = table.horizontalHeader().sizeHint().height()
+        horizontal = table.horizontalScrollBar()
+        scrollbar_height = horizontal.sizeHint().height() if horizontal.maximum() else 0
+        table.setMinimumHeight(header_height + rows * row_height + 2 * table.frameWidth() + scrollbar_height)
+        details_height = max(48, 2 * self.details_scroll.fontMetrics().height() + 10)
+        if window.width() >= 1510 and window.height() >= 960:
+            details_height = max(details_height, self.details_scroll.widget().sizeHint().height())
+        self.details_scroll.setFixedHeight(details_height)
 
     def can_set_intended_contact(self):
         row = self.selected_row()

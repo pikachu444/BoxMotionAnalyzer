@@ -5,11 +5,11 @@ import numpy as np
 from dataclasses import asdict
 from copy import deepcopy
 from pathlib import Path
-from PySide6.QtCore import Signal, Qt, QThread, QTimer
+from PySide6.QtCore import Signal, Qt, QThread, QTimer, QSize
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog,
-    QDialog, QMessageBox, QSizePolicy, QSplitter, QScrollArea, QCheckBox, QProgressBar
+    QDialog, QMessageBox, QSizePolicy, QSplitter, QScrollArea, QCheckBox, QProgressBar, QToolButton
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
@@ -179,6 +179,9 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
         main_splitter = QSplitter(Qt.Orientation.Vertical)
         main_splitter.setChildrenCollapsible(False)
+        self.capture_splitter = main_splitter
+        self._capture_splitter_dragged = False
+        main_splitter.splitterMoved.connect(self._remember_capture_splitter_drag)
 
         # 1a. Top Layout: Plot and Right Panel
         top_splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -192,6 +195,9 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.fig = Figure(figsize=(5, 4), dpi=100)
         self.canvas = FigureCanvas(self.fig)
         self.toolbar = NavigationToolbar(self.canvas, self)
+        self.toolbar.setIconSize(QSize(20, 20))
+        for button in self.toolbar.findChildren(QToolButton):
+            button.setFocusPolicy(Qt.StrongFocus)
 
         plot_layout.addWidget(self.toolbar)
         plot_layout.addWidget(self.canvas)
@@ -199,6 +205,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
         self.plot_manager = PlotManager(self.canvas, self.fig)
         self.plot_manager.use_constrained_layout = True
+        self.plot_manager.ax.xaxis.label.set_fontsize(9)
+        self.plot_manager.ax.yaxis.label.set_fontsize(9)
         self.canvas.mpl_connect('resize_event', self._fit_capture_plot_labels)
         self.plot_manager.ax.text(0.5, 0.5, "Load a CSV file to start.", ha='center', va='center')
         self.plot_manager.canvas.draw()
@@ -287,9 +295,9 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
         top_splitter.addWidget(right_panel)
         top_splitter.setChildrenCollapsible(False)
-        top_splitter.setStretchFactor(0, 5)
-        top_splitter.setStretchFactor(1, 2)
-        top_splitter.setSizes([900, 280])
+        top_splitter.setStretchFactor(0, 1)
+        top_splitter.setStretchFactor(1, 0)
+        top_splitter.setSizes([900, 205])
         main_splitter.addWidget(top_splitter)
         self.scene_panel = SceneReviewWidget(self)
         main_splitter.addWidget(self.scene_panel)
@@ -298,12 +306,14 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         controls_widget = QWidget()
         h_controls_layout = QHBoxLayout(controls_widget)
         controls_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        controls_widget.setMinimumHeight(110)
-        controls_widget.setMaximumHeight(130)
+        h_controls_layout.setContentsMargins(5, 2, 5, 2)
+        h_controls_layout.setSpacing(4)
 
         # Plot Options
         plot_options_group = QGroupBox("Plot Options")
         plot_options_layout = QVBoxLayout(plot_options_group)
+        plot_options_layout.setContentsMargins(6, 5, 6, 5)
+        plot_options_layout.setSpacing(3)
         plot_options_top_row = QHBoxLayout()
         self.select_data_button = QPushButton("Markers...")
         self.selected_data_label = QLabel("Selected: None")
@@ -332,6 +342,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.slice_group.setCheckable(True)
         self.slice_group.setChecked(False)
         slice_layout = QVBoxLayout(self.slice_group)
+        slice_layout.setContentsMargins(6, 5, 6, 5)
+        slice_layout.setSpacing(3)
 
         slice_start_row = QHBoxLayout()
         slice_start_row.addWidget(QLabel("Start:"))
@@ -348,6 +360,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
         self.slice_output_group = QGroupBox("Scene")
         slice_output_layout = QGridLayout(self.slice_output_group)
+        slice_output_layout.setContentsMargins(6, 5, 6, 5)
+        slice_output_layout.setSpacing(3)
         slice_output_layout.addWidget(QLabel("Name:"), 0, 0)
         self.le_scene_name = QLineEdit("scene")
         slice_output_layout.addWidget(self.le_scene_name, 0, 1)
@@ -371,6 +385,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
         # Run/Export Buttons
         run_button_layout = QVBoxLayout()
+        run_button_layout.setSpacing(3)
         self.save_slice_button = QPushButton("Save slice...")
         self.save_slice_button.setEnabled(False)
         run_button_layout.addWidget(self.save_slice_button)
@@ -391,13 +406,36 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         h_controls_layout.setStretch(3, stretch_values[4])
 
         main_splitter.addWidget(controls_widget)
-        main_splitter.setStretchFactor(0, 6)
-        main_splitter.setStretchFactor(1, 2)
-        main_splitter.setStretchFactor(2, 1)
-        main_splitter.setSizes([440, 190, 120])
+        main_splitter.setStretchFactor(0, 1)
+        main_splitter.setStretchFactor(1, 0)
+        main_splitter.setStretchFactor(2, 0)
+        main_splitter.setSizes([440, self.scene_panel.minimumSizeHint().height(),
+                               controls_widget.minimumSizeHint().height()])
 
         group_layout.addWidget(main_splitter)
         layout.addWidget(group_box)
+        self._capture_fit_timer = QTimer(self)
+        self._capture_fit_timer.setSingleShot(True)
+        self._capture_fit_timer.timeout.connect(self._fit_capture_sections)
+        self.scene_panel.details_section.button.toggled.connect(lambda _: self._capture_fit_timer.start())
+        self._capture_fit_timer.start()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.scene_panel.update_viewport_minimum()
+        self._capture_fit_timer.start()
+
+    def _remember_capture_splitter_drag(self):
+        self._capture_splitter_dragged = True
+
+    def _fit_capture_sections(self):
+        if self._capture_splitter_dragged:
+            return
+        splitter = self.capture_splitter
+        scene_height = self.scene_panel.minimumSizeHint().height()
+        controls_height = splitter.widget(2).minimumSizeHint().height()
+        plot_height = max(1, sum(splitter.sizes()) - scene_height - controls_height)
+        splitter.setSizes([plot_height, scene_height, controls_height])
 
     def _connect_signals(self):
         self.load_csv_button.clicked.connect(self.open_csv_file)
@@ -955,7 +993,12 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         if self._plot_view_key is not None and self._plot_view_key[0] == key[0]:
             previous_x = self.plot_manager.ax.get_xlim()
             self._plot_views[self._plot_view_key] = (previous_x, self.plot_manager.ax.get_ylim())
+        ax = self.plot_manager.ax
+        xlabel_size = ax.xaxis.label.get_fontsize()
+        ylabel_size = ax.yaxis.label.get_fontsize()
         self._draw_capture_plot()
+        ax.xaxis.label.set_fontsize(xlabel_size)
+        ax.yaxis.label.set_fontsize(ylabel_size)
         if key in self._plot_views:
             xlim, ylim = self._plot_views[key]
             self.plot_manager.ax.set_xlim(xlim)
