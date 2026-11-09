@@ -7,8 +7,9 @@ G1–G7. The revised Step 1 direction was approved on 2026-11-09. The
 baseline is d7d61435c89bacda0d87175c06887b1d85f24e2e. The existing splitter
 keeps the plot, scene table, Details, and slice controls in their original
 order. The scene minimum includes the header, four rows, frame, and any
-horizontal scrollbar at the two reference sizes. Narrow Details scrolls
-independently. Taller windows can show the entire section. A manual splitter
+horizontal scrollbar at the two reference sizes. Compact Details scrolls
+independently. Wide capture panes show the entire section when the window
+is at least 800 logical pixels tall. A manual splitter
 drag keeps control of the pane sizes.
 
 ## Step 1 measurements
@@ -20,7 +21,7 @@ Matplotlib Axes.get_window_extent() in display pixels at DPR 1.0.
 | Client size | Details | Full rows before → after | Plot before → after |
 |---|---|---|---|
 | 1510×800 | Closed | 2 → 4 | 1032×278 → 1170×285 |
-| 1510×800 | Open | 2 → 4 | 1032×144 → 1170×233 |
+| 1510×800 | Open | 2 → 4 | 1032×144 → 1170×169 |
 | 1100×720 | Closed | 7 → 4 | 703×64 → 760×205 |
 | 1100×720 | Open | 2 → 4 | 719×156 → 760×153 |
 
@@ -49,7 +50,7 @@ installed toolbar provides no axis-label font-size control.
 |---|---|
 | [Baseline Qt capture](https://github.com/pikachu444/BoxMotionAnalyzer/blob/070180ae2850ea8c8ca9bce1a34494366b621118/docs/shared_core/evidence/step1-baseline.png) | ![Product Qt layout](step1_scene_layout_158_evidence/qt-1100-details.png) |
 
-[Actual Windows capture, 1510×800 with Details open](step1_scene_layout_158_evidence/windows-1510-details.jpg)
+[Actual Windows capture of the earlier compact 1510×800 layout](step1_scene_layout_158_evidence/windows-1510-details.jpg)
 
 ## Comparison and remaining native checks
 
@@ -60,7 +61,10 @@ The existing layout and selection, mode, camera and viewer paths were used
 for verification. G5 initial row and geometry passed in the real VTK render
 buffer, and G6 list and mode were checked with Qt and native file selection.
 The Windows capture of the comparison 3D viewport was blank. Actual desktop
-3D visibility and the three native G7 closure cycles remain open.
+3D visibility remains open. Three native cycles added files, played,
+removed one file, played the surviving file, closed during playback and
+reopened the window. All three closes stopped the timer and cleaned up the
+surviving viewers.
 
 The independent reviewer found a stale plot height after closing Details.
 The correction schedules the default splitter calculation after Qt
@@ -72,12 +76,19 @@ larger window restores full Details visibility. The Windows suite passed
 
 The hosted integration run at 8f8b8b23124548c277d530bd6b7fa8e16377fe02
 also found the existing 1400×880 trial-record workflow could not see
-Identify items. The revised height rule restores full Details on wide
-windows taller than 800 logical pixels. The two approved reference sizes
-remain compact. The original trial-record test and 70 related Windows tests
-passed together. Independent review confirmed the trial controls are
-visible at 1400×880 and the height rule changes correctly on resize.
+Identify items. The first correction restored full Details above 800
+logical pixels. The original trial-record test and 70 related Windows tests
+passed together. Independent review confirmed the trial controls at 1400×880.
 [Original hosted integration run](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/42579429226)
+
+The next hosted run found that the saved trial at exactly 1510×800 clipped
+Test record and Save review. The final rule includes 800 and keeps 1100×720
+compact. A local Windows run of `python -m src.simulation.release_gui_validation`
+with the retained trial report and Qt process scaling at 1.25 completed with
+zero findings. The same four full scene rows and 9 pt axis titles remained
+at both reference sizes. The independent boundary check confirmed compact
+Details at 1510×799 and full Details at 1510×800 and 1510×801.
+[Hosted saved-trial failure](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/42583695572)
 
 A focused Qt plot probe invoked the existing toolbar actions on the
 capture and comparison plots. Back, Forward and Home restored the expected
