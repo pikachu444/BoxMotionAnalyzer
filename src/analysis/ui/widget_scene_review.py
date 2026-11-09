@@ -339,7 +339,7 @@ class SceneReviewWidget(QWidget):
         scrollbar_height = horizontal.sizeHint().height() if horizontal.maximum() else 0
         table.setMinimumHeight(header_height + rows * row_height + 2 * table.frameWidth() + scrollbar_height)
         details_height = max(48, 2 * self.details_scroll.fontMetrics().height() + 10)
-        if window.width() >= 1510 and window.height() >= 960:
+        if self.width() >= 1100 and window.height() > 800:
             details_height = max(details_height, self.details_scroll.widget().sizeHint().height())
         self.details_scroll.setFixedHeight(details_height)
 

@@ -886,5 +886,63 @@
       "restore default closed plot height after Qt relayout",
       "keep manual splitter sizes"
     ]
+  },
+  "source_commit": "8f8b8b23124548c277d530bd6b7fa8e16377fe02",
+  "trial_details_correction": {
+    "hosted_failure": {
+      "run_id": 42579429226,
+      "attempt": 2,
+      "test": "tests/test_trial_record_gui.py::test_mainapp_record_import_reopen_and_raw_process",
+      "client": [
+        1400,
+        880
+      ],
+      "observed": "Identify items was clipped"
+    },
+    "corrected_source": {
+      "src/analysis/ui/widget_scene_review.py": "83783226ed0e1ba528ff54fcbd09d8e40ecd8152d8312bb11dcd8d8452b29130"
+    },
+    "tests": {
+      "command": "QT_QPA_PLATFORM=windows python -m pytest -q tests/test_trial_record_gui.py tests/test_processing_window_layout.py tests/test_comparison_layout.py tests/test_scene_workflow_gui.py tests/test_scene_review_gui.py tests/test_scene_workspace_gui.py tests/test_scene_face_corrections_gui.py tests/test_scene_processing_handoff.py tests/test_contact_comparison_gui.py tests/test_slice_dimension_provenance_gui.py tests/test_workflow_navigation.py --maxfail=1",
+      "exit_code": 0,
+      "results": {
+        "tests": 71,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "review": {
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "status": "pass",
+      "observed": "Full trial controls at 1400x880, compact at approved heights, reversible threshold"
+    },
+    "toolbar_qt_probe": {
+      "MainApp": {
+        "activated": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Subplots",
+          "Customize",
+          "Save"
+        ],
+        "png_written": true
+      },
+      "CompareMainWindow": {
+        "activated": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ],
+        "png_written": true
+      }
+    }
   }
 }

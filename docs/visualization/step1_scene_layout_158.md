@@ -69,3 +69,17 @@ closed height, and manual sizes remain in control. The existing 1920×1080
 trial-action check also detected an overly short Details viewport. The
 larger window restores full Details visibility. The Windows suite passed
 41 targeted tests after both corrections. See the [execution record](step1_scene_layout_158_evidence/execution.json).
+
+The hosted integration run at 8f8b8b23124548c277d530bd6b7fa8e16377fe02
+also found the existing 1400×880 trial-record workflow could not see
+Identify items. The revised height rule restores full Details on wide
+windows taller than 800 logical pixels. The two approved reference sizes
+remain compact. The original trial-record test and 70 related Windows tests
+passed together. Independent review confirmed the trial controls are
+visible at 1400×880 and the height rule changes correctly on resize.
+[Original hosted integration run](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/42579429226)
+
+A focused Qt plot probe invoked the existing toolbar actions on the
+capture and comparison plots. Back, Forward and Home restored the expected
+limits. Pan and Zoom changed modes, and Save wrote a PNG in each view.
+The Step 1 Subplots and Customize actions opened their dialogs.
