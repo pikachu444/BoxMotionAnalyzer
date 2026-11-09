@@ -63,6 +63,9 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
         frame[corner] = index % 8 + 1
         frame.to_csv(path, index=False)
     window.load_result_files([str(path) for path in paths])
+    axes = window.graph_panel.plot_manager.ax
+    assert axes.xaxis.label.get_fontsize() == axes.yaxis.label.get_fontsize() == 9
+    axes.xaxis.label.set_fontsize(13)
     target = window.graph_panel.cb_plot_target
     target.setCurrentIndex(find_result_column_index(target, slope))
     names = list(window.model.datasets)
@@ -132,6 +135,11 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
                 origin = button.mapTo(window, QPoint(0, 0))
                 assert window.rect().contains(origin) and window.rect().contains(origin + button.rect().bottomRight())
             graph = window.graph_panel
+            assert axes.xaxis.label.get_fontsize() == 13
+            for action in graph.toolbar.actions():
+                if action.text() and action.isVisible():
+                    button = graph.toolbar.widgetForAction(action)
+                    assert button.isVisible() and button.focusPolicy() & Qt.TabFocus
             # Rebuild the nine-file legend through real metric and view
             # changes; readable strings must not be squeezed to one glyph.
             target.setCurrentIndex(find_result_column_index(target, corner))

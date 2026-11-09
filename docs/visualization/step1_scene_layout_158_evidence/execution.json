@@ -1,0 +1,948 @@
+{
+  "baseline": "d7d61435c89bacda0d87175c06887b1d85f24e2e",
+  "platform": "Windows",
+  "physical": [
+    2560,
+    1440
+  ],
+  "available": [
+    2560,
+    1392
+  ],
+  "qt": "6.10.1",
+  "approved_direction": "revised Step 1 proposal approved by user",
+  "source_sha256": {
+    "src/analysis/ui/widget_raw_data_processing.py": "1ca92ecd88e165de5f05ec82dbfeeaeb72abf498b4a32a894b68c63975009a4c",
+    "src/analysis/ui/widget_scene_review.py": "8fdb5efa2f296d7f8afa36634ba0fa9f3e810e45773c2d64a7d88961d4cc6417",
+    "src/analysis/compare/ui_panels.py": "bc1d9dbc7093f54e9ee12b09a80d6c6b27877c4af17fe3816102aa6566c71010",
+    "tests/test_processing_window_layout.py": "6acb981ed953b61f3a6e350793dadc8f6efab27ce73f48239b54d287410e4f82",
+    "tests/test_comparison_layout.py": "f9ef123c31c1e9739d65e8fe1427a28ba49c79806f74b66fd5f5ff022f79b126"
+  },
+  "step1": {
+    "before": {
+      "dpr": 1.0,
+      "available": [
+        2560,
+        1392
+      ],
+      "qt_platform": "windows",
+      "font_pt": 9.0,
+      "input": "8 synthetic scene ranges",
+      "toolbar": [
+        "Home",
+        "Back",
+        "Forward",
+        "Pan",
+        "Zoom",
+        "Subplots",
+        "Customize",
+        "Save"
+      ],
+      "geometry": [
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": false,
+          "viewport_height": 82,
+          "row_heights": [
+            30,
+            30,
+            30,
+            30
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1
+          ],
+          "axes_pixels": [
+            62.69,
+            47.44,
+            1032.14,
+            278.39
+          ],
+          "axes_label_pt": [
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": true,
+          "viewport_height": 82,
+          "row_heights": [
+            30,
+            30,
+            30,
+            30
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1
+          ],
+          "axes_pixels": [
+            62.57,
+            47.44,
+            1032.26,
+            144.39
+          ],
+          "axes_label_pt": [
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": false,
+          "viewport_height": 82,
+          "row_heights": [
+            30,
+            30,
+            30,
+            30
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1
+          ],
+          "axes_pixels": [
+            62.57,
+            47.44,
+            719.26,
+            198.39
+          ],
+          "axes_label_pt": [
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": true,
+          "viewport_height": 66,
+          "row_heights": [
+            30,
+            30,
+            30,
+            30
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1
+          ],
+          "axes_pixels": [
+            62.57,
+            47.44,
+            719.26,
+            156.39
+          ],
+          "axes_label_pt": [
+            10.0,
+            10.0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "dpr": 1.0,
+      "available": [
+        2560,
+        1392
+      ],
+      "qt_platform": "windows",
+      "font_pt": 9.0,
+      "input": "8 synthetic scene ranges",
+      "toolbar": [
+        "Home",
+        "Back",
+        "Forward",
+        "Pan",
+        "Zoom",
+        "Subplots",
+        "Customize",
+        "Save"
+      ],
+      "geometry": [
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": false,
+          "viewport_height": 96,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.69,
+            46.44,
+            1170.14,
+            285.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": true,
+          "viewport_height": 96,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            1170.26,
+            233.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": false,
+          "viewport_height": 96,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            760.26,
+            205.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": true,
+          "viewport_height": 96,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            760.26,
+            153.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        }
+      ]
+    },
+    "process_forced_125": {
+      "dpr": 1.25,
+      "available": [
+        2048,
+        1114
+      ],
+      "qt_platform": "windows",
+      "font_pt": 9.0,
+      "input": "8 synthetic scene ranges",
+      "toolbar": [
+        "Home",
+        "Back",
+        "Forward",
+        "Pan",
+        "Zoom",
+        "Subplots",
+        "Customize",
+        "Save"
+      ],
+      "geometry": [
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": false,
+          "viewport_height": 96,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            75.93,
+            57.31,
+            1463.86,
+            358.74
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": true,
+          "viewport_height": 96,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            75.81,
+            57.31,
+            1463.99,
+            293.74
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": false,
+          "viewport_height": 96,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            75.81,
+            57.31,
+            951.49,
+            258.74
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": true,
+          "viewport_height": 96,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "header": 24,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            75.81,
+            57.31,
+            951.49,
+            193.74
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        }
+      ]
+    },
+    "larger_font": {
+      "dpr": 1.0,
+      "available": [
+        2560,
+        1392
+      ],
+      "qt_platform": "windows",
+      "font_pt": 11.0,
+      "input": "8 synthetic scene ranges",
+      "toolbar": [
+        "Home",
+        "Back",
+        "Forward",
+        "Pan",
+        "Zoom",
+        "Subplots",
+        "Customize",
+        "Save"
+      ],
+      "geometry": [
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": false,
+          "viewport_height": 112,
+          "row_heights": [
+            28,
+            28,
+            28,
+            28
+          ],
+          "header": 28,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            1170.26,
+            225.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1510,
+            800
+          ],
+          "actual": [
+            1510,
+            800
+          ],
+          "details": true,
+          "viewport_height": 112,
+          "row_heights": [
+            28,
+            28,
+            28,
+            28
+          ],
+          "header": 28,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            1170.26,
+            171.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": false,
+          "viewport_height": 112,
+          "row_heights": [
+            28,
+            28,
+            28,
+            28
+          ],
+          "header": 28,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            61.57,
+            46.44,
+            760.26,
+            145.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        },
+        {
+          "request": [
+            1100,
+            720
+          ],
+          "actual": [
+            1100,
+            720
+          ],
+          "details": true,
+          "viewport_height": 112,
+          "row_heights": [
+            28,
+            28,
+            28,
+            28
+          ],
+          "header": 28,
+          "fully_visible": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "axes_pixels": [
+            76.57,
+            46.44,
+            745.26,
+            91.39
+          ],
+          "axes_label_pt": [
+            9.0,
+            9.0
+          ]
+        }
+      ]
+    }
+  },
+  "comparison": {
+    "before": [
+      {
+        "client": [
+          1510,
+          800
+        ],
+        "details": false,
+        "axes_pixels": [
+          1122.51,
+          195.39
+        ],
+        "font_pt": [
+          10.0,
+          10.0
+        ],
+        "toolbar": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ]
+      },
+      {
+        "client": [
+          1510,
+          800
+        ],
+        "details": true,
+        "axes_pixels": [
+          1109.39,
+          195.39
+        ],
+        "font_pt": [
+          10.0,
+          10.0
+        ],
+        "toolbar": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ]
+      },
+      {
+        "client": [
+          1100,
+          720
+        ],
+        "details": false,
+        "axes_pixels": [
+          712.51,
+          153.39
+        ],
+        "font_pt": [
+          10.0,
+          10.0
+        ],
+        "toolbar": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ]
+      },
+      {
+        "client": [
+          1100,
+          720
+        ],
+        "details": true,
+        "axes_pixels": [
+          712.51,
+          153.39
+        ],
+        "font_pt": [
+          10.0,
+          10.0
+        ],
+        "toolbar": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ]
+      }
+    ],
+    "after": [
+      {
+        "client": [
+          1510,
+          800
+        ],
+        "details": false,
+        "axes_pixels": [
+          1123.51,
+          196.39
+        ],
+        "font_pt": [
+          9.0,
+          9.0
+        ],
+        "toolbar": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ]
+      },
+      {
+        "client": [
+          1510,
+          800
+        ],
+        "details": true,
+        "axes_pixels": [
+          1110.39,
+          196.39
+        ],
+        "font_pt": [
+          9.0,
+          9.0
+        ],
+        "toolbar": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ]
+      },
+      {
+        "client": [
+          1100,
+          720
+        ],
+        "details": false,
+        "axes_pixels": [
+          713.51,
+          154.39
+        ],
+        "font_pt": [
+          9.0,
+          9.0
+        ],
+        "toolbar": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ]
+      },
+      {
+        "client": [
+          1100,
+          720
+        ],
+        "details": true,
+        "axes_pixels": [
+          713.51,
+          154.39
+        ],
+        "font_pt": [
+          9.0,
+          9.0
+        ],
+        "toolbar": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ]
+      }
+    ]
+  },
+  "native": {
+    "dpr": 1.0,
+    "step1_clients": [
+      [
+        1510,
+        800
+      ],
+      [
+        1100,
+        720
+      ]
+    ],
+    "selected_scene": "scene_004",
+    "save_and_process": "Batch / Ready to process",
+    "serialized_slice_count": 2,
+    "compare_3d": "unverified in desktop capture",
+    "windows_125": "unverified"
+  },
+  "tests": {
+    "command": "QT_QPA_PLATFORM=windows python -m pytest -q tests/test_processing_window_layout.py tests/test_comparison_layout.py tests/test_scene_workflow_gui.py tests/test_scene_processing_handoff.py",
+    "exit_code": 0,
+    "results": {
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "review": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "status": "pass",
+    "resolved": [
+      "restore default closed plot height after Qt relayout",
+      "keep manual splitter sizes"
+    ]
+  },
+  "source_commit": "8f8b8b23124548c277d530bd6b7fa8e16377fe02",
+  "trial_details_correction": {
+    "hosted_failure": {
+      "run_id": 42579429226,
+      "attempt": 2,
+      "test": "tests/test_trial_record_gui.py::test_mainapp_record_import_reopen_and_raw_process",
+      "client": [
+        1400,
+        880
+      ],
+      "observed": "Identify items was clipped"
+    },
+    "corrected_source": {
+      "src/analysis/ui/widget_scene_review.py": "83783226ed0e1ba528ff54fcbd09d8e40ecd8152d8312bb11dcd8d8452b29130"
+    },
+    "tests": {
+      "command": "QT_QPA_PLATFORM=windows python -m pytest -q tests/test_trial_record_gui.py tests/test_processing_window_layout.py tests/test_comparison_layout.py tests/test_scene_workflow_gui.py tests/test_scene_review_gui.py tests/test_scene_workspace_gui.py tests/test_scene_face_corrections_gui.py tests/test_scene_processing_handoff.py tests/test_contact_comparison_gui.py tests/test_slice_dimension_provenance_gui.py tests/test_workflow_navigation.py --maxfail=1",
+      "exit_code": 0,
+      "results": {
+        "tests": 71,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "review": {
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "status": "pass",
+      "observed": "Full trial controls at 1400x880, compact at approved heights, reversible threshold"
+    },
+    "toolbar_qt_probe": {
+      "MainApp": {
+        "activated": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Subplots",
+          "Customize",
+          "Save"
+        ],
+        "png_written": true
+      },
+      "CompareMainWindow": {
+        "activated": [
+          "Home",
+          "Back",
+          "Forward",
+          "Pan",
+          "Zoom",
+          "Save"
+        ],
+        "png_written": true
+      }
+    }
+  }
+}
