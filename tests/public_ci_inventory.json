@@ -59,6 +59,8 @@
       "tests/test_scene_workflow_gui.py::test_mainapp_details_retains_minimum_window_size"
     ],
     "tmp/public-marker-results.xml": [
+      "tests/test_ui_language.py::test_apply_persists_for_next_launch_and_cancel_preserves_it",
+      "tests/test_ui_language.py::test_korean_windows_keep_display_and_data_separate",
       "tests/test_comparison_layout.py::test_file_names_colours_selection_and_small_layout",
       "tests/test_comparison_layout.py::test_shared_view_no_impact_invalid_time_and_gap",
       "tests/test_comparison_layout.py::test_reload_only_changed_viewer_and_preserve_context_on_failure",
