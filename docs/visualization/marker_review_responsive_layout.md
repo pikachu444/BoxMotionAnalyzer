@@ -1,10 +1,18 @@
 # Marker review responsive layout (#136 / PUB03)
 
-Last Reviewed: 2026-10-13
+Last Reviewed: 2026-11-10
 
 Plan Spec: ISTA6A-PLAN-20261001-v1. Parent: #134. This changes only the
 remaining layout delta after #121 / PR #129; #112 / PR #126 lifecycle and
 #135 / PR #146 capture regression remain preservation requirements.
+
+## Candidate summary
+
+The candidate table has a compact summary underneath it showing the residual
+without correction, the selected axis preview, and marker coverage. Legacy
+candidates label the selected value as a prediction. Expand Details for the
+trigger, recommendation rationale, and marker fit error. The original
+trajectories and the axis preview remain visible alongside each other in wide windows.
 
 ## Mockup review before implementation
 

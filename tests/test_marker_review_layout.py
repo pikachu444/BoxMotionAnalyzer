@@ -115,6 +115,7 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
                 assert '…' in dialog.context_source.text()
                 assert dialog.context_source.text().endswith('.csv')
                 axis = canvas.figure.axes[0]
+                assert axis.get_title() == 'Original trajectories'
                 assert axis.get_xlabel() == 'Time (s)' and axis.get_ylabel() == 'Position (mm)'
                 np.testing.assert_array_equal(axis.lines[0].get_xdata(), data.index)
                 np.testing.assert_allclose(axis.lines[0].get_ydata(), data.F1_X, equal_nan=True)
@@ -129,6 +130,8 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
                     reachable(dialog.preview_status, dialog)
                     assert dialog.table.item(0, 1).text() == 'No recommendation'
                 else:
+                    for label in (dialog.no_correction_summary, dialog.preview_summary, dialog.coverage_summary):
+                        reachable(label, dialog)
                     np.testing.assert_allclose(curves['Preview X'].get_ydata(), (1., np.nan, 2.), equal_nan=True)
             dialog.grab().save(str(root / f'{case}-view-{index}.png'))
         if count:

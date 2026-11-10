@@ -14,12 +14,13 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
+    QFrame,
     QHeaderView,
     QHBoxLayout,
     QLabel,
     QMessageBox,
-    QPlainTextEdit,
     QPushButton,
+    QScrollArea,
     QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
@@ -166,16 +167,34 @@ class MarkerFlipReviewDialog(QDialog):
                                   + 2 * self.table.frameWidth())
         layout.addWidget(self.table)
 
-        self.candidate_details = QPlainTextEdit()
-        self.candidate_details.setReadOnly(True)
-        self.candidate_details.setLineWrapMode(QPlainTextEdit.LineWrapMode.WidgetWidth)
-        self.candidate_details.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        self.candidate_summary = QWidget()
+        summary = QHBoxLayout(self.candidate_summary)
+        summary.setContentsMargins(0, 0, 0, 0)
+        summary.setSpacing(24)
+        self.no_correction_summary = QLabel()
+        self.preview_summary = QLabel()
+        self.coverage_summary = QLabel()
+        for label in (self.no_correction_summary, self.preview_summary, self.coverage_summary):
+            summary.addWidget(label)
+        summary.addStretch()
+        layout.addWidget(self.candidate_summary)
+
+        self.candidate_details = QLabel()
+        self.candidate_details.setWordWrap(True)
+        self.candidate_details.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.candidate_details.setTextFormat(Qt.TextFormat.PlainText)
+        self.candidate_details.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse | Qt.TextInteractionFlag.TextSelectableByKeyboard
         )
-        self.candidate_details.setMinimumHeight(82)
-        self.candidate_details.setMaximumHeight(115)
         self.candidate_details.setAccessibleName(tr("Selected marker flip candidate details"))
-        self.details_section = CollapsibleSection(tr("Details"), self.candidate_details)
+        self.details_scroll = QScrollArea()
+        self.details_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.details_scroll.setWidgetResizable(True)
+        self.details_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.details_scroll.setMaximumHeight(96)
+        self.details_scroll.setWidget(self.candidate_details)
+        self.details_section = CollapsibleSection(tr("Details"), self.details_scroll)
+        self.details_section.button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
 
         self.preview_status = QLabel()
         self.preview_status.setStyleSheet("color: #916000;")
@@ -255,8 +274,8 @@ class MarkerFlipReviewDialog(QDialog):
         self._tabbed_plots = tabbed
         self.plot_tabs.blockSignals(True)
         if tabbed:
-            for panel, title in ((self.context_panel, 'Original observations'),
-                                 (self.evidence_panel, 'Axis preview')):
+            for panel, title in ((self.context_panel, tr('Original trajectories')),
+                                 (self.evidence_panel, tr('Axis preview'))):
                 self.plots.removeWidget(panel)
                 self.plot_tabs.addTab(panel, title)
             self.plot_tabs.setCurrentIndex(self._active_plot_tab)
@@ -293,7 +312,7 @@ class MarkerFlipReviewDialog(QDialog):
         columns = [target + '_' + axis for target in targets for axis in 'XYZ']
         self._context_data = data[columns].copy(deep=True) if data is not None else pd.DataFrame()
         self._context_unit = {'Millimeters': 'mm', 'Centimeters': 'cm', 'Meters': 'm'}.get(units, 'unit unknown')
-        set_path_label(self.context_source, source_path, 'Original observations')
+        set_path_label(self.context_source, source_path, 'Original trajectories')
         self.context_source.setToolTip(source_path + '\nUnmodified observations; physical cause is not independently verified.')
         self.context_target.blockSignals(True)
         self.context_target.clear()
@@ -330,7 +349,7 @@ class MarkerFlipReviewDialog(QDialog):
                 axis.plot(times, values, label=component, color=color)
                 available |= bool(np.any(np.isfinite(times) & np.isfinite(values)))
         if not available:
-            axis.text(.5, .5, 'Original observations unavailable', transform=axis.transAxes, ha='center')
+            axis.text(.5, .5, tr('Original trajectories unavailable'), transform=axis.transAxes, ha='center')
         else:
             axis.legend(loc='best', fontsize=8)
         row = self.table.currentRow()
@@ -347,7 +366,8 @@ class MarkerFlipReviewDialog(QDialog):
                 axis.set_xlim(boundary - radius, boundary + radius)
         if old_limits is not None and not recenter:
             axis.set_xlim(old_limits)
-        axis.set(title='Original observations', xlabel='Time (s)', ylabel=f'Position ({self._context_unit})')
+        axis.set(title=tr('Original trajectories'), xlabel=tr('Time (s)'),
+                 ylabel=tr(f'Position ({self._context_unit})'))
         axis.grid(True, alpha=.25)
         self.context_toolbar.update()
         self.context_toolbar.push_current()
@@ -363,7 +383,7 @@ class MarkerFlipReviewDialog(QDialog):
 
     @staticmethod
     def _number(value, suffix="°"):
-        return f"{value:.6g}{suffix}" if value is not None and np.isfinite(value) else "unavailable"
+        return f"{value:.6g}{suffix}" if value is not None and np.isfinite(value) else tr("Unavailable")
 
     def _update_evidence_plot(self, current_row: int, *_args) -> None:
         if current_row != self._context_row:
@@ -374,6 +394,8 @@ class MarkerFlipReviewDialog(QDialog):
         if current_row < 0 or current_row >= len(self.candidates):
             axis.text(0.5, 0.5, "No event selected", ha="center", va="center")
             axis.set_axis_off()
+            self.candidate_summary.hide()
+            self.details_section.hide()
             self.candidate_details.clear()
             self.preview_status.clear()
             self.preview_status.setToolTip("")
@@ -391,26 +413,30 @@ class MarkerFlipReviewDialog(QDialog):
         preview_available = selected_trace if actual_refit else bool(
             selected_axis and selected and np.isfinite(selected.residual_deg)
             and any(np.isfinite(post_times)))
-        self.preview_status.setText("" if preview_available else "Preview unavailable")
+        self.preview_status.setText("" if preview_available else tr("Preview unavailable"))
         self.preview_status.setToolTip("" if preview_available else
             f"Comparison samples: {len(candidate.pre_window_time_offsets_sec)} before, {len(post_times)} after. {candidate.reason}")
 
+        self.candidate_summary.show()
+        self.details_section.show()
+        self.no_correction_summary.setVisible(actual_refit)
         if actual_refit:
-            comparison = "available" if selected_trace and none_trace else "unavailable"
-            values = (f"Comparison: {comparison}",
-                      f"Refit none: {self._number(none.residual_deg if none_trace else None)}",
-                      f"Selected {selected_axis or 'none'}: {self._number(selected.residual_deg if selected_trace else None)}")
-        else:
-            values = (f"Predicted {selected_axis or 'none'}: {self._number(selected.residual_deg if preview_available else None)}",)
-        fit = selected.marker_rmse_mm if selected else None
+            baseline = self._number(none.residual_deg if none_trace else None)
+            self.no_correction_summary.setText(tr("No correction  {}").format(baseline))
+        self.preview_summary.setVisible(selected_axis is not None)
+        if selected_axis is not None:
+            template = "{} preview  {}" if actual_refit else "{} prediction  {}"
+            preview = self._number(selected.residual_deg if preview_available else None)
+            self.preview_summary.setText(tr(template).format(selected_axis, preview))
         coverage = selected.coverage_ratio if selected else candidate.coverage_ratio
-        coverage_text = f"{coverage:.0%}" if np.isfinite(coverage) else "unavailable"
-        self.candidate_details.setPlainText("\n".join((
-            f"Event: {candidate.trigger}",
-            f"Recommendation: {candidate.recommendation_axis or 'none'} — {candidate.reason}",
-            *values,
-            f"Marker fit error: {self._number(fit, ' mm')}; coverage: {coverage_text}",
-        )))
+        coverage_text = f"{coverage:.0%}" if np.isfinite(coverage) else tr("Unavailable")
+        self.coverage_summary.setText(tr("Marker coverage  {}").format(coverage_text))
+        fit = selected.marker_rmse_mm if selected else None
+        self.candidate_details.setText("\n".join(filter(None, (
+            candidate.trigger, candidate.reason,
+            tr("Marker fit error  {}").format(self._number(fit, ' mm')),
+        ))))
+        self.details_scroll.verticalScrollBar().setValue(0)
 
         for times, values, label in (
             (candidate.pre_window_time_offsets_sec, candidate.pre_window_residual_deg, "Before"),
