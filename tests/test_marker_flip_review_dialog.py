@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from dataclasses import replace
 import json
 import numpy as np
@@ -168,11 +169,14 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         dialog.table.setCurrentCell(2, 0)
         QTest.mouseClick(dialog.details_section.button, Qt.LeftButton)
         app.processEvents()
-        detail_text = dialog.candidate_details.text()
-        self.assertIn(long_trigger.strip(), detail_text)
-        self.assertIn(long_reason.strip(), detail_text)
-        self.assertEqual(dialog.details_scroll.horizontalScrollBar().maximum(), 0)
-        self.assertGreater(dialog.details_scroll.verticalScrollBar().maximum(), 0)
+        self.assertIn('…', dialog.candidate_details.text())
+        self.assertNotIn(long_reason.strip(), dialog.candidate_details.text())
+        self.assertEqual(dialog.copy_diagnostics_button.toolTip(), long_reason)
+        with patch('src.analysis.ui.dialog_marker_flip_review.QApplication') as qt:
+            QTest.mouseClick(dialog.copy_diagnostics_button, Qt.LeftButton)
+            copied = qt.clipboard.return_value.setText.call_args.args[0]
+        self.assertIn(long_trigger.strip(), copied)
+        self.assertIn(long_reason.strip(), copied)
         self.assertTrue(dialog.button_box.visibleRegion().contains(dialog.button_box.rect()))
 
     def test_face_continuity_recommendation_is_conditional_off_and_override_preserved(self):
@@ -198,7 +202,7 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         self.assertEqual(dialog.coverage_summary.text(), 'Marker coverage  100%')
         QTest.mouseClick(dialog.details_section.button, Qt.LeftButton)
         self.assertTrue(dialog.candidate_details.isVisible())
-        details = dialog.candidate_details.text()
+        details = dialog.copy_diagnostics_button.toolTip()
         self.assertIn('cause unconfirmed', details)
         self.assertNotIn('score gap', details)
         self.assertNotIn('algorithm=', details)
@@ -279,7 +283,7 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         self.assertTrue(dialog.preview_status.visibleRegion().contains(dialog.preview_status.rect()))
         self.assertEqual(dialog.no_correction_summary.text(), 'No correction  Unavailable')
         self.assertEqual(dialog.preview_summary.text(), 'X preview  Unavailable')
-        details = dialog.candidate_details.text()
+        details = dialog.copy_diagnostics_button.toolTip()
         for misleading in ('inf°', 'nan', 'gain 0', 'score gap', 'post fit failed'):
             self.assertNotIn(misleading, details)
         axis = dialog.evidence_figure.axes[0]

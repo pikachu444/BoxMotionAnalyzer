@@ -10,11 +10,11 @@ remaining layout delta after #121 / PR #129; #112 / PR #126 lifecycle and
 
 The candidate table has a compact summary underneath it showing the residual
 without correction, the selected axis preview, and marker coverage. Legacy
-candidates label the selected value as a prediction. Expand Details for the
-trigger, recommendation rationale, and marker fit error. The original
-trajectories and the axis preview remain visible alongside each other in wide windows.
-Both charts start below the source controls and share the same plot height.
-In the tabbed layout, each chart uses the available space in its own tab.
+candidates label the selected value as a prediction. Details shows the trigger
+and marker fit error in one row. Copy diagnostics includes the full rationale.
+The two charts have matching titles and toolbars, with independent navigation
+and image saving. Wide windows place the source controls on one row above the
+charts. In the tabbed layout, the source controls appear on the original plot tab.
 
 ## Mockup review before implementation
 
