@@ -747,6 +747,7 @@ KOREAN = {
     '{} prediction  {}': '{}축 예측  {}',
     'Marker coverage  {}': '마커 커버리지  {}',
     'Marker fit error  {}': '마커 적합 오차  {}',
+    'Copy diagnostics': '진단 정보 복사',
     'Export input': '입력 내보내기',
     'Marker B1': '마커 B1',
 }

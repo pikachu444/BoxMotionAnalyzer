@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication, QDialogButtonBox
+from PySide6.QtWidgets import QApplication, QDialogButtonBox, QFileDialog
 
 from src.analysis.ui.dialog_marker_flip_review import MarkerFlipReviewDialog
 from test_marker_flip_review_dialog import _candidate, _hypothesis
@@ -99,11 +99,10 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
         settle(app, dialog)
         assert (dialog.width(), dialog.height()) == size
         assert dialog._tabbed_plots == (size[0] < 1100)
-        if dialog._tabbed_plots:
-            assert dialog.preview_status.minimumHeight() == 0
-        else:
+        if not dialog._tabbed_plots:
             original = dialog.context_canvas
             preview = dialog.evidence_canvas
+            assert dialog.context_toolbar.mapTo(dialog, QPoint()).y() == dialog.evidence_toolbar.mapTo(dialog, QPoint()).y()
             assert original.mapTo(dialog, QPoint()).y() == preview.mapTo(dialog, QPoint()).y()
             assert original.height() == preview.height()
             if count:
@@ -116,18 +115,34 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
                 dialog.plot_tabs.setCurrentIndex(index)
             settle(app, dialog)
             reachable(canvas, dialog)
+            toolbar = dialog.context_toolbar if index == 0 else dialog.evidence_toolbar
+            reachable(toolbar, dialog)
+            if dialog._tabbed_plots:
+                assert dialog.context_controls.isVisible() == (index == 0)
+            assert toolbar.canvas is canvas
+            assert toolbar.accessibleName() == ('Original trajectories' if index == 0 else 'Axis preview')
+            assert toolbar._actions['zoom'].isVisible()
+            assert toolbar._actions['save_figure'].isVisible()
+            assert canvas.figure.axes[0].get_title() == toolbar.accessibleName()
             assert_plot_labels(canvas)
             for button in (QDialogButtonBox.Ok, QDialogButtonBox.Cancel):
                 reachable(dialog.button_box.button(button), dialog)
             if index == 0:
                 reachable(dialog.around_event_button, dialog)
                 reachable(dialog.context_toolbar, dialog)
-                assert dialog.context_source.property('fullPath') == LONG_SOURCE
-                assert dialog.context_source.toolTip().startswith(LONG_SOURCE)
-                assert '…' in dialog.context_source.text()
-                assert dialog.context_source.text().endswith('.csv')
+                source_label = dialog.context_source
+                assert source_label.property('fullPath') == LONG_SOURCE
+                assert source_label.toolTip().startswith(LONG_SOURCE)
+                text = source_label.text()
+                metrics = source_label.fontMetrics()
+                available = source_label.contentsRect().width()
+                assert metrics.horizontalAdvance(text) <= available
+                if metrics.horizontalAdvance(LONG_SOURCE) > available:
+                    assert '…' in text
+                else:
+                    assert text == LONG_SOURCE
+                assert text.endswith('.csv')
                 axis = canvas.figure.axes[0]
-                assert axis.get_title() == 'Original trajectories'
                 assert axis.get_xlabel() == 'Time (s)' and axis.get_ylabel() == 'Position (mm)'
                 np.testing.assert_array_equal(axis.lines[0].get_xdata(), data.index)
                 np.testing.assert_allclose(axis.lines[0].get_ydata(), data.F1_X, equal_nan=True)
@@ -176,7 +191,7 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
         app.processEvents()
 
 
-def test_resize_tabs_and_preview_preserve_pan_zoom_choices_and_explicit_apply():
+def test_resize_tabs_and_preview_preserve_pan_zoom_choices_and_explicit_apply(tmp_path, monkeypatch):
     app = QApplication.instance() or QApplication([])
     dialog, _ = layout_fixture(24)
     dialog.resize(820, 600)
@@ -201,13 +216,34 @@ def test_resize_tabs_and_preview_preserve_pan_zoom_choices_and_explicit_apply():
         assert limits[0][1] - limits[0][0] < before[1] - before[0]
         dialog.axis_combo(0).setCurrentText('Y')
         dialog.plot_tabs.setCurrentIndex(1)
+        settle(app, dialog)
+        preview_axis = dialog.evidence_figure.axes[0]
+        preview_before = preview_axis.get_xlim()
+        dialog.evidence_toolbar.zoom()
+        start = QPoint(dialog.evidence_canvas.width() // 2, dialog.evidence_canvas.height() // 2)
+        QTest.mousePress(dialog.evidence_canvas, Qt.LeftButton, pos=start - QPoint(60, 20))
+        QTest.mouseMove(dialog.evidence_canvas, start + QPoint(60, 20), delay=30)
+        QTest.mouseRelease(dialog.evidence_canvas, Qt.LeftButton, pos=start + QPoint(60, 20))
+        dialog.evidence_toolbar.zoom()
+        preview_limits = preview_axis.get_xlim()
+        assert preview_limits[1] - preview_limits[0] < preview_before[1] - preview_before[0]
+        assert axis.get_xlim() == limits[0]
         for width in (1100, 1099, 1280, 820):
             dialog.resize(width, 600)
             settle(app, dialog)
             assert dialog.context_figure.axes[0] is axis  # Layout never refits/recreates.
             assert (axis.get_xlim(), axis.get_ylim()) == limits
+            assert preview_axis.get_xlim() == preview_limits
             assert not dialog.approval_checkbox(0).isChecked()
         assert dialog.plot_tabs.currentIndex() == 1
+        destinations = [tmp_path / 'original.png', tmp_path / 'preview.png']
+        pending = iter(destinations)
+        monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *_: (str(next(pending)), 'PNG (*.png)'))
+        for toolbar in (dialog.context_toolbar, dialog.evidence_toolbar):
+            toolbar._actions['save_figure'].trigger()
+        files = [path.read_bytes() for path in destinations]
+        assert all(content.startswith(b'\x89PNG\r\n\x1a\n') for content in files)
+        assert files[0] != files[1]
         QTest.mouseClick(dialog.approval_checkbox(0), Qt.LeftButton)
         assert dialog.get_decisions()[0].approved and dialog.get_decisions()[0].axis == 'Y'
         dialog.table.setCurrentCell(23, 0)

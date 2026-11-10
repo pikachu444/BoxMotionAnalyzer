@@ -10,17 +10,16 @@ from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QApplication,
     QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QFrame,
     QHeaderView,
     QHBoxLayout,
     QLabel,
     QMessageBox,
     QPushButton,
-    QScrollArea,
     QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
@@ -40,21 +39,26 @@ from src.analysis.pipeline.marker_flip import (
 from src.utils.ui_language import tr
 
 
-class _ElidedSourceLabel(QLabel):
-    """Keep the existing path tooltip/menu while fitting the visible filename."""
+class _ElidedLabel(QLabel):
+    """Fit single-line labels without losing their full text."""
 
     def setText(self, text):
-        self._filename = text
+        self._full_text = text
         self._elide()
 
     def _elide(self):
         super().setText(self.fontMetrics().elidedText(
-            getattr(self, '_filename', ''), Qt.TextElideMode.ElideMiddle,
+            getattr(self, '_full_text', ''), Qt.TextElideMode.ElideMiddle,
             max(0, self.contentsRect().width())))
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._elide()
+
+    def sizeHint(self):
+        size = super().sizeHint()
+        size.setWidth(self.fontMetrics().horizontalAdvance(getattr(self, '_full_text', '')))
+        return size
 
 
 class MarkerFlipReviewDialog(QDialog):
@@ -179,26 +183,42 @@ class MarkerFlipReviewDialog(QDialog):
         summary.addStretch()
         layout.addWidget(self.candidate_summary)
 
-        self.candidate_details = QLabel()
-        self.candidate_details.setWordWrap(True)
-        self.candidate_details.setAlignment(Qt.AlignmentFlag.AlignTop)
+        details = QWidget()
+        details_layout = QHBoxLayout(details)
+        details_layout.setContentsMargins(0, 0, 0, 0)
+        details_layout.setSpacing(12)
+        self.candidate_details = _ElidedLabel()
         self.candidate_details.setTextFormat(Qt.TextFormat.PlainText)
-        self.candidate_details.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextSelectableByMouse | Qt.TextInteractionFlag.TextSelectableByKeyboard
-        )
+        self.candidate_details.setMaximumWidth(360)
         self.candidate_details.setAccessibleName(tr("Selected marker flip candidate details"))
-        self.details_scroll = QScrollArea()
-        self.details_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self.details_scroll.setWidgetResizable(True)
-        self.details_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.details_scroll.setMaximumHeight(96)
-        self.details_scroll.setWidget(self.candidate_details)
-        self.details_section = CollapsibleSection(tr("Details"), self.details_scroll)
+        details_layout.addWidget(self.candidate_details)
+        self.fit_error = QLabel()
+        details_layout.addWidget(self.fit_error)
+        self.copy_diagnostics_button = QPushButton(tr("Copy diagnostics"))
+        self.copy_diagnostics_button.clicked.connect(self._copy_diagnostics)
+        details_layout.addWidget(self.copy_diagnostics_button)
+        details_layout.addStretch()
+        self.details_section = CollapsibleSection(tr("Details"), details)
         self.details_section.button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
 
         self.preview_status = QLabel()
-        self.preview_status.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom)
         self.preview_status.setStyleSheet("color: #916000;")
+
+        self.context_controls = QWidget()
+        controls = QHBoxLayout(self.context_controls)
+        controls.setContentsMargins(0, 0, 0, 0)
+        self.context_source = _ElidedLabel()
+        set_path_label(self.context_source, '')
+        self.context_target = QComboBox()
+        self.context_target.setAccessibleName(tr('Original observation target'))
+        self.context_target.setMinimumContentsLength(14)
+        self.context_target.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.around_event_button = QPushButton(tr('Around event'))
+        controls.addWidget(self.context_target)
+        controls.addWidget(self.around_event_button)
+        controls.addWidget(self.context_source, 1)
+        layout.addWidget(self.context_controls)
+        self.context_controls.hide()
 
         self.plots = QHBoxLayout()
         self.plot_tabs = QTabWidget()
@@ -209,27 +229,12 @@ class MarkerFlipReviewDialog(QDialog):
         self.context_panel = QWidget()
         context_layout = QVBoxLayout(self.context_panel)
         context_layout.setContentsMargins(0, 0, 0, 0)
-        self.context_header = QWidget()
-        context_header_layout = QVBoxLayout(self.context_header)
-        context_header_layout.setContentsMargins(0, 0, 0, 0)
-        context_layout.addWidget(self.context_header)
-        self.context_source = _ElidedSourceLabel()
-        set_path_label(self.context_source, '')
-        context_header_layout.addWidget(self.context_source)
-        controls = QHBoxLayout()
-        self.context_target = QComboBox()
-        self.context_target.setAccessibleName(tr('Original observation target'))
-        self.context_target.setMinimumContentsLength(14)
-        self.context_target.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
-        self.around_event_button = QPushButton(tr('Around event'))
-        controls.addWidget(self.context_target, 1)
-        controls.addWidget(self.around_event_button)
-        context_header_layout.addLayout(controls)
         self.context_figure = Figure(figsize=(6, 3), dpi=100, layout='constrained')
         self.context_canvas = FigureCanvas(self.context_figure)
         self.context_canvas.setMinimumHeight(170)
-        self.context_toolbar = NavigationToolbar2QT(self.context_canvas, self.context_header, coordinates=False)
-        context_header_layout.addWidget(self.context_toolbar)
+        self.context_toolbar = NavigationToolbar2QT(self.context_canvas, self.context_panel, coordinates=False)
+        self.context_toolbar.setAccessibleName(tr('Original trajectories'))
+        context_layout.addWidget(self.context_toolbar)
         context_layout.addWidget(self.context_canvas, 1)
         self.context_target.currentIndexChanged.connect(self._draw_context)
         self.around_event_button.clicked.connect(self._center_context)
@@ -238,8 +243,6 @@ class MarkerFlipReviewDialog(QDialog):
         self.evidence_panel = QWidget()
         evidence_layout = QVBoxLayout(self.evidence_panel)
         evidence_layout.setContentsMargins(0, 0, 0, 0)
-        evidence_layout.addWidget(self.preview_status)
-
         self.evidence_figure = Figure(figsize=(8, 2.4), dpi=100, layout='constrained')
         self.evidence_canvas = FigureCanvas(self.evidence_figure)
         self.evidence_canvas.setMinimumHeight(170)
@@ -247,6 +250,11 @@ class MarkerFlipReviewDialog(QDialog):
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Expanding,
         )
+        self.evidence_toolbar = NavigationToolbar2QT(self.evidence_canvas, self.evidence_panel, coordinates=False)
+        self.evidence_toolbar.setAccessibleName(tr('Axis preview'))
+        self.preview_status_action = self.evidence_toolbar.addWidget(self.preview_status)
+        self.preview_status_action.setVisible(False)
+        evidence_layout.addWidget(self.evidence_toolbar)
         evidence_layout.addWidget(self.evidence_canvas, 1)
         self.plots.addWidget(self.evidence_panel, 1)
         layout.addLayout(self.plots, 2)
@@ -274,7 +282,7 @@ class MarkerFlipReviewDialog(QDialog):
         if self._context_data is None or self._evidence_canvas_disposed:
             return
         tabbed = self.width() < 1100
-        self.preview_status.setMinimumHeight(0 if tabbed else self.context_header.sizeHint().height())
+        self.context_controls.setVisible(not tabbed or self._active_plot_tab == 0)
         if tabbed == self._tabbed_plots:
             return
         self._tabbed_plots = tabbed
@@ -301,6 +309,7 @@ class MarkerFlipReviewDialog(QDialog):
         if self._evidence_canvas_disposed or index < 0:
             return
         self._active_plot_tab = index
+        self.context_controls.setVisible(index == 0)
         (self.context_canvas if index == 0 else self.evidence_canvas).draw_idle()
 
     def _select_event(self, row):
@@ -398,14 +407,15 @@ class MarkerFlipReviewDialog(QDialog):
             self._draw_context(recenter=True)
         self.evidence_figure.clear()
         axis = self.evidence_figure.add_subplot(111)
+        axis.set_title(tr("Axis preview"))
         if current_row < 0 or current_row >= len(self.candidates):
             axis.text(0.5, 0.5, "No event selected", ha="center", va="center")
             axis.set_axis_off()
             self.candidate_summary.hide()
             self.details_section.hide()
-            self.candidate_details.clear()
-            self.preview_status.clear()
-            self.preview_status.setToolTip("")
+            self.preview_status_action.setVisible(False)
+            self.evidence_toolbar.setEnabled(False)
+            self.evidence_toolbar.update()
             self.evidence_canvas.draw()
             return
 
@@ -420,7 +430,9 @@ class MarkerFlipReviewDialog(QDialog):
         preview_available = selected_trace if actual_refit else bool(
             selected_axis and selected and np.isfinite(selected.residual_deg)
             and any(np.isfinite(post_times)))
-        self.preview_status.setText("" if preview_available else tr("Preview unavailable"))
+        self.evidence_toolbar.setEnabled(True)
+        self.preview_status_action.setVisible(not preview_available)
+        self.preview_status.setText(tr("Preview unavailable"))
         self.preview_status.setToolTip("" if preview_available else
             f"Comparison samples: {len(candidate.pre_window_time_offsets_sec)} before, {len(post_times)} after. {candidate.reason}")
 
@@ -439,11 +451,10 @@ class MarkerFlipReviewDialog(QDialog):
         coverage_text = f"{coverage:.0%}" if np.isfinite(coverage) else tr("Unavailable")
         self.coverage_summary.setText(tr("Marker coverage  {}").format(coverage_text))
         fit = selected.marker_rmse_mm if selected else None
-        self.candidate_details.setText("\n".join(filter(None, (
-            candidate.trigger, candidate.reason,
-            tr("Marker fit error  {}").format(self._number(fit, ' mm')),
-        ))))
-        self.details_scroll.verticalScrollBar().setValue(0)
+        self.candidate_details.setText(" ".join(candidate.trigger.split()))
+        self.candidate_details.setToolTip(candidate.trigger)
+        self.fit_error.setText(tr("Marker fit error  {}").format(self._number(fit, ' mm')))
+        self.copy_diagnostics_button.setToolTip(candidate.reason)
 
         for times, values, label in (
             (candidate.pre_window_time_offsets_sec, candidate.pre_window_residual_deg, "Before"),
@@ -460,7 +471,6 @@ class MarkerFlipReviewDialog(QDialog):
             else:
                 axis.axhline(selected.residual_deg, linestyle="--", label=f"Predicted {selected_axis} mean")
         axis.axvline(0.0, linestyle=":", linewidth=1.0, color="0.5")
-        axis.set_title(tr("Axis preview"))
         axis.set_xlabel(tr("Time from event (s)"))
         axis.set_ylabel(tr("Relative rotation (°)"))
         axis.grid(True, alpha=0.25)
@@ -470,7 +480,13 @@ class MarkerFlipReviewDialog(QDialog):
         if high - low < 1.0:
             centre = (low + high) / 2.0
             axis.set_ylim(centre - .5, centre + .5)
+        self.evidence_toolbar.update()
+        self.evidence_toolbar.push_current()
         self.evidence_canvas.draw()
+
+    def _copy_diagnostics(self) -> None:
+        candidate = self.candidates[self.table.currentRow()]
+        QApplication.clipboard().setText("\n".join((candidate.trigger, candidate.reason, self.fit_error.text())))
 
     def _dispose_evidence_canvas(self) -> None:
         if self._evidence_canvas_disposed:
@@ -478,12 +494,14 @@ class MarkerFlipReviewDialog(QDialog):
         self._evidence_canvas_disposed = True
         self._context_data = None
         self.context_toolbar.update()
+        self.evidence_toolbar.update()
         self.context_figure.clear()
         try:
             self.table.currentCellChanged.disconnect(self._update_evidence_plot)
         except (RuntimeError, TypeError):
             pass
         try:
+            self.evidence_toolbar.close()
             self.evidence_canvas.close()
             self.context_toolbar.close()
             self.context_canvas.close()
