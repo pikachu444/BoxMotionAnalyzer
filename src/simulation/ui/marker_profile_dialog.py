@@ -4,7 +4,8 @@ from __future__ import annotations
 from copy import deepcopy
 import numpy as np
 
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar2QT
 from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties
 from matplotlib.patches import Rectangle
@@ -19,6 +20,7 @@ from src.config.marker_semantics import FACE_NORMALS
 from src.simulation.profile_document import ProfileEditorState, save_document
 from src.utils.marker_profile_identity import POLICY_VERSION, layout_support, compatibility, profile_identity
 from .profile_preview import ProfilePreviewNavigation, FACES, COLORS, PLANE_AXES, box_at, intersects
+from src.utils.ui_language import tr
 
 
 class MarkerProfileDialog(QDialog):
@@ -31,17 +33,17 @@ class MarkerProfileDialog(QDialog):
         self.current_face = 'BACK'; self.selected_row = 0; self._loading = True
         self._narrow = None; self.face_views = {}; self._face_key = None; self._label_key = None
         self._face_press = None; self.pick_menu = None
-        self.setWindowTitle('Marker profile'); self.setMinimumSize(820, 600)
+        self.setWindowTitle(tr('Marker profile')); self.setMinimumSize(820, 600)
         self.resize(1280, 960)
         outer = QVBoxLayout(self)
-        row = QHBoxLayout(); row.addWidget(QLabel('Profile ID'))
+        row = QHBoxLayout(); row.addWidget(QLabel(tr('Profile ID')))
         self.profile_id = QLineEdit(self.state.draft['profile_id']); row.addWidget(self.profile_id, 1)
         outer.addLayout(row)
-        self.lineage = ElidedPathLabel('Copy of '+self.state.source['profile_id']); outer.addWidget(self.lineage)
+        self.lineage = ElidedPathLabel(tr('Copy of {}').format(self.state.source['profile_id'])); outer.addWidget(self.lineage)
         self.applied_label = ElidedPathLabel(); outer.addWidget(self.applied_label)
         for label in (self.lineage, self.applied_label): label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        self.lineage.setToolTip('Copy of '+self.state.source['profile_id'])
-        self.table = QTableWidget(0, 5); self.table.setHorizontalHeaderLabels(['Name', 'Face', 'X (mm)', 'Y (mm)', 'Z (mm)'])
+        self.lineage.setToolTip(tr('Copy of {}').format(self.state.source['profile_id']))
+        self.table = QTableWidget(0, 5); self.table.setHorizontalHeaderLabels([tr('Name'), tr('Face'), 'X (mm)', 'Y (mm)', 'Z (mm)'])
         self.table.setSelectionBehavior(QTableWidget.SelectRows); self.table.verticalHeader().hide()
         self.table.verticalHeader().setDefaultSectionSize(26)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
@@ -54,31 +56,39 @@ class MarkerProfileDialog(QDialog):
         self.preview_panel = QWidget(); self.preview_layout = QVBoxLayout(self.preview_panel)
         self.preview_layout.setContentsMargins(0, 0, 0, 0)
         self.preview_title = QLabel(); self.preview_layout.addWidget(self.preview_title)
-        facebar = QHBoxLayout(); self.face_caption = QLabel('View face (marker count)'); facebar.addWidget(self.face_caption)
-        self.view_combo = QComboBox(); self.view_combo.addItems([f.title() for f in FACES]); self.view_combo.setCurrentText('Back')
+        facebar = QHBoxLayout(); self.face_caption = QLabel(tr('View face (marker count)')); facebar.addWidget(self.face_caption)
+        self.view_combo = QComboBox()
+        for face in FACES:
+            self.view_combo.addItem(tr(face.title()), face)
+        self.view_combo.setCurrentIndex(self.view_combo.findData('BACK'))
         facebar.addWidget(self.view_combo); self.face_buttons = {}
         for face in FACES:
             button = QPushButton(); button.setCheckable(True)
-            button.clicked.connect(lambda checked=False, f=face:self.view_combo.setCurrentText(f.title()))
+            button.clicked.connect(lambda checked=False, f=face:self.view_combo.setCurrentIndex(self.view_combo.findData(f)))
             facebar.addWidget(button); self.face_buttons[face] = button
         facebar.addStretch(); self.preview_layout.addLayout(facebar)
         self.selected_readout = QLabel(); self.preview_layout.addWidget(self.selected_readout)
         self.plot_splitter = QSplitter(Qt.Vertical); self.plot_splitter.setChildrenCollapsible(False)
         self.top = QWidget(); top_layout = QVBoxLayout(self.top); top_layout.setContentsMargins(0, 0, 0, 0)
-        topbar = QHBoxLayout(); topbar.addWidget(QLabel('3D View'))
-        self.mode_combo = QComboBox(); self.mode_combo.addItems(['Box', 'Exploded faces']); self.mode_combo.setCurrentIndex(1)
-        topbar.addWidget(self.mode_combo); display = QLabel('Display only')
-        display.setToolTip('View gestures keep table, selected mm values and saved profile unchanged.'); topbar.addWidget(display)
-        topbar.addWidget(QLabel('Names')); self.names3 = QComboBox(); self.names3.addItems(['All', 'View face', 'Selected'])
+        topbar = QHBoxLayout(); topbar.addWidget(QLabel(tr('3D View')))
+        self.mode_combo = QComboBox()
+        for mode in ('Box', 'Exploded faces'):
+            self.mode_combo.addItem(tr(mode), mode)
+        self.mode_combo.setCurrentIndex(1)
+        topbar.addWidget(self.mode_combo); display = QLabel(tr('Display only'))
+        display.setToolTip(tr('View gestures keep table, selected mm values and saved profile unchanged.')); topbar.addWidget(display)
+        topbar.addWidget(QLabel(tr('Names'))); self.names3 = QComboBox()
+        for names in ('All', 'View face', 'Selected'):
+            self.names3.addItem(tr(names), names)
         topbar.addWidget(self.names3); topbar.addStretch()
-        self.fit3_button = QPushButton('Fit'); self.reset_view_button = QPushButton('Reset view')
+        self.fit3_button = QPushButton(tr('Fit')); self.reset_view_button = QPushButton(tr('Reset view'))
         topbar.addWidget(self.fit3_button); topbar.addWidget(self.reset_view_button); top_layout.addLayout(topbar)
         self.scene = ProfilePreviewNavigation(self.state.preview, self); top_layout.addWidget(self.scene, 1)
         self.bottom = QWidget(); self.bottom_layout = QVBoxLayout(self.bottom); self.bottom_layout.setContentsMargins(0, 0, 0, 0)
         self.bottom_controls = QWidget(); bottom_bar = QHBoxLayout(self.bottom_controls); bottom_bar.setContentsMargins(8, 0, 8, 0)
-        self.face_title = QLabel(); bottom_bar.addWidget(self.face_title); bottom_bar.addStretch(); bottom_bar.addWidget(QLabel('Names'))
-        self.names2 = QComboBox(); self.names2.addItems(['All', 'Selected']); bottom_bar.addWidget(self.names2)
-        self.pan_button = QPushButton('Pan'); self.zoom_button = QPushButton('Zoom'); self.fit2_button = QPushButton('Fit')
+        self.face_title = QLabel(); bottom_bar.addWidget(self.face_title); bottom_bar.addStretch(); bottom_bar.addWidget(QLabel(tr('Names')))
+        self.names2 = QComboBox(); self.names2.addItems([tr('All'), tr('Selected')]); bottom_bar.addWidget(self.names2)
+        self.pan_button = QPushButton(tr('Pan')); self.zoom_button = QPushButton(tr('Zoom')); self.fit2_button = QPushButton(tr('Fit'))
         for button in (self.pan_button, self.zoom_button): button.setCheckable(True)
         for button in (self.pan_button, self.zoom_button, self.fit2_button): bottom_bar.addWidget(button)
         self.figure2 = Figure(); self.canvas2 = FigureCanvasQTAgg(self.figure2)
@@ -94,12 +104,12 @@ class MarkerProfileDialog(QDialog):
                 ('Local X half-turn', 'Front ↔ Back; Top ↔ Bottom'), ('Local Y half-turn', 'Front ↔ Back; Left ↔ Right'),
                 ('Local Z half-turn', 'Left ↔ Right; Top ↔ Bottom'),
                 ('Correction', 'Analysis face assignment; measured XYZ and IDs preserved'), ('Meaning version', POLICY_VERSION)):
-            value = QLabel(text); value.setWordWrap(True); form.addRow(label, value)
+            value = QLabel(tr(text)); value.setWordWrap(True); form.addRow(tr(label), value)
         self.compatibility = QLabel(); self.compatibility.setWordWrap(True); outer.addWidget(self.compatibility)
         self.status = QLabel(); self.status.setWordWrap(True); self.status.setTextFormat(Qt.PlainText); outer.addWidget(self.status)
-        actions = QHBoxLayout(); self.preview_button = QPushButton('Preview'); self.reset_button = QPushButton('Reset to source')
-        self.reset_button.setToolTip('Restore source geometry into the draft. Keep custom ID; Preview and Apply are still required.')
-        self.save_button = QPushButton('Save JSON…'); self.apply_button = QPushButton('Apply'); self.cancel_button = QPushButton('Cancel')
+        actions = QHBoxLayout(); self.preview_button = QPushButton(tr('Preview')); self.reset_button = QPushButton(tr('Reset to source'))
+        self.reset_button.setToolTip(tr('Restore source geometry into the draft. Keep custom ID; Preview and Apply are still required.'))
+        self.save_button = QPushButton(tr('Save JSON…')); self.apply_button = QPushButton(tr('Apply')); self.cancel_button = QPushButton(tr('Cancel'))
         for button in (self.preview_button, self.reset_button, self.save_button): actions.addWidget(button)
         actions.addStretch()
         for button in (self.apply_button, self.cancel_button): actions.addWidget(button)
@@ -107,8 +117,9 @@ class MarkerProfileDialog(QDialog):
         self.preview_button.clicked.connect(self.preview); self.reset_button.clicked.connect(self.reset)
         self.save_button.clicked.connect(self.save); self.apply_button.clicked.connect(self.apply); self.cancel_button.clicked.connect(self.reject)
         self.profile_id.textChanged.connect(self.changed); self.table.itemChanged.connect(self.changed)
-        self.table.itemSelectionChanged.connect(self.select_row); self.view_combo.currentTextChanged.connect(self.change_face)
-        self.mode_combo.currentTextChanged.connect(self.scene.set_mode); self.names3.currentTextChanged.connect(self.scene.set_names)
+        self.table.itemSelectionChanged.connect(self.select_row); self.view_combo.currentIndexChanged.connect(self.change_face)
+        self.mode_combo.currentIndexChanged.connect(lambda: self.scene.set_mode(self.mode_combo.currentData()))
+        self.names3.currentIndexChanged.connect(lambda: self.scene.set_names(self.names3.currentData()))
         self.scene.markerSelected.connect(self.table.selectRow); self.fit3_button.clicked.connect(self.scene.fit)
         self.reset_view_button.clicked.connect(self.scene.reset_view)
         self.names2.currentTextChanged.connect(self._refresh_face_selection)
@@ -126,7 +137,7 @@ class MarkerProfileDialog(QDialog):
         while self.tabs.count(): self.tabs.removeTab(0)
         if narrow:
             self.wide_splitter.hide(); self.layout().insertWidget(3, self.tabs, 1); self.tabs.show()
-            self.tabs.addTab(self.table, 'Markers'); self.tabs.addTab(self.preview_panel, 'Preview'); self.tabs.addTab(self.rules, 'Rules')
+            self.tabs.addTab(self.table, tr('Markers')); self.tabs.addTab(self.preview_panel, tr('Preview')); self.tabs.addTab(self.rules, tr('Rules'))
             self.preview_layout.insertWidget(3, self.bottom_controls)
             self.top.setMinimumHeight(355); self.bottom.setMinimumHeight(275)
             self.plot_scroll.setWidget(self.plot_splitter); self.preview_layout.addWidget(self.plot_scroll, 1); self.plot_scroll.show()
@@ -135,11 +146,11 @@ class MarkerProfileDialog(QDialog):
             self.plot_scroll.hide(); self.preview_layout.addWidget(self.plot_splitter, 1)
             self.top.setMinimumHeight(180); self.bottom.setMinimumHeight(180)
             self.bottom_layout.insertWidget(0, self.bottom_controls)
-            self.tabs.addTab(self.preview_panel, 'Preview'); self.tabs.addTab(self.rules, 'Rules')
+            self.tabs.addTab(self.preview_panel, tr('Preview')); self.tabs.addTab(self.rules, tr('Rules'))
             self.wide_splitter.addWidget(self.table); self.wide_splitter.addWidget(self.tabs); self.wide_splitter.show()
             self.wide_splitter.setStretchFactor(0, 0); self.wide_splitter.setStretchFactor(1, 1)
             self.wide_splitter.setSizes([480, self.width()-500])
-        self.view_combo.setVisible(narrow); self.face_caption.setText('View face' if narrow else 'View face (marker count)')
+        self.view_combo.setVisible(narrow); self.face_caption.setText(tr('View face') if narrow else tr('View face (marker count)'))
         for button in self.face_buttons.values(): button.setVisible(not narrow)
         self.tabs.setCurrentWidget(self.preview_panel); self.plot_splitter.setSizes([550, 450])
         if hasattr(self, 'face_markers'): self._face_caption()
@@ -188,12 +199,12 @@ class MarkerProfileDialog(QDialog):
         support = layout_support(self.state.preview)
         self.apply_button.setEnabled(error is None and self.state.preview_fresh and support['status'] == 'supported')
         self.preview_title.setText('Last valid preview — invalid edits' if error else
-                                   'Preview — not applied' if self.state.preview_fresh else 'Preview outdated — edits changed')
+                                   tr('Preview — not applied') if self.state.preview_fresh else tr('Preview outdated — edits changed'))
         self.status.setText(error or (support['reason'] if support['status'] != 'supported' else
-                                      'Draft ready. Preview and Apply are separate.'))
+                                      tr('Draft ready. Preview and Apply are separate.')))
         current = profile_identity(self.state.preview)
         check = compatibility(self.previous_result_identity, current)
-        self.compatibility.setText('Previous result: '+check['status'])
+        self.compatibility.setText(tr('Previous result: {}').format(tr(check['status'])))
         self.compatibility.setToolTip(' '.join(check['reasons'])+' Apply does not approve a previous result.')
 
     def preview(self):
@@ -216,10 +227,10 @@ class MarkerProfileDialog(QDialog):
         try: save_document(path, self.state)
         except (OSError, ValueError) as error:
             self.status.setText('Save failed: '+str(error)); return False
-        self.status.setText('Profile saved. Apply remains separate.'); return True
+        self.status.setText(tr('Profile saved. Apply remains separate.')); return True
 
     def save(self):
-        path, _ = QFileDialog.getSaveFileName(self, 'Save marker profile', self.state.draft['profile_id']+'.json', 'JSON files (*.json)')
+        path, _ = QFileDialog.getSaveFileName(self, tr('Save marker profile'), self.state.draft['profile_id']+'.json', 'JSON files (*.json)')
         if path: self.save_to(path)
 
     def _render_preview(self):
@@ -230,10 +241,10 @@ class MarkerProfileDialog(QDialog):
             self.selected_row = next((i for i, m in enumerate(markers) if m['id'] == 'B1'), 0)
             self.table.selectRow(self.selected_row)
         dims = ' × '.join(f'{d:g}' for d in self.state.preview['box_dims_mm'])
-        self.applied_label.setText(f'Box: {dims} mm    Source unchanged    Applied: {self.state.applied["profile_id"]}')
-        self.applied_label.setToolTip(f'Applied: {self.state.applied["profile_id"]}')
+        self.applied_label.setText(tr('Box: {} mm    Source unchanged    Applied: {}').format(dims, self.state.applied['profile_id']))
+        self.applied_label.setToolTip(tr('Applied: {}').format(self.state.applied['profile_id']))
         for face, button in self.face_buttons.items():
-            button.setText(face.title()+f' ({sum(m["face"] == face for m in markers)})')
+            button.setText(tr(face.title())+f' ({sum(m["face"] == face for m in markers)})')
             button.setChecked(face == self.current_face)
         self._refresh_selection(); self._render_face()
 
@@ -241,7 +252,7 @@ class MarkerProfileDialog(QDialog):
         if self._loading or self.table.currentRow() < 0: return
         self.selected_row = min(self.table.currentRow(), len(self.state.preview['markers'])-1)
         face = self.state.preview['markers'][self.selected_row]['face']
-        self.view_combo.setCurrentText(face.title()); self._refresh_selection(); self._render_face()
+        self.view_combo.setCurrentIndex(self.view_combo.findData(face)); self._refresh_selection(); self._render_face()
 
     def _refresh_selection(self):
         marker = self.state.preview['markers'][self.selected_row]
@@ -254,14 +265,14 @@ class MarkerProfileDialog(QDialog):
     def change_face(self):
         if self._loading: return
         if self._face_key is not None: self.face_views[self.current_face] = (self.face_axes.get_xlim(), self.face_axes.get_ylim())
-        self.current_face = self.view_combo.currentText().upper()
+        self.current_face = self.view_combo.currentData()
         for face, button in self.face_buttons.items(): button.setChecked(face == self.current_face)
         self.scene.set_selected(self.selected_row, self.current_face); self._render_face()
 
     def _face_caption(self):
         axis = next(i for i in range(3) if i not in PLANE_AXES[self.current_face])
         value = FACE_NORMALS[self.current_face][axis]*self.state.preview['box_dims_mm'][axis]/2
-        self.face_title.setText(('2D ' if self._narrow else '')+self.current_face.title()+f' / {"XYZ"[axis]}={value:g} mm ({len(self.face_markers)})')
+        self.face_title.setText(('2D ' if self._narrow else '') + tr(self.current_face.title()) + f' / {"XYZ"[axis]}={value:g} mm ({len(self.face_markers)})')
 
     def _render_face(self):
         key = (self.scene.profile_hash, self.current_face)
@@ -291,7 +302,7 @@ class MarkerProfileDialog(QDialog):
         self.face_ring.set_offsets(np.asarray(points).reshape(-1, 2))
         for marker, label in zip(self.face_markers, self.face_labels):
             label.set_fontweight('bold' if marker['id'] == selected else 'normal')
-            label.set_visible(self.names2.currentText() == 'All' or marker['id'] == selected)
+            label.set_visible(self.names2.currentIndex() == 0 or marker['id'] == selected)
         self.canvas2.draw_idle()
 
     def _place_face_labels(self, event):

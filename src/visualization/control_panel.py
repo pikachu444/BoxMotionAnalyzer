@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from src.config import config_visualization as config
+from src.utils.ui_language import tr
 
 
 ENTITY_ID_ROLE = Qt.ItemDataRole.UserRole
@@ -39,28 +40,28 @@ class ControlPanel(QWidget):
         main_layout.addStretch()
 
     def _create_display_group(self):
-        group = QGroupBox(config.LBL_DISPLAY_OPTIONS)
+        group = QGroupBox(tr(config.LBL_DISPLAY_OPTIONS))
         layout = QHBoxLayout(group)
 
-        self.box_checkbox = QCheckBox("Box")
+        self.box_checkbox = QCheckBox(tr("Box"))
         self.box_checkbox.setChecked(True)
         self.box_checkbox.toggled.connect(
             lambda checked: self.visibility_changed.emit(config.SK_ACTOR_BOX, checked)
         )
 
-        self.box_edges_checkbox = QCheckBox("Box Edges")
+        self.box_edges_checkbox = QCheckBox(tr("Box Edges"))
         self.box_edges_checkbox.setChecked(True)
         self.box_edges_checkbox.toggled.connect(
             lambda checked: self.visibility_changed.emit(config.SK_ACTOR_BOX_EDGES, checked)
         )
 
-        self.markers_checkbox = QCheckBox("Markers")
+        self.markers_checkbox = QCheckBox(tr("Markers"))
         self.markers_checkbox.setChecked(True)
         self.markers_checkbox.toggled.connect(
             lambda checked: self.visibility_changed.emit(config.SK_ACTOR_MARKERS, checked)
         )
 
-        self.labels_checkbox = QCheckBox("Labels")
+        self.labels_checkbox = QCheckBox(tr("Labels"))
         self.labels_checkbox.setChecked(True)
         self.labels_checkbox.toggled.connect(
             lambda checked: self.visibility_changed.emit(config.SK_ACTOR_LABELS, checked)
@@ -74,12 +75,12 @@ class ControlPanel(QWidget):
         return group
 
     def _create_inspector_group(self):
-        group = QGroupBox(config.LBL_OBJECT_INSPECTOR)
+        group = QGroupBox(tr(config.LBL_OBJECT_INSPECTOR))
         layout = QVBoxLayout(group)
 
         self.plot_data_combobox = QComboBox()
         self._refresh_metric_options(None)
-        self.inspector_help_label = QLabel(config.get_inspector_help_text(None))
+        self.inspector_help_label = QLabel(tr(config.get_inspector_help_text(None)))
         self.inspector_help_label.setWordWrap(True)
 
         self.object_tree = QTreeWidget()
@@ -88,7 +89,7 @@ class ControlPanel(QWidget):
         self.object_tree.itemSelectionChanged.connect(self.on_object_selection_changed)
 
         range_layout = QHBoxLayout()
-        self.range_checkbox = QCheckBox(config.LBL_USE_FRAME_RANGE)
+        self.range_checkbox = QCheckBox(tr(config.LBL_USE_FRAME_RANGE))
         self.start_frame_spinbox = QSpinBox()
         self.end_frame_spinbox = QSpinBox()
 
@@ -96,16 +97,16 @@ class ControlPanel(QWidget):
         self.end_frame_spinbox.setEnabled(False)
 
         range_layout.addWidget(self.range_checkbox)
-        range_layout.addWidget(QLabel(config.LBL_START))
+        range_layout.addWidget(QLabel(tr(config.LBL_START)))
         range_layout.addWidget(self.start_frame_spinbox)
-        range_layout.addWidget(QLabel(config.LBL_END))
+        range_layout.addWidget(QLabel(tr(config.LBL_END)))
         range_layout.addWidget(self.end_frame_spinbox)
         range_layout.addStretch()
 
         self.range_checkbox.toggled.connect(self.start_frame_spinbox.setEnabled)
         self.range_checkbox.toggled.connect(self.end_frame_spinbox.setEnabled)
 
-        layout.addWidget(QLabel(config.LBL_PLOT_DATA))
+        layout.addWidget(QLabel(tr(config.LBL_PLOT_DATA)))
         layout.addWidget(self.plot_data_combobox)
         layout.addWidget(self.inspector_help_label)
         layout.addLayout(range_layout)
@@ -119,7 +120,7 @@ class ControlPanel(QWidget):
         self.plot_data_combobox.blockSignals(True)
         self.plot_data_combobox.clear()
         for label, metric_key in metric_options:
-            self.plot_data_combobox.addItem(label, metric_key)
+            self.plot_data_combobox.addItem(tr(label), metric_key)
 
         if current_metric is not None:
             index = self.plot_data_combobox.findData(current_metric)
@@ -164,7 +165,7 @@ class ControlPanel(QWidget):
         if selected_items:
             selected_type = selected_items[0].data(0, ENTITY_TYPE_ROLE)
         self._refresh_metric_options(selected_type)
-        self.inspector_help_label.setText(config.get_inspector_help_text(selected_type))
+        self.inspector_help_label.setText(tr(config.get_inspector_help_text(selected_type)))
         self.object_selected.emit([item.data(0, ENTITY_ID_ROLE) for item in selected_items])
 
     def populate_scene_inspector(self, grouped_entity_ids: dict[str, list[str]]):
@@ -185,7 +186,7 @@ class ControlPanel(QWidget):
             group_item.setExpanded(True)
 
         self._refresh_metric_options(None)
-        self.inspector_help_label.setText(config.get_inspector_help_text(None))
+        self.inspector_help_label.setText(tr(config.get_inspector_help_text(None)))
 
     def populate_object_list(self, object_ids: list[str]):
         grouped = {

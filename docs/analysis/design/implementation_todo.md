@@ -1,6 +1,6 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-10-13
+Last Reviewed: 2026-11-10
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
@@ -61,9 +61,10 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   viewer and actual OS125 remain unexecuted; #104 measured validation is separate
   and unavailable. Additional numerical diagnostic promotion, baseline/trial
   approval and full issue closure are not inferred from software delivery.
-- [ ] #152 independent enhancement: launcher Options with English/한국어 selection,
-  persistence and consistent application UI. Issue created at the user's request;
-  implementation is deferred and is not a child/dependency of #134/#140.
+- [O] #152 independent enhancement: launcher Options stores the English/한국어
+  preference for the next start. Apply and Cancel keep the current windows and
+  work in place. The shared presentation catalog leaves data keys and export
+  contracts intact. This change is independent of #134 and #140.
 - [O] #139 / PUB06 implementation, scoped automatic checks and independent software review:
   default single/robot settings, producer metadata, per-mode save/open/Apply/Cancel
   and stale-worker cancellation are implemented. Original production GUI34 checks
@@ -112,13 +113,10 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   same-reviewer recheck and local 125% replay passed 25 GUI/19 render cases.
   PR #148 merged; heada6760c9 required CI37135346939 succeeded.
   Historical validation evidence is recorded in `../../visualization/scene_review_workflow_137.md`.
-- [ ] #137 native follow-up: FHD production window/accessibility was enumerated,
-  but black capture and activation failure prevented visual/external input
-  acceptance. Keep issue open for native checks at 820x600/FHD/target size,
-  selection/edit/Revert, signal/pan/zoom, save/dialog/reopen and loading/error.
-  #113 registration integration is excluded by user decision; existing source
-  identity remains verified. #104 is separate. This native follow-up does not
-  reopen delivered development or block the authorized #138 scope.
+- [O] #137 native follow-up: Windows desktop input exercised editing, Revert,
+  reapproval, saving, reopening, and Save and Process on a 2560×1440 display.
+  The scene list and save controls were visible at both target sizes with
+  actual Windows 125% scaling. See the [native evidence](https://github.com/pikachu444/BoxMotionAnalyzer/issues/158#issuecomment-6734729964).
 - [O] #136: Implement the approved narrow graph tabs / wide paired layout,
   filename elision, constrained axis/unit redraw, empty preview and fixed
   calculation Cancel; retain original/context/approval/worker semantics.

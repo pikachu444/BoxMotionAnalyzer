@@ -1,7 +1,9 @@
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QWidget, QVBoxLayout
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT, FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar2QT
 from matplotlib.figure import Figure
+from src.utils.ui_language import tr
 
 class PlotDialog(QWidget):
     DEFAULT_Y_AXIS_LABEL = "Value"
@@ -10,7 +12,7 @@ class PlotDialog(QWidget):
         super().__init__(parent)
         self.setWindowFlag(Qt.Window, True)
         self.setWindowModality(Qt.NonModal)
-        self.setWindowTitle("Plot Details")
+        self.setWindowTitle(tr("Plot Details"))
         self.setGeometry(200, 200, 800, 600)
 
         layout = QVBoxLayout(self)
@@ -46,7 +48,7 @@ class PlotDialog(QWidget):
         for args in plot_args:
             self.ax.plot(args["x"], args["y"], label=args["label"])
         self.ax.set_title("")
-        self.ax.set_xlabel("Time (s)")
+        self.ax.set_xlabel(tr("Time (s)"))
         self.ax.set_ylabel(self.DEFAULT_Y_AXIS_LABEL)
         if plot_args:
             self.ax.legend()

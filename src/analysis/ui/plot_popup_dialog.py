@@ -2,10 +2,11 @@ import pandas as pd
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QDialog, QVBoxLayout
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
 from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
+from src.utils.ui_language import tr
 
 
 class PlotPopupDialog(QDialog):
@@ -18,7 +19,7 @@ class PlotPopupDialog(QDialog):
         self.result_data: pd.DataFrame | None = None
         self.cursor_line = None
 
-        self.setWindowTitle(f"Popup Plot - {window_name}")
+        self.setWindowTitle(tr('Popup Plot - {}').format(window_name))
         self.resize(1000, 700)
 
         layout = QVBoxLayout(self)

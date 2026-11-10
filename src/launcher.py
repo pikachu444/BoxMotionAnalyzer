@@ -1,12 +1,17 @@
 import sys
 from PySide6.QtWidgets import (
     QApplication,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
     QMainWindow,
     QWidget,
     QHBoxLayout,
     QVBoxLayout,
     QPushButton,
     QLabel,
+    QMessageBox,
 )
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, QSize
@@ -18,13 +23,47 @@ from src.analysis.app.main_window import MainApp
 from src.analysis.compare.main_window import CompareMainWindow
 from src.simulation.ui.main_window import SimulationUI
 from src.utils.app_identity import configure_qt_application, get_window_icon
+from src.utils.ui_language import preferred_language, save_language, tr
+
+
+class LanguageOptions(QDialog):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setWindowTitle(tr('Options'))
+        layout = QVBoxLayout(self)
+        fields = QFormLayout()
+        self.language = QComboBox()
+        self.language.addItem('English', 'en')
+        self.language.addItem('한국어', 'ko')
+        self.language.setCurrentIndex(self.language.findData(preferred_language()))
+        fields.addRow(tr('Language'), self.language)
+        layout.addLayout(fields)
+
+        restart_notice = QLabel(tr('Language changes take effect the next time you start BoxMotionAnalyzer.'))
+        restart_notice.setWordWrap(True)
+        layout.addWidget(restart_notice)
+        buttons = QDialogButtonBox()
+        apply_button = buttons.addButton(tr('Apply'), QDialogButtonBox.ButtonRole.AcceptRole)
+        buttons.addButton(tr('Cancel'), QDialogButtonBox.ButtonRole.RejectRole)
+        apply_button.setDefault(True)
+        buttons.accepted.connect(self._apply)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        self.resize(360, self.sizeHint().height())
+
+    def _apply(self):
+        if save_language(self.language.currentData()):
+            self.accept()
+            return
+        QMessageBox.warning(self, tr('Options'), tr('The language preference could not be saved.'))
+
 
 class LauncherWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(config.LAUNCHER_TITLE)
+        self.setWindowTitle(tr(config.LAUNCHER_TITLE))
         self.setWindowIcon(get_window_icon())
-        self.resize(840, 380)
+        self.resize(840, 420)
 
         self.data_processing_window = None
         self.simulation_window = None
@@ -44,7 +83,7 @@ class LauncherWindow(QMainWindow):
         pixmap = QPixmap(config.LAUNCHER_ICON_PATH)
         if pixmap.isNull():
             # In case the image is not found, show a text placeholder
-            image_label.setText("Image not found")
+            image_label.setText(tr("Image not found"))
             image_label.setAlignment(Qt.AlignCenter)
         else:
             image_label.setPixmap(pixmap.scaled(
@@ -65,15 +104,15 @@ class LauncherWindow(QMainWindow):
         sim_layout.setContentsMargins(0, 0, 0, 0)
         sim_layout.setSpacing(2)
 
-        self.btn_simulation = QPushButton("Simulation")
+        self.btn_simulation = QPushButton(tr("Simulation"))
         self.btn_simulation.clicked.connect(self.open_simulation)
         self.btn_simulation.setFixedSize(320, 50)
         sim_layout.addWidget(self.btn_simulation, 0, Qt.AlignHCenter)
 
-        self.simulation_warning_label = QLabel("Experimental")
+        self.simulation_warning_label = QLabel(tr("Experimental"))
         self.simulation_warning_label.setToolTip(
-            "Synthetic free-fall data, not independently calibrated. "
-            "Type H support motion and the Type G hazard block are not modeled."
+            tr("Synthetic free-fall data, not independently calibrated. "
+               "Type H support motion and the Type G hazard block are not modeled.")
         )
         self.simulation_warning_label.setWordWrap(True)
         self.simulation_warning_label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
@@ -84,29 +123,36 @@ class LauncherWindow(QMainWindow):
         right_panel_layout.addLayout(sim_layout)
         right_panel_layout.addSpacing(8)
 
-        self.btn_data_processing = QPushButton(config.LAUNCHER_BTN_PROCESS_TEXT)
+        self.btn_data_processing = QPushButton(tr(config.LAUNCHER_BTN_PROCESS_TEXT))
         self.btn_data_processing.clicked.connect(self.open_data_processing)
         self.btn_data_processing.setFixedSize(320, 50)
         right_panel_layout.addWidget(self.btn_data_processing, 0, Qt.AlignHCenter)
 
-        self.btn_visualization = QPushButton(config.LAUNCHER_BTN_VISUALIZE_TEXT)
+        self.btn_visualization = QPushButton(tr(config.LAUNCHER_BTN_VISUALIZE_TEXT))
         self.btn_visualization.clicked.connect(self.open_visualization)
         self.btn_visualization.setFixedSize(320, 50)
         right_panel_layout.addWidget(self.btn_visualization, 0, Qt.AlignHCenter)
 
-        self.btn_visualization.setToolTip("Open an independent 3D window.")
+        self.btn_visualization.setToolTip(tr("Open an independent 3D window."))
 
         right_panel_layout.addSpacing(8)
 
-        self.btn_compare = QPushButton(config.LAUNCHER_BTN_COMPARE_TEXT)
+        self.btn_compare = QPushButton(tr(config.LAUNCHER_BTN_COMPARE_TEXT))
         self.btn_compare.clicked.connect(self.open_comparison)
         self.btn_compare.setFixedSize(320, 50)
         right_panel_layout.addWidget(self.btn_compare, 0, Qt.AlignHCenter)
+
+        self.btn_options = QPushButton(tr('Options'))
+        self.btn_options.clicked.connect(self.open_options)
+        right_panel_layout.addWidget(self.btn_options, 0, Qt.AlignRight)
 
         right_panel_layout.addStretch(1)
 
         main_layout.addWidget(right_panel, 0, Qt.AlignVCenter)
         main_layout.addStretch(1)
+
+    def open_options(self):
+        LanguageOptions(self).exec()
 
     def open_visualization(self):
         """Opens the main 3D visualization window."""

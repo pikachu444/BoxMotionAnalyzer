@@ -8,6 +8,7 @@ from PySide6.QtGui import QColor
 from src.visualization.vista_widget import VistaWidget
 from src.config import config_visualization as k
 from src.utils.result_time import ResultTimeline
+from src.utils.ui_language import tr
 
 
 class ComparePlaybackPanel(QGroupBox):
@@ -32,14 +33,14 @@ class ComparePlaybackPanel(QGroupBox):
         layout.setContentsMargins(6, 6, 6, 6)
         layout.setSpacing(3)
         controls = QHBoxLayout()
-        self.btn_master_play = QPushButton('Play')
+        self.btn_master_play = QPushButton(tr('Play'))
         self.btn_master_play.clicked.connect(self.toggle_master_playback)
         controls.addWidget(self.btn_master_play)
         self.master_slider = QSlider(Qt.Horizontal)
         self.master_slider.valueChanged.connect(self._on_master_slider_changed)
         self.master_slider.sliderPressed.connect(self.stop)
         controls.addWidget(self.master_slider, stretch=1)
-        self.time_label = QLabel('No file')
+        self.time_label = QLabel(tr('No file'))
         controls.addWidget(self.time_label)
         layout.addLayout(controls)
         self.scroll = QScrollArea()
@@ -58,7 +59,7 @@ class ComparePlaybackPanel(QGroupBox):
 
     def stop(self):
         self.master_timer.stop()
-        self.btn_master_play.setText('Play')
+        self.btn_master_play.setText(tr('Play'))
 
     def set_labels_visible(self, visible):
         self.show_labels = visible
@@ -108,7 +109,7 @@ class ComparePlaybackPanel(QGroupBox):
                 viewer = VistaWidget(data_handler=handler)
                 viewer.setMinimumSize(220, 115)
                 viewer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Ignored)
-                viewer.setToolTip('View follows box centre')
+                viewer.setToolTip(tr('View follows box centre'))
                 layout.addWidget(viewer, stretch=1)
                 self.widgets[name] = viewer
             label = QLabel()
@@ -162,7 +163,7 @@ class ComparePlaybackPanel(QGroupBox):
         else:
             self.play_start = self.model.timelines[self.selected_file].times[self.master_slider.value()]
         self.clock.restart()
-        self.btn_master_play.setText('Pause')
+        self.btn_master_play.setText(tr('Pause'))
         self.master_timer.start()
 
     def _on_master_timer(self):
@@ -191,17 +192,17 @@ class ComparePlaybackPanel(QGroupBox):
         if self.view_mode == 'individual':
             name = self.selected_file
             if name not in self.local_controls:
-                self.time_label.setText('No file')
+                self.time_label.setText(tr('No file'))
                 self.time_label.setToolTip('')
                 return
             self._show_row(name, value, remember=True)
             times = self.model.timelines[name].times
             self.time_label.setText(f'{times[value]:.3f} s' if times is not None else f'Sample {value + 1}')
-            self.time_label.setToolTip('Recorded time' if times is not None else 'Sample row (time unavailable)')
+            self.time_label.setToolTip(tr('Recorded time') if times is not None else tr('Sample row (time unavailable)'))
             self.sample_changed.emit(name, value)
             return
         if self.bounds is None:
-            self.time_label.setText('Alignment unavailable')
+            self.time_label.setText(tr('Alignment unavailable'))
             self.time_label.setToolTip('')
             for name in self.local_controls:
                 self._show_row(name, None)
@@ -209,7 +210,7 @@ class ComparePlaybackPanel(QGroupBox):
         start, end = self.bounds
         self.current_elapsed = start + (end - start) * value / 100000
         self.time_label.setText(f'{self.current_elapsed:+.3f} s')
-        self.time_label.setToolTip('Time from the last sample before contact')
+        self.time_label.setToolTip(tr('Time from the last sample before contact'))
         self.elapsed_changed.emit(self.current_elapsed)
         for name in self.local_controls:
             self._show_row(name, self.model.playback_row(name, self.current_elapsed))
@@ -229,14 +230,14 @@ class ComparePlaybackPanel(QGroupBox):
         if viewer is not None:
             viewer.setVisible(available)
         if row is None:
-            control['label'].setText('Unavailable here' if timeline.aligned else 'Alignment unavailable')
+            control['label'].setText(tr('Unavailable here') if timeline.aligned else tr('Alignment unavailable'))
             control['label'].setToolTip(timeline.reason or 'Outside this recording or inside a gap')
             return
         if remember:
             control['row'] = row
         time_text = f'{timeline.times[row]:.3f} s' if timeline.times is not None else 'time unavailable'
-        control['label'].setText(f'Sample {row + 1}  {time_text}' if available else 'Position unavailable')
-        control['label'].setToolTip(f'Sample {row + 1}: {time_text}' if available else 'No finite position data for this sample')
+        control['label'].setText(tr('Sample {}  {}').format(row + 1, time_text) if available else tr('Position unavailable'))
+        control['label'].setToolTip(tr('Sample {}: {}').format(row + 1, time_text) if available else tr('No finite position data for this sample'))
         if available:
             viewer.update_view(row)
             viewer.set_actor_visibility(k.SK_ACTOR_LABELS, self.show_labels)

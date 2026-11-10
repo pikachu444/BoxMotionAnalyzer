@@ -1,8 +1,8 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-10-13
+Last Reviewed: 2026-11-10
 
-PUB02–11 소프트웨어는 병합·필수 CI를 마쳤습니다. [PUB별 구현·원본 증거·완료와 대기](docs/analysis/reference/pub_delivery_status.md)를 참고하세요. #136–#140 native 검수, 추가 수치 승인과 #104 실측은 별도 대기이며, #113 등록 기능은 사용자 결정으로 제외되었습니다. #152 언어 선택은 별도 작업입니다.
+PUB02–11 소프트웨어는 병합·필수 CI를 마쳤습니다. [PUB별 구현·원본 증거·완료와 대기](docs/analysis/reference/pub_delivery_status.md)를 참고하세요. #104는 독립 실측 자료를 확보할 수 없어 미실시로 종료했고, #113 등록 기능은 사용자 결정으로 제외했습니다.
 
 **Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
 
@@ -116,6 +116,8 @@ python src/main.py
 *   **3D Visualization**: 시뮬레이션에서 생성되거나 데이터 분석에서 추출된 `.proc` 결과 파일을 열어 3D/2D로 탐색
     *   런처 버튼을 반복 클릭하면 새 시각화 창이 추가로 열립니다.
     *   시각화 창 안에서는 `File > New Visualization Window`로 새 창을 바로 만들 수 있습니다.
+
+런처의 **Options / 설정**에서 `English` 또는 `한국어`를 선택할 수 있습니다. 기본값은 영어입니다. **Apply / 적용**으로 저장한 언어는 다음 실행부터 표시되며, 열린 창과 진행 중인 작업은 현재 언어로 계속 사용할 수 있습니다. 파일명, 단위, 저장 형식과 수치 계산은 언어 설정의 영향을 받지 않습니다. Windows 파일 선택 창의 공통 문구는 Windows 언어를 따르며, Matplotlib의 세부 그래프 편집 창은 라이브러리 문구를 표시합니다.
 
 ### 공개 합성 capture 회귀 (#135 / #144)
 

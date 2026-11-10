@@ -6,11 +6,12 @@ from src.analysis.compare.data_model import ComparisonModel
 from src.analysis.pipeline.artifact_io import _sha256_file
 from src.analysis.compare.ui_panels import CompareControlPanel, CompareTablePanel, CompareGraphPanel
 from src.analysis.compare.playback_panel import ComparePlaybackPanel
+from src.utils.ui_language import tr
 
 class CompareMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Experiment Comparison")
+        self.setWindowTitle(tr("Experiment Comparison"))
         self.resize(1200, 800)
         
         self.model = ComparisonModel()
@@ -21,7 +22,7 @@ class CompareMainWindow(QMainWindow):
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(6, 6, 6, 6)
         main_layout.setSpacing(2)
-        self.warning_label = QLabel('No results loaded.')
+        self.warning_label = QLabel(tr('No results loaded.'))
         self._summary_status = 'No results loaded.'
         self.warning_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.warning_label.setTextFormat(Qt.PlainText)
@@ -97,7 +98,7 @@ class CompareMainWindow(QMainWindow):
     def _on_add_files(self):
         filepaths, _ = QFileDialog.getOpenFileNames(
             self,
-            "Select Processed Results",
+            tr("Select Processed Results"),
             "",
             "Processed Data (*.proc *.proc.csv *.csv)"
         )
@@ -136,15 +137,15 @@ class CompareMainWindow(QMainWindow):
         try:
             for path, replace_name in pending:
                 try:
-                    self.statusBar().showMessage(f'Loading {path}…')
+                    self.statusBar().showMessage(tr('Loading {}…').format(path))
                     QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
                     self.model.load_file(path, replace_name=replace_name)
                     new_files_added = True
                 except Exception as e:
-                    QMessageBox.warning(self, "Load Error", f"Failed to load {path}:\n{str(e)}")
+                    QMessageBox.warning(self, tr("Load Error"), tr('Failed to load {}:\n{}').format(path, str(e)))
         finally:
             self.control_panel.setEnabled(True)
-        self.statusBar().showMessage('Loading complete.')
+        self.statusBar().showMessage(tr('Loading complete.'))
         if new_files_added:
             self._refresh_ui()
             
@@ -205,7 +206,7 @@ class CompareMainWindow(QMainWindow):
         observations = len(impact.get('observations', {}))
         self._summary_status = ('No results loaded.' if not files else
                                 f'{len(files)} files   {observations} compatible observations')
-        self.warning_label.setToolTip('Overlaid curves do not establish compatible repeat trials. See file Details for exclusions.')
+        self.warning_label.setToolTip(tr('Overlaid curves do not establish compatible repeat trials. See file Details for exclusions.'))
         
         # Update Table
         diff_data = self.model.get_summary_differences()

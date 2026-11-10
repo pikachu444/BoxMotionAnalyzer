@@ -3,6 +3,7 @@ import sys
 from PySide6.QtGui import QIcon
 
 from src.config import config_visualization as config
+from src.utils.ui_language import configure_language
 
 
 def set_windows_app_user_model_id():
@@ -31,3 +32,4 @@ def get_window_icon() -> QIcon:
 def configure_qt_application(app):
     set_windows_app_user_model_id()
     app.setWindowIcon(get_taskbar_icon())
+    configure_language(app)

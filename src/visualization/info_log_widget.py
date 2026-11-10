@@ -3,12 +3,13 @@ from PySide6.QtWidgets import (
     QHeaderView, QTableWidgetItem
 )
 from src.config import config_visualization as config
+from src.utils.ui_language import tr
 
 class InfoLogWidget(QGroupBox):
     """Displays current-frame values for the selected scene entities."""
 
     def __init__(self, parent=None):
-        super().__init__(config.LBL_INFO_LOG, parent)
+        super().__init__(tr(config.LBL_INFO_LOG), parent)
 
         layout = QVBoxLayout(self)
 
@@ -26,7 +27,7 @@ class InfoLogWidget(QGroupBox):
         # --- Table for displaying data ---
         self.info_table = QTableWidget()
         self.info_table.setColumnCount(1)
-        self.info_table.setHorizontalHeaderLabels([config.LBL_PROPERTY])
+        self.info_table.setHorizontalHeaderLabels([tr(config.LBL_PROPERTY)])
         self.info_table.verticalHeader().setVisible(False)
         self.info_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.info_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -43,12 +44,12 @@ class InfoLogWidget(QGroupBox):
         if not data:
             self.info_table.setColumnCount(1)
             self.info_table.setRowCount(0)
-            self.info_table.setHorizontalHeaderLabels([config.LBL_PROPERTY])
+            self.info_table.setHorizontalHeaderLabels([tr(config.LBL_PROPERTY)])
             return
 
         entity_ids = [d.get(config.DF_ENTITY_ID, config.LBL_EMPTY_VALUE) for d in data]
         self.info_table.setColumnCount(1 + len(entity_ids))
-        self.info_table.setHorizontalHeaderLabels([config.LBL_PROPERTY] + entity_ids)
+        self.info_table.setHorizontalHeaderLabels([tr(config.LBL_PROPERTY)] + entity_ids)
 
         properties = []
         for obj_data in data:

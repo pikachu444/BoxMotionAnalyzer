@@ -16,6 +16,7 @@ from src.analysis.pipeline.artifact_io import (_sha256_file, save_slice_file,
     build_slice_default_name, DEFAULT_SLICE_PADDING_ROWS)
 from src.utils.artifact_metadata import normalize_metadata
 from src.analysis.pipeline.scene_workflow_state import PLAN_SPEC, validate_plot_view, plot_signal_unit
+from src.utils.ui_language import tr
 
 
 class SceneDetectionWorker(QThread):
@@ -87,9 +88,10 @@ class SceneReviewFlow:
         self.scene_session, self.scene_registration = None, None
         self.scene_panel.session = None
         declared = normalize_metadata((self.header_info or {}).get('artifact_metadata'))
-        self.scene_panel.type_combo.setCurrentText(declared['IstaType'] if declared['IstaType'] in ('G', 'H') else 'Unknown')
+        kind = declared['IstaType'] if declared['IstaType'] in ('G', 'H') else 'Unknown'
+        self.scene_panel.type_combo.setCurrentIndex(self.scene_panel.type_combo.findData(kind))
         self.scene_panel.edition_combo.setCurrentIndex(0)
-        self.scene_panel.geometry_button.setText('Geometry...')
+        self.scene_panel.geometry_button.setText(tr('Geometry...'))
         self.scene_panel.refresh()
         self.combo_plot_axis.blockSignals(True)
         try:
@@ -114,7 +116,7 @@ class SceneReviewFlow:
         review_valid = not getattr(self, '_review_invalidated', False)
         ready = loaded and not busy and not self.marker_review_dirty and review_valid
         self.scene_panel.detect_button.setEnabled(ready or self.scene_busy)
-        self.scene_panel.detect_button.setText('Cancel detection' if self.scene_busy else 'Detect scenes')
+        self.scene_panel.detect_button.setText(tr('Cancel detection') if self.scene_busy else tr('Detect scenes'))
         self.scene_panel.geometry_button.setEnabled(ready)
         self.scene_panel.open_review_button.setEnabled(not busy and not self.marker_review_dirty)
         self.scene_panel.save_review_button.setEnabled(ready and self.scene_session is not None)
@@ -141,13 +143,13 @@ class SceneReviewFlow:
         self.save_slice_button.setEnabled(not current_reason)
         self.scene_panel.save_all_button.setEnabled(self.scene_session is not None and not included_reason)
         self.save_process_button.setEnabled(not (included_reason if self.scene_session else current_reason))
-        self.save_slice_button.setText(f'Save current ({current_count})...' if self.scene_session is not None else 'Save slice...')
-        self.scene_panel.save_all_button.setText(f'Save included ({included_count})...')
+        self.save_slice_button.setText(tr('Save current ({})...').format(current_count) if self.scene_session is not None else tr('Save slice...'))
+        self.scene_panel.save_all_button.setText(tr('Save included ({})...').format(included_count))
         for button, reason in ((self.save_slice_button, current_reason), (self.scene_panel.save_all_button, included_reason),
                                (self.save_process_button, included_reason if self.scene_session else current_reason)):
             button.setToolTip(reason)
         reasons = list(dict.fromkeys(reason for reason in (current_reason, included_reason if self.scene_session else '') if reason))
-        self.save_status_label.setText(' / '.join(reasons) or self._scene_save_feedback)
+        self.save_status_label.setText(' / '.join(map(tr, reasons)) or tr(self._scene_save_feedback))
         self.save_status_label.setVisible(bool(self.save_status_label.text()))
         self.load_csv_button.setEnabled(not busy)
         self.review_marker_flips_button.setEnabled(loaded and not busy and self._confirmed_dimensions is not None)
@@ -317,15 +319,15 @@ class SceneReviewFlow:
             if self.scene_session is None:
                 self.scene_session = SceneReviewSession(result, self.active_source_sha256,
                     original_source_sha256=self.original_source_sha256)
-                self.scene_session.set_context(self.scene_panel.type_combo.currentText(),
+                self.scene_session.set_context(self.scene_panel.type_combo.currentData(),
                     self.scene_panel.edition_combo.currentData(), type_basis='source_declaration'
-                    if self.scene_panel.type_combo.currentText() != 'Unknown' else 'unconfirmed')
+                    if self.scene_panel.type_combo.currentData() != 'Unknown' else 'unconfirmed')
             else:
                 self.scene_session.refresh(result)
             panel = self.scene_panel
             self._scene_dimensions = self._read_box_dimensions()
             panel.session = self.scene_session
-            self.scene_session.set_context(panel.type_combo.currentText(), panel.edition_combo.currentData())
+            self.scene_session.set_context(panel.type_combo.currentData(), panel.edition_combo.currentData())
             self._populate_scene_signals(result, selected)
             active = next((r['id'] for r in self.scene_session.rows if r['motion'] != 'stationary'), None)
             panel.refresh(panel.selected_id() or active)
@@ -343,7 +345,7 @@ class SceneReviewFlow:
             names = [name for name in preferred if name in result.signals]
             names.extend(name for name in result.signals if name not in preferred)
             for name in names:
-                self.combo_plot_axis.addItem(name, name)
+                self.combo_plot_axis.addItem(tr(name), name)
             choices = [selected, *preferred, *(self.combo_plot_axis.itemData(i) for i in range(3))]
             index = next((self.combo_plot_axis.findData(name) for name in choices
                           if name is not None and self._scene_signal_available(result, name)), -1)
@@ -379,7 +381,7 @@ class SceneReviewFlow:
         try:
             self._validate_scene_source()
             default = str(Path(self.source_path).with_suffix('.scene-review.json'))
-            path, _ = QFileDialog.getSaveFileName(self, 'Save scene review', default,
+            path, _ = QFileDialog.getSaveFileName(self, tr('Save scene review'), default,
                                                   'Scene review (*.scene-review.json)')
             if not path:
                 return
@@ -397,7 +399,7 @@ class SceneReviewFlow:
     def open_scene_review(self):
         if self.scene_busy or self.marker_review_dirty:
             return
-        path, _ = QFileDialog.getOpenFileName(self, 'Open scene review', '',
+        path, _ = QFileDialog.getOpenFileName(self, tr('Open scene review'), '',
                                               'Scene review (*.scene-review.json)')
         if not path:
             return
@@ -405,7 +407,7 @@ class SceneReviewFlow:
             data = read_workspace(path)
             source = workspace_source_path(path, data)
             if not source.is_file():
-                located, _ = QFileDialog.getOpenFileName(self, 'Locate capture', str(Path(path).parent),
+                located, _ = QFileDialog.getOpenFileName(self, tr('Locate capture'), str(Path(path).parent),
                                                          'Capture (*.csv)')
                 if not located:
                     return
@@ -466,7 +468,7 @@ class SceneReviewFlow:
             for combo in (panel.type_combo, panel.edition_combo):
                 combo.blockSignals(True)
             try:
-                panel.type_combo.setCurrentText(session.ista_type)
+                panel.type_combo.setCurrentIndex(panel.type_combo.findData(session.ista_type))
                 if panel.edition_combo.findData(session.applied_edition) < 0:
                     panel.edition_combo.addItem(session.applied_edition, session.applied_edition)
                 panel.edition_combo.setCurrentIndex(panel.edition_combo.findData(session.applied_edition))
@@ -474,11 +476,11 @@ class SceneReviewFlow:
                 for combo in (panel.type_combo, panel.edition_combo):
                     combo.blockSignals(False)
             if self.scene_registration:
-                panel.geometry_button.setText('Geometry loaded')
+                panel.geometry_button.setText(tr('Geometry loaded'))
                 panel.geometry_button.setToolTip('Registered geometry from ' + context['path'])
             available = self.data_loader.get_plottable_targets(self.parsed_data)
             self.current_selected_targets = [name for name in data['view'].get('targets', []) if name in available]
-            self.selected_data_label.setText('Selected: ' + ', '.join(self.current_selected_targets))
+            self.selected_data_label.setText(tr('Selected: {}').format(', '.join(self.current_selected_targets)))
             self._populate_scene_signals(result, data['view']['signal'])
             panel.refresh(data['view']['selected_id'])
             self._restore_scene_plot_view(plot_view)
@@ -513,7 +515,7 @@ class SceneReviewFlow:
     def load_scene_geometry(self):
         if self.marker_review_busy:
             return
-        path, _ = QFileDialog.getOpenFileName(self, 'Marker geometry', '', 'Geometry (*.json)')
+        path, _ = QFileDialog.getOpenFileName(self, tr('Marker geometry'), '', 'Geometry (*.json)')
         if not path:
             return
         try:
@@ -530,7 +532,7 @@ class SceneReviewFlow:
                 self._update_marker_review_summary()
             for edit, value in zip((self.le_box_l, self.le_box_w, self.le_box_h), registration.profile['box_dims_mm']):
                 edit.setText(str(value))
-            self.scene_panel.geometry_button.setText('Geometry loaded')
+            self.scene_panel.geometry_button.setText(tr('Geometry loaded'))
             self.scene_panel.geometry_button.setToolTip(str(Path(path).resolve()))
             self._invalidate_scene_evidence('geometry_changed')
             self.append_log(f'[INFO] Registered marker geometry loaded: {path}')
@@ -540,7 +542,7 @@ class SceneReviewFlow:
     def load_scene_trial_record(self):
         if self.scene_busy or self.scene_session is None:
             return
-        path, _ = QFileDialog.getOpenFileName(self, 'Test record', '', 'Test record (*.json)')
+        path, _ = QFileDialog.getOpenFileName(self, tr('Test record'), '', 'Test record (*.json)')
         if not path:
             return
         try:
@@ -551,7 +553,7 @@ class SceneReviewFlow:
             for combo in (panel.type_combo, panel.edition_combo):
                 combo.blockSignals(True)
             try:
-                panel.type_combo.setCurrentText(self.scene_session.ista_type)
+                panel.type_combo.setCurrentIndex(panel.type_combo.findData(self.scene_session.ista_type))
                 edition = self.scene_session.applied_edition
                 if panel.edition_combo.findData(edition) < 0:
                     panel.edition_combo.addItem(edition, edition)
@@ -662,7 +664,7 @@ class SceneReviewFlow:
             self._update_scene_gates()
             return []
         request_key = self._scene_save_request_key()
-        parent = QFileDialog.getExistingDirectory(self, 'Save included scenes', str(Path(self.source_path).parent))
+        parent = QFileDialog.getExistingDirectory(self, tr('Save included scenes'), str(Path(self.source_path).parent))
         if not parent:
             return []
         written = []
@@ -706,7 +708,7 @@ class SceneReviewFlow:
         except Exception as exc:
             self._scene_save_feedback = 'Save failed; retry available'
             self.append_log(f'[ERROR] Saved {len(written)} scenes before failure: {exc}')
-            QMessageBox.warning(self, 'Scene save failed', str(exc))
+            QMessageBox.warning(self, tr('Scene save failed'), str(exc))
             return []
         finally:
             self.scene_panel.refresh(selected_id)

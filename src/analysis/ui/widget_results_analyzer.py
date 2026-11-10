@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem, QMenu, QToolButton
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
 from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
@@ -43,6 +43,7 @@ from src.config.result_metric_descriptors import (
     get_drop_posture_summary_descriptors,
     get_result_metric_descriptor,
 )
+from src.utils.ui_language import tr
 
 class WidgetResultsAnalyzer(QWidget):
     # Signals
@@ -78,19 +79,19 @@ class WidgetResultsAnalyzer(QWidget):
         context_layout = QVBoxLayout(context_group)
 
         context_row_1 = QHBoxLayout()
-        context_row_1.addWidget(QLabel("Result:"))
+        context_row_1.addWidget(QLabel(tr("Result:")))
         self.context_active_file_label = QLabel("N/A")
         self.context_active_file_label.setWordWrap(True)
         self.context_active_file_label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self.context_active_file_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         context_row_1.addWidget(self.context_active_file_label, 1)
-        context_row_1.addWidget(QLabel("Samples:"))
+        context_row_1.addWidget(QLabel(tr("Samples:")))
         self.context_rows_label = QLabel("N/A")
         context_row_1.addWidget(self.context_rows_label)
         context_layout.addLayout(context_row_1)
 
         timeline_bar_row = QVBoxLayout()
-        self.timeline_bar_info_label = QLabel("Full/Slice Range: unknown")
+        self.timeline_bar_info_label = QLabel(tr("Full/Slice Range: unknown"))
         timeline_bar_row.addWidget(self.timeline_bar_info_label)
         self.timeline_bar_widget = QFrame()
         self.timeline_bar_widget.setFrameShape(QFrame.StyledPanel)
@@ -121,9 +122,9 @@ class WidgetResultsAnalyzer(QWidget):
         files_layout = QVBoxLayout(files_group)
         files_layout.setContentsMargins(0, 0, 0, 0)
         button_row = QHBoxLayout()
-        self.open_result_button = QPushButton("Open")
-        self.select_result_folder_button = QPushButton("Folder")
-        self.compare_button = QPushButton("Compare")
+        self.open_result_button = QPushButton(tr("Open"))
+        self.select_result_folder_button = QPushButton(tr("Folder"))
+        self.compare_button = QPushButton(tr("Compare"))
         self.compare_button.setEnabled(False)
         button_row.addWidget(self.open_result_button)
         button_row.addWidget(self.select_result_folder_button)
@@ -133,7 +134,7 @@ class WidgetResultsAnalyzer(QWidget):
         path_row = QHBoxLayout()
         self.result_folder_path_label = QLineEdit()
         self.result_folder_path_label.setReadOnly(True)
-        self.result_folder_path_label.setPlaceholderText("No folder selected.")
+        self.result_folder_path_label.setPlaceholderText(tr("No folder selected."))
         path_row.addWidget(self.result_folder_path_label)
         files_layout.addLayout(path_row)
 
@@ -141,27 +142,27 @@ class WidgetResultsAnalyzer(QWidget):
         self.result_file_list.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.result_file_list.setMaximumHeight(115)
         files_layout.addWidget(self.result_file_list)
-        self.files_section = CollapsibleSection("Files", files_group)
+        self.files_section = CollapsibleSection(tr("Files"), files_group)
         sidebar_layout.addWidget(self.files_section)
 
-        selection_group = QGroupBox("Data")
+        selection_group = QGroupBox(tr("Data"))
         selection_layout = QVBoxLayout(selection_group)
 
         selection_controls_row = QHBoxLayout()
-        selection_controls_row.addWidget(QLabel("Group By:"))
+        selection_controls_row.addWidget(QLabel(tr("Group By:")))
         self.selection_group_by_combo = QComboBox()
-        self.selection_group_by_combo.addItem("Metric", userData="metric")
-        self.selection_group_by_combo.addItem("Object", userData="object")
+        self.selection_group_by_combo.addItem(tr("Metric"), userData="metric")
+        self.selection_group_by_combo.addItem(tr("Object"), userData="object")
         self.selection_group_by_combo.setEnabled(False)
         selection_controls_row.addWidget(self.selection_group_by_combo)
         selection_controls_row.addStretch()
         selection_layout.addLayout(selection_controls_row)
 
         selection_search_row = QHBoxLayout()
-        selection_search_row.addWidget(QLabel("Search:"))
+        selection_search_row.addWidget(QLabel(tr("Search:")))
         self.selection_search_input = QLineEdit()
-        self.selection_search_input.setPlaceholderText("Search")
-        self.selection_search_input.setToolTip("Space: match all words. Comma: match either term.")
+        self.selection_search_input.setPlaceholderText(tr("Search"))
+        self.selection_search_input.setToolTip(tr("Space: match all words. Comma: match either term."))
         self.selection_search_input.setEnabled(False)
         selection_search_row.addWidget(self.selection_search_input)
         selection_layout.addLayout(selection_search_row)
@@ -173,14 +174,14 @@ class WidgetResultsAnalyzer(QWidget):
         selection_layout.addWidget(self.result_data_tree, 1)
 
         selection_buttons_row = QHBoxLayout()
-        self.clear_selection_button = QPushButton("Clear")
-        self.plot_results_button = QPushButton("Plot")
+        self.clear_selection_button = QPushButton(tr("Clear"))
+        self.plot_results_button = QPushButton(tr("Plot"))
         self.plot_results_button.setEnabled(False)
         self.open_popup_current_button = QToolButton()
-        self.open_popup_current_button.setText("Popup")
+        self.open_popup_current_button.setText(tr("Popup"))
         self.open_popup_current_button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         popup_menu = QMenu(self.open_popup_current_button)
-        self.close_all_popups_action = popup_menu.addAction("Close all popups")
+        self.close_all_popups_action = popup_menu.addAction(tr("Close all popups"))
         self.open_popup_current_button.setMenu(popup_menu)
         selection_buttons_row.addWidget(self.clear_selection_button)
         selection_buttons_row.addWidget(self.plot_results_button)
@@ -196,7 +197,7 @@ class WidgetResultsAnalyzer(QWidget):
         context_row_1.addWidget(self.experiment_summary_status_label)
 
         self.experiment_summary_table = QTableWidget(0, 2)
-        self.experiment_summary_table.setHorizontalHeaderLabels(["Metric", "Value"])
+        self.experiment_summary_table.setHorizontalHeaderLabels([tr("Metric"), tr("Value")])
         self.experiment_summary_table.verticalHeader().setVisible(False)
         self.experiment_summary_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.experiment_summary_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
@@ -208,21 +209,21 @@ class WidgetResultsAnalyzer(QWidget):
 
         experiment_summary_footer = QHBoxLayout()
         experiment_summary_footer.addStretch()
-        self.metric_guide_button = QPushButton("Metric guide")
+        self.metric_guide_button = QPushButton(tr("Metric guide"))
         experiment_summary_footer.addWidget(self.metric_guide_button)
         experiment_summary_layout.addLayout(experiment_summary_footer)
 
-        point_analysis_group = QGroupBox("Point")
+        point_analysis_group = QGroupBox(tr("Point"))
         point_analysis_layout = QVBoxLayout(point_analysis_group)
 
         target_layout = QHBoxLayout()
-        target_layout.addWidget(QLabel("Metric:"))
+        target_layout.addWidget(QLabel(tr("Metric:")))
         self.find_max_target_combo = QComboBox()
         target_layout.addWidget(self.find_max_target_combo)
         point_analysis_layout.addLayout(target_layout)
-        self.find_abs_max_button = QPushButton("Abs Max")
-        self.find_max_button = QPushButton("Max")
-        self.find_min_button = QPushButton("Min")
+        self.find_abs_max_button = QPushButton(tr("Abs Max"))
+        self.find_max_button = QPushButton(tr("Max"))
+        self.find_min_button = QPushButton(tr("Min"))
         for button in (self.find_abs_max_button, self.find_max_button, self.find_min_button):
             button.setEnabled(False)
         target_layout.addWidget(self.find_abs_max_button)
@@ -231,12 +232,12 @@ class WidgetResultsAnalyzer(QWidget):
         self.find_max_target_combo.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
 
         selected_export_layout = QHBoxLayout()
-        self.selected_point_label = QLabel("Selected Point: None")
+        self.selected_point_label = QLabel(tr("Selected Point: None"))
         selected_export_layout.addWidget(self.selected_point_label)
         selected_export_layout.addStretch()
         point_analysis_layout.addLayout(selected_export_layout)
 
-        self.export_point_button = QPushButton("Save point CSV")
+        self.export_point_button = QPushButton(tr("Save point CSV"))
         self.export_point_button.setEnabled(False)
         selected_export_layout.addWidget(self.export_point_button)
 
@@ -244,8 +245,8 @@ class WidgetResultsAnalyzer(QWidget):
         analysis_scenario_layout = QVBoxLayout(analysis_scenario_group)
 
         manual_check_row = QHBoxLayout()
-        self.offset_manual_checkbox = QCheckBox("Manual Offset")
-        self.manual_height_checkbox = QCheckBox("Manual Height")
+        self.offset_manual_checkbox = QCheckBox(tr("Manual Offset"))
+        self.manual_height_checkbox = QCheckBox(tr("Manual Height"))
         self.manual_height_checkbox.setEnabled(False)
         manual_check_row.addWidget(self.offset_manual_checkbox)
         manual_check_row.addWidget(self.manual_height_checkbox)
@@ -256,7 +257,7 @@ class WidgetResultsAnalyzer(QWidget):
         self.manual_height_inputs = []
         offsets_layout = QGridLayout()
         for i in range(3):
-            offsets_layout.addWidget(QLabel(f"Offset{i}:"), i, 0)
+            offsets_layout.addWidget(QLabel(tr('Offset{}:').format(i)), i, 0)
 
             combo = QComboBox()
             combo.addItems([f"C{j + 1}" for j in range(8)])
@@ -275,12 +276,12 @@ class WidgetResultsAnalyzer(QWidget):
         self.le_run_time = QLineEdit("0.1")
         self.le_time_step = QLineEdit("1e-7")
         self.le_scene_name = QLineEdit("")
-        scenario_form_layout.addRow("Run Time:", self.le_run_time)
-        scenario_form_layout.addRow("Step:", self.le_time_step)
-        scenario_form_layout.addRow("Scene Name:", self.le_scene_name)
+        scenario_form_layout.addRow(tr("Run Time:"), self.le_run_time)
+        scenario_form_layout.addRow(tr("Step:"), self.le_time_step)
+        scenario_form_layout.addRow(tr("Scene Name:"), self.le_scene_name)
         analysis_scenario_layout.addLayout(scenario_form_layout)
 
-        self.export_scenario_button = QPushButton("Export Scenario CSV")
+        self.export_scenario_button = QPushButton(tr("Export Scenario CSV"))
         analysis_scenario_layout.addWidget(self.export_scenario_button)
         main_plot_group = QWidget()
         main_plot_layout = QVBoxLayout(main_plot_group)
@@ -307,7 +308,7 @@ class WidgetResultsAnalyzer(QWidget):
             scroll.setFrameShape(QFrame.Shape.NoFrame)
             scroll.setMaximumHeight(220)
             scroll.setWidget(content)
-            section = CollapsibleSection(name, scroll)
+            section = CollapsibleSection(tr(name), scroll)
             setattr(self, attr, section)
             right_layout.addWidget(section)
         main_splitter.addWidget(sidebar)
@@ -348,13 +349,13 @@ class WidgetResultsAnalyzer(QWidget):
         set_path_label(self.context_active_file_label, None)
         self.compare_button.setEnabled(False)
         self.context_rows_label.setText("N/A")
-        self.timeline_bar_info_label.setText("Full/Slice Range: unknown")
+        self.timeline_bar_info_label.setText(tr("Full/Slice Range: unknown"))
         self._set_selected_columns_context(0)
         self._clear_experiment_summary()
         self._set_timeline_bar_unknown()
 
     def _set_selected_columns_context(self, count):
-        self.plot_results_button.setToolTip(f"Plot {count} selected quantities")
+        self.plot_results_button.setToolTip(tr('Plot {} selected quantities').format(count))
 
     @staticmethod
     def _first_numeric_value(df, column_tuple):
@@ -376,13 +377,13 @@ class WidgetResultsAnalyzer(QWidget):
 
     def _update_timeline_bar(self, full_start, full_end, slice_start, slice_end):
         if any(v is None for v in [full_start, full_end, slice_start, slice_end]):
-            self.timeline_bar_info_label.setText("Full/Slice Range: unknown")
+            self.timeline_bar_info_label.setText(tr("Full/Slice Range: unknown"))
             self._set_timeline_bar_unknown()
             return
 
         full_span = float(full_end) - float(full_start)
         if full_span <= 0:
-            self.timeline_bar_info_label.setText("Full/Slice Range: unknown")
+            self.timeline_bar_info_label.setText(tr("Full/Slice Range: unknown"))
             self._set_timeline_bar_unknown()
             return
 
@@ -405,8 +406,7 @@ class WidgetResultsAnalyzer(QWidget):
         bar_layout.setStretch(1, slice_w)
         bar_layout.setStretch(2, right_w)
         self.timeline_bar_info_label.setText(
-            f"Full: {float(full_start):.3f}s ~ {float(full_end):.3f}s | "
-            f"Slice: {clamped_start:.3f}s ~ {clamped_end:.3f}s"
+            tr('Full: {}s ~ {}s | Slice: {}s ~ {}s').format(f'{float(full_start):.3f}', f'{float(full_end):.3f}', f'{clamped_start:.3f}', f'{clamped_end:.3f}')
         )
 
     def _update_context_from_dataframe(self, file_name):
@@ -549,9 +549,9 @@ class WidgetResultsAnalyzer(QWidget):
                 populated_count += 1
 
         if t1_available:
-            self.experiment_summary_status_label.setText("Impact detected")
+            self.experiment_summary_status_label.setText(tr("Impact detected"))
         else:
-            self.experiment_summary_status_label.setText("No impact detected")
+            self.experiment_summary_status_label.setText(tr("No impact detected"))
         self.experiment_summary_table.resizeRowsToContents()
 
     def open_metric_guide(self):
@@ -594,7 +594,7 @@ class WidgetResultsAnalyzer(QWidget):
 
     def open_result_file(self):
         path, _ = QFileDialog.getOpenFileName(
-            self, 'Open result', '', 'Results (*.proc *.proc.csv *.csv)')
+            self, tr('Open result'), '', 'Results (*.proc *.proc.csv *.csv)')
         if path:
             self.open_result_files([path])
 
@@ -621,7 +621,7 @@ class WidgetResultsAnalyzer(QWidget):
             self.compare_requested.emit(paths)
 
     def select_result_folder(self):
-        folder_path = QFileDialog.getExistingDirectory(self, "Select Result Folder")
+        folder_path = QFileDialog.getExistingDirectory(self, tr("Select Result Folder"))
         if not folder_path:
             return
         try:
@@ -691,7 +691,7 @@ class WidgetResultsAnalyzer(QWidget):
                 continue
             values = pd.to_numeric(data[column], errors='coerce')
             if (data[column].notna() & values.isna()).any():
-                name = get_result_metric_display_name(*column)
+                name = tr(get_result_metric_display_name(*column))
                 raise ValueError(f'{name} contains nonnumeric samples. Choose another result.')
             # Numeric strings are supported, while genuine missing samples stay
             # NaN so the graph continues to show the data gap.
@@ -988,7 +988,7 @@ class WidgetResultsAnalyzer(QWidget):
 
         for column in sorted_columns:
             l1, l2, l3 = column
-            leaf_label = get_result_metric_display_name(l1, l2, l3)
+            leaf_label = tr(get_result_metric_display_name(l1, l2, l3))
             path_label = get_result_column_display_path(column)
             search_text = " ".join([
                 str(l1),
@@ -1197,7 +1197,7 @@ class WidgetResultsAnalyzer(QWidget):
             self.export_point_button.setEnabled(True)
             self.export_scenario_button.setEnabled(True)
         else:
-            self.selected_point_label.setText("No point selected")
+            self.selected_point_label.setText(tr("No point selected"))
             self.export_point_button.setEnabled(False)
             self.export_scenario_button.setEnabled(False)
             self.plot_manager.canvas.draw()
@@ -1253,7 +1253,7 @@ class WidgetResultsAnalyzer(QWidget):
         self._update_popup_status_label()
 
     def _update_popup_status_label(self):
-        self.open_popup_current_button.setToolTip(f"{len(self.popup_windows)} open popups")
+        self.open_popup_current_button.setToolTip(tr('{} open popups').format(len(self.popup_windows)))
         self.close_all_popups_action.setEnabled(bool(self.popup_windows))
 
     def on_popup_point_selected(self, selected_time):
@@ -1330,7 +1330,7 @@ class WidgetResultsAnalyzer(QWidget):
 
         suggested_filename = f"{os.path.splitext(current_file)[0]}_point_at_{time_str}s.csv"
         filepath, _ = QFileDialog.getSaveFileName(
-            self, "Export Point Data to CSV", suggested_filename, "CSV Files (*.csv)"
+            self, tr("Export Point Data to CSV"), suggested_filename, "CSV Files (*.csv)"
         )
         if filepath:
             try:
@@ -1410,7 +1410,7 @@ class WidgetResultsAnalyzer(QWidget):
                                    self.le_run_time.text(), self.le_time_step.text())
 
         suggested_filename = f"scenario_{self.le_scene_name.text()}.csv" if self.le_scene_name.text() else "analysis_scenario.csv"
-        filepath, _ = QFileDialog.getSaveFileName(self, "Export Analysis Scenario", suggested_filename, "CSV Files (*.csv)")
+        filepath, _ = QFileDialog.getSaveFileName(self, tr("Export Analysis Scenario"), suggested_filename, "CSV Files (*.csv)")
 
         if filepath:
             try:

@@ -7,17 +7,18 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QLabel,
 )
+from src.utils.ui_language import tr
 
 
 class PopupSubsetDialog(QDialog):
     def __init__(self, columns: list[tuple], preselected: list[tuple], parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Select Popup Subset")
+        self.setWindowTitle(tr("Select Popup Subset"))
         self.resize(450, 500)
         self._column_map: dict[str, tuple] = {}
 
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Choose columns for the popup plot:"))
+        layout.addWidget(QLabel(tr("Choose columns for the popup plot:")))
 
         self.list_widget = QListWidget()
         layout.addWidget(self.list_widget)

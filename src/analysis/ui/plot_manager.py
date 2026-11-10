@@ -10,6 +10,7 @@ from src.config.data_columns import (
     get_result_column_display_path, get_result_column_unit,
     get_result_metric_display_name, is_corner_id_column, format_result_value,
 )
+from src.utils.ui_language import tr
 
 
 def plot_result_series(ax, x, y, column, **style):
@@ -31,18 +32,18 @@ def plot_result_series(ax, x, y, column, **style):
 def configure_result_axis(ax, columns):
     """Set a display scale only; toolbar zoom and original data remain intact."""
     if not columns:
-        ax.set_ylabel('Value')
+        ax.set_ylabel(tr('Value'))
         return
     if all(is_corner_id_column(col) for col in columns):
-        ax.set_ylabel('Corner')
+        ax.set_ylabel(tr('Corner'))
         ax.set_yticks(range(1, 9), [f'C{i}' for i in range(1, 9)])
         ax.set_ylim(.5, 8.5)
         return
     units = {get_result_column_unit(col) for col in columns}
     if len(columns) == 1 and isinstance(columns[0], (tuple, list)):
-        ax.set_ylabel(get_result_metric_display_name(*columns[0]))
+        ax.set_ylabel(tr(get_result_metric_display_name(*columns[0])))
     else:
-        ax.set_ylabel(next(iter(units)) if len(units) == 1 and '' not in units else 'Value')
+        ax.set_ylabel(next(iter(units)) if len(units) == 1 and '' not in units else tr('Value'))
     minimum = None
     if units == {'°'}:
         minimum = 1.
@@ -89,7 +90,7 @@ class PlotManager(QObject):
     def draw_plot(self, data_df: pd.DataFrame, columns_to_plot: list):
         self.reset_axes()
         if data_df is None or data_df.empty or not columns_to_plot:
-            self.ax.set_title("Select data to plot", color="#666666")
+            self.ax.set_title(tr("Select data to plot"), color="#666666")
             self.canvas.draw()
             return
 
@@ -120,7 +121,7 @@ class PlotManager(QObject):
             axis = self.category_ax if is_corner_id_column(col_name) and self.category_ax is not None else self.ax
             lines.append(plot_result_series(axis, x_data, y_data, col_name, color=color, label=label))
 
-        self.ax.set_xlabel("Time (s)")
+        self.ax.set_xlabel(tr("Time (s)"))
         self.ax.grid(True)
         configure_result_axis(self.ax, numeric_columns or category_columns)
         if self.category_ax is not None:
