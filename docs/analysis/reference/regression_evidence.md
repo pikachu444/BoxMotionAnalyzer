@@ -1,6 +1,6 @@
 # Regression tiers and CI evidence — PUB11
 
-Last Reviewed: 2026-10-13
+Last Reviewed: 2026-11-10
 
 PUB11 software is published: PR #156 merged after head492322c CI38286906108 succeeded; merge698c0d5 main CI38297290908 also succeeded. [PUB12 source/CI/original-report mapping and waits](pub_delivery_status.md). Historical evidence-index publication fields describe their capture time; issue #144 records the completed publication.
 
@@ -126,6 +126,10 @@ The existing required Windows job and its 120-minute timeout are retained.
 `ci_evidence prepare` writes the required protocol before collection/execution and
 checks collection against the reviewed inventory. Deleted tests do not silently
 shrink the denominator. Every original validation step stays required.
+Once setup and inventory checks pass, independent validation continues after
+individual failures. Steps that consume artifacts run when those artifacts are
+available. The final gate reads each raw outcome so any required failure or
+missing result still fails the Windows job.
 `ci_evidence verify --require-step-outcomes` checks actual hosted step outcomes,
 all required JUnit node populations/classifications/skips and source-matched
 tier/component reports. Missing/duplicate/skipped jobs/tests, stale reports or
