@@ -130,10 +130,18 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
             if index == 0:
                 reachable(dialog.around_event_button, dialog)
                 reachable(dialog.context_toolbar, dialog)
-                assert dialog.context_source.property('fullPath') == LONG_SOURCE
-                assert dialog.context_source.toolTip().startswith(LONG_SOURCE)
-                assert '…' in dialog.context_source.text()
-                assert dialog.context_source.text().endswith('.csv')
+                source_label = dialog.context_source
+                assert source_label.property('fullPath') == LONG_SOURCE
+                assert source_label.toolTip().startswith(LONG_SOURCE)
+                text = source_label.text()
+                metrics = source_label.fontMetrics()
+                available = source_label.contentsRect().width()
+                assert metrics.horizontalAdvance(text) <= available
+                if metrics.horizontalAdvance(LONG_SOURCE) > available:
+                    assert '…' in text
+                else:
+                    assert text == LONG_SOURCE
+                assert text.endswith('.csv')
                 axis = canvas.figure.axes[0]
                 assert axis.get_xlabel() == 'Time (s)' and axis.get_ylabel() == 'Position (mm)'
                 np.testing.assert_array_equal(axis.lines[0].get_xdata(), data.index)
