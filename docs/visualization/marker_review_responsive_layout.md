@@ -13,6 +13,8 @@ without correction, the selected axis preview, and marker coverage. Legacy
 candidates label the selected value as a prediction. Expand Details for the
 trigger, recommendation rationale, and marker fit error. The original
 trajectories and the axis preview remain visible alongside each other in wide windows.
+Both charts start below the source controls and share the same plot height.
+In the tabbed layout, each chart uses the available space in its own tab.
 
 ## Mockup review before implementation
 

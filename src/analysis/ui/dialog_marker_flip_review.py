@@ -197,6 +197,7 @@ class MarkerFlipReviewDialog(QDialog):
         self.details_section.button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
 
         self.preview_status = QLabel()
+        self.preview_status.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom)
         self.preview_status.setStyleSheet("color: #916000;")
 
         self.plots = QHBoxLayout()
@@ -208,9 +209,13 @@ class MarkerFlipReviewDialog(QDialog):
         self.context_panel = QWidget()
         context_layout = QVBoxLayout(self.context_panel)
         context_layout.setContentsMargins(0, 0, 0, 0)
+        self.context_header = QWidget()
+        context_header_layout = QVBoxLayout(self.context_header)
+        context_header_layout.setContentsMargins(0, 0, 0, 0)
+        context_layout.addWidget(self.context_header)
         self.context_source = _ElidedSourceLabel()
         set_path_label(self.context_source, '')
-        context_layout.addWidget(self.context_source)
+        context_header_layout.addWidget(self.context_source)
         controls = QHBoxLayout()
         self.context_target = QComboBox()
         self.context_target.setAccessibleName(tr('Original observation target'))
@@ -219,12 +224,12 @@ class MarkerFlipReviewDialog(QDialog):
         self.around_event_button = QPushButton(tr('Around event'))
         controls.addWidget(self.context_target, 1)
         controls.addWidget(self.around_event_button)
-        context_layout.addLayout(controls)
+        context_header_layout.addLayout(controls)
         self.context_figure = Figure(figsize=(6, 3), dpi=100, layout='constrained')
         self.context_canvas = FigureCanvas(self.context_figure)
         self.context_canvas.setMinimumHeight(170)
-        self.context_toolbar = NavigationToolbar2QT(self.context_canvas, self.context_panel, coordinates=False)
-        context_layout.addWidget(self.context_toolbar)
+        self.context_toolbar = NavigationToolbar2QT(self.context_canvas, self.context_header, coordinates=False)
+        context_header_layout.addWidget(self.context_toolbar)
         context_layout.addWidget(self.context_canvas, 1)
         self.context_target.currentIndexChanged.connect(self._draw_context)
         self.around_event_button.clicked.connect(self._center_context)
@@ -269,6 +274,7 @@ class MarkerFlipReviewDialog(QDialog):
         if self._context_data is None or self._evidence_canvas_disposed:
             return
         tabbed = self.width() < 1100
+        self.preview_status.setMinimumHeight(0 if tabbed else self.context_header.sizeHint().height())
         if tabbed == self._tabbed_plots:
             return
         self._tabbed_plots = tabbed
@@ -332,6 +338,7 @@ class MarkerFlipReviewDialog(QDialog):
         self.evidence_canvas.setMinimumHeight(140)
         self._context_row = self.table.currentRow()
         self.resize(1280, 740)
+        self._sync_plot_layout()
         self._draw_context(recenter=True)
 
     def _draw_context(self, *_args, recenter=False):
@@ -453,6 +460,7 @@ class MarkerFlipReviewDialog(QDialog):
             else:
                 axis.axhline(selected.residual_deg, linestyle="--", label=f"Predicted {selected_axis} mean")
         axis.axvline(0.0, linestyle=":", linewidth=1.0, color="0.5")
+        axis.set_title(tr("Axis preview"))
         axis.set_xlabel(tr("Time from event (s)"))
         axis.set_ylabel(tr("Relative rotation (°)"))
         axis.grid(True, alpha=0.25)

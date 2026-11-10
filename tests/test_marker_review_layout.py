@@ -99,6 +99,18 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
         settle(app, dialog)
         assert (dialog.width(), dialog.height()) == size
         assert dialog._tabbed_plots == (size[0] < 1100)
+        if dialog._tabbed_plots:
+            assert dialog.preview_status.minimumHeight() == 0
+        else:
+            original = dialog.context_canvas
+            preview = dialog.evidence_canvas
+            assert original.mapTo(dialog, QPoint()).y() == preview.mapTo(dialog, QPoint()).y()
+            assert original.height() == preview.height()
+            if count:
+                original_axis = original.figure.axes[0].get_window_extent()
+                preview_axis = preview.figure.axes[0].get_window_extent()
+                assert (original_axis.y0, original_axis.y1) == pytest.approx(
+                    (preview_axis.y0, preview_axis.y1), abs=2)
         for index, canvas in enumerate((dialog.context_canvas, dialog.evidence_canvas)):
             if dialog._tabbed_plots:
                 dialog.plot_tabs.setCurrentIndex(index)
