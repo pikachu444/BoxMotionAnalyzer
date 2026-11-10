@@ -99,6 +99,18 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
         settle(app, dialog)
         assert (dialog.width(), dialog.height()) == size
         assert dialog._tabbed_plots == (size[0] < 1100)
+        if dialog._tabbed_plots:
+            assert dialog.preview_status.minimumHeight() == 0
+        else:
+            original = dialog.context_canvas
+            preview = dialog.evidence_canvas
+            assert original.mapTo(dialog, QPoint()).y() == preview.mapTo(dialog, QPoint()).y()
+            assert original.height() == preview.height()
+            if count:
+                original_axis = original.figure.axes[0].get_window_extent()
+                preview_axis = preview.figure.axes[0].get_window_extent()
+                assert (original_axis.y0, original_axis.y1) == pytest.approx(
+                    (preview_axis.y0, preview_axis.y1), abs=2)
         for index, canvas in enumerate((dialog.context_canvas, dialog.evidence_canvas)):
             if dialog._tabbed_plots:
                 dialog.plot_tabs.setCurrentIndex(index)
@@ -115,6 +127,7 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
                 assert '…' in dialog.context_source.text()
                 assert dialog.context_source.text().endswith('.csv')
                 axis = canvas.figure.axes[0]
+                assert axis.get_title() == 'Original trajectories'
                 assert axis.get_xlabel() == 'Time (s)' and axis.get_ylabel() == 'Position (mm)'
                 np.testing.assert_array_equal(axis.lines[0].get_xdata(), data.index)
                 np.testing.assert_allclose(axis.lines[0].get_ydata(), data.F1_X, equal_nan=True)
@@ -129,6 +142,8 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
                     reachable(dialog.preview_status, dialog)
                     assert dialog.table.item(0, 1).text() == 'No recommendation'
                 else:
+                    for label in (dialog.no_correction_summary, dialog.preview_summary, dialog.coverage_summary):
+                        reachable(label, dialog)
                     np.testing.assert_allclose(curves['Preview X'].get_ydata(), (1., np.nan, 2.), equal_nan=True)
             dialog.grab().save(str(root / f'{case}-view-{index}.png'))
         if count:
