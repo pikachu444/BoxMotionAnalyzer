@@ -122,6 +122,12 @@ fields need unavailable status/reason, never an inferred zero.
 ## Required CI and GUI scope
 
 The existing required Windows job and its 120-minute timeout are retained.
+The Windows check runs a focused 125% GUI suite for changes confined to the
+allowlisted launcher, language, and toolbar code. It selects this scope only
+when the checkout is the verified merge of the PR base and head. Test edits,
+main pushes, manual runs, unknown paths, and uncertain checkouts use the full suite.
+The shared-core check runs independently for both scopes.
+
 `tests/public_ci_inventory.json` fixes exact test node IDs and required step IDs.
 `ci_evidence prepare` writes the required protocol before collection/execution and
 checks collection against the reviewed inventory. Deleted tests do not silently

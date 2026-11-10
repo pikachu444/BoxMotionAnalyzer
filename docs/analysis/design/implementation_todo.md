@@ -57,10 +57,12 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   remain in `../reference/robot_sequence_contract.md`; no historical attempt is
   relabelled as final-source evidence. Public G16 has one engine/16 releases,
   not16 independent measured trials. #113 excluded; #152 independent.
-- [ ] #140 / PUB07 native and experimental acceptance: native Windows input,
-  viewer and actual OS125 remain unexecuted; #104 measured validation is separate
-  and unavailable. Additional numerical diagnostic promotion, baseline/trial
-  approval and full issue closure are not inferred from software delivery.
+- [O] #140 / PUB07 native software acceptance: Windows at 2560×1440 and 125%
+  opened the live MuJoCo viewer and exported the selected G run with 843 rows
+  in increasing time order. The focused sequence tests covered two releases in
+  one engine, floor-supported H motion and partial-run retention. The measured
+  comparison in #104 closed as unperformed. Existing numerical approval status
+  is recorded in the [issue](https://github.com/pikachu444/BoxMotionAnalyzer/issues/140).
 - [O] #152 independent enhancement: launcher Options stores the English/한국어
   preference for the next start. Apply and Cancel keep the current windows and
   work in place. The shared presentation catalog leaves data keys and export
@@ -73,20 +75,12 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   initially and2 resource-failed cases passed on unchanged-code retry. Original
   failures, FHD/small-window evidence and review corrections are
   recorded in the PUB06 documents. PR #150 merged; head2afdfb6 required CI37491215034 passed.
-- [ ] #139 / PUB06 native acceptance and full issue closure: human approved the shared G17/H12 settings/target-preview
-  mockup ("이제 좀 낫긴하네 이거로 해봐"). Production mode binding, per-mode
-  settings save/open/Apply/Cancel, robot execution guard, versioned producer
-  metadata and stale-worker cancellation/retry are implemented. Fresh scoped
-  production GUI checks and restored FHD/widget render12 states each at1.5/1.25
-  are recorded separately with failures and retries. Same independent reviewer closed all
-  production findings; head2afdfb6 required CI37491215034 passed and PR #150 merged. The work
-  remains open for native Windows input/viewer/actual OS125 confirmation:
-  fresh production-window activation and recovery failed GetCursorPos access
-  denied0x80070005. Original failures and Qt evidence are preserved separately.
-  See `../reference/simulation_mode_contract.md` and
-  `../../visualization/simulation_mode_139.md`. No whole139/native/measured
-  completion claimed. #140/#142/#143 software delivered; #104 measured validation separate;
-  #113 excluded; no baseline/tolerance/trial promotion.
+- [O] #139 / PUB06 native acceptance: actual Windows input at 100% switched
+  between Single drop and Robot sequence. At 125% on a 2560×1440 display,
+  the preview showed one selected drop and 16 excluded. Applying the plan
+  enabled Run and Marker CSV, and Run opened the live viewer. Earlier activation
+  failures and Qt evidence remain in `../reference/simulation_mode_contract.md`
+  and `../../visualization/simulation_mode_139.md`.
 - [O] #138 / PUB05 software implementation and automatic review: user approved
   the final interactive mockup on 2026-10-06. Main implemented geometry/meaning/correspondence
   identity, Copy/Edit/Reset/Preview/Apply, atomic draft/applied documents and
@@ -97,12 +91,11 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   Same-face name swaps do not imply Raw centre/pose changed; mapping-only reuse
   requires scoped review. See `../reference/marker_profile_semantics.md` and
   `../../visualization/marker_profile_138.md`.
-- [ ] #138 native follow-up: external Windows capture/activation failed in
-  retained attempts. Verify FHD/820x600 and actual OS125%, visual readability,
-  rotation/pan/zoom/face drag, selection, invalid/legacy/blocked state, native
-  save/error/retry/reopen. Qt process scaling/widget/QTest is separate evidence.
-  #113 registration user feature is excluded; existing static adapter and
-  lineage remain verified. #104 measured validation is separate. PUB06–10 are already delivered; do not close #138 for unexecuted native.
+- [O] #138 native follow-up: on Windows at 100%, edited and saved the public
+  32-point profile draft with source and applied state preserved. At actual
+  125% on a 2560×1440 display, switched the face view and checked that selecting
+  F1 in the table highlighted it in both views. Small-window and error-path
+  cases are covered by the separate Qt checks above.
 - [O] #137 / PUB04 implementation: approved FHD/minimum-window mockup; scoped
   viewport persistence, Revert, shared save counts/gates and Type/edit history.
   Automatic preservation found two regressions; both were corrected and passed
@@ -123,11 +116,10 @@ Use `[O]` for completed items and `[ ]` for remaining items. When a task is comp
   Layout/lifecycle 34, final layout 13 per DPR and preservation 146+3 subtests
   passed. The single GPT-6.1 Sol/high independent review has no P0/P1/P2 code
   findings; evidence is in `../../visualization/marker_review_responsive_layout.md`.
-- [ ] #136: Confirm native Windows 820×600 and target-screen important states.
-  Native capture is black and activation/input fails; widget/render/QTest
-  evidence does not satisfy this requirement. Keep native issue completion
-  pending; merged PR #147's development remains delivered.
-  #104 measured calibration remains separately pending.
+- [O] #136 native follow-up: Windows input confirmed the 820×600 layout at 100%
+  and the 1510×800 paired plots at 125% on a 2560×1440 display. With Details
+  open, both axes and units remained visible, and selecting the second
+  candidate left the adjacent candidates OFF.
 - [O] #135: Implement source-bound capture replay, fresh production slice/proc/Compare/export regression, additive signatures and full-trajectory guards with independently reviewed public analytic expectations. Six approved scenes freshly processed. See `../reference/capture_regression.md`; final review/CI/publication is recorded in merged PR #146. Its delivery scope was #135 of parent #134; later #136/#137 deliveries are recorded above.
 - [ ] #135 GUI follow-up: New corpus Step1/1.5 native fresh processing, native save chooser and Compare 3-D visual inspection. Step2/Compare load and actual scenario export used six reused fresh outputs; they do not certify these pending paths.
 - [O] #115: Connect the general observation exporter to observed-only review, explicit widget approval, corrected/slice round trips and real Raw reprocessing. Preserve missing rows and report unavailable contact instead of aborting on all-NaN corners. See `../reference/general_export_recovery.md`; final independent review/CI/merge evidence belongs to the PR.

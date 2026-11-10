@@ -27,6 +27,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 2
       - name: Prepare the Windows software OpenGL driver
         uses: pyvista/setup-headless-display-action@10e6efb97af3cd1523828f0e22c39f0e4567f3e4
         with:
@@ -43,6 +44,14 @@ jobs:
         with:
           python-version: '3.13'
           cache: pip
+      - name: Verify the validation router
+        run: python -m unittest discover -s tests -p test_ci_validation_scope.py
+      - name: Select Windows validation scope
+        id: validation_scope
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python scripts/ci_validation_scope.py route
       - name: Install application and test dependencies
         run: python -m pip install -r requirements.txt pytest mujoco==3.6.0
       - name: Record source state before automatic validation
@@ -51,6 +60,7 @@ jobs:
           git status --porcelain --untracked-files=all
           git diff --name-only
       - name: Freeze required PUB11 jobs and test populations before execution
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: python -m src.simulation.ci_evidence prepare --output tmp/issue144/frozen-ci
       - name: Verify the physical Qt desktop before running GUI checks
         run: >-
@@ -61,10 +71,16 @@ jobs:
           Path('tmp').mkdir(exist_ok=True);
           Path('tmp/ci-desktop.json').write_text(json.dumps(report), encoding='utf-8');
           print(report); assert physical == [1920, 1080], report"
+      - name: Check presentation changes at 125 percent
+        if: ${{ steps.validation_scope.outputs.scope == 'presentation' }}
+        env:
+          QT_SCALE_FACTOR: '1.25'
+        run: python scripts/ci_validation_scope.py test-presentation
       # Keep independent validation running; the final evidence gate checks raw outcomes.
       - name: Preserve scene review and render PUB04 at 125 percent
         id: check_01
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: |
@@ -75,6 +91,7 @@ jobs:
       - name: Check public geometry, correction, persistence and Qt workflow
         id: check_02
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: >-
           python -m pytest -q
           tests/test_ui_language.py
@@ -161,6 +178,7 @@ jobs:
       - name: Execute explicit PUB11 capture tiers with fresh production
         id: check_03
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: |
           python -m src.simulation.capture_corpus --output tmp/issue144/assets
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -174,44 +192,53 @@ jobs:
       - name: Verify PUB06 mode contracts and independent transforms
         id: check_04
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: python -m src.simulation.mode_validation --output tmp/issue139/contracts
       - name: Verify PUB07 virtual dynamic continuity diagnostics
         id: check_05
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: python -m src.simulation.ci_evidence run --component pub07 --output tmp/issue144/pub07
       - name: Verify PUB08 contacts and production observed event comparisons
         id: check_06
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: python -m src.simulation.ci_evidence run --component pub08 --output tmp/issue144/pub08
       - name: Verify PUB09 seeds, convergence, limited fit and fresh holdout production
         id: check_07
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: python -m src.simulation.ci_evidence run --component pub09 --output tmp/issue144/pub09
       - name: Verify PUB10 virtual visibility and correlated noise through fresh production
         id: check_08
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: python -m src.simulation.ci_evidence run --component pub10 --output tmp/issue144/pub10
       - name: Render PUB07 actual production profiles at 125 percent
         id: check_09
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m src.simulation.robot_ui_validation --output tmp/issue140/production-125
       - name: Render PUB06 production mode settings at original FHD size
         id: check_10
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m src.simulation.mode_ui_validation --output tmp/issue139/production-125
       - name: Generate marker observations and open Step 1 at 125 percent
         id: check_11
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_simulation_marker_export_gui.py --junitxml=tmp/issue114/gui-125.xml
       - name: Verify PUB05 editing and render approved production profiles at 125 percent
         id: check_12
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: |
@@ -222,53 +249,61 @@ jobs:
       - name: Inspect original motion during marker review at 125 percent
         id: check_13
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_marker_review_context.py --junitxml=tmp/issue121/context-125.xml
       - name: Inspect responsive marker review labels and controls at 125 percent
         id: check_14
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_marker_review_layout.py --junitxml=tmp/issue136/layout-125.xml
       - name: Verify metric variants in the real comparison GUI at 125 percent
         id: check_15
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_metric_variants_gui.py --junitxml=tmp/issue119/gui-125.xml
       - name: Review vertical motion and preserve scene signals at 125 percent
         id: check_16
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_scene_signal_gui.py --junitxml=tmp/issue123/gui-125.xml
       - name: Compare repeated posture and public pipeline output at 125 percent
         id: check_17
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_posture_comparison_gui.py --junitxml=tmp/issue117/gui-125.xml -o faulthandler_timeout=90
       - name: Check comparison reference labels and shared guide at 125 percent
         id: check_18
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_comparison_reference_gui.py --junitxml=tmp/issue122/gui-125.xml -o faulthandler_timeout=90
       - name: Check incomplete pose rows without inferring contact
         id: check_19
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: python -m pytest -q tests/test_drop_posture_post_processor.py -k incomplete_pose --junitxml=tmp/issue115/incomplete.xml
       - name: Verify bounded marker review and real cancellation at 125 percent
         id: check_20
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           QT_SCALE_FACTOR: '1.25'
         run: python -m pytest -q tests/test_marker_review_gui.py --junitxml=tmp/issue112/gui-125.xml -o faulthandler_timeout=90
       - name: Identify the completed trial for release replay
         id: release_replay_input
         continue-on-error: true
-        if: ${{ hashFiles('tmp/issue75_trial_gui/**/execution.json') != '' }}
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' && hashFiles('tmp/issue75_trial_gui/**/execution.json') != '' }}
         shell: pwsh
         run: |
           $reports = @(Get-ChildItem -LiteralPath tmp/issue75_trial_gui -Filter execution.json -Recurse -File)
@@ -290,7 +325,7 @@ jobs:
       - name: Replay retained public results in the release GUI at 125 percent
         id: check_21
         continue-on-error: true
-        if: ${{ steps.release_replay_input.outputs.trial_report != '' }}
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' && steps.release_replay_input.outputs.trial_report != '' }}
         env:
           QT_SCALE_FACTOR: '1.25'
           TRIAL_REPORT: ${{ steps.release_replay_input.outputs.trial_report }}
@@ -298,7 +333,7 @@ jobs:
       - name: Summarize required public evidence levels
         id: check_22
         continue-on-error: true
-        if: ${{ !cancelled() && hashFiles('tmp/public-marker-results.xml') != '' }}
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' && !cancelled() && hashFiles('tmp/public-marker-results.xml') != '' }}
         run: >-
           python -m src.simulation.public_validation_summary
           --junit tmp/public-marker-results.xml
@@ -306,6 +341,7 @@ jobs:
       - name: Compare independent truth with public observation cases
         id: check_23
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         shell: pwsh
         run: |
           python -m src.simulation.validate_marker_fixtures --case all --negative-controls --output tmp/ci-free-fall
@@ -320,9 +356,10 @@ jobs:
       - name: Check independently specified continuity challenges
         id: check_24
         continue-on-error: true
+        if: ${{ steps.validation_scope.outputs.scope != 'presentation' }}
         run: python -m src.simulation.continuity_fixtures --output tmp/ci-continuity
       - name: Enforce required PUB11 coverage and preserve readable evidence
-        if: always()
+        if: ${{ always() && steps.validation_scope.outputs.scope != 'presentation' }}
         env:
           PUB11_STEP_OUTCOMES: ${{ toJSON(steps) }}
         run: python -m src.simulation.ci_evidence verify --protocol tmp/issue144/frozen-ci/protocol.json --output tmp/issue144/ci-summary --require-step-outcomes
@@ -339,6 +376,7 @@ jobs:
           name: public-validation-evidence
           path: |
             tmp/ci-desktop.json
+            tmp/ci-presentation.xml
             tmp/issue112/**
             tmp/issue115/**
             tmp/issue114/**
