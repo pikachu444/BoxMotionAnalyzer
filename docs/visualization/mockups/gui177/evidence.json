@@ -3371,7 +3371,7 @@
   },
   "external_input_evidence": {
     "record": "external/external-input.json",
-    "sha256": "259d4923c7b481e6990f9724d99cfad09ac725651d931918c3967247dee98d97",
+    "sha256": "bc9a2efd7c6a610e6ebd77c10b14b6afa17375cfbfbb29121404c00ab1f0172f",
     "kind": "Windows sky SendInput and foreground target capture",
     "passes": [
       "actual box initially visible at Sample 1",
