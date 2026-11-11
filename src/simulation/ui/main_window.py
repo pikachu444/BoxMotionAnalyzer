@@ -893,7 +893,7 @@ class SimulationUI(QWidget):
         self.noise_std_input = QDoubleSpinBox()
         self.noise_std_input.setRange(0.01, 100)
         self.noise_std_input.setValue(1.0)
-        self.noise_std_input.setPrefix("Std (mm): ")
+        self.noise_std_input.setPrefix(tr('Std (mm)') + ': ')
 
         layout.addWidget(self.noise_cb)
         layout.addWidget(self.noise_std_input)

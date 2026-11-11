@@ -210,9 +210,15 @@ class MarkerExportDialog(QDialog):
         self.axes.clear()
         draw_profile(self.profile, self.axes)
         self.axes.set_box_aspect(self.profile['box_dims_mm'], zoom=.8)
-        for axis in (self.axes.xaxis, self.axes.yaxis, self.axes.zaxis):
+        for name, axis in zip('XYZ', (self.axes.xaxis, self.axes.yaxis, self.axes.zaxis)):
             axis.label.set_fontsize(9)
-        self.axes.legend(loc='upper left', bbox_to_anchor=(-.55, 1.))
+            axis.label.set_text(tr(f'Box local {name} (mm)'))
+        handles, labels = self.axes.get_legend_handles_labels()
+        translated_labels = []
+        for label in labels:
+            face, separator, count = label.partition(':')
+            translated_labels.append(tr(face) + separator + count)
+        self.axes.legend(handles, translated_labels, loc='upper left', bbox_to_anchor=(-.55, 1.))
         self.axes.set_title(tr('Box-local marker layout'))
         self.canvas.draw_idle()
         self._update_compatibility()

@@ -167,6 +167,7 @@ def test_m02_marker_fault_group_keeps_defaults_conditions_and_csv_payload(window
     window.open_marker_export()
     dialog = window.marker_dialog
     if QApplication.instance().property('interfaceLanguage') == 'ko':
+        assert window.noise_std_input.prefix() == '표준편차 (mm): '
         for key, control in zip(('Mass (kg)', 'Friction', 'Contact damping', 'COM X (mm)',
                                  'COM Y (mm)', 'COM Z (mm)'), window.settings.physics_controls):
             label = control.parentWidget().layout().labelForField(control)
@@ -185,10 +186,16 @@ def test_m02_marker_fault_group_keeps_defaults_conditions_and_csv_payload(window
     dialog.canvas.draw()
     renderer = dialog.canvas.get_renderer()
     canvas_box = dialog.figure.bbox
-    for axis in (dialog.axes.xaxis, dialog.axes.yaxis, dialog.axes.zaxis):
+    for name, axis in zip('XYZ', (dialog.axes.xaxis, dialog.axes.yaxis, dialog.axes.zaxis)):
         label_box = axis.label.get_window_extent(renderer)
         assert canvas_box.contains(*label_box.p0) and canvas_box.contains(*label_box.p1)
         assert axis.label.get_fontsize() == 9
+        if QApplication.instance().property('interfaceLanguage') == 'ko':
+            assert axis.label.get_text() == tr(f'Box local {name} (mm)')
+            assert not axis.label.get_text().startswith('Box local')
+    if QApplication.instance().property('interfaceLanguage') == 'ko':
+        for label in dialog.axes.get_legend().get_texts():
+            assert label.get_text().partition(':')[0] not in ('FRONT', 'BACK', 'RIGHT', 'LEFT', 'TOP', 'BOTTOM')
     assert isinstance(dialog.fault_section, QGroupBox)
     assert not any(type(child).__name__ == 'CollapsibleSection' for child in dialog.findChildren(QWidget))
     assert dialog.kind.currentData() is None
