@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
+from PySide6.QtCore import QPoint, Qt
 from PySide6.QtWidgets import QApplication, QDialog
 
 from src.analysis.pipeline.artifact_io import read_corrected_source_metadata
@@ -224,10 +225,10 @@ class TestMarkerFlipRawWidget(unittest.TestCase):
             pd.testing.assert_frame_equal(self.widget.review_raw_data, self.raw_df)
             emitted.assert_called_once()
 
-    def test_long_source_filename_is_wrapped_selectable_and_fully_preserved(self):
+    def test_long_unicode_source_is_elided_selectable_and_full_path_copyable(self):
         long_path = str(
-            Path("C:/captures")
-            / (("very_long_capture_directory_and_filename_" * 12) + "corrected.csv")
+            Path("C:/captures/실험 자료")
+            / (("긴_캡처_디렉터리와_파일명_" * 12) + "보정본.corrected.csv")
         )
         self.widget.source_path = long_path
         self.widget.correction_source_metadata = SimpleNamespace(
@@ -241,13 +242,40 @@ class TestMarkerFlipRawWidget(unittest.TestCase):
         self.widget.show()
         app.processEvents()
 
+        self.assertEqual(self.widget.source_path, long_path)
         self.assertFalse(self.widget.file_path_label.wordWrap())
         self.assertEqual(self.widget.file_path_label._path_text, Path(long_path).name)
         self.assertLessEqual(self.widget.file_path_label.fontMetrics().horizontalAdvance(
             self.widget.file_path_label.text()), self.widget.file_path_label.width())
+        self.assertNotEqual(self.widget.file_path_label.text(), Path(long_path).name)
+        self.assertIn("…", self.widget.file_path_label.text())
         self.assertEqual(self.widget.file_path_label.property("fullPath"), long_path)
         self.assertEqual(self.widget.file_path_label.toolTip(), long_path)
-        self.assertTrue(self.widget.marker_review_source_label.wordWrap())
+        label = self.widget.file_path_label
+        selectable = (Qt.TextInteractionFlag.TextSelectableByMouse
+                      | Qt.TextInteractionFlag.TextSelectableByKeyboard)
+        self.assertEqual(label.textInteractionFlags() & selectable, selectable)
+        label.setSelection(0, len(label.text()))
+        self.assertEqual(label.selectedText(), label.text())
+        self.assertEqual(label.contextMenuPolicy(), Qt.ContextMenuPolicy.CustomContextMenu)
+
+        clipboard = QApplication.clipboard()
+        previous_clipboard = clipboard.text()
+        self.addCleanup(clipboard.setText, previous_clipboard)
+        clipboard.setText("unrelated previous clipboard value")
+
+        with patch("src.utils.qt_sections.QMenu") as menu_type:
+            menu = menu_type.return_value
+            action = menu.addAction.return_value
+            menu.exec.return_value = action
+            label.customContextMenuRequested.emit(QPoint(0, 0))
+            menu_type.assert_called_once_with(label)
+            menu.addAction.assert_called_once_with("Copy path")
+            action.setEnabled.assert_called_once_with(True)
+            menu.exec.assert_called_once()
+        self.assertEqual(clipboard.text(), long_path)
+        self.assertEqual(self.widget.source_path, long_path)
+        self.assertFalse(self.widget.marker_review_source_label.wordWrap())
         self.assertEqual(self.widget.marker_review_source_label.text(), "Source: corrected")
         self.assertEqual(
             self.widget.marker_review_source_label.toolTip(),

@@ -4,15 +4,16 @@ from types import SimpleNamespace
 
 import pandas as pd
 import pytest
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QRegion
-from PySide6.QtWidgets import QApplication, QFileDialog, QGroupBox, QMessageBox, QWidget
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QApplication, QFileDialog, QGroupBox, QMessageBox, QWidget, QLineEdit, QScrollArea
 
 from src.analysis.pipeline.artifact_io import save_slice_file, add_timeline_context_columns
 from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.pipeline.parser import Parser
 from src.analysis.pipeline.pipeline_controller import PipelineController
-from src.analysis.ui.widget_slice_processing import WidgetSliceProcessing
+from src.analysis.ui.widget_slice_processing import WidgetSliceProcessing, _ProcessingScrollArea
 from src.config import config_analysis_ui, config_app
 from src.config.data_columns import FACE_PREFIX_TO_INFO
 from src.simulation.scene_review_fixtures import public_raw
@@ -257,4 +258,65 @@ def test_missing_dimensions_and_action_remain_reachable(app, slice_path, size, m
     finally:
         widget.close()
         widget.deleteLater()
+        app.processEvents()
+
+
+@pytest.mark.parametrize('edge', ['bottom', 'right'])
+def test_context_scroll_reveals_whole_field_when_cursor_is_already_visible(app, edge):
+    scroll = _ProcessingScrollArea()
+    content = QWidget()
+    content.setFixedSize(500, 500)
+    group = QWidget(content)
+    group.setGeometry(7, 9, 450, 450)
+    field = QLineEdit('200', group)
+    field.resize(120, 80)
+    scroll.setWidget(content)
+    scroll.resize(220, 160)
+    scroll.show()
+    app.processEvents()
+    try:
+        if edge == 'bottom':
+            field.move(10, scroll.viewport().height() - field.height() + 3 - group.y())
+        else:
+            field.move(scroll.viewport().width() - field.width() + 3 - group.x(), 10)
+        app.processEvents()
+        cursor = field.inputMethodQuery(Qt.ImCursorRectangle)
+        cursor_in_viewport = cursor.translated(field.mapTo(scroll.viewport(), QPoint()))
+        assert scroll.viewport().rect().contains(cursor_in_viewport)
+        assert not fully_visible(field)
+        # Negative control: stock Qt returns as soon as the cursor fits.
+        QScrollArea.ensureWidgetVisible(scroll, field)
+        assert not fully_visible(field)
+        scroll.ensureWidgetVisible(field)
+        app.processEvents()
+        assert fully_visible(field)
+    finally:
+        scroll.close()
+        scroll.deleteLater()
+        app.processEvents()
+
+
+def test_context_keyboard_navigation_reveals_whole_field(app):
+    scroll = _ProcessingScrollArea()
+    content = QWidget()
+    content.setFixedSize(500, 500)
+    first = QLineEdit('first', content)
+    first.setGeometry(10, 0, 120, 30)
+    second = QLineEdit('second', content)
+    second.resize(120, 80)
+    scroll.setWidget(content)
+    scroll.resize(220, 160)
+    scroll.show()
+    app.processEvents()
+    try:
+        second.move(10, scroll.viewport().height() - second.height() + 3)
+        first.setFocus()
+        app.processEvents()
+        assert first.hasFocus() and not fully_visible(second)
+        QTest.keyClick(first, Qt.Key_Tab)
+        app.processEvents()
+        assert second.hasFocus() and fully_visible(second)
+    finally:
+        scroll.close()
+        scroll.deleteLater()
         app.processEvents()

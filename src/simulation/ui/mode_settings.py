@@ -5,11 +5,12 @@ import math
 from pathlib import Path
 from uuid import uuid4
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QTabWidget, QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox,
     QCheckBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
-    QFileDialog, QDialog, QSizePolicy, QGroupBox, QGridLayout)
+    QFileDialog, QDialog, QSizePolicy, QGroupBox, QGridLayout, QStyle,
+    QStyleOptionTabWidgetFrame)
 from src.simulation.mode_profiles import (ModeProfiles, drop_step, validate_config,
     read_profiles, save_profiles, BLOCKED_REASON, require_executable)
 from src.simulation.robot_profiles import example_plan
@@ -151,6 +152,7 @@ class ModeSettings(QWidget):
         self.corner_enabled.toggled.connect(self.fault_controls)
         self.fault_kind.currentIndexChanged.connect(self.fault_controls)
         self.tabs.currentChanged.connect(self.fit_tab)
+        self.table.horizontalScrollBar().rangeChanged.connect(lambda *_: QTimer.singleShot(0, self.fit_tab))
         for control in self.findChildren(QWidget):
             if isinstance(control,(QDoubleSpinBox,QSpinBox)):control.valueChanged.connect(self.invalidate_sequence_preview)
             elif isinstance(control,QLineEdit):control.textChanged.connect(self.invalidate_sequence_preview)
@@ -160,11 +162,30 @@ class ModeSettings(QWidget):
 
     def fit_tab(self):
         page = self.tabs.currentWidget()
-        page.layout().activate()
-        height = page.layout().sizeHint().height()+self.tabs.tabBar().sizeHint().height()+4
-        self.tabs.setFixedHeight(height)
-        self.layout().activate()
-        self.setMaximumHeight(self.layout().sizeHint().height())
+        option = QStyleOptionTabWidgetFrame()
+        self.tabs.initStyleOption(option)
+        contents = self.tabs.style().subElementRect(QStyle.SE_TabWidgetTabContents, option, self.tabs)
+        page_layout = page.layout()
+        if page is self.table.parentWidget():
+            scrollbar_height = (self.table.horizontalScrollBar().sizeHint().height()
+                if self.table.horizontalScrollBar().maximum() else 0)
+            self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
+                + 5 * self.table.verticalHeader().defaultSectionSize()
+                + 2 * self.table.frameWidth() + scrollbar_height)
+        page_layout.activate()
+        # Wrapped labels must use the visible page width, not an unconstrained hint.
+        page_height = (page_layout.totalHeightForWidth(max(1, contents.width()))
+            if page_layout.hasHeightForWidth() else page_layout.totalSizeHint().height())
+        self.tabs.setFixedHeight(page_height + self.tabs.height() - contents.height())
+        layout = self.layout()
+        layout.activate()
+        self.setMaximumHeight(layout.totalHeightForWidth(max(1, self.width()))
+            if layout.hasHeightForWidth() else layout.totalSizeHint().height())
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'cancel_button') and event.size().width() != event.oldSize().width():
+            self.fit_tab()
 
     @staticmethod
     def spin(low, high, decimals=2):

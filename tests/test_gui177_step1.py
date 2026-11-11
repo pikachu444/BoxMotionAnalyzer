@@ -1,6 +1,7 @@
 """Step 1 layout and session invariants for the issue 177 workflow."""
 import pytest
-from PySide6.QtCore import QPoint, QRect
+from PySide6.QtCore import QPoint, QRect, Qt
+from PySide6.QtGui import QRegion
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QFileDialog
 
@@ -149,3 +150,33 @@ def test_graph_labels_fit_after_resize_while_another_tab_is_selected(workspace):
     capture.canvas.draw()
     bounds = capture.plot_manager.ax.yaxis.label.get_window_extent(capture.canvas.get_renderer())
     assert 0 <= bounds.y0 <= bounds.y1 <= capture.fig.bbox.height
+
+
+@pytest.mark.parametrize('size', [(1100, 720), (820, 600)])
+@pytest.mark.parametrize('field', ['le_box_l', 'le_slice_start', 'le_slice_end'])
+def test_focused_review_field_is_fully_visible_after_scroll(workspace, size, field):
+    window, capture, source = workspace
+    window.resize(*size)
+    QTest.qWait(100)
+    scroll = capture.review_scroll
+    edit = getattr(capture, field)
+    assert edit.isEnabled()
+    values = [row['decision'] for row in capture.scene_session.rows]
+    selected = capture.scene_panel.selected_id()
+    capture.save_process_button.setFocus()
+    QApplication.processEvents()
+    position = edit.mapTo(scroll.widget(), QPoint())
+    if field == 'le_box_l':
+        target = position.x() + 1
+    else:
+        target = position.x() + edit.width() - scroll.viewport().width() - 4
+    scroll.horizontalScrollBar().setValue(target)
+    scroll.verticalScrollBar().setValue(0)
+    QApplication.processEvents()
+    assert not QRegion(edit.rect()).subtracted(edit.visibleRegion()).isEmpty()
+    edit.setFocus(Qt.TabFocusReason)
+    QTest.qWait(50)
+    assert edit.hasFocus()
+    assert QRegion(edit.rect()).subtracted(edit.visibleRegion()).isEmpty()
+    assert [row['decision'] for row in capture.scene_session.rows] == values
+    assert capture.scene_panel.selected_id() == selected

@@ -1,10 +1,11 @@
 """Simulation input identity, camera semantics and reachable Run actions."""
 import numpy as np
+import pytest
 from scipy.spatial.transform import Rotation
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QRegion
+from PySide6.QtGui import QFont, QRegion
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QScrollArea, QStyleFactory
 
 from src.simulation.scenarios import Scenarios
 from src.simulation.ui.main_window import OrientationPreviewWidget, SimulationUI
@@ -95,6 +96,74 @@ def test_robot_summary_and_whole_target_fit_fhd_without_scrolling():
         assert window.orientation_preview.height()>=160
     finally:
         window.close();app.processEvents()
+
+
+@pytest.mark.parametrize('point_size', [9, 11])
+def test_fhd_robot_preview_fits_content_at_current_font_metrics(point_size):
+    app = QApplication.instance() or QApplication([])
+    original_font = app.font()
+    original_style = app.style().objectName()
+    app.setStyle('windows11' if 'windows11' in QStyleFactory.keys() else 'Windows')
+    app.setFont(QFont('Segoe UI', point_size))
+    window = SimulationUI()
+    window.show()
+    try:
+        window.resize(1536, 864)
+        QTest.qWait(50)
+        window.mode_combo.setCurrentIndex(1)
+        window.settings.handling.setCurrentIndex(1)
+        window.settings.run_scope.setCurrentIndex(1)
+        window.settings.table.selectRow(7)
+        configuration = window._capture_config()
+        window.settings.preview_sequence()
+        QTest.qWait(50)
+        app.processEvents()
+        assert _fully_visible(window.settings.preview_box)
+        assert _fully_visible(window.settings.apply_button)
+        assert _fully_visible(window.preview_group)
+        assert window.right_scroll.verticalScrollBar().maximum() == 0
+        assert window.orientation_preview.height() >= 160
+        assert window.settings.table.viewport().height() >= 5 * window.settings.table.rowHeight(0)
+        assert window._capture_config() == configuration
+        for size in ((1510, 800), (1100, 720), (820, 600)):
+            window.resize(*size)
+            QTest.qWait(30)
+            if window._narrow:
+                window._show_settings()
+                app.processEvents()
+                scroll = window.settings_dialog.findChild(QScrollArea)
+            else:
+                scroll = window.right_scroll
+            for index, controls in (
+                (0, (window.settings.handling, window.settings.run_scope, window.settings.preview_box)),
+                (1, (window.friction_input, window.com_z, *window.settings.physics_controls)),
+                (2, (window.noise_std_input, window.settings.corner_std, window.settings.corner_seed,
+                     window.settings.marker_combo, window.settings.fault_kind, window.settings.marker_seed)),
+            ):
+                window.settings.tabs.setCurrentIndex(index)
+                QTest.qWait(20)
+                for control in (*controls, window.settings.apply_button, window.settings.cancel_button):
+                    scroll.ensureWidgetVisible(control)
+                    app.processEvents()
+                    assert _fully_visible(control), (point_size, size, index, control.geometry())
+                if index == 0:
+                    scroll.ensureWidgetVisible(window.settings.table)
+                    app.processEvents()
+                    assert _fully_visible(window.settings.table.viewport())
+                    assert window.settings.table.viewport().height() >= 5 * window.settings.table.rowHeight(0)
+            if window.settings_dialog:
+                window.settings_dialog.accept()
+            assert window._capture_config() == configuration
+        window.resize(1536, 864)
+        window.settings.tabs.setCurrentIndex(0)
+        QTest.qWait(40)
+        assert _fully_visible(window.preview_group)
+        assert window.right_scroll.verticalScrollBar().maximum() == 0
+    finally:
+        window.close()
+        app.setStyle(original_style)
+        app.setFont(original_font)
+        app.processEvents()
 
 
 def test_small_simulation_form_keeps_run_fixed_and_settings_intact():

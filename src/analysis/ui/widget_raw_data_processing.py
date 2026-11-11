@@ -5,7 +5,7 @@ import numpy as np
 from dataclasses import asdict
 from copy import deepcopy
 from pathlib import Path
-from PySide6.QtCore import Signal, Qt, QThread, QTimer, QSize, QEvent
+from PySide6.QtCore import Signal, Qt, QThread, QTimer, QSize, QEvent, QPoint
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog,
@@ -56,9 +56,19 @@ from src.utils.ui_language import tr
 
 class ReviewScrollArea(QScrollArea):
     def ensureWidgetVisible(self, widget, xmargin=50, ymargin=50):
-        # Qt scrolls to the widget center; include its extent as well.
-        super().ensureWidgetVisible(widget, xmargin + widget.width() // 2,
-                                    ymargin + widget.height() // 2)
+        super().ensureWidgetVisible(widget, xmargin, ymargin)
+        if self.widget() is None or not self.widget().isAncestorOf(widget):
+            return
+        # Qt may reveal only a line edit's cursor, leaving its border clipped.
+        rect = widget.rect().translated(widget.mapTo(self.viewport(), QPoint()))
+        for bar, start, end, extent in (
+            (self.horizontalScrollBar(), rect.left(), rect.right(), self.viewport().width()),
+            (self.verticalScrollBar(), rect.top(), rect.bottom(), self.viewport().height()),
+        ):
+            if end >= extent:
+                bar.setValue(bar.value() + end - extent + 1)
+            elif start < 0:
+                bar.setValue(bar.value() + start)
 
     def eventFilter(self, watched, event):
         if event.type() == QEvent.FocusIn:
