@@ -1,0 +1,2 @@
+producers/*.py -text
+*.json text eol=lf
