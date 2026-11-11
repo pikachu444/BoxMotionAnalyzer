@@ -27,6 +27,8 @@ KOREAN = {
     'Files: {file_count} | Comparison observation groups: {observation_count}': '파일: {file_count} | 비교 관측 그룹: {observation_count}',
     'Actual-time alignment available': '실제 시간 정렬 가능',
     'Reviewed observation identity unavailable': '검토된 관측 식별 정보 없음',
+    'Source: {source}   Baseline: {baseline}': '출처: {source}   기준: {baseline}',
+    'Baseline\n': '기준\n',
     'Candidate': '후보',
     'Recommended': '추천',
     'Approve': '승인',

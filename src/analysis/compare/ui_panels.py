@@ -2,12 +2,13 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QTableWidget, QTableWidgetItem, QHeaderView, QListWidget, QComboBox, QSplitter,
     QGroupBox, QFrame, QListWidgetItem, QPlainTextEdit, QDoubleSpinBox,
-    QScrollArea, QSizePolicy, QFormLayout, QCheckBox, QLayout
+    QScrollArea, QSizePolicy, QFormLayout, QCheckBox, QLayout, QTabWidget
 )
 from PySide6.QtWidgets import QToolButton
 from PySide6.QtCore import Qt, Signal, QSize
 from PySide6.QtGui import QColor, QIcon, QPixmap
 from matplotlib.figure import Figure
+from matplotlib.ticker import MaxNLocator
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import pandas as pd
 
@@ -18,7 +19,7 @@ from src.analysis.compare.posture_metrics import POSTURE_METRICS
 from src.analysis.compare.metric_guide import MetricGuideDialog, guide_key_for_summary
 from src.config.data_columns import (get_result_metric_display_name, get_result_metric_tooltip,
                                      format_result_value, is_corner_id_column)
-from src.utils.qt_sections import CollapsibleSection, find_result_column_index
+from src.utils.qt_sections import find_result_column_index, unique_path_labels, set_path_label
 from src.utils.ui_language import tr
 
 SOURCE_LABELS = {'real': 'Real', 'mujoco_synthetic': 'MuJoCo',
@@ -49,6 +50,7 @@ class _ElidedContextLabel(QLabel):
 class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
     resolution_details_changed = Signal(str)
+    display_rows_changed = Signal(int)
 
     def __init__(self):
         super().__init__(tr("Summary"))
@@ -78,12 +80,18 @@ class CompareTablePanel(QGroupBox):
         self._table_data = ({}, None, None)
         self._contact_data = None
         self._posture_data = None
+        self.file_labels = {}
         self.view_combo.currentIndexChanged.connect(self._render)
         
         self.table = QTableWidget()
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.verticalHeader().setVisible(False)
         layout.addWidget(self.table)
+        self.empty_label = QLabel(tr('No data for this summary mode.'))
+        self.empty_label.setWordWrap(True)
+        self.empty_label.setTextFormat(Qt.PlainText)
+        self.empty_label.hide()
+        layout.addWidget(self.empty_label)
         self.resolution_label = QLabel()
         self.resolution_label.setTextFormat(Qt.PlainText)
         layout.addWidget(self.resolution_label)
@@ -98,7 +106,6 @@ class CompareTablePanel(QGroupBox):
         self._table_data = (diff_data, baseline_name, impact)
         self._contact_data = contact
         self._posture_data = posture
-        self.view_combo.setVisible(impact is not None)
         self._render()
 
     def _render(self):
@@ -117,6 +124,10 @@ class CompareTablePanel(QGroupBox):
             self.table.horizontalScrollBar().setValue(horizontal)
         self._last_mode = mode
         self._show_resolution()
+        rows = self.table.rowCount()
+        self.table.setVisible(rows > 0)
+        self.empty_label.setVisible(rows == 0)
+        self.display_rows_changed.emit(rows)
 
     def _open_metric_guide(self):
         if self._metric_guide is not None:
@@ -136,8 +147,10 @@ class CompareTablePanel(QGroupBox):
     def _file_label(self, name, source, width=None):
         # Reserve a short first line for the reference marker. Keep two lines
         # overall so a compact Summary still displays a complete metric row.
-        filename = self.table.fontMetrics().elidedText(name, Qt.ElideMiddle, max(1, width)) if width is not None else name
-        return f'Baseline ({source})\n{filename}' if name == self._table_data[1] else filename + '\n' + source
+        display_name = self.file_labels.get(name, name)
+        filename = self.table.fontMetrics().elidedText(display_name, Qt.ElideMiddle, max(1, width)) if width is not None else display_name
+        source = tr(source)
+        return f'{tr("Baseline")} ({source})\n{filename}' if name == self._table_data[1] else filename + '\n' + source
 
     def _refresh_file_labels(self, *_):
         if self.table.signalsBlocked():
@@ -161,11 +174,13 @@ class CompareTablePanel(QGroupBox):
         impact = self._table_data[2]
         entries = impact.get('files', {}).get(name, {}).get('metric_resolution', {}) if impact else {}
         path = next(iter(entries.values()), {}).get('path', name)
-        return ('Baseline\n' if name == self._table_data[1] else '') + path
+        return (tr('Baseline') + '\n' if name == self._table_data[1] else '') + path
 
     def _repeat_cohort_text(self, source):
         baseline = self._table_data[1] or ''
-        self.cohort_label.setText('Source: ' + SOURCE_LABELS.get(source, 'Unknown') + '   Baseline: ' + baseline)
+        label = self.file_labels.get(baseline, baseline)
+        self.cohort_label.setText(tr('Source: {source}   Baseline: {baseline}').format(
+            source=tr(SOURCE_LABELS.get(source, 'Unknown')), baseline=label))
         self.cohort_label.setToolTip(self._file_identity(baseline))
 
     def _render_contents(self):
@@ -175,7 +190,7 @@ class CompareTablePanel(QGroupBox):
         self.resolution_label.clear()
         mode = self.view_combo.currentIndex()
         self.resolution_label.setVisible(mode in (1, 5))
-        self.validation_badge.setText('Diagnostic' if impact is None or mode in (2, 4, 5) else tr('Experimental'))
+        self.validation_badge.setText(tr('Diagnostic') if impact is None or mode in (2, 4, 5) else tr('Experimental'))
         self.validation_badge.setVisible(bool(diff_data))
         if self.view_combo.currentIndex() == 3 and self._contact_data is not None:
             self._render_contact(self._contact_data)
@@ -534,7 +549,7 @@ class CompareGraphPanel(QGroupBox):
 
     def __init__(self):
         super().__init__(tr("Graph"))
-        self.setMinimumHeight(270)
+        self.setMinimumHeight(180)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(6, 6, 6, 6)
         layout.setSpacing(3)
@@ -547,17 +562,13 @@ class CompareGraphPanel(QGroupBox):
         target_layout.addWidget(self.cb_plot_target, stretch=1)
         self.fig = Figure(figsize=(5, 3), dpi=100)
         self.canvas = FigureCanvas(self.fig)
-        self.canvas.setMinimumSize(200, 130)
+        self.canvas.setMinimumSize(130, 75)
         self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Ignored)
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.toolbar.setIconSize(QSize(16, 16))
         for button in self.toolbar.findChildren(QToolButton):
             button.setFocusPolicy(Qt.StrongFocus)
         self.toolbar.locLabel.setVisible(False)
-        for action in self.toolbar.actions():
-            tooltip = action.toolTip() or ''
-            if 'Configure subplots' in tooltip or 'Edit axis' in tooltip:
-                action.setVisible(False)
         layout.addLayout(target_layout)
 
         # A scrollable, single-line key never covers the measured data.
@@ -608,6 +619,7 @@ class CompareGraphPanel(QGroupBox):
             if item.widget():
                 item.widget().deleteLater()
         self.legend_labels.clear()
+        file_labels = dict(zip((paths or {}).keys(), unique_path_labels((paths or {}).values())))
         for name, series in series_dict.items():
             color = (colors or {}).get(name, '#1f77b4')
             plot_result_series(ax, series.index, series.values, column, label=name, color=color)
@@ -619,9 +631,10 @@ class CompareGraphPanel(QGroupBox):
             swatch.setStyleSheet(f'background-color: {color}')
             label = QLabel()
             label.setTextFormat(Qt.PlainText)
-            label.setText(label.fontMetrics().elidedText(name, Qt.ElideMiddle, 190))
+            display_name = file_labels.get(name, name)
+            set_path_label(label, (paths or {}).get(name, name), display_name=display_name)
+            label.setText(label.fontMetrics().elidedText(display_name, Qt.ElideMiddle, 240))
             label.setMinimumWidth(label.sizeHint().width())
-            label.setToolTip((paths or {}).get(name, name))
             label.setProperty('fileKey', name)
             label.setProperty('fileColor', color)
             chip_layout.addWidget(swatch)
@@ -636,6 +649,7 @@ class CompareGraphPanel(QGroupBox):
             ax.text(.5, .5, tr('No data for this view'), transform=ax.transAxes,
                     ha='center', va='center', color='#666666')
         ax.set_xlabel(tr(xlabel))
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
         ax.grid(True)
         self.plot_manager._initialize_hover_annotation()
         self.fig.tight_layout(pad=.3)
@@ -660,6 +674,8 @@ class CompareControlPanel(QGroupBox):
     def __init__(self):
         super().__init__(tr('Files'))
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(7, 7, 7, 7)
+        layout.setSpacing(5)
         buttons = QHBoxLayout()
         self.btn_add_files = QPushButton(tr('Open'))
         self.btn_add_files.clicked.connect(self.add_files_requested.emit)
@@ -689,8 +705,10 @@ class CompareControlPanel(QGroupBox):
         self.details = QPlainTextEdit()
         self.details.setReadOnly(True)
         self.details.setMinimumHeight(70)
-        self.details.setMaximumHeight(145)
-        self.details_section = CollapsibleSection(tr('Details'), self.details)
+        self._resolution_details = ''
+        self.detail_tabs = QTabWidget()
+        self.detail_tabs.setDocumentMode(True)
+        self.detail_tabs.addTab(self.details, tr('File details'))
         settings = QWidget()
         settings_form = QFormLayout(settings)
         settings_form.setContentsMargins(0, 0, 0, 0)
@@ -705,9 +723,9 @@ class CompareControlPanel(QGroupBox):
         self.labels_check = QCheckBox(tr('Labels'))
         self.labels_check.toggled.connect(self.labels_changed.emit)
         settings_form.addRow(self.labels_check)
-        self.settings_section = CollapsibleSection(tr('Settings'), settings)
-        layout.addWidget(self.details_section)
-        layout.addWidget(self.settings_section)
+        settings_form.setContentsMargins(7, 7, 7, 7)
+        self.detail_tabs.addTab(settings, tr('Playback settings'))
+        layout.addWidget(self.detail_tabs, stretch=1)
         self.file_list.currentItemChanged.connect(self._on_selection_changed)
 
     @property
@@ -720,9 +738,20 @@ class CompareControlPanel(QGroupBox):
             self.remove_file_requested.emit(self.selected_file)
 
     def _on_selection_changed(self, current, *_):
-        self.details.setPlainText(current.toolTip() if current else '')
+        self._update_details()
         self.btn_remove_file.setEnabled(current is not None)
         self.view_changed.emit()
+
+    def set_resolution_details(self, text):
+        self._resolution_details = text
+        self._update_details()
+
+    def _update_details(self):
+        current = self.file_list.currentItem()
+        sections = [current.toolTip()] if current else []
+        if self._resolution_details:
+            sections.append(self._resolution_details)
+        self.details.setPlainText('\n\n'.join(sections))
 
     @staticmethod
     def _short_status(model, name):
@@ -740,10 +769,12 @@ class CompareControlPanel(QGroupBox):
         previous_row = self.file_list.currentRow()
         self.file_list.blockSignals(True)
         self.file_list.clear()
+        paths = [model.file_paths[name] for name in file_names] if model else file_names
+        file_labels = dict(zip(file_names, unique_path_labels(paths)))
         for name in file_names:
             repeat_reasons = impact['files'][name]['reasons'] if impact else None
             status = self._short_status(model, name) if model else ''
-            item = QListWidgetItem(name + ('\n' + status if status else ''))
+            item = QListWidgetItem(file_labels[name] + ('\n' + tr(status) if status else ''))
             item.setData(Qt.UserRole, name)
             details = name
             if model:
@@ -766,12 +797,12 @@ class CompareControlPanel(QGroupBox):
             self.file_list.setCurrentRow(row)
         self.file_list.blockSignals(False)
         current = self.file_list.currentItem()
-        self.details.setPlainText(current.toolTip() if current else '')
+        self._update_details()
         self.btn_remove_file.setEnabled(current is not None)
         self.cb_baseline.blockSignals(True)
         self.cb_baseline.clear()
         for name in file_names:
-            self.cb_baseline.addItem(name, name)
+            self.cb_baseline.addItem(file_labels[name], name)
             if model:
                 self.cb_baseline.setItemData(self.cb_baseline.count() - 1, model.file_paths[name], Qt.ToolTipRole)
         self.cb_baseline.setCurrentIndex(self.cb_baseline.findData(baseline))
