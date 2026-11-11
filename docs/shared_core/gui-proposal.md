@@ -1,6 +1,16 @@
 # Step 1 layout proposal
 
-Last Reviewed: 2026-11-09
+Last Reviewed: 2026-11-11
+
+This is the historical #158 proposal/checkpoint. Its Details accordion, pending
+direction statement, measurements and captures describe that proposal's
+revision, not the current product. #177 adopts fixed groups/tabs without
+accordion; the [current implementation and evidence status](../visualization/gui_public_177.md)
+records the replacement layout and maps F2 accessibility checks to it. Preserve
+the measurements below as historical evidence rather than current results.
+
+The current task is public-repository work only. Later consumer integration
+does not block its implementation, review or publication.
 
 Direction approval is pending under [#158](https://github.com/pikachu444/BoxMotionAnalyzer/issues/158).
 The proposed changes were applied to a temporary instance of the existing

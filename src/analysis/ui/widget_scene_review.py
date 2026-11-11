@@ -1,8 +1,7 @@
 """Compact scene review inside Step 1; the existing plot edits the range."""
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QMenu, QGridLayout, QScrollArea)
-from src.utils.qt_sections import CollapsibleSection
+    QLabel, QComboBox, QTableWidget, QTableWidgetItem, QAbstractItemView, QHeaderView, QMenu, QGridLayout, QGroupBox)
 from src.analysis.pipeline.intended_contact import feature_options, feature_label, feature_corners
 from src.analysis.pipeline.scene_trial_record import eligibility_suggestion
 from src.utils.ui_language import tr
@@ -86,15 +85,24 @@ class SceneReviewWidget(QWidget):
         self.include_button = QPushButton(tr('Include'))
         self.exclude_button = QPushButton(tr('Exclude'))
         self.revert_button = QPushButton(tr('Revert detected range'))
-        for button in (self.detect_button, self.add_button,
-                       self.remove_button, self.include_button, self.exclude_button, self.revert_button):
+        for button in (self.detect_button, self.add_button, self.remove_button,
+                       self.include_button, self.exclude_button, self.revert_button):
+            button.setMinimumWidth(button.sizeHint().width())
+        for button in (self.detect_button, self.add_button, self.remove_button):
             tools.addWidget(button)
         tools.addStretch()
-        self.count_label = QLabel(tr('No scenes'))
-        tools.addWidget(self.count_label)
         layout.addLayout(tools)
+        decisions = QHBoxLayout()
+        for button in (self.include_button, self.exclude_button, self.revert_button):
+            decisions.addWidget(button)
+        decisions.addStretch()
+        layout.addLayout(decisions)
+        info = QHBoxLayout()
         self.range_label = QLabel(tr('No scene selected'))
-        layout.addWidget(self.range_label)
+        self.count_label = QLabel(tr('No scenes'))
+        info.addWidget(self.range_label, 1)
+        info.addWidget(self.count_label)
+        layout.addLayout(info)
         self.table = QTableWidget(0, 9)
         self.table.setHorizontalHeaderLabels([tr('Scene'), tr('Start (s)'), tr('End (s)'), tr('Motion'), tr('Rotation (deg)'), tr('Review'), tr('Item'), tr('Intended contact'), tr('Observed')])
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -102,11 +110,10 @@ class SceneReviewWidget(QWidget):
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.verticalHeader().hide()
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().moveSection(5, 1)
         self.table.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)
         layout.addWidget(self.table)
+        layout.addStretch()
         identity = QHBoxLayout()
         identity.addWidget(QLabel(tr('Type')))
         self.type_combo = QComboBox()
@@ -140,39 +147,21 @@ class SceneReviewWidget(QWidget):
         identity.addWidget(self.set_intended_button)
         identity.addStretch()
         self.save_all_button = QPushButton(tr('Save included...'))
-        details = QWidget()
-        details_layout = QVBoxLayout(details)
-        details_layout.setContentsMargins(0, 0, 0, 0)
-        files = QHBoxLayout()
-        for button in (self.open_review_button, self.save_review_button, self.geometry_button, self.trial_record_button):
-            files.addWidget(button)
-        files.addStretch()
-        details_layout.addLayout(files)
+        self.type_group = QGroupBox(tr('Test type and item'))
+        grid = QGridLayout(self.type_group)
+        grid.setContentsMargins(7, 7, 7, 7)
+        grid.setSpacing(5)
         self.type_basis_label = QLabel(tr('Type basis: Unconfirmed'))
-        details_layout.addWidget(self.type_basis_label)
-        # Two short rows avoid making every optional trial control part of the
-        # minimum window width.
-        grid = QGridLayout()
-        optional = []
-        while identity.count():
-            item = identity.takeAt(0)
-            if item.widget():
-                optional.append(item.widget())
-        for index, widget in enumerate(optional):
-            grid.addWidget(widget, index // 5, index % 5)
-        details_layout.addLayout(grid)
-        self.details_scroll = QScrollArea()
-        self.details_scroll.setWidgetResizable(True)
-        self.details_scroll.setFrameShape(QScrollArea.NoFrame)
-        self.details_scroll.setWidget(details)
-        self.details_scroll.setMaximumHeight(150)
-        self.details_section = CollapsibleSection(tr('Details'), self.details_scroll)
-        layout.addWidget(self.details_section)
-        for column in (4, 6, 7, 8):
-            self.table.setColumnHidden(column, True)
-        self.details_section.button.toggled.connect(
-            lambda expanded: [self.table.setColumnHidden(column, not expanded) for column in (4, 6, 7, 8)])
-        self.details_section.button.toggled.connect(self.update_viewport_minimum)
+        grid.addWidget(identity.takeAt(0).widget(), 0, 0)
+        grid.addWidget(self.type_combo, 0, 1)
+        grid.addWidget(self.edition_combo, 1, 0, 1, 2)
+        grid.addWidget(self.type_basis_label, 2, 0, 1, 2)
+        grid.addWidget(self.identify_button, 3, 0, 1, 2)
+        grid.addWidget(self.item_combo, 4, 0)
+        grid.addWidget(self.confirm_button, 4, 1)
+        grid.addWidget(self.intended_combo, 5, 0)
+        grid.addWidget(self.set_intended_button, 5, 1)
+        grid.setRowStretch(6, 1)
         self.table.horizontalScrollBar().rangeChanged.connect(self.update_viewport_minimum)
         self.table.itemSelectionChanged.connect(self._selection_changed)
         self.include_button.clicked.connect(lambda: self._decide('include'))
@@ -339,11 +328,7 @@ class SceneReviewWidget(QWidget):
         header_height = table.horizontalHeader().sizeHint().height()
         horizontal = table.horizontalScrollBar()
         scrollbar_height = horizontal.sizeHint().height() if horizontal.maximum() else 0
-        table.setMinimumHeight(header_height + rows * row_height + 2 * table.frameWidth() + scrollbar_height)
-        details_height = max(48, 2 * self.details_scroll.fontMetrics().height() + 10)
-        if self.width() >= 1100 and window.height() >= 800:
-            details_height = max(details_height, self.details_scroll.widget().sizeHint().height())
-        self.details_scroll.setFixedHeight(details_height)
+        table.setFixedHeight(header_height + rows * row_height + 2 * table.frameWidth() + scrollbar_height)
 
     def can_set_intended_contact(self):
         row = self.selected_row()

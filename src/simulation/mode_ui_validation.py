@@ -54,7 +54,7 @@ def main():
             rect = window.orientation_preview.rect(); rect.moveTopLeft(window.orientation_preview.mapTo(window.form_scroll.viewport(), rect.topLeft()))
             assert window.form_scroll.viewport().rect().contains(rect), 'Scrolled small preview must be wholly inside the viewport.'
         if small:
-            for control in (*window._value_controls(), window.cat_combo, window.drop_combo, window.rotation_section.button):
+            for control in (*window._value_controls(), window.cat_combo, window.drop_combo, window.rotation_section):
                 if control.isVisible(): assert control.height() >= control.minimumSizeHint().height(), 'Small fields must retain their readable natural height.'
         for control in (window.run_btn, window.batch_btn, window.marker_btn):
             assert control.visibleRegion().contains(control.rect()), 'Primary actions must remain reachable.'

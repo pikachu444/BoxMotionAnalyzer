@@ -24,10 +24,11 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QTabWidget,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
-from src.utils.qt_sections import CollapsibleSection, set_path_label
+from src.utils.qt_sections import set_path_label
 from src.config.data_columns import RigidBodyCols
 
 from src.analysis.pipeline.marker_flip import (
@@ -84,6 +85,7 @@ class MarkerFlipReviewDialog(QDialog):
         self._context_unit = 'unit unknown'
         self._tabbed_plots = False
         self._active_plot_tab = 0
+        self.evidence_dialog = None
 
         self.setWindowTitle(tr("Marker correction"))
         self.resize(960, 680)
@@ -92,43 +94,49 @@ class MarkerFlipReviewDialog(QDialog):
 
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(5)
         if not self.candidates:
             message = QLabel(tr('No candidates for the current source and dimensions.\nDone records a review with no approvals; Cancel keeps the previous review.'))
             message.setWordWrap(True)
             layout.addWidget(message)
-        self.table = QTableWidget(len(self.candidates), 4, self)
+        self.table = QTableWidget(len(self.candidates), 5, self)
         self.table.setHorizontalHeaderLabels(
-            [tr("Event (s)"), tr("Recommendation"), tr("Apply"), tr("Local axis")]
+            [tr("Event (s)"), tr("Candidate"), tr("Recommended"), tr("Approve"), tr("Preview axis (local 180°)")]
         )
-        self.table.horizontalHeaderItem(1).setToolTip(tr("Recommended half-turn restores continuity conditionally; it does not confirm a tracking error."))
-        self.table.horizontalHeaderItem(3).setToolTip(tr("180° about the selected box-local axis."))
+        self.table.horizontalHeaderItem(2).setToolTip(tr("Recommended half-turn restores continuity conditionally; it does not confirm a tracking error."))
+        self.table.horizontalHeaderItem(4).setToolTip(tr("180° about the selected box-local axis."))
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setAlternatingRowColors(True)
+        self.table.setWordWrap(False)
         self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.table.verticalHeader().setVisible(False)
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        header.setStretchLastSection(True)
+        for column in (0, 2, 3, 4):
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.ResizeToContents)
+        header.setStretchLastSection(False)
 
         for row, candidate in enumerate(self.candidates):
             existing = self.existing_decisions.get(candidate.event_id)
             boundary_item = QTableWidgetItem(f"{candidate.boundary_time_sec:.6f}")
             boundary_item.setToolTip(candidate.trigger)
             self.table.setItem(row, 0, boundary_item)
+            candidate_item = QTableWidgetItem(" ".join(candidate.trigger.split()))
+            candidate_item.setData(Qt.ItemDataRole.UserRole, candidate.event_id)
+            candidate_item.setToolTip(candidate.trigger)
+            self.table.setItem(row, 1, candidate_item)
             recommendation_text = (
                 candidate.recommendation_axis
                 if candidate.recommendation_axis is not None
-                else "No recommendation"
+                else tr("None")
             )
             recommendation_item = QTableWidgetItem(recommendation_text)
             recommendation_item.setToolTip(candidate.reason)
-            self.table.setItem(row, 1, recommendation_item)
+            self.table.setItem(row, 2, recommendation_item)
 
             approval = QCheckBox(tr('OFF'))
             approval.setAccessibleName(tr('Apply correction at {} seconds').format(f'{candidate.boundary_time_sec:.6f}'))
@@ -139,7 +147,7 @@ class MarkerFlipReviewDialog(QDialog):
             approval_layout.setContentsMargins(8, 0, 8, 0)
             approval_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             approval_layout.addWidget(approval)
-            self.table.setCellWidget(row, 2, approval_container)
+            self.table.setCellWidget(row, 3, approval_container)
 
             axis_combo = QComboBox()
             axis_combo.setAccessibleName(
@@ -150,14 +158,10 @@ class MarkerFlipReviewDialog(QDialog):
             for axis in SUPPORTED_LOCAL_AXES:
                 axis_combo.addItem(axis, userData=axis)
             axis_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-            selected_axis = (
-                existing.axis
-                if existing is not None and existing.axis is not None
-                else candidate.recommendation_axis
-            )
+            selected_axis = existing.axis if existing is not None else candidate.recommendation_axis
             if selected_axis in SUPPORTED_LOCAL_AXES:
                 axis_combo.setCurrentIndex(axis_combo.findData(selected_axis))
-            self.table.setCellWidget(row, 3, axis_combo)
+            self.table.setCellWidget(row, 4, axis_combo)
 
             self._approval_checkboxes.append(approval)
             self._axis_combos.append(axis_combo)
@@ -165,11 +169,14 @@ class MarkerFlipReviewDialog(QDialog):
             approval.toggled.connect(lambda _checked, r=row: self._select_event(r))
 
         self.table.resizeRowsToContents()
-        visible_rows = min(5, len(self.candidates))
-        self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
-                                  + sum(self.table.rowHeight(row) for row in range(visible_rows))
-                                  + 2 * self.table.frameWidth())
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
+        header.resizeSection(4, header.fontMetrics().horizontalAdvance(
+            self.table.horizontalHeaderItem(4).text()) + 28)
+        self._sync_table_height()
         layout.addWidget(self.table)
+
+        self.approval_status = QLabel()
+        layout.addWidget(self.approval_status)
 
         self.candidate_summary = QWidget()
         summary = QHBoxLayout(self.candidate_summary)
@@ -183,29 +190,31 @@ class MarkerFlipReviewDialog(QDialog):
         summary.addStretch()
         layout.addWidget(self.candidate_summary)
 
-        details = QWidget()
-        details_layout = QHBoxLayout(details)
-        details_layout.setContentsMargins(0, 0, 0, 0)
-        details_layout.setSpacing(12)
+        selected = QHBoxLayout()
         self.candidate_details = _ElidedLabel()
         self.candidate_details.setTextFormat(Qt.TextFormat.PlainText)
-        self.candidate_details.setMaximumWidth(360)
+        self.candidate_details.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self.candidate_details.setAccessibleName(tr("Selected marker flip candidate details"))
-        details_layout.addWidget(self.candidate_details)
+        selected.addWidget(self.candidate_details, 1)
+        self.evidence_button = QPushButton(tr("Evidence..."))
+        self.evidence_button.clicked.connect(self._show_evidence)
+        selected.addWidget(self.evidence_button)
+        layout.addLayout(selected)
         self.fit_error = QLabel()
-        details_layout.addWidget(self.fit_error)
         self.copy_diagnostics_button = QPushButton(tr("Copy diagnostics"))
         self.copy_diagnostics_button.clicked.connect(self._copy_diagnostics)
-        details_layout.addWidget(self.copy_diagnostics_button)
-        details_layout.addStretch()
-        self.details_section = CollapsibleSection(tr("Details"), details)
-        self.details_section.button.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
 
         self.preview_status = QLabel()
         self.preview_status.setStyleSheet("color: #916000;")
 
         self.context_controls = QWidget()
-        controls = QHBoxLayout(self.context_controls)
+        context_controls_layout = QVBoxLayout(self.context_controls)
+        context_controls_layout.setContentsMargins(0, 0, 0, 0)
+        context_controls_layout.setSpacing(3)
+        self.recorded_context = QLabel()
+        context_controls_layout.addWidget(self.recorded_context)
+        controls = QHBoxLayout()
+        context_controls_layout.addLayout(controls)
         controls.setContentsMargins(0, 0, 0, 0)
         self.context_source = _ElidedLabel()
         set_path_label(self.context_source, '')
@@ -258,7 +267,6 @@ class MarkerFlipReviewDialog(QDialog):
         evidence_layout.addWidget(self.evidence_canvas, 1)
         self.plots.addWidget(self.evidence_panel, 1)
         layout.addLayout(self.plots, 2)
-        layout.addWidget(self.details_section)
         self.table.currentCellChanged.connect(self._update_evidence_plot)
         if self.candidates:
             self.table.selectRow(0)
@@ -272,11 +280,67 @@ class MarkerFlipReviewDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         self.button_box.button(QDialogButtonBox.StandardButton.Ok).setText(tr("Done"))
         layout.addWidget(self.button_box)
+        self._update_approval_status()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if hasattr(self, 'plot_tabs'):
+            self._sync_table_height()
             self._sync_plot_layout()
+
+    def _sync_table_height(self):
+        visible_rows = min(4 if self.width() >= 1100 else 3, len(self.candidates))
+        self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
+            + sum(self.table.rowHeight(row) for row in range(visible_rows))
+            + 2 * self.table.frameWidth())
+
+    def _update_approval_status(self):
+        enabled = [row for row, checkbox in enumerate(self._approval_checkboxes) if checkbox.isChecked()]
+        missing = [row for row in enabled if self._axis_combos[row].currentData() is None]
+        self.approval_status.setText(tr("{count} candidates | Correction ON: {approved} | Axis missing: {missing}").format(
+            count=len(self.candidates), approved=len(enabled), missing=len(missing)))
+        self.approval_status.setToolTip(tr("Select a box-local axis for approved events: {}").format(
+            ", ".join(f"{self.candidates[row].boundary_time_sec:.6f} s" for row in missing)) if missing else "")
+        if hasattr(self, 'button_box'):
+            self.button_box.button(QDialogButtonBox.StandardButton.Ok).setEnabled(not missing)
+
+    def _show_evidence(self):
+        if self.evidence_dialog is None:
+            self.evidence_dialog = QDialog(self)
+            self.evidence_dialog.setWindowTitle(tr("Correction evidence"))
+            self.evidence_dialog.resize(640, 480)
+            layout = QVBoxLayout(self.evidence_dialog)
+            self.evidence_text = QTextBrowser()
+            layout.addWidget(self.evidence_text)
+            layout.addWidget(self.fit_error)
+            layout.addWidget(self.copy_diagnostics_button)
+            close = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+            close.rejected.connect(self.evidence_dialog.close)
+            layout.addWidget(close)
+        self._update_evidence_text()
+        self.evidence_dialog.show()
+        self.evidence_dialog.raise_()
+        self.evidence_dialog.activateWindow()
+
+    def _diagnostics(self):
+        row = self.table.currentRow()
+        if not 0 <= row < len(self.candidates):
+            return tr("No event selected")
+        candidate = self.candidates[row]
+        lines = [candidate.event_id, f"{candidate.boundary_time_sec:.6f} s", candidate.trigger, candidate.reason,
+                 tr("Coverage is observed marker coverage, not flip probability."), self.coverage_summary.text()]
+        for hypothesis in candidate.hypotheses:
+            lines.append(tr("{axis}: residual {residual}; coverage {coverage}; fit error {fit}").format(
+                axis=hypothesis.label, residual=self._number(hypothesis.residual_deg),
+                coverage=self._number(hypothesis.coverage_ratio * 100, '%'),
+                fit=self._number(hypothesis.marker_rmse_mm, ' mm')))
+            if hypothesis.mapping_reason:
+                lines.append(hypothesis.mapping_reason)
+        return "\n".join(lines)
+
+    def _update_evidence_text(self):
+        if self.evidence_dialog is not None:
+            self.evidence_text.setPlainText(self._diagnostics())
 
     def _sync_plot_layout(self):
         if self._context_data is None or self._evidence_canvas_disposed:
@@ -288,8 +352,8 @@ class MarkerFlipReviewDialog(QDialog):
         self._tabbed_plots = tabbed
         self.plot_tabs.blockSignals(True)
         if tabbed:
-            for panel, title in ((self.context_panel, tr('Original trajectories')),
-                                 (self.evidence_panel, tr('Axis preview'))):
+            for panel, title in ((self.context_panel, tr('Original')),
+                                 (self.evidence_panel, tr('Correction evidence'))):
                 self.plots.removeWidget(panel)
                 self.plot_tabs.addTab(panel, title)
             self.plot_tabs.setCurrentIndex(self._active_plot_tab)
@@ -313,21 +377,25 @@ class MarkerFlipReviewDialog(QDialog):
         (self.context_canvas if index == 0 else self.evidence_canvas).draw_idle()
 
     def _select_event(self, row):
+        self._update_approval_status()
         if self.table.currentRow() != row:
-            self.table.setCurrentCell(row, 3)
+            self.table.setCurrentCell(row, 4)
         else:
             self._update_evidence_plot(row)
         self.table.scrollToItem(self.table.item(row, 0))
 
-    def set_observation_context(self, data, *, source_path='', units='', preferred_target=None):
+    def set_observation_context(self, data, *, source_path='', units='', preferred_target=None, coordinate_system=''):
         """Copy only original position columns; never fit, correct or read truth."""
         targets = sorted({column[:-2] for column in data.columns
             if isinstance(column, str) and column.endswith('_X')
             and all(column[:-2] + '_' + axis in data for axis in 'XYZ')}) if data is not None else []
         columns = [target + '_' + axis for target in targets for axis in 'XYZ']
         self._context_data = data[columns].copy(deep=True) if data is not None else pd.DataFrame()
+        self._recorded_coordinates = coordinate_system or tr('coordinate system unknown')
         self._context_unit = {'Millimeters': 'mm', 'Centimeters': 'cm', 'Meters': 'm'}.get(units, 'unit unknown')
         set_path_label(self.context_source, source_path, 'Original trajectories')
+        self.recorded_context.setText(tr('Recorded XYZ | {coordinates} | Position ({unit})').format(
+            coordinates=self._recorded_coordinates, unit=self._context_unit))
         self.context_source.setToolTip(source_path + '\nUnmodified observations; physical cause is not independently verified.')
         self.context_target.blockSignals(True)
         self.context_target.clear()
@@ -340,9 +408,7 @@ class MarkerFlipReviewDialog(QDialog):
         self.context_target.blockSignals(False)
         self.context_target.setEnabled(bool(targets))
         self.context_panel.show()
-        visible_rows = min(3, len(self.candidates))
-        self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
-            + sum(self.table.rowHeight(row) for row in range(visible_rows)) + 2 * self.table.frameWidth())
+        self._sync_table_height()
         self.context_canvas.setMinimumHeight(140)
         self.evidence_canvas.setMinimumHeight(140)
         self._context_row = self.table.currentRow()
@@ -382,8 +448,10 @@ class MarkerFlipReviewDialog(QDialog):
                 axis.set_xlim(boundary - radius, boundary + radius)
         if old_limits is not None and not recenter:
             axis.set_xlim(old_limits)
-        axis.set(title=tr('Original trajectories'), xlabel=tr('Time (s)'),
+        axis.set(title=tr('Recorded XYZ'), xlabel=tr('Time (s)'),
                  ylabel=tr(f'Position ({self._context_unit})'))
+        axis.xaxis.label.set_fontsize(9)
+        axis.yaxis.label.set_fontsize(9)
         axis.grid(True, alpha=.25)
         self.context_toolbar.update()
         self.context_toolbar.push_current()
@@ -412,7 +480,9 @@ class MarkerFlipReviewDialog(QDialog):
             axis.text(0.5, 0.5, "No event selected", ha="center", va="center")
             axis.set_axis_off()
             self.candidate_summary.hide()
-            self.details_section.hide()
+            self.evidence_button.setEnabled(False)
+            self.candidate_details.setText('')
+            self._update_evidence_text()
             self.preview_status_action.setVisible(False)
             self.evidence_toolbar.setEnabled(False)
             self.evidence_toolbar.update()
@@ -427,17 +497,17 @@ class MarkerFlipReviewDialog(QDialog):
         selected_trace = bool(selected and self._trace_available(post_times, selected.trace_deg))
         none = candidate.hypothesis(None)
         none_trace = bool(none and self._trace_available(post_times, none.trace_deg))
-        preview_available = selected_trace if actual_refit else bool(
-            selected_axis and selected and np.isfinite(selected.residual_deg)
-            and any(np.isfinite(post_times)))
+        legacy_trace = bool(not actual_refit and selected_axis == candidate.best_hypothesis_label
+            and self._trace_available(post_times, candidate.post_window_best_residual_deg))
+        preview_available = selected_trace if actual_refit else legacy_trace
         self.evidence_toolbar.setEnabled(True)
         self.preview_status_action.setVisible(not preview_available)
-        self.preview_status.setText(tr("Preview unavailable"))
+        self.preview_status.setText(tr("Preview evidence unavailable"))
         self.preview_status.setToolTip("" if preview_available else
             f"Comparison samples: {len(candidate.pre_window_time_offsets_sec)} before, {len(post_times)} after. {candidate.reason}")
 
         self.candidate_summary.show()
-        self.details_section.show()
+        self.evidence_button.setEnabled(True)
         self.no_correction_summary.setVisible(actual_refit)
         if actual_refit:
             baseline = self._number(none.residual_deg if none_trace else None)
@@ -455,6 +525,7 @@ class MarkerFlipReviewDialog(QDialog):
         self.candidate_details.setToolTip(candidate.trigger)
         self.fit_error.setText(tr("Marker fit error  {}").format(self._number(fit, ' mm')))
         self.copy_diagnostics_button.setToolTip(candidate.reason)
+        self._update_evidence_text()
 
         for times, values, label in (
             (candidate.pre_window_time_offsets_sec, candidate.pre_window_residual_deg, "Before"),
@@ -468,11 +539,23 @@ class MarkerFlipReviewDialog(QDialog):
         elif not actual_refit and preview_available:
             if selected_axis == candidate.best_hypothesis_label and self._trace_available(post_times, candidate.post_window_best_residual_deg):
                 axis.plot(post_times, candidate.post_window_best_residual_deg, marker="o", linestyle="--", label=f"Predicted {selected_axis}")
+
+        if not axis.lines:
+            aggregates = [hypothesis for hypothesis in candidate.hypotheses
+                          if np.isfinite(hypothesis.residual_deg)]
+            if aggregates:
+                axis.bar([hypothesis.label for hypothesis in aggregates],
+                         [hypothesis.residual_deg for hypothesis in aggregates])
+                axis.set_xlabel(tr("Hypothesis"))
             else:
-                axis.axhline(selected.residual_deg, linestyle="--", label=f"Predicted {selected_axis} mean")
-        axis.axvline(0.0, linestyle=":", linewidth=1.0, color="0.5")
-        axis.set_xlabel(tr("Time from event (s)"))
+                axis.text(.5, .5, tr("Preview evidence unavailable"),
+                          transform=axis.transAxes, ha="center")
+        else:
+            axis.axvline(0.0, linestyle=":", linewidth=1.0, color="0.5")
+            axis.set_xlabel(tr("Time from event (s)"))
         axis.set_ylabel(tr("Relative rotation (°)"))
+        axis.xaxis.label.set_fontsize(9)
+        axis.yaxis.label.set_fontsize(9)
         axis.grid(True, alpha=0.25)
         if axis.get_legend_handles_labels()[0]:
             axis.legend(loc="best", fontsize=8)
@@ -485,13 +568,14 @@ class MarkerFlipReviewDialog(QDialog):
         self.evidence_canvas.draw()
 
     def _copy_diagnostics(self) -> None:
-        candidate = self.candidates[self.table.currentRow()]
-        QApplication.clipboard().setText("\n".join((candidate.trigger, candidate.reason, self.fit_error.text())))
+        QApplication.clipboard().setText(self._diagnostics())
 
     def _dispose_evidence_canvas(self) -> None:
         if self._evidence_canvas_disposed:
             return
         self._evidence_canvas_disposed = True
+        if self.evidence_dialog is not None:
+            self.evidence_dialog.close()
         self._context_data = None
         self.context_toolbar.update()
         self.evidence_toolbar.update()

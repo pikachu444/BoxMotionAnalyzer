@@ -1,13 +1,13 @@
 import os
 
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal, Qt, QPoint
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import (
     QApplication,
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog, QRadioButton, QCheckBox,
     QMessageBox, QSizePolicy, QStackedWidget, QScrollArea,
-    QTableWidget, QTableWidgetItem, QHeaderView
+    QTableWidget, QTableWidgetItem, QHeaderView, QSplitter
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
@@ -30,14 +30,39 @@ from src.analysis.ui.dialog_processing_settings import ProcessingSettingsDialog
 from src.analysis.ui.plot_manager import PlotManager
 from src.config import config_app, config_analysis_ui
 from src.config.data_columns import DisplayNames, PoseCols, RawMarkerCols, RigidBodyCols
-from src.utils.qt_sections import CollapsibleSection, set_path_label
+from src.utils.qt_sections import set_path_label, unique_path_labels
 from src.utils.ui_language import tr
+
+
+class _ProcessingScrollArea(QScrollArea):
+    def ensureWidgetVisible(self, widget, xmargin=50, ymargin=50):
+        super().ensureWidgetVisible(widget, xmargin, ymargin)
+        if self.widget() is None or not self.widget().isAncestorOf(widget):
+            return
+        # Qt may reveal only a line edit's cursor, leaving its border clipped.
+        rect = widget.rect().translated(widget.mapTo(self.viewport(), QPoint()))
+        for bar, start, end, extent in (
+            (self.horizontalScrollBar(), rect.left(), rect.right(), self.viewport().width()),
+            (self.verticalScrollBar(), rect.top(), rect.bottom(), self.viewport().height()),
+        ):
+            if end >= extent:
+                bar.setValue(bar.value() + end - extent + 1)
+            elif start < 0:
+                bar.setValue(bar.value() + start)
+
+    def focusNextPrevChild(self, next):
+        changed = super().focusNextPrevChild(next)
+        focused = QApplication.focusWidget()
+        if changed and focused is not None and self.isAncestorOf(focused):
+            self.ensureWidgetVisible(focused)
+        return changed
 
 
 class WidgetSliceProcessing(QWidget):
     processing_requested = Signal(dict, object, object, object, dict)
     log_message = Signal(str)
     results_ready = Signal(list)
+    status_message = Signal(str)
 
     def __init__(self, data_loader, parser):
         super().__init__()
@@ -69,22 +94,60 @@ class WidgetSliceProcessing(QWidget):
         self._connect_signals()
 
     def _arrange_workflow(self):
-        """Keep the next action visible; scroll only the optional settings."""
+        """Keep the graph, context and actual mode action bar in fixed positions."""
         outer = self.layout()
-        row = QHBoxLayout()
-        outer.addLayout(row)
-        left = QWidget()
-        left.setFixedWidth(296)
-        controls = QVBoxLayout(left)
-        controls.setContentsMargins(0, 0, 8, 0)
+        outer.setContentsMargins(6, 6, 6, 6)
+        outer.setSpacing(5)
+        self.workflow_splitter = QSplitter(Qt.Vertical)
+        self.workflow_splitter.setChildrenCollapsible(False)
+        self.context_splitter = QSplitter(Qt.Horizontal)
+        self.context_splitter.setChildrenCollapsible(False)
+        self.workflow_splitter.addWidget(self.context_splitter)
+        outer.addWidget(self.workflow_splitter, 1)
+
+        self.preview_stack = QStackedWidget()
+        preview = QWidget()
+        preview_layout = QVBoxLayout(preview)
+        preview_layout.setContentsMargins(0, 0, 0, 0)
+        preview_layout.setSpacing(5)
+        plot_controls = QHBoxLayout()
+        self.select_data_button.setText(tr('Markers...'))
+        for widget in (self.select_data_button, self.combo_plot_axis, self.selected_data_label):
+            plot_controls.addWidget(widget)
+        self.selected_data_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        preview_layout.addLayout(plot_controls)
+        plot_row = QHBoxLayout()
+        plot_row.setSpacing(5)
+        plot_row.addWidget(self.canvas, 1)
+        plot_row.addWidget(self.toolbar)
+        preview_layout.addLayout(plot_row, 1)
+        self.batch_table = QTableWidget(0, 2)
+        self.batch_table.setHorizontalHeaderLabels([tr('Slice'), tr('Result')])
+        self.batch_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.batch_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.batch_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.preview_stack.addWidget(preview)
+        self.preview_stack.addWidget(self.batch_table)
+        self.preview_stack.setMinimumSize(280, 190)
+        self.context_splitter.addWidget(self.preview_stack)
+
+        self.context_group = QGroupBox(tr('Input and context'))
+        context_layout = QVBoxLayout(self.context_group)
+        context_layout.setContentsMargins(7, 7, 7, 7)
+        context_layout.setSpacing(5)
         self.input_mode_combo = QComboBox()
         self.input_mode_combo.addItems([tr('Single'), tr('Batch')])
-        controls.addWidget(self.input_mode_combo)
+        context_layout.addWidget(self.input_mode_combo)
+        context = QWidget()
+        controls = QVBoxLayout(context)
+        controls.setContentsMargins(0, 0, 0, 0)
+        controls.setSpacing(5)
         self.input_stack = QStackedWidget()
         single_input, batch_input = QWidget(), QWidget()
         single_layout, batch_layout = QVBoxLayout(single_input), QVBoxLayout(batch_input)
         for layout in (single_layout, batch_layout):
             layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(5)
         self.load_slice_button.setText(tr('Open slice...'))
         self.select_slice_folder_button.setText(tr('Open folder...'))
         for widget in (self.load_slice_button, self.slice_path_label):
@@ -95,119 +158,126 @@ class WidgetSliceProcessing(QWidget):
         self.input_stack.addWidget(batch_input)
         self.input_stack.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         controls.addWidget(self.input_stack)
-
-        method = QWidget()
-        method_layout = QVBoxLayout(method)
-        method_layout.setContentsMargins(0, 0, 0, 0)
-        method_layout.addWidget(QLabel(tr('Method')))
-        choices = QHBoxLayout()
-        for widget in (self.rb_processing_raw, self.rb_processing_standard, self.rb_processing_advanced):
-            choices.addWidget(widget)
-        method_layout.addLayout(choices)
-        self.method_controls = method
-        controls.addWidget(method)
-        self.processing_mode_description.setFixedHeight(24)
-        self.processing_mode_description.setWordWrap(False)
-        controls.addWidget(self.processing_mode_description)
+        self.slice_summary_group.setTitle(tr('Input details'))
+        self.box_dims_group.setTitle(tr('Box dimensions (mm)'))
+        for group in (self.slice_summary_group, self.box_dims_group):
+            group.layout().setContentsMargins(7, 7, 7, 7)
+            group.layout().setSpacing(5)
+            controls.addWidget(group)
+        controls.addStretch()
+        self.context_scroll = _ProcessingScrollArea()
+        self.context_scroll.setWidgetResizable(True)
+        self.context_scroll.setFrameShape(QScrollArea.NoFrame)
+        self.context_scroll.setWidget(context)
+        context_layout.addWidget(self.context_scroll, 1)
+        self.context_group.setMinimumWidth(240)
+        self.context_splitter.addWidget(self.context_group)
+        self.context_splitter.setStretchFactor(0, 900)
+        self.context_splitter.setStretchFactor(1, 290)
+        self.context_splitter.setSizes([900, 290])
 
         settings = QWidget()
-        settings_layout = QVBoxLayout(settings)
-        settings_layout.setContentsMargins(0, 0, 4, 0)
-        self.box_section = CollapsibleSection(tr('Box dimensions'), self.box_dims_group)
-        self.details_section = CollapsibleSection(tr('Input details'), self.slice_summary_group)
-        self.resampling_group.setMinimumWidth(0)
-        self.resampling_group.setTitle('')
-        self.resampling_section = CollapsibleSection(tr('Resampling'), self.resampling_group)
+        settings_layout = QHBoxLayout(settings)
+        settings_layout.setContentsMargins(0, 0, 0, 0)
+        settings_layout.setSpacing(5)
+        self.method_controls = QGroupBox(tr('Processing method'))
+        method_layout = QVBoxLayout(self.method_controls)
+        method_layout.setContentsMargins(7, 7, 7, 7)
+        method_layout.setSpacing(5)
+        for widget in (self.rb_processing_raw, self.rb_processing_standard, self.rb_processing_advanced):
+            method_layout.addWidget(widget)
         self.processing_settings_button.setMinimumWidth(0)
         self.processing_settings_button.setText(tr('Processing settings...'))
-        advanced = QWidget()
-        advanced_layout = QVBoxLayout(advanced)
-        advanced_layout.setContentsMargins(0, 0, 0, 0)
-        advanced_layout.addWidget(self.processing_settings_button)
-        self.advanced_section = CollapsibleSection(tr('Advanced'), advanced)
-        self.log_output.setMinimumHeight(100)
-        self.log_section = CollapsibleSection(tr('Log'), self.log_output)
-        for section in (self.box_section, self.details_section, self.resampling_section,
-                        self.advanced_section, self.log_section):
-            settings_layout.addWidget(section)
-        settings_layout.addStretch()
-        self.settings_scroll = QScrollArea()
+        method_layout.addWidget(self.processing_settings_button)
+        self.processing_mode_description.setWordWrap(True)
+        method_layout.addWidget(self.processing_mode_description)
+        method_layout.addStretch()
+        self.resampling_group.setTitle(tr('Resampling'))
+        self.resampling_group.layout().setContentsMargins(7, 7, 7, 7)
+        self.resampling_group.layout().setSpacing(5)
+        self.log_group = QGroupBox(tr('Log'))
+        log_layout = QVBoxLayout(self.log_group)
+        log_layout.setContentsMargins(7, 7, 7, 7)
+        log_layout.addWidget(self.log_output)
+        self.log_output.setMinimumSize(100, 100)
+        for group, stretch in ((self.method_controls, 0), (self.resampling_group, 0), (self.log_group, 1)):
+            settings_layout.addWidget(group, stretch)
+        self.settings_scroll = _ProcessingScrollArea()
         self.settings_scroll.setWidgetResizable(True)
         self.settings_scroll.setFrameShape(QScrollArea.NoFrame)
         self.settings_scroll.setWidget(settings)
-        controls.addWidget(self.settings_scroll, 1)
+        self.settings_scroll.setMinimumHeight(100)
+        self.workflow_splitter.addWidget(self.settings_scroll)
+        self.workflow_splitter.setStretchFactor(0, 430)
+        self.workflow_splitter.setStretchFactor(1, 200)
+        self.workflow_splitter.setSizes([430, 200])
 
         self.action_stack = QStackedWidget()
         single_actions, batch_actions = QWidget(), QWidget()
-        action_layout, batch_action_layout = QVBoxLayout(single_actions), QVBoxLayout(batch_actions)
+        action_layout, batch_action_layout = QHBoxLayout(single_actions), QHBoxLayout(batch_actions)
         for layout in (action_layout, batch_action_layout):
             layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(5)
         self.run_button.setText(tr('Run'))
         self.save_proc_button.setText(tr('Save...'))
         self.save_view_button = QPushButton(tr('Save and View'))
         self.save_view_button.setEnabled(False)
-        action_layout.addWidget(self.result_status_label)
-        action_layout.addWidget(self.proc_path_label)
-        action_layout.addWidget(self.run_button)
-        save_row = QHBoxLayout()
-        save_row.addWidget(self.save_proc_button)
-        save_row.addWidget(self.save_view_button)
-        action_layout.addLayout(save_row)
+        result_context = QVBoxLayout()
+        result_context.setSpacing(0)
+        result_context.addWidget(self.result_status_label)
+        result_context.addWidget(self.proc_path_label)
+        action_layout.addLayout(result_context, 1)
+        for button in (self.run_button, self.save_proc_button, self.save_view_button):
+            action_layout.addWidget(button)
         self.run_batch_button.setText(tr('Run batch'))
         self.view_batch_button = QPushButton(tr('View Results'))
         self.view_batch_button.setEnabled(False)
-        for widget in (self.batch_summary_label, self.run_batch_button, self.view_batch_button):
-            batch_action_layout.addWidget(widget)
+        batch_action_layout.addWidget(self.batch_summary_label, 1)
+        batch_action_layout.addWidget(self.run_batch_button)
+        batch_action_layout.addWidget(self.view_batch_button)
         self.action_stack.addWidget(single_actions)
         self.action_stack.addWidget(batch_actions)
         self.action_stack.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-        controls.addWidget(self.action_stack)
-        row.addWidget(left)
-
-        self.preview_stack = QStackedWidget()
-        preview = QWidget()
-        preview_layout = QVBoxLayout(preview)
-        preview_layout.setContentsMargins(0, 0, 0, 0)
-        plot_controls = QHBoxLayout()
-        self.select_data_button.setText(tr('Markers...'))
-        for widget in (self.select_data_button, self.combo_plot_axis, self.selected_data_label):
-            plot_controls.addWidget(widget)
-        preview_layout.addLayout(plot_controls)
-        preview_layout.addWidget(self.toolbar)
-        preview_layout.addWidget(self.canvas, 1)
-        self.batch_table = QTableWidget(0, 2)
-        self.batch_table.setHorizontalHeaderLabels([tr('Slice'), tr('Result')])
-        self.batch_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.batch_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.batch_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.preview_stack.addWidget(preview)
-        self.preview_stack.addWidget(self.batch_table)
-        row.addWidget(self.preview_stack, 1)
+        outer.addWidget(self.action_stack)
         for label in (self.slice_path_label, self.slice_source_label, self.proc_path_label, self.batch_folder_label):
             set_path_label(label, '')
         for field in (self.le_box_l, self.le_box_w, self.le_box_h):
             field.clear()
         self.box_dims_warning.setText(tr('No slice loaded.'))
+        self._update_context_minimum_width()
         self.input_mode_combo.currentIndexChanged.connect(self._set_input_mode)
         self.save_view_button.clicked.connect(self.save_and_view)
         self.view_batch_button.clicked.connect(lambda: self.results_ready.emit(self.batch_success_paths.copy()))
         self._update_processing_mode_ui()
+
+    def _update_context_minimum_width(self):
+        # A scrollable context still has to fit each control across its width.
+        self.context_group.setMinimumWidth(max(
+            240, self.context_scroll.widget().minimumSizeHint().width() + 30
+        ))
 
     def _set_input_mode(self, index):
         self.input_stack.setCurrentIndex(index)
         self.action_stack.setCurrentIndex(index)
         self.preview_stack.setCurrentIndex(index)
         # These describe the retained single slice, never the whole batch.
-        self.box_section.setVisible(index == 0)
-        self.details_section.setVisible(index == 0)
+        self.box_dims_group.setVisible(index == 0)
+        self.slice_summary_group.setVisible(index == 0)
+        self.status_message.emit(
+            tr('Step 1.5: No slice loaded') if index == 0 and not self.slice_path
+            else self.batch_summary_label.text() if index else self.result_status_label.text()
+        )
 
     def _setup_ui(self):
         QVBoxLayout(self)
         self.fig = Figure(figsize=(5, 4), dpi=100)
         self.canvas = FigureCanvas(self.fig)
-        self.toolbar = NavigationToolbar(self.canvas, self)
+        self.toolbar = NavigationToolbar(self.canvas, self, vertical=True)
+        self.toolbar.coordinate_message.connect(self.status_message.emit)
         self.plot_manager = PlotManager(self.canvas, self.fig)
         self.plot_manager.draw_plot(None, [])
+        self.plot_manager.ax.xaxis.label.set_fontsize(9)
+        self.plot_manager.ax.yaxis.label.set_fontsize(9)
 
         self.load_slice_button = QPushButton(tr('Open slice...'))
         self.slice_path_label = QLabel()
@@ -221,7 +291,7 @@ class WidgetSliceProcessing(QWidget):
                 ('Range (s)', self.slice_user_range_label), ('Padded (s)', self.slice_padded_range_label),
                 ('Corrections', self.slice_marker_correction_label))):
             label.setWordWrap(True)
-            summary.addWidget(QLabel(title), row, 0)
+            summary.addWidget(QLabel(tr(title)), row, 0)
             summary.addWidget(label, row, 1)
 
         self.box_dims_group = QGroupBox('mm')
@@ -270,7 +340,7 @@ class WidgetSliceProcessing(QWidget):
                                             ('End (s)', self.le_resampling_range_end)), 3):
             edit.setValidator(QDoubleValidator(self))
             edit.setEnabled(False)
-            resampling.addWidget(QLabel(title), row, 0)
+            resampling.addWidget(QLabel(tr(title)), row, 0)
             resampling.addWidget(edit, row, 1)
         self.rb_processing_raw = QRadioButton(tr(config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_RAW]))
         self.rb_processing_standard = QRadioButton(tr(config_analysis_ui.PROCESSING_MODE_LABELS[config_analysis_ui.PROCESSING_MODE_STANDARD]))
@@ -332,11 +402,12 @@ class WidgetSliceProcessing(QWidget):
         reviewed_count = int(self.slice_metadata.correction_event_count or 0)
         approved_count = int(self.slice_metadata.correction_approved_event_count or 0)
         self.slice_marker_correction_label.setText(
-            f"{reviewed_count} reviewed event(s), {approved_count} approved"
+            tr('{0} reviewed event(s), {1} approved').format(reviewed_count, approved_count)
             if self.slice_metadata.correction_schema_version
             else tr("None")
         )
         self._set_default_resampling_range()
+        self._update_context_minimum_width()
 
     def _set_default_resampling_range(self, metadata=None):
         metadata = self.slice_metadata if metadata is None else metadata
@@ -425,7 +496,11 @@ class WidgetSliceProcessing(QWidget):
         )
         self.box_dims_warning.setStyleSheet("color: #b45309;")
         self.run_button.setEnabled(False)
-        self.box_section.setExpanded(True)
+        # The visible checkbox and button must fit the platform's actual font.
+        self._update_context_minimum_width()
+        self.layout().activate()
+        self.context_scroll.ensureWidgetVisible(self.apply_box_dims_button)
+
 
     def _read_box_dimensions_from_inputs(self) -> tuple[float, float, float]:
         try:
@@ -540,8 +615,9 @@ class WidgetSliceProcessing(QWidget):
 
     def _populate_batch_table(self):
         self.batch_table.setRowCount(len(self.batch_input_paths))
+        labels = unique_path_labels(self.batch_input_paths)
         for index, path in enumerate(self.batch_input_paths):
-            item = QTableWidgetItem(os.path.basename(path))
+            item = QTableWidgetItem(labels[index])
             item.setToolTip(path)
             item.setData(Qt.UserRole, path)
             self.batch_table.setItem(index, 0, item)
@@ -604,6 +680,7 @@ class WidgetSliceProcessing(QWidget):
                 )
             self.append_log("[INFO] Slice parsed and ready for processing.")
             self.input_mode_combo.setCurrentIndex(0)
+            self.status_message.emit(self.result_status_label.text())
             return True
         except Exception as e:
             self._restore_single_context(previous)
@@ -627,7 +704,6 @@ class WidgetSliceProcessing(QWidget):
             'edits': [(edit, edit.text()) for edit in edits],
             'controls': [(control, control.isEnabled(), control.isHidden()) for control in controls],
             'save_dims': self.save_box_dims_to_slice_checkbox.isChecked(),
-            'box_expanded': self.box_section.button.isChecked(),
             'limits': (self.plot_manager.ax.get_xlim(), self.plot_manager.ax.get_ylim()),
         }
 
@@ -641,7 +717,6 @@ class WidgetSliceProcessing(QWidget):
         for edit, text in previous['edits']:
             edit.setText(text)
         self.save_box_dims_to_slice_checkbox.setChecked(previous['save_dims'])
-        self.box_section.setExpanded(previous['box_expanded'])
         for control, enabled, hidden in previous['controls']:
             control.setEnabled(enabled)
             control.setHidden(hidden)
@@ -686,6 +761,9 @@ class WidgetSliceProcessing(QWidget):
                     columns_to_plot.append(col_name)
 
         self.plot_manager.draw_plot(df, columns_to_plot)
+        self.plot_manager.ax.xaxis.label.set_fontsize(9)
+        self.plot_manager.ax.yaxis.label.set_fontsize(9)
+        self.plot_manager._layout_axes()
 
     def open_data_selection_dialog(self):
         if self.parsed_data is None:
@@ -881,7 +959,7 @@ class WidgetSliceProcessing(QWidget):
         self.run_button.setEnabled(enabled and self.parsed_data is not None
                                    and (self._metadata_has_box_dimensions(self.slice_metadata)
                                         or self.manual_box_dimensions is not None))
-        for widget in (self.input_mode_combo, self.method_controls, self.settings_scroll,
+        for widget in (self.input_mode_combo, self.context_scroll, self.method_controls, self.settings_scroll,
                        self.overwrite_proc_checkbox):
             widget.setEnabled(enabled)
         self.save_proc_button.setEnabled(enabled and self.current_processed_result is not None)

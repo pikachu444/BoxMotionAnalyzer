@@ -89,3 +89,24 @@ def test_korean_windows_keep_display_and_data_separate(language_app):
     finally:
         for window in reversed(windows):
             window.close()
+
+
+def test_analysis_status_follows_visible_page_and_restores_its_message(language_app):
+    ui_language.save_language('en')
+    ui_language.configure_language(language_app)
+    window = MainApp()
+    try:
+        window.original_widget.log_message.emit('Step 1: File loaded')
+        assert window.statusBar().currentMessage() == 'Step 1: File loaded'
+        window.tab_widget.setCurrentIndex(1)
+        assert window.statusBar().currentMessage() == 'Step 1.5: No slice loaded'
+        window.original_widget.log_message.emit('Step 1: Review updated')
+        assert window.statusBar().currentMessage() == 'Step 1.5: No slice loaded'
+        window.processing_widget.log_message.emit('Step 1.5: Ready')
+        assert window.statusBar().currentMessage() == 'Step 1.5: Ready'
+        window.tab_widget.setCurrentIndex(0)
+        assert window.statusBar().currentMessage() == 'Step 1: Review updated'
+        window.tab_widget.setCurrentIndex(1)
+        assert window.statusBar().currentMessage() == 'Step 1.5: Ready'
+    finally:
+        window.close()

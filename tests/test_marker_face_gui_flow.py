@@ -269,7 +269,7 @@ def test_production_mainapp_face_review_save_and_process(tmp_path, monkeypatch, 
     assert raw_widget.raw_data is not None
     for edit, value in zip((raw_widget.le_box_l, raw_widget.le_box_w, raw_widget.le_box_h), dims):
         edit.setText(str(value))
-    raw_widget.marker_review_section.setExpanded(True)
+    raw_widget.review_scroll.ensureWidgetVisible(raw_widget.confirm_review_dimensions)
     QTest.mouseClick(raw_widget.confirm_review_dimensions, Qt.MouseButton.LeftButton)
     window.grab().save(str(evidence / 'before.png'))
 
@@ -593,7 +593,7 @@ def test_reordered_annotations_rereview_off_on_and_suffix_pose(tmp_path, monkeyp
                 dialog.reject()
         timer.timeout.connect(handle)
         timer.start(100)
-        widget.marker_review_section.setExpanded(True)
+        widget.review_scroll.ensureWidgetVisible(widget.confirm_review_dimensions)
         if not widget.confirm_review_dimensions.isChecked():
             QTest.mouseClick(widget.confirm_review_dimensions, Qt.MouseButton.LeftButton)
         QTest.mouseClick(widget.review_marker_flips_button, Qt.MouseButton.LeftButton)

@@ -10,6 +10,7 @@ import time
 import matplotlib
 import PySide6
 from PySide6.QtTest import QTest
+from PySide6.QtGui import QRegion
 from PySide6.QtWidgets import QApplication
 
 from src.analysis.app.main_window import MainApp
@@ -61,19 +62,21 @@ def main():
         window.grab().save(str(root/filename))
         buttons = {}
         for key, button in [('detect', w.scene_panel.detect_button), ('open_review', w.scene_panel.open_review_button),
-            ('details', w.scene_panel.details_section.button),
             ('revert', w.scene_panel.revert_button), ('save_current', w.save_slice_button),
             ('save_included', w.scene_panel.save_all_button), ('process', w.save_process_button)]:
+            w.review_scroll.ensureWidgetVisible(button)
+            app.processEvents()
             p = button.mapTo(window, button.rect().topLeft())
             q = button.mapTo(window, button.rect().bottomRight())
             buttons[key] = dict(text=button.text(), enabled=button.isEnabled(), visible=button.isVisible(),
                 rect=[p.x(), p.y(), button.width(), button.height()],
                 inside_window=window.rect().contains(p) and window.rect().contains(q),
-                sufficient_width=button.width() >= button.sizeHint().width())
+                sufficient_width=button.width() >= button.sizeHint().width(),
+                fully_reachable=button.isVisible() and not button.rect().isEmpty()
+                    and QRegion(button.rect()).subtracted(button.visibleRegion()).isEmpty())
         actual_size = [window.width(), window.height()]
-        buttons['open_review']['disclosure'] = 'Details'
         passed = (actual_size == list(size) and all(b['inside_window'] and
-            (b['visible'] or k == 'open_review' and buttons['details']['visible']) and b['sufficient_width']
+            b['fully_reachable'] and b['sufficient_width']
             for k, b in buttons.items()))
         states.append(dict(state=state, requested_size=list(size), actual_size=actual_size,
             buttons=buttons, signal=w.combo_plot_axis.currentData(), selected_id=w.scene_panel.selected_id(),

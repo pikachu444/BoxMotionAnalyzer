@@ -1,6 +1,10 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-10-13
+Last Reviewed: 2026-11-11
+
+#177은 공개 canonical 위젯의 고정 레이아웃과 연결 계약을 정리한다. 현재 화면과 공개 검증/소비자 도입의 구분은 [공개 GUI 기록](../../visualization/gui_public_177.md)을 따른다. 이 문서의 이전 실행 근거는 각 당시 revision에 한정되며 새 GUI의 검증을 뜻하지 않는다.
+
+이번 사용자 승인 범위는 공개 저장소 구현과 검증이다. 소비자 저장소 연결·도입은 별도 후속 로드맵으로 두며 이번 작업의 의존 조건으로 취급하지 않는다.
 
 PUB12 current delivery audit: [PUB01–12 status and original evidence](../reference/pub_delivery_status.md). PUB02–11 software is merged; native/input/human and numerical/measured acceptance remain separate. #113 registration is excluded; #152 is independent.
 
@@ -45,8 +49,8 @@ sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/ro
 
 #136의 `MarkerFlipReviewDialog`는 폭에 따라 기존 panel을 탭 또는 병렬 배치로
 옮긴다. layout 변경은 source snapshot·axes·navigation·승인을 다시 만들지 않는다.
-두 canvas는 resize/draw마다 축·단위를 배치하고, 계산 Cancel은 상세 스크롤과
-분리한다. 처리·worker identity·저장 계약은 동일하다. native 확인은 자동 widget
+두 canvas는 resize/draw마다 축·단위를 배치한다. #177은 Step 1의 계산 Cancel을
+marker review 고정 그룹에 배치한다. 처리·worker identity·저장 계약은 동일하다. native 확인은 자동 widget
 검사와 별도 완료 조건이며 [실행 기록](../../visualization/marker_review_responsive_layout.md)을 따른다.
 
 ## 1. 개요
@@ -76,6 +80,7 @@ sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/ro
 
 ## 3. 분석 GUI 설계
 분석 GUI는 `MainApp` 하나로 묶이고, 내부는 Step 1 / Step 1.5 / Step 2 탭으로 분리된다.
+`AnalysisTabs`는 현재 페이지의 최소 크기를 사용한다. `MainApp._page_status`는 탭별 상태를 보관하고 현재 페이지의 상태만 상태줄에 표시한다. 일반 `QGroupBox`/고정 탭/영역별 스크롤을 사용하며 도구 패널 accordion은 사용하지 않는다. 그래프는 기존 canvas와 오른쪽 세로 toolbar를 사용하고 좌표는 페이지 상태 신호로 전달한다.
 
 ### 3.1. Step 1: Raw Data Slice
 - 마커 검토의 원본 context는 `review_parsed_data`의 위치 열만 독립 복사한다. 별도 pose fitting이나 정답 파일 접근 없이 실제 시각·XYZ를 표시하며, dialog 종료 시 그래프와 복사본을 해제한다. 모달 종료 후 source/revision/dimensions 비교와 비동기 바이트 검증을 통과해야 선택을 반영한다.
@@ -92,6 +97,7 @@ sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/ro
 - Slice Range 지정
 - `.slice` 저장
 - 미리보기 플롯과 하단 제어 영역 사이에는 세로 splitter가 있어, 창 높이 증가분이 플롯에 우선 배분되고 사용자가 플롯 높이를 직접 조절할 수 있다.
+- 상단 전체 폭 그래프 아래에 입력·치수·marker review, Scenes, Log, Current slice를 일반 그룹으로 배치한다. 검토 영역 안을 스크롤하며 저장줄은 그 밖의 고정 하단에 둔다. 플립 검토는 승인 요약을 계속 표시하고 긴 Evidence를 별도 창으로 연다.
 
 ### 3.2. Step 1.5: Slice Processing
 - `.slice` 로드
@@ -102,7 +108,7 @@ sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/ro
 - processing 실행
 - processing 완료 후 낙하 자세 비교용 post-processing 지표 계산
 - `.proc` 저장
-- Single/Batch 입력과 결과를 별도로 보존한다. 좌측에는 입력·방법·실행 버튼을, 우측에는 단일 미리보기 또는 정확한 배치 파일 목록을 둔다. 세부 설정만 스크롤한다.
+- Single/Batch 입력과 결과를 별도로 보존한다. 상단에는 단일 미리보기 또는 정확한 배치 파일 목록과 입력 문맥을, 하단에는 Processing method/Resampling/Log 고정 그룹을 둔다. 입력·설정 영역 안에서만 스크롤하며 현재 모드의 실행·저장줄은 맨 아래 고정한다.
 
 ### 3.3. Step 2: Results Analysis
 - 결과 폴더 선택
@@ -117,7 +123,7 @@ sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/ro
 - 선택 시점 분석
 - point export
 - scenario export
-- 좌측 측정값 선택 영역과 우측 그래프 사이의 가로 splitter로 폭을 조절한다. 그래프 아래에서 점을 선택·저장하며, 전체 요약과 시나리오 출력 설정은 접어서 연다.
+- 중간의 Result files/Data selection/Drop·impact summary와 하단의 그래프/Point·CAE 도구 사이를 splitter로 조절한다. Point / peaks와 CAE export는 고정 탭이다. CAE 입력은 탭 안에서 스크롤하며 실행 버튼은 고정 하단에 둔다. Guide는 실제 Point target의 metric key 또는 기본 Guide를 재사용한다.
 - 현재 파일·시간을 상단에 표시한다. Open/Folder/Compare는 기본 조작이며, 입력 경로는 파일명과 별도로 보존한다.
 
 ### 3.4. Step 간 연결
@@ -132,7 +138,10 @@ sequence truth is evaluation-only. [Scope and proposed fixtures](../reference/ro
 - processing 결과에는 낙하각, 방향 각도, 최저 코너, 기준면 코너 높이 차이, 접촉 상태와 같은 Drop Posture metric도 포함된다.
 
 ### 3.5. 비교와 표시
+- 왼쪽 File details/Playback settings는 고정 탭이며 오른쪽 Summary→실제 3D→Graph의 기본 배치를 유지한다. 현 요약 모드의 owner 표시 행이 0개일 때만 빈 상태를 줄이며 다른 모드나 데이터 복구 시 정상 표와 이전 사용자 비율을 복원한다.
+- 파일 수와 Comparison observation groups는 owner의 로드 파일 수와 `impact["observations"]` 항목 수다. 지표별 유효 n과 구분하며 제외 이유를 요약과 File details에 표시한다. UI는 t1·호환성·독립 반복 수를 새로 판정하지 않는다.
 - Compare의 Individual/Aligned 상태를 곡선과 3D가 공유한다. 파일별 색·선택·카메라·개별 행을 보존하며 데이터가 교체될 때만 해당 VTK 뷰어를 다시 만든다.
+- Individual 재생의 시각 label은 실제 선택한 기록 표본에서 가져오며 gap에서는 unavailable 상태를 표시한다. 이는 표시 수정이며 elapsed dispatch, ROW lookup, Aligned와 viewer 수명 계약은 유지한다. tooltip은 다음 유효 표본에서 Recorded time으로 복원한다.
 - 표시 이름·단위는 저장 키와 분리한다. 각도 자동 축 폭은 최소 1도이며 회전벡터에는 동일 폭의 rad를 적용한다. 미분량·길이·원본 값·사용자 확대는 바꾸지 않는다.
 - 꼭짓점 ID는 점과 범주 축을 사용하고 요약에서 번호를 빼지 않는다. Step 2의 혼합 플롯은 별도 범주 축을 사용하며 점 선택·팝업·실패 시 복원도 해당 축을 유지한다.
 

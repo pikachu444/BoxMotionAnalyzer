@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
+from PySide6.QtGui import QRegion
 from PySide6.QtWidgets import QApplication
 
 from src.analysis.pipeline.artifact_io import read_slice_metadata, add_timeline_context_columns, save_proc_file
@@ -288,11 +289,14 @@ def test_production_window_size_and_primary_controls_accessible(widgets, size, s
     QTest.qWait(100)
     assert (w.width(), w.height()) == size
     w.canvas.draw()
-    for button in (w.scene_panel.detect_button, w.scene_panel.details_section.button,
+    for button in (w.scene_panel.detect_button, w.scene_panel.open_review_button,
                    w.scene_panel.revert_button, w.save_slice_button, w.scene_panel.save_all_button,
                    w.save_process_button):
+        w.review_scroll.ensureWidgetVisible(button)
+        APP.processEvents()
         rect = button.rect()
-        assert button.isVisible() and rect.width() >= button.sizeHint().width()
+        assert QRegion(rect).subtracted(button.visibleRegion()).isEmpty()
+        assert button.isVisible() and rect.width() >= button.sizeHint().width(), button.text()
         assert w.rect().contains(button.mapTo(w, rect.topLeft()))
         assert w.rect().contains(button.mapTo(w, rect.bottomRight()))
     assert w.canvas.height() >= 90
@@ -304,14 +308,13 @@ def test_production_window_size_and_primary_controls_accessible(widgets, size, s
         assert w.scene_panel.selected_id() == 'scene_002'
         assert w.plot_manager.span_selector.extents == (.6, .85)
     if state == 'details':
-        assert w.scene_panel.details_scroll.isVisible()
+        assert w.scene_panel.type_group.isVisible() and not w.scene_panel.type_group.isCheckable()
         assert w.scene_panel.open_review_button.isVisible()
         assert w.scene_panel.type_basis_label.text() == 'Type basis: Operator selection'
         for button in (w.scene_panel.identify_button, w.scene_panel.confirm_button, w.scene_panel.set_intended_button):
-            if size[0] < 1100:
-                w.scene_panel.details_scroll.ensureWidgetVisible(button)
-                APP.processEvents()
-            assert button.visibleRegion().contains(button.rect())
+            w.review_scroll.ensureWidgetVisible(button)
+            APP.processEvents()
+            assert button.isVisible() and QRegion(button.rect()).subtracted(button.visibleRegion()).isEmpty()
 
 
 def test_mainapp_details_retains_minimum_window_size(source):
@@ -323,9 +326,9 @@ def test_mainapp_details_retains_minimum_window_size(source):
         window.show()
         APP.processEvents()
         assert (window.width(), window.height()) == (820, 600)
-        assert window.original_widget.scene_panel.details_scroll.isVisible()
-        assert window.original_widget.save_slice_button.visibleRegion().contains(
-            window.original_widget.save_slice_button.rect())
+        assert window.original_widget.scene_panel.type_group.isVisible()
+        button = window.original_widget.save_slice_button
+        assert button.isVisible() and QRegion(button.rect()).subtracted(button.visibleRegion()).isEmpty()
     finally:
         window.close()
         window.deleteLater()

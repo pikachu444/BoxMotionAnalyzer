@@ -1,6 +1,7 @@
 """Actual slice GUI rejection preserves disk and editable input state."""
 from pathlib import Path
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QRegion
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QMessageBox
 from src.analysis.pipeline.artifact_io import save_slice_file, read_slice_metadata, update_slice_box_dimensions
@@ -42,8 +43,8 @@ def test_existing_slice_dimension_patch_rejects_conflict_before_save(tmp_path):
         widget.load_slice_file(str(path))
         QTest.qWait(100)
         assert messages == ['Enter the missing box dimensions to run.']
-        assert widget.box_section.button.isChecked()
-        assert widget.apply_box_dims_button.visibleRegion().contains(widget.apply_box_dims_button.rect())
+        assert widget.box_dims_group.isVisible() and not widget.box_dims_group.isCheckable()
+        assert QRegion(widget.apply_box_dims_button.rect()).subtracted(widget.apply_box_dims_button.visibleRegion()).isEmpty()
         messages.clear()
         assert widget.le_box_l.isEnabled()
         for field,value in zip((widget.le_box_l,widget.le_box_w,widget.le_box_h),('300','120','80')):

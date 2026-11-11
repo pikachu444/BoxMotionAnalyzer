@@ -5,11 +5,12 @@ import math
 from pathlib import Path
 from uuid import uuid4
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QTabWidget, QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox,
     QCheckBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
-    QFileDialog, QDialog, QSizePolicy, QGroupBox)
+    QFileDialog, QDialog, QSizePolicy, QGroupBox, QGridLayout, QStyle,
+    QStyleOptionTabWidgetFrame)
 from src.simulation.mode_profiles import (ModeProfiles, drop_step, validate_config,
     read_profiles, save_profiles, BLOCKED_REASON, require_executable)
 from src.simulation.robot_profiles import example_plan
@@ -41,9 +42,11 @@ class ModeSettings(QWidget):
         self._active_rows = {}
         self._examples = {key: load_profile(example=key) for key in ('18', '32')}
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
+        self.setMinimumWidth(1)
         layout = QVBoxLayout(self); layout.setContentsMargins(0, 0, 0, 0);layout.setSpacing(3)
         self.mode_label = QLabel(); layout.addWidget(self.mode_label)
         self.tabs = QTabWidget(); layout.addWidget(self.tabs)
+        self.tabs.setMinimumWidth(1)
         sequence = QWidget(); seq = QVBoxLayout(sequence);seq.setSpacing(3)
         names = QFormLayout();names.setVerticalSpacing(3)
         self.sequence_name = QLineEdit(); names.addRow(tr('Sequence profile'), self.sequence_name)
@@ -51,7 +54,7 @@ class ModeSettings(QWidget):
         names.addRow(tr('Robot model'), self.robot_model); seq.addLayout(names)
         self.handling = QComboBox()
         for label,key in [('Choose handling',None),('G: Lift and release','airborne'),
-                ('H: Virtual tip on floor','floor_supported'),('Hold without release','held_only')]:self.handling.addItem(label,key)
+                ('H: Virtual tip on floor','floor_supported'),('Hold without release','held_only')]:self.handling.addItem(tr(label),key)
         self.attachment_face = QComboBox();self.attachment_face.addItem(tr('Top-facing face (auto)'),'upward')
         for face in ['+X','-X','+Y','-Y','+Z','-Z']:self.attachment_face.addItem(face,face)
         self.attachment_face.setToolTip(tr('Faces use box-local axes. Auto selects the face currently pointing upward.'))
@@ -94,14 +97,24 @@ class ModeSettings(QWidget):
         for label,value in zip(self.preview_labels,[row,self.sequence_preview,self.preview_face,self.preview_time]):self.preview_form.addRow(label,value)
         self.preview_box.hide();seq.addWidget(self.preview_box)
         self.tabs.addTab(sequence, tr('Sequence'))
-        physics = QWidget(); form = QFormLayout(physics)
+        self.physics_page = QWidget(); physics_layout = QVBoxLayout(self.physics_page)
+        physics_layout.setContentsMargins(7, 7, 7, 7); physics_layout.setSpacing(5)
+        physics = QGroupBox(tr('Draft profile')); form = QFormLayout(physics)
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        form.setContentsMargins(7, 7, 7, 7); form.setSpacing(5)
+        physics_layout.addWidget(physics)
         self.physics_name = QLineEdit(); form.addRow(tr('Physics profile'), self.physics_name)
         self.physics_controls = []
         for label, low, high in [('Mass (kg)', .1, 10000), ('Friction', 0, 5), ('Contact damping', 0, 1),
                 ('COM X (mm)', -2500, 2500), ('COM Y (mm)', -2500, 2500), ('COM Z (mm)', -2500, 2500)]:
             control = self.spin(low, high); form.addRow(tr(label), control); self.physics_controls.append(control)
-        self.tabs.addTab(physics, tr('Physics'))
-        observation = QWidget(); form = QFormLayout(observation)
+        self.tabs.addTab(self.physics_page, tr('Physics'))
+        self.observation_page = QWidget(); observation_layout = QVBoxLayout(self.observation_page)
+        observation_layout.setContentsMargins(7, 7, 7, 7); observation_layout.setSpacing(5)
+        observation = QGroupBox(tr('Draft profile')); form = QFormLayout(observation)
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        form.setContentsMargins(7, 7, 7, 7); form.setSpacing(5)
+        observation_layout.addWidget(observation)
         self.observation_name = QLineEdit(); form.addRow(tr('Observation profile'), self.observation_name)
         self.corner_enabled = QCheckBox(tr('Gaussian')); form.addRow(tr('Direct corner noise'), self.corner_enabled)
         row = QHBoxLayout(); self.corner_std = self.spin(.01, 100); self.corner_seed = QSpinBox(); self.corner_seed.setRange(0, 2147483647)
@@ -114,7 +127,7 @@ class ModeSettings(QWidget):
         form.addRow(tr('Marker profile'), row)
         self.use_layout_box = QCheckBox(tr('Use layout box dimensions')); form.addRow('', self.use_layout_box)
         self.fault_kind = QComboBox()
-        for label, key in [('None', None), ('Missing samples', 'missing'), ('Local 180° half-turn', 'flip_180_local_axis'), ('Gaussian noise', 'gaussian_noise')]: self.fault_kind.addItem(label, key)
+        for label, key in [('None', None), ('Missing samples', 'missing'), ('Local 180° half-turn', 'flip_180_local_axis'), ('Gaussian noise', 'gaussian_noise')]: self.fault_kind.addItem(tr(label), key)
         form.addRow(tr('Marker faults'), self.fault_kind)
         self.channel = QComboBox(); self.channel.addItem(tr('Solved rigid-body markers'), 'rigid_body_markers'); self.channel.addItem(tr('Physical markers'), 'physical_markers')
         form.addRow(tr('Marker channel'), self.channel)
@@ -123,14 +136,14 @@ class ModeSettings(QWidget):
         row = QHBoxLayout(); self.axis = QComboBox(); self.axis.addItems(['X', 'Y', 'Z']); self.marker_std = self.spin(.001, 100, 3)
         row.addWidget(QLabel(tr('Local axis'))); row.addWidget(self.axis); row.addWidget(QLabel(tr('Std (mm)'))); row.addWidget(self.marker_std); form.addRow(tr('Marker fault'), row)
         self.marker_seed = QSpinBox(); self.marker_seed.setRange(0, 2147483647); form.addRow(tr('Marker seed'), self.marker_seed)
-        self.tabs.addTab(observation, tr('Markers and noise'))
+        self.tabs.addTab(self.observation_page, tr('Markers and noise'))
         self.status = QLabel(tr('Current preset plan; ISTA procedure validation is pending.')); self.status.setWordWrap(True); self.status.setTextFormat(Qt.PlainText); layout.addWidget(self.status)
-        actions = QHBoxLayout()
-        self.open_button = QPushButton(tr('Open settings…')); self.open_button.clicked.connect(self.open_settings); actions.addWidget(self.open_button)
-        self.save_button = QPushButton(tr('Save settings…')); self.save_button.clicked.connect(self.save_settings); actions.addWidget(self.save_button)
-        actions.addStretch()
-        self.apply_button = QPushButton(tr('Use in Simulation')); self.apply_button.clicked.connect(self.apply_settings); actions.addWidget(self.apply_button)
-        self.cancel_button = QPushButton(tr('Cancel')); self.cancel_button.clicked.connect(self.cancel_settings); actions.addWidget(self.cancel_button)
+        actions = QGridLayout()
+        actions.setSpacing(5)
+        self.open_button = QPushButton(tr('Open settings…')); self.open_button.clicked.connect(self.open_settings); actions.addWidget(self.open_button, 0, 0)
+        self.save_button = QPushButton(tr('Save settings…')); self.save_button.clicked.connect(self.save_settings); actions.addWidget(self.save_button, 0, 1)
+        self.apply_button = QPushButton(tr('Use in Simulation')); self.apply_button.clicked.connect(self.apply_settings); actions.addWidget(self.apply_button, 1, 0)
+        self.cancel_button = QPushButton(tr('Cancel')); self.cancel_button.clicked.connect(self.cancel_settings); actions.addWidget(self.cancel_button, 1, 1)
         layout.addLayout(actions)
         self.table.itemSelectionChanged.connect(self.select_row)
         self.table.cellChanged.connect(lambda row, column: self.select_row() if column in (1, 2, 3, 4) else None)
@@ -139,6 +152,7 @@ class ModeSettings(QWidget):
         self.corner_enabled.toggled.connect(self.fault_controls)
         self.fault_kind.currentIndexChanged.connect(self.fault_controls)
         self.tabs.currentChanged.connect(self.fit_tab)
+        self.table.horizontalScrollBar().rangeChanged.connect(lambda *_: QTimer.singleShot(0, self.fit_tab))
         for control in self.findChildren(QWidget):
             if isinstance(control,(QDoubleSpinBox,QSpinBox)):control.valueChanged.connect(self.invalidate_sequence_preview)
             elif isinstance(control,QLineEdit):control.textChanged.connect(self.invalidate_sequence_preview)
@@ -148,11 +162,30 @@ class ModeSettings(QWidget):
 
     def fit_tab(self):
         page = self.tabs.currentWidget()
-        page.layout().activate()
-        height = page.layout().sizeHint().height()+self.tabs.tabBar().sizeHint().height()+4
-        self.tabs.setFixedHeight(height)
-        self.layout().activate()
-        self.setMaximumHeight(self.layout().sizeHint().height())
+        option = QStyleOptionTabWidgetFrame()
+        self.tabs.initStyleOption(option)
+        contents = self.tabs.style().subElementRect(QStyle.SE_TabWidgetTabContents, option, self.tabs)
+        page_layout = page.layout()
+        if page is self.table.parentWidget():
+            scrollbar_height = (self.table.horizontalScrollBar().sizeHint().height()
+                if self.table.horizontalScrollBar().maximum() else 0)
+            self.table.setFixedHeight(self.table.horizontalHeader().sizeHint().height()
+                + 5 * self.table.verticalHeader().defaultSectionSize()
+                + 2 * self.table.frameWidth() + scrollbar_height)
+        page_layout.activate()
+        # Wrapped labels must use the visible page width, not an unconstrained hint.
+        page_height = (page_layout.totalHeightForWidth(max(1, contents.width()))
+            if page_layout.hasHeightForWidth() else page_layout.totalSizeHint().height())
+        self.tabs.setFixedHeight(page_height + self.tabs.height() - contents.height())
+        layout = self.layout()
+        layout.activate()
+        self.setMaximumHeight(layout.totalHeightForWidth(max(1, self.width()))
+            if layout.hasHeightForWidth() else layout.totalSizeHint().height())
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'cancel_button') and event.size().width() != event.oldSize().width():
+            self.fit_tab()
 
     @staticmethod
     def spin(low, high, decimals=2):
@@ -177,11 +210,11 @@ class ModeSettings(QWidget):
         scope=(1 if len(plan['selected_step_ids'])==1 and len(sequence['steps'])>1 else
             2 if plan['selected_step_ids']!=[s['step_id'] for s in sequence['steps']] else 0) if plan else 0
         self.run_scope.model().item(2).setEnabled(plan is not None)
-        self.run_scope.setItemText(2,f"Saved selection ({len(plan['selected_step_ids'])} / {len(sequence['steps'])})" if plan else tr('Saved selection'))
+        self.run_scope.setItemText(2,tr('Saved selection') + f" ({len(plan['selected_step_ids'])} / {len(sequence['steps'])})" if plan else tr('Saved selection'))
         self.run_scope.setItemData(2,', '.join(plan['selected_step_ids']) if plan else '',Qt.ToolTipRole)
         self.run_scope.setCurrentIndex(scope)
         self.preview_box.hide();self._preview_signature=None;self._preview_plan=None;self._preview_duration=config['duration_s']
-        self.mode_label.setText(tr('Robot sequence') if robot else tr('Single drop'))
+        self.mode_label.setText(tr('Draft profile') + ': ' + (tr('Robot sequence') if robot else tr('Single drop')))
         self.sequence_name.setText(sequence['profile_id']); self.robot_model.setEnabled(robot)
         for button in self.order_buttons: button.setEnabled(robot)
         selected = sequence['steps'][0]
@@ -439,8 +472,8 @@ class ModeSettings(QWidget):
         profile = self.marker['profile']; key = next((key for key, value in self._examples.items() if profile == value), 'custom')
         if key == 'custom':
             index = self.marker_combo.findData(key)
-            if index < 0: self.marker_combo.addItem('Custom: '+profile['profile_id'], key)
-            else: self.marker_combo.setItemText(index, 'Custom: '+profile['profile_id'])
+            if index < 0: self.marker_combo.addItem(tr('Custom') + ': '+profile['profile_id'], key)
+            else: self.marker_combo.setItemText(index, tr('Custom') + ': '+profile['profile_id'])
         self.marker_combo.setCurrentIndex(self.marker_combo.findData(key))
 
     def change_marker(self):

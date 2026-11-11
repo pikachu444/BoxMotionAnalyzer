@@ -8,7 +8,9 @@ import pytest
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-from PySide6.QtWidgets import QApplication, QFileDialog
+from PySide6.QtGui import QRegion
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QApplication, QFileDialog, QScrollArea
 
 from src.analysis.pipeline.data_loader import DataLoader
 from src.analysis.ui.plot_manager import PlotManager
@@ -30,6 +32,36 @@ def _write(path, values):
     frame = pd.DataFrame(values)
     frame.columns = pd.MultiIndex.from_tuples(frame.columns)
     frame.to_csv(path, index=False)
+
+
+@pytest.mark.parametrize('size', [(1510, 800), (1100, 720), (820, 600)])
+def test_fixed_result_tools_keep_export_reachable_and_context_intact(app, size):
+    window = WidgetResultsAnalyzer(DataLoader())
+    window.show()
+    window.resize(*size)
+    QTest.qWait(30)
+    try:
+        assert (window.width(), window.height()) == size
+        assert [window.tool_tabs.tabText(i) for i in range(2)] == ['Point / peaks', 'CAE export']
+        assert window.tool_tabs.currentIndex() == 0
+        window.tool_tabs.setCurrentIndex(1)
+        app.processEvents()
+        scroll, = window.tool_tabs.currentWidget().findChildren(QScrollArea)
+        for value in (0, scroll.verticalScrollBar().maximum()):
+            scroll.verticalScrollBar().setValue(value)
+            app.processEvents()
+            button = window.export_scenario_button
+            assert button.isVisible() and not button.rect().isEmpty()
+            assert QRegion(button.rect()).subtracted(button.visibleRegion()).isEmpty()
+            assert not scroll.widget().isAncestorOf(button)
+        window.tool_tabs.setCurrentIndex(0)
+        app.processEvents()
+        assert window.selected_point_info == {'time': None, 'index': None}
+        assert not window.export_point_button.isEnabled()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
 
 
 def test_corner_selection_export_and_failed_switch_preserve_category_context(app, tmp_path, monkeypatch):

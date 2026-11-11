@@ -1,18 +1,20 @@
 import os
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QSplitter, QFileDialog, QMessageBox, QFrame, QLabel, QApplication, QSizePolicy
-from PySide6.QtCore import Qt, QEventLoop
+from PySide6.QtCore import Qt, QEvent, QEventLoop, QCoreApplication
 
 from src.analysis.compare.data_model import ComparisonModel
 from src.analysis.pipeline.artifact_io import _sha256_file
 from src.analysis.compare.ui_panels import CompareControlPanel, CompareTablePanel, CompareGraphPanel
 from src.analysis.compare.playback_panel import ComparePlaybackPanel
 from src.utils.ui_language import tr
+from src.utils.qt_sections import unique_path_labels, set_path_label
 
 class CompareMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(tr("Experiment Comparison"))
-        self.resize(1200, 800)
+        self.resize(1510, 800)
+        self.setMinimumSize(820, 600)
         
         self.model = ComparisonModel()
         
@@ -22,11 +24,18 @@ class CompareMainWindow(QMainWindow):
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(6, 6, 6, 6)
         main_layout.setSpacing(2)
-        self.warning_label = QLabel(tr('No results loaded.'))
-        self._summary_status = 'No results loaded.'
+        self.warning_label = QLabel()
+        self._summary_status = tr('Files: {file_count} | Comparison observation groups: {observation_count}').format(file_count=0, observation_count=0)
+        self._owner_exclusion_reasons = []
+        self.warning_label.setText(self._summary_status)
         self.warning_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.warning_label.setTextFormat(Qt.PlainText)
         main_layout.addWidget(self.warning_label)
+        self.alignment_label = QLabel(tr('No results loaded.'))
+        self.alignment_label.setWordWrap(True)
+        self.alignment_label.setTextFormat(Qt.PlainText)
+        self.alignment_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        main_layout.addWidget(self.alignment_label)
         
         # White card frame
         content_frame = QFrame()
@@ -44,10 +53,11 @@ class CompareMainWindow(QMainWindow):
         # Panels
         self.control_panel = CompareControlPanel()
         self.control_panel.setMinimumWidth(240)
-        self.control_panel.setMaximumWidth(310)
+        self.control_panel.setMaximumWidth(340)
         self.table_panel = CompareTablePanel()
         self.graph_panel = CompareGraphPanel()
         self.playback_panel = ComparePlaybackPanel(self.model)
+        self.playback_panel.setMinimumHeight(180)
         
         # Right side: 3-tier vertical split (GUI Principle: No Unnecessary Tabs)
         self.right_splitter = QSplitter(Qt.Vertical)
@@ -59,6 +69,8 @@ class CompareMainWindow(QMainWindow):
         self.right_splitter.setStretchFactor(0, 0)
         self.right_splitter.setStretchFactor(1, 1)
         self.right_splitter.setStretchFactor(2, 1)
+        self._summary_empty = None
+        self._summary_restore_sizes = [155, 270, 300]
         
         self.splitter.addWidget(self.control_panel)
         self.splitter.addWidget(self.right_splitter)
@@ -71,6 +83,7 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.remove_file_requested.connect(self._on_remove_file)
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
         self.table_panel.resolution_details_changed.connect(self._on_resolution_details)
+        self.table_panel.display_rows_changed.connect(self._on_summary_rows_changed)
         self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
         self.control_panel.view_changed.connect(self._on_view_changed)
         self.control_panel.labels_changed.connect(self.playback_panel.set_labels_visible)
@@ -90,6 +103,7 @@ class CompareMainWindow(QMainWindow):
                 background-color: #e5e7eb;
             }
         """)
+        self.table_panel.update_table({}, None)
         
     def _on_remove_file(self, name: str):
         self.model.remove_file(name)
@@ -180,14 +194,48 @@ class CompareMainWindow(QMainWindow):
         self.table_panel._show_resolution()
 
     def _on_resolution_details(self, text):
-        current = self.control_panel.file_list.currentItem()
-        self.control_panel.details.setPlainText(text or (current.toolTip() if current else ''))
+        self.control_panel.set_resolution_details(text)
+
+    def _on_summary_rows_changed(self, rows):
+        empty = rows == 0
+        if empty == self._summary_empty:
+            return
+        previous_empty = self._summary_empty
+        self._summary_empty = empty
+        if empty:
+            sizes = self.right_splitter.sizes()
+            if previous_empty is False and sizes[0] > 0:
+                self._summary_restore_sizes = sizes
+            self.table_panel.setMinimumHeight(0)
+            self.table_panel.setMaximumHeight(110)
+            released = max(0, sizes[0] - 110)
+            self.right_splitter.setSizes([min(110, sizes[0]), sizes[1], sizes[2] + released])
+        else:
+            self.table_panel.setMaximumHeight(16777215)
+            self.table_panel.setMinimumHeight(150)
+            self._restore_summary_splitter()
+
+    def _restore_summary_splitter(self):
+        total = sum(self.right_splitter.sizes())
+        previous = sum(self._summary_restore_sizes)
+        sizes = [round(size * total / previous) for size in self._summary_restore_sizes]
+        sizes[-1] += total - sum(sizes)
+        self.right_splitter.setSizes(sizes)
 
     def _update_view_status(self):
         aligned_sources = {self.model.identities[name].source_kind
                            for name, timeline in self.model.timelines.items() if timeline.aligned}
         mixed = self.control_panel.cb_view.currentData() == 'aligned' and len(aligned_sources) > 1
-        self.warning_label.setText(self._summary_status + ('   Mixed sources' if mixed else ''))
+        self.warning_label.setText(self._summary_status + ('   ' + tr('Mixed sources') if mixed else ''))
+        reasons = list(dict.fromkeys([timeline.reason for timeline in self.model.timelines.values() if timeline.reason]
+                                    + self._owner_exclusion_reasons))
+        summary = '; '.join(tr(reason) for reason in reasons[:2])
+        if len(reasons) > 2:
+            summary += '; ' + tr('{} more reasons; see File details.').format(len(reasons) - 2)
+        self.alignment_label.setText(summary if reasons else
+                                     tr('Actual-time alignment available') if self.model.datasets else tr('No results loaded.'))
+        self.alignment_label.setToolTip('\n'.join(
+            self.model.status_text(name) for name in self.model.datasets))
 
     def _on_elapsed_changed(self, elapsed):
         if self.control_panel.cb_view.currentData() == 'aligned':
@@ -202,14 +250,21 @@ class CompareMainWindow(QMainWindow):
         files = list(self.model.datasets.keys())
         baseline = self.model.baseline_name
         impact = self.model.get_impact_comparison()
+        self._owner_exclusion_reasons = list(dict.fromkeys(
+            reason for entry in impact['files'].values() for reason in entry['reasons']))
+        file_labels = dict(zip(files, unique_path_labels(self.model.file_paths[name] for name in files)))
+        self.table_panel.file_labels = file_labels
         self.control_panel.update_files(files, baseline, self.model, impact)
         observations = len(impact.get('observations', {}))
-        self._summary_status = ('No results loaded.' if not files else
-                                f'{len(files)} files   {observations} compatible observations')
+        self._summary_status = tr('Files: {file_count} | Comparison observation groups: {observation_count}').format(
+            file_count=len(files), observation_count=observations)
         self.warning_label.setToolTip(tr('Overlaid curves do not establish compatible repeat trials. See file Details for exclusions.'))
+        self._update_view_status()
+        self.centralWidget().layout().activate()
         
         # Update Table
         diff_data = self.model.get_summary_differences()
+        was_empty = self._summary_empty
         self.table_panel.update_table(diff_data, baseline, impact, self.model.get_contact_comparison(),
                                       self.model.get_posture_comparison())
         
@@ -222,8 +277,17 @@ class CompareMainWindow(QMainWindow):
         # Replace changed viewers before reading their stored individual rows.
         # A rewritten file can have fewer samples than the previous version.
         self.playback_panel.refresh_viewers()
+        for name, controls in self.playback_panel.local_controls.items():
+            title = controls['title']
+            display_name = file_labels[name]
+            set_path_label(title, self.model.file_paths[name], display_name=display_name)
+            title.setText(title.fontMetrics().elidedText(display_name, Qt.ElideMiddle, 250))
         self.graph_panel.set_plot_targets(targets)
         self._on_view_changed()
+        if was_empty and not self._summary_empty:
+            # Owner status can change the space available above the splitter.
+            QCoreApplication.sendPostedEvents(None, QEvent.LayoutRequest)
+            self._restore_summary_splitter()
 
     def closeEvent(self, event):
         self.playback_panel.stop()

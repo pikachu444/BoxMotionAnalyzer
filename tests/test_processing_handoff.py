@@ -39,8 +39,6 @@ def test_handoff_prepares_exact_inputs_without_running_and_preserves_single(proc
     single_data = widget.parsed_data
     single_result = pd.DataFrame({'value': [1., 2.]})
     widget.on_processing_finished(single_result)
-    widget.details_section.setExpanded(True)
-    widget.box_section.setExpanded(True)
     single_range = widget.slice_user_range_label.text()
     single_dimensions = (widget.le_box_l.text(), widget.le_box_w.text(), widget.le_box_h.text())
     monkeypatch.setattr(QMessageBox, 'question', lambda *_args: pytest.fail('Batch does not replace the single result'))
@@ -48,10 +46,10 @@ def test_handoff_prepares_exact_inputs_without_running_and_preserves_single(proc
     assert widget.input_mode_combo.currentText() == 'Batch'
     assert widget.batch_input_paths == [str(path) for path in paths[:2]]
     assert widget.batch_table.rowCount() == 2 and not requested
-    assert widget.details_section.isHidden() and widget.box_section.isHidden()
+    assert widget.slice_summary_group.isHidden() and widget.box_dims_group.isHidden()
     widget.input_mode_combo.setCurrentIndex(0)
-    assert not widget.details_section.isHidden() and not widget.box_section.isHidden()
-    assert widget.details_section.button.isChecked() and widget.box_section.button.isChecked()
+    assert not widget.slice_summary_group.isHidden() and not widget.box_dims_group.isHidden()
+    assert not widget.slice_summary_group.isCheckable() and not widget.box_dims_group.isCheckable()
     assert widget.slice_user_range_label.text() == single_range
     assert (widget.le_box_l.text(), widget.le_box_w.text(), widget.le_box_h.text()) == single_dimensions
     assert widget.parsed_data is single_data and widget.current_processed_result is single_result
@@ -167,21 +165,21 @@ def test_batch_only_handed_inputs_and_only_new_successful_outputs(processing, mo
     assert widget.batch_success_paths == [] and not widget.view_batch_button.isEnabled()
 
 
-def test_missing_dimensions_open_only_needed_settings(processing, monkeypatch):
+def test_missing_dimensions_keep_fixed_settings_available(processing, monkeypatch):
     widget, paths, metadata = processing
-    assert widget.le_box_l.text() == '' and not widget.box_section.button.isChecked()
+    assert widget.le_box_l.text() == '' and not widget.box_dims_group.isHidden()
     from dataclasses import replace
     missing = replace(metadata, box_l=None, box_w=None, box_h=None)
     monkeypatch.setattr(widget, '_load_slice_bundle', lambda _path: (
         missing, {}, pd.DataFrame(), pd.DataFrame(index=[0., .1])))
     monkeypatch.setattr(QMessageBox, 'warning', lambda *_args: None)
     assert widget.load_processing_inputs([str(paths[0])])
-    assert widget.box_section.button.isChecked() and widget.le_box_l.isEnabled()
+    assert not widget.box_dims_group.isHidden() and widget.le_box_l.isEnabled()
     assert not widget.run_button.isEnabled()
     assert widget.load_processing_inputs([str(paths[1]), str(paths[2])])
-    assert widget.box_section.isHidden() and widget.details_section.isHidden()
+    assert widget.box_dims_group.isHidden() and widget.slice_summary_group.isHidden()
     widget.input_mode_combo.setCurrentIndex(0)
-    assert not widget.box_section.isHidden() and widget.box_section.button.isChecked()
+    assert not widget.box_dims_group.isHidden() and not widget.box_dims_group.isCheckable()
     assert widget.le_box_l.isEnabled() and not widget.run_button.isEnabled()
     for edit, value in zip((widget.le_box_l, widget.le_box_w, widget.le_box_h), ('200', '120', '80')):
         edit.setText(value)

@@ -66,7 +66,6 @@ def test_context_snapshot_event_recentre_and_independent_pending_choices():
     dialog = MarkerFlipReviewDialog([_candidate(event_id=str(i), boundary_time_sec=.2 + .3 * i) for i in range(5)])
     dialog.set_observation_context(values, units='Millimeters', source_path='long-' * 60 + '.csv')
     dialog.resize(820, 600)
-    dialog.details_section.setExpanded(True)
     dialog.show(); app.processEvents()
     try:
         assert (dialog.width(), dialog.height()) == (820, 600)
@@ -78,7 +77,7 @@ def test_context_snapshot_event_recentre_and_independent_pending_choices():
             assert dialog.context_figure.bbox.contains(extent.x0, extent.y0)
             assert dialog.context_figure.bbox.contains(extent.x1, extent.y1)
         root = Path('tmp/issue121'); root.mkdir(parents=True, exist_ok=True)
-        dialog.grab().save(str(root / 'small-expanded.png'))
+        dialog.grab().save(str(root / 'small-original-context.png'))
         raw_axis = dialog.context_figure.axes[0]
         np.testing.assert_array_equal(raw_axis.lines[0].get_xdata(), times)
         np.testing.assert_allclose(raw_axis.lines[0].get_ydata(), values.F1_X, equal_nan=True)
@@ -133,7 +132,7 @@ def test_actual_review_context_pan_cancel_save_reopen_and_source_switch(tmp_path
     w.load_csv_path(str(source))
     for edit, value in zip((w.le_box_l, w.le_box_w, w.le_box_h), (200, 120, 80)):
         edit.setText(str(value))
-    w.marker_review_section.setExpanded(True)
+    w.review_scroll.ensureWidgetVisible(w.confirm_review_dimensions)
     w.confirm_review_dimensions.setChecked(True)
     root = Path('tmp/issue121'); root.mkdir(parents=True, exist_ok=True)
     timer = QTimer()

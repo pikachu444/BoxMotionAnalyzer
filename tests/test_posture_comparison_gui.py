@@ -79,7 +79,7 @@ def test_posture_repeats_in_real_window_with_observed_only_pipeline(monkeypatch)
         row = _metric_row(panel.table, 'Pre-contact Beta')
         assert [panel.table.item(row, col).text() for col in range(1,6)] == ['3','20','10','30','20']
         panel.table.setCurrentCell(row, 0)
-        QTest.mouseClick(window.control_panel.details_section.button, Qt.LeftButton)
+        window.control_panel.detail_tabs.setCurrentWidget(window.control_panel.details)
         assert 'Duplicate 1' in panel.resolution_label.text()
         capture('02_repeats.png')
         corner = _metric_row(panel.table, 'Pre-contact lowest corner')
