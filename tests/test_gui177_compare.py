@@ -197,6 +197,11 @@ def test_fixed_tabs_and_controls_fit_supported_sizes(tmp_path, comparison, monke
         QTest.qWait(30)
         assert (translated.width(), translated.height()) == size
         assert translated.control_panel.detail_tabs.tabText(0) == tr('File details')
+        for mode, key in ((0, 'vertical_velocity'), (4, 'beta')):
+            translated.table_panel.view_combo.setCurrentIndex(mode)
+            assert translated.table_panel.table.horizontalHeaderItem(0).text() == tr('Metric')
+            assert translated.table_panel.table.item(0, 0).data(Qt.UserRole) == key
+        translated.table_panel.view_combo.setCurrentIndex(0)
         for index in range(2):
             translated.control_panel.detail_tabs.setCurrentIndex(index)
             app.processEvents()
@@ -213,6 +218,18 @@ def test_fixed_tabs_and_controls_fit_supported_sizes(tmp_path, comparison, monke
         graph = translated.graph_panel
         graph.canvas.draw()
         renderer = graph.canvas.get_renderer()
+        ax = graph.plot_manager.ax
+        width, height = graph.fig.bbox.width, graph.fig.bbox.height
+        labels = [ax.title, ax.xaxis.label, ax.yaxis.label]
+        for axis in (ax.xaxis, ax.yaxis):
+            low, high = axis.get_view_interval()
+            labels.extend(label for value, label in zip(axis.get_majorticklocs(), axis.get_ticklabels())
+                          if low <= value <= high)
+        for label in labels:
+            if label.get_visible() and label.get_text():
+                box = label.get_window_extent(renderer)
+                assert 0 <= box.x0 <= box.x1 <= width and 0 <= box.y0 <= box.y1 <= height, (
+                    language, size, label.get_text(), box.bounds, (width, height))
         left, right = graph.plot_manager.ax.get_xlim()
         ticks = [label.get_window_extent(renderer) for value, label in
                  zip(graph.plot_manager.ax.get_xticks(), graph.plot_manager.ax.get_xticklabels())

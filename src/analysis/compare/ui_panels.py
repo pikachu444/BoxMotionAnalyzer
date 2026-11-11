@@ -296,7 +296,7 @@ class CompareTablePanel(QGroupBox):
         names = list(impact['files'])
         self.table.setRowCount(len(keys))
         self.table.setColumnCount(len(names) + 1)
-        self.table.setHorizontalHeaderLabels(['Metric'] + [
+        self.table.setHorizontalHeaderLabels([tr('Metric')] + [
             self._file_label(name, SOURCE_LABELS.get(diff_data[name]['source'], 'Unknown'))
             for name in names])
         for r, key in enumerate(keys):
@@ -325,7 +325,7 @@ class CompareTablePanel(QGroupBox):
         names = list(posture['files'])
         self.table.setRowCount(len(POSTURE_METRICS))
         self.table.setColumnCount(len(names) + 1)
-        self.table.setHorizontalHeaderLabels(['Metric'] + [
+        self.table.setHorizontalHeaderLabels([tr('Metric')] + [
             self._file_label(name, SOURCE_LABELS.get(diff_data[name]['source'], 'Unknown')) for name in names])
         for col, name in enumerate(names, 1):
             self.table.horizontalHeaderItem(col).setToolTip(self._file_identity(name))
@@ -547,7 +547,14 @@ from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
 class _ComparePlotManager(PlotManager):
     def _layout_axes(self):
         # Keep the same compact padding after resize as after a metric change.
-        self.fig.tight_layout(pad=.3)
+        label = self.ax.yaxis.label
+        label.set_y(.5)
+        label.set_horizontalalignment('center')
+        self.fig.tight_layout(pad=.8)
+        box = label.get_window_extent(self.canvas.get_renderer())
+        shift = max(0, self.fig.bbox.y0 + 1 - box.y0) - max(0, box.y1 - self.fig.bbox.y1 + 1)
+        if shift:
+            label.set_y(.5 + shift / self.ax.bbox.height)
         self.canvas.draw_idle()
 
 
@@ -660,7 +667,7 @@ class CompareGraphPanel(QGroupBox):
         ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
         ax.grid(True)
         self.plot_manager._initialize_hover_annotation()
-        self.fig.tight_layout(pad=.3)
+        self.plot_manager._layout_axes()
         self.canvas.draw()
 
     def set_elapsed_cursor(self, elapsed):
