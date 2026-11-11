@@ -44,14 +44,16 @@ def test_metric_variants_keep_counts_and_expose_reasons_on_baseline_change(tmp_p
         panel.view_combo.setCurrentIndex(1)
         row = _metric_row(panel.table, 'Vertical velocity')
         panel.table.setCurrentCell(row, 0)
-        QTest.mouseClick(window.control_panel.details_section.button, Qt.LeftButton)
+        window.control_panel.detail_tabs.setCurrentWidget(window.control_panel.details)
         window.control_panel.file_list.setCurrentRow(1)
         _events(app)
-        assert window.control_panel.details.toPlainText().startswith('Vertical velocity')
+        assert window.control_panel.details.toPlainText().startswith(str(paths[1]))
+        assert '\n\nVertical velocity' in window.control_panel.details.toPlainText()
         assert 'Vertical velocity' in window.control_panel.file_list.item(1).toolTip()
         QTest.mouseClick(panel.table.viewport(), Qt.LeftButton,
                          pos=panel.table.visualItemRect(panel.table.item(row, 0)).center())
-        assert window.control_panel.details.toPlainText().startswith('Vertical velocity')
+        assert window.control_panel.details.toPlainText().startswith(str(paths[1]))
+        assert '\n\nVertical velocity' in window.control_panel.details.toPlainText()
         for path in paths:
             window.control_panel.cb_baseline.setCurrentText(path.name)
             _events(app)
@@ -70,7 +72,7 @@ def test_metric_variants_keep_counts_and_expose_reasons_on_baseline_change(tmp_p
         assert 'invalid.proc: invalid' in window.control_panel.details.toPlainText()
         panel.view_combo.setCurrentIndex(3)
         _events(app)
-        assert window.control_panel.details.toPlainText().startswith('Contact\n')
+        assert '\n\nContact\n' in window.control_panel.details.toPlainText()
         panel.view_combo.setCurrentIndex(2)
         _events(app)
         assert window.control_panel.details.toPlainText() == window.control_panel.file_list.currentItem().toolTip()
@@ -99,7 +101,7 @@ def test_distinct_repeat_count_survives_duplicate_baseline_remove_and_reload(tmp
         assert [panel.table.item(row, col).text() for col in (1, 2, 3, 4, 5)] == ['3', '-2', '-3', '-1', '2']
         _load(window, [paths[0]], monkeypatch, app)
         assert len(window.model.datasets) == 4
-        assert window.warning_label.text() == '4 files   3 compatible observations'
+        assert window.warning_label.text() == 'Files: 4 | Comparison observation groups: 3'
         duplicate = window.control_panel.file_list.item(3)
         assert 'equivalent' in duplicate.toolTip()
         row = _metric_row(panel.table, 'Vertical velocity')

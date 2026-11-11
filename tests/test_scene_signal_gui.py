@@ -137,7 +137,7 @@ def test_actual_vertical_and_rotation_selection_edit_save_reopen(window, tmp_pat
     assert w.combo_plot_axis.currentData() == VERTICAL
     assert w.scene_panel.selected_row()['decision'] == 'include'
     assert w.scene_panel.selected_row()['start'] == .1
-    w.scene_panel.details_section.setExpanded(True)
+    w.review_scroll.ensureWidgetVisible(w.scene_panel.type_combo)
     if rotating:
         select(w, ROTATION)
     APP.processEvents(); w.canvas.draw()

@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from PySide6.QtCore import Qt, QPoint
+from PySide6.QtGui import QRegion
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QDialogButtonBox, QFileDialog
 
@@ -53,7 +54,8 @@ def settle(app, dialog):
 
 def reachable(widget, host):
     assert widget.isVisible()
-    assert widget.visibleRegion().contains(widget.rect())
+    assert not widget.rect().isEmpty()
+    assert QRegion(widget.rect()).subtracted(widget.visibleRegion()).isEmpty()
     point = widget.mapTo(host, widget.rect().center())
     child = host.childAt(point)
     assert child is widget or widget.isAncestorOf(child)
@@ -82,21 +84,32 @@ def assert_plot_labels(canvas):
 
 
 @pytest.mark.parametrize('size', [(820, 600), (1280, 740)])
-@pytest.mark.parametrize('count,expanded,unavailable', [
+@pytest.mark.parametrize('count,evidence_open,unavailable', [
     (1, False, False), (24, False, False), (24, True, False),
     (1, True, True), (24, True, True), (0, True, False)])
-def test_graphs_labels_units_and_controls_at_important_states(size, count, expanded, unavailable):
+def test_graphs_labels_units_and_controls_at_important_states(size, count, evidence_open, unavailable):
     app = QApplication.instance() or QApplication([])
     dialog, data = layout_fixture(count, unavailable)
     dialog.resize(*size)
-    dialog.details_section.setExpanded(expanded)
     dialog.show()
     scale = os.environ.get('QT_SCALE_FACTOR', 'target')
     root = Path('tmp/issue136') / f'widget-{scale}'
     root.mkdir(parents=True, exist_ok=True)
-    case = f'{size[0]}x{size[1]}-{count}-details-{expanded}-unavailable-{unavailable}'
+    case = f'{size[0]}x{size[1]}-{count}-evidence-{evidence_open}-unavailable-{unavailable}'
     try:
         settle(app, dialog)
+        if evidence_open:
+            dialog.evidence_button.click()
+            app.processEvents()
+            if count:
+                assert dialog.evidence_dialog.isVisible()
+                assert dialog.evidence_text.isReadOnly()
+                assert all(not decision.approved for decision in dialog.get_decisions())
+                dialog.evidence_dialog.close()
+                app.processEvents()
+            else:
+                assert not dialog.evidence_button.isEnabled()
+                assert dialog.evidence_dialog is None
         assert (dialog.width(), dialog.height()) == size
         assert dialog._tabbed_plots == (size[0] < 1100)
         if not dialog._tabbed_plots:
@@ -123,7 +136,7 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
             assert toolbar.accessibleName() == ('Original trajectories' if index == 0 else 'Axis preview')
             assert toolbar._actions['zoom'].isVisible()
             assert toolbar._actions['save_figure'].isVisible()
-            assert canvas.figure.axes[0].get_title() == toolbar.accessibleName()
+            assert canvas.figure.axes[0].get_title() == ('Recorded XYZ' if index == 0 else 'Axis preview')
             assert_plot_labels(canvas)
             for button in (QDialogButtonBox.Ok, QDialogButtonBox.Cancel):
                 reachable(dialog.button_box.button(button), dialog)
@@ -153,9 +166,9 @@ def test_graphs_labels_units_and_controls_at_important_states(size, count, expan
                 curves = {line.get_label(): line for line in axis.lines}
                 np.testing.assert_allclose(curves['Original'].get_ydata(), (179., np.nan, 177.), equal_nan=True)
                 if unavailable:
-                    assert dialog.preview_status.text() == 'Preview unavailable'
+                    assert dialog.preview_status.text() == 'Preview evidence unavailable'
                     reachable(dialog.preview_status, dialog)
-                    assert dialog.table.item(0, 1).text() == 'No recommendation'
+                    assert dialog.table.item(0, 2).text() == 'None'
                 else:
                     for label in (dialog.no_correction_summary, dialog.preview_summary, dialog.coverage_summary):
                         reachable(label, dialog)

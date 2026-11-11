@@ -5,6 +5,7 @@ import json
 import numpy as np
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QRegion
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QDialogButtonBox, QDialog
 
@@ -17,6 +18,10 @@ from src.analysis.ui.dialog_marker_flip_review import MarkerFlipReviewDialog
 
 
 app = QApplication.instance() or QApplication([])
+
+
+def _fully_visible(widget):
+    return widget.isVisible() and not widget.rect().isEmpty() and QRegion(widget.rect()).subtracted(widget.visibleRegion()).isEmpty()
 
 
 PERMUTATIONS = {
@@ -100,6 +105,22 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         self.assertEqual(decision.recommendation_axis, "X")
         self.assertEqual(decision.permutation, PERMUTATIONS["X"])
 
+    def test_missing_axis_blocks_done_only_while_correction_is_on(self):
+        dialog = MarkerFlipReviewDialog([_candidate('X'), _candidate('Y', event_id='second')])
+        done = dialog.button_box.button(QDialogButtonBox.Ok)
+        assert done.isEnabled()
+        dialog.approval_checkbox(0).setChecked(True)
+        dialog.axis_combo(0).setCurrentIndex(dialog.axis_combo(0).findData(None))
+        assert not done.isEnabled()
+        assert not dialog.approval_checkbox(1).isChecked()
+        dialog.approval_checkbox(0).setChecked(False)
+        assert done.isEnabled()
+        for axis in ('X', 'Y', 'Z'):
+            dialog.axis_combo(0).setCurrentIndex(dialog.axis_combo(0).findData(axis))
+            assert not dialog.approval_checkbox(0).isChecked()
+            assert done.isEnabled()
+        assert all(not decision.approved and decision.axis is None for decision in dialog.get_decisions())
+
     def test_operator_override_keeps_recommendation_and_selected_axis_separate(self):
         dialog = MarkerFlipReviewDialog([_candidate("X")])
         dialog.approval_checkbox(0).setChecked(True)
@@ -159,15 +180,15 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         dialog.show()
         app.processEvents()
 
-        self.assertEqual(dialog.table.columnCount(), 4)
+        self.assertEqual(dialog.table.columnCount(), 5)
         self.assertEqual(dialog.table.horizontalScrollBar().maximum(), 0)
         for row in range(len(candidates)):
-            self.assertFalse(dialog.approval_checkbox(row).visibleRegion().isEmpty())
-            self.assertFalse(dialog.axis_combo(row).visibleRegion().isEmpty())
-        self.assertFalse(dialog.button_box.visibleRegion().isEmpty())
+            self.assertTrue(_fully_visible(dialog.approval_checkbox(row)))
+            self.assertTrue(_fully_visible(dialog.axis_combo(row)))
+        self.assertTrue(_fully_visible(dialog.button_box))
 
         dialog.table.setCurrentCell(2, 0)
-        QTest.mouseClick(dialog.details_section.button, Qt.LeftButton)
+        QTest.mouseClick(dialog.evidence_button, Qt.LeftButton)
         app.processEvents()
         self.assertIn('…', dialog.candidate_details.text())
         self.assertNotIn(long_reason.strip(), dialog.candidate_details.text())
@@ -177,7 +198,8 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
             copied = qt.clipboard.return_value.setText.call_args.args[0]
         self.assertIn(long_trigger.strip(), copied)
         self.assertIn(long_reason.strip(), copied)
-        self.assertTrue(dialog.button_box.visibleRegion().contains(dialog.button_box.rect()))
+        self.assertTrue(_fully_visible(dialog.button_box))
+        dialog.evidence_dialog.close()
 
     def test_face_continuity_recommendation_is_conditional_off_and_override_preserved(self):
         candidate = replace(_candidate('X'), correction_kind='face_assignment',
@@ -195,12 +217,12 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         dialog.resize(820, 600)
         dialog.show()
         app.processEvents()
-        self.assertFalse(dialog.candidate_details.isVisible())
-        self.assertEqual(dialog.table.item(0, 1).text(), 'X')
+        self.assertTrue(dialog.candidate_details.isVisible())
+        self.assertEqual(dialog.table.item(0, 2).text(), 'X')
         self.assertEqual(dialog.no_correction_summary.text(), 'No correction  180°')
         self.assertEqual(dialog.preview_summary.text(), 'X preview  0°')
         self.assertEqual(dialog.coverage_summary.text(), 'Marker coverage  100%')
-        QTest.mouseClick(dialog.details_section.button, Qt.LeftButton)
+        QTest.mouseClick(dialog.evidence_button, Qt.LeftButton)
         self.assertTrue(dialog.candidate_details.isVisible())
         details = dialog.copy_diagnostics_button.toolTip()
         self.assertIn('cause unconfirmed', details)
@@ -208,6 +230,8 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         self.assertNotIn('algorithm=', details)
         self.assertNotIn('validation pending', details)
         self.assertNotIn('match=', details)
+        self.assertIn('cause unconfirmed', dialog.evidence_text.toPlainText())
+        dialog.evidence_dialog.close()
         self.assertFalse(dialog.approval_checkbox(0).isChecked())
         self.assertEqual(dialog.axis_combo(0).currentData(), 'X')
         self.assertFalse(dialog.button_box.visibleRegion().isEmpty())
@@ -243,12 +267,13 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         dialog.resize(820, 600)
         dialog.show()
         app.processEvents()
-        self.assertFalse(dialog.details_section.button.isChecked())
+        self.assertFalse(hasattr(dialog, 'details_section'))
+        self.assertTrue(dialog.evidence_button.isVisible())
         self.assertLess(dialog.table.height(), dialog.evidence_canvas.height())
         dialog.axis_combo(6).setCurrentIndex(dialog.axis_combo(6).findData('Y'))
         app.processEvents()
         self.assertEqual(dialog.table.currentRow(), 6)
-        self.assertTrue(dialog.axis_combo(6).visibleRegion().contains(dialog.axis_combo(6).rect()))
+        self.assertTrue(_fully_visible(dialog.axis_combo(6)))
         self.assertFalse(dialog.approval_checkbox(6).isChecked())
         axis = dialog.evidence_figure.axes[0]
         curves = {line.get_label(): line for line in axis.lines}
@@ -278,9 +303,9 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         dialog.show()
         app.processEvents()
         dialog.axis_combo(0).setCurrentIndex(dialog.axis_combo(0).findData('X'))
-        self.assertEqual(dialog.preview_status.text(), 'Preview unavailable')
+        self.assertEqual(dialog.preview_status.text(), 'Preview evidence unavailable')
         self.assertIn('Insufficient comparison samples', dialog.preview_status.toolTip())
-        self.assertTrue(dialog.preview_status.visibleRegion().contains(dialog.preview_status.rect()))
+        self.assertTrue(_fully_visible(dialog.preview_status))
         self.assertEqual(dialog.no_correction_summary.text(), 'No correction  Unavailable')
         self.assertEqual(dialog.preview_summary.text(), 'X preview  Unavailable')
         details = dialog.copy_diagnostics_button.toolTip()
@@ -304,7 +329,8 @@ class TestMarkerFlipReviewDialog(unittest.TestCase):
         np.testing.assert_array_equal(curves['Predicted X'].get_ydata(), [1., 2.])
         dialog.axis_combo(0).setCurrentIndex(dialog.axis_combo(0).findData('Y'))
         names = dialog.evidence_figure.axes[0].get_legend_handles_labels()[1]
-        self.assertEqual([name for name in names if name.startswith('Predicted')], ['Predicted Y mean'])
+        self.assertEqual([name for name in names if name.startswith('Predicted')], [])
+        self.assertEqual(dialog.preview_status.text(), 'Preview evidence unavailable')
 
 
 if __name__ == "__main__":

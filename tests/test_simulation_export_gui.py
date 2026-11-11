@@ -8,6 +8,7 @@ from pandas.io.formats.csvs import CSVFormatter
 from scipy.spatial.transform import Rotation as R
 from PySide6.QtWidgets import QApplication, QFileDialog, QLineEdit, QMessageBox
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QRegion
 from PySide6.QtTest import QTest
 from src.simulation.ui.main_window import SimulationUI, SimulationThread
 from src.analysis.compare.main_window import CompareMainWindow
@@ -175,21 +176,19 @@ def test_simulation_run_save_reopen_actual_gui(monkeypatch):
             editor.setText(str(path)); dialog.accept()
         QTimer.singleShot(150,accept)
     try:
+        window.resize(1510, 800)
         window.show()
         app.processEvents()
-        for section in (window.physics_section, window.rotation_section):
-            window.form_scroll.ensureWidgetVisible(section.button)
-            app.processEvents()
-            assert section.button.visibleRegion().contains(section.button.rect())
-            QTest.mouseClick(section.button, Qt.LeftButton)
-            app.processEvents()
+        window.settings.tabs.setCurrentWidget(window.settings.physics_page)
+        app.processEvents()
         for widget,value in [(window.w_input,200),(window.d_input,120),(window.h_input,80),
                               (window.mass_input,1),(window.com_x,3),(window.com_y,-4),(window.com_z,2),
                               (window.custom_h_input,100),(window.custom_r_input,20),
                               (window.custom_p_input,35),(window.custom_y_input,-15),(window.duration_input,.5)]:
-            window.form_scroll.ensureWidgetVisible(widget)
+            scroll = window.right_scroll if window.physics_section.isAncestorOf(widget) else window.form_scroll
+            scroll.ensureWidgetVisible(widget)
             app.processEvents()
-            assert widget.visibleRegion().contains(widget.rect())
+            assert QRegion(widget.rect()).subtracted(widget.visibleRegion()).isEmpty()
             widget.setFocus()
             widget.selectAll()
             QTest.keyClicks(widget, str(value))
@@ -253,6 +252,6 @@ def test_simulation_run_save_reopen_actual_gui(monkeypatch):
         (evidence/'result.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     finally:
         watcher.stop()
-        if hasattr(window,'thread'): window.thread.wait(10000)
+        if isinstance(window.thread, SimulationThread): window.thread.wait(10000)
         if compare is not None: compare.close()
         window.close(); app.processEvents()

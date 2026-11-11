@@ -44,13 +44,14 @@ def main():
                         raise InterruptedError()
                     return super().process(frame, **kwargs)
             w.pose_optimizer_factory = UiOptimizer
-        w.marker_review_section.setExpanded(True)
+        w.review_scroll.ensureWidgetVisible(w.confirm_review_dimensions)
         w.confirm_review_dimensions.setChecked(True)
         QTimer.singleShot(300, w.open_marker_flip_review)
     else:
         window, _ = layout_fixture(0 if args.case == 'empty' else 1 if args.case == 'one' else 24,
                                    unavailable=args.case == 'unavailable')
-        window.details_section.setExpanded(args.case in ('details', 'unavailable', 'empty'))
+        if args.case in ('details', 'unavailable'):
+            QTimer.singleShot(300, window.evidence_button.click)
     window.setWindowTitle(f'Marker review #136 — {args.case} — public fixture')
     window.resize(width, height)
     window.show()

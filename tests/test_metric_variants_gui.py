@@ -50,7 +50,7 @@ def test_variant_resolution_in_real_comparison_at_125_percent(monkeypatch):
         panel.view_combo.setCurrentIndex(1)
         row = _metric_row(panel.table, 'Vertical velocity')
         panel.table.setCurrentCell(row, 0)
-        QTest.mouseClick(window.control_panel.details_section.button, Qt.LeftButton)
+        window.control_panel.detail_tabs.setCurrentWidget(window.control_panel.details)
         for path in paths:
             combo = window.control_panel.cb_baseline
             combo.setFocus()

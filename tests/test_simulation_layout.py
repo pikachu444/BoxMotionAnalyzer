@@ -2,11 +2,16 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QRegion
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from src.simulation.scenarios import Scenarios
 from src.simulation.ui.main_window import OrientationPreviewWidget, SimulationUI
+
+
+def _fully_visible(widget):
+    return widget.isVisible() and not widget.rect().isEmpty() and QRegion(widget.rect()).subtracted(widget.visibleRegion()).isEmpty()
 
 
 def test_startup_window_fits_screen_and_robot_target_is_reachable():
@@ -23,20 +28,20 @@ def test_startup_window_fits_screen_and_robot_target_is_reachable():
         window.settings.preview_sequence(); app.processEvents()
         assert window.size() == original_size  # Mode changes respect window size.
         for control in (window.run_btn, window.marker_btn):
-            assert control.visibleRegion().contains(control.rect())
+            assert _fully_visible(control)
         if window._narrow:
             window.form_scroll.ensureWidgetVisible(window.orientation_preview); app.processEvents()
-            assert window.orientation_preview.visibleRegion().contains(window.orientation_preview.rect())
+            assert _fully_visible(window.orientation_preview)
             window._show_settings(); app.processEvents()
             scroll = window.settings_dialog.layout().itemAt(0).widget()
             scroll.ensureWidgetVisible(window.settings.apply_button); app.processEvents()
-            assert window.settings.apply_button.visibleRegion().contains(window.settings.apply_button.rect())
+            assert _fully_visible(window.settings.apply_button)
             window.settings_dialog.reject()
             return
         assert window.settings.table.viewport().height() >= 5 * window.settings.table.rowHeight(0)
         for control in (window.settings.apply_button, window.orientation_preview):
             window.right_scroll.ensureWidgetVisible(control); app.processEvents()
-            assert control.visibleRegion().contains(control.rect())
+            assert _fully_visible(control)
         # When the content fits, no part of the bottom preview needs scrolling.
         if window.right_scroll.widget().minimumSizeHint().height() <= window.right_scroll.viewport().height():
             assert window.right_scroll.verticalScrollBar().maximum() == 0
@@ -103,18 +108,25 @@ def test_small_simulation_form_keeps_run_fixed_and_settings_intact():
         assert not window.noise_cb.isChecked() and window.noise_std_input.value() == 1.
         assert window.viewer_cb.isChecked()
         sections = (window.physics_section, window.rotation_section, window.noise_section)
-        assert all(not section.button.isChecked() for section in sections)
-        for size in ((500, 600), (760, 780)):
+        assert all(not hasattr(section, 'button') for section in sections)
+        for size in ((820, 600), (1100, 720)):
             window.resize(*size)
-            for expanded in (False, True):
-                for section in sections:
-                    if section.button.isChecked() != expanded:
-                        window.form_scroll.ensureWidgetVisible(section.button)
-                        app.processEvents()
-                        assert section.button.visibleRegion().contains(section.button.rect())
-                        QTest.mouseClick(section.button, Qt.LeftButton)
-                        app.processEvents()
-                    assert section.button.isChecked() == expanded
+            app.processEvents()
+            if window._narrow:
+                window._show_settings()
+                app.processEvents()
+                settings_scroll = window.settings_dialog.layout().itemAt(0).widget()
+            else:
+                settings_scroll = window.right_scroll
+            for tab_index, controls in ((1, (window.com_y, window.elasticity_input)),
+                                        (2, (window.noise_cb, window.noise_std_input))):
+                window.settings.tabs.setCurrentIndex(tab_index)
+                QTest.qWait(30)
+                for control in controls:
+                    settings_scroll.ensureWidgetVisible(control)
+                    QTest.qWait(30)
+                    app.processEvents()
+                    assert _fully_visible(control), (size, tab_index, control.rect(), control.visibleRegion(), control.mapTo(settings_scroll.viewport(), control.rect().topLeft()))
                 QTest.qWait(30)
                 assert (window.width(), window.height()) == size
                 scroll = window.form_scroll.verticalScrollBar()
@@ -123,16 +135,19 @@ def test_small_simulation_form_keeps_run_fixed_and_settings_intact():
                     scroll.setValue(value)
                     app.processEvents()
                     for control in (window.run_btn, window.batch_btn, window.experimental_label):
-                        assert control.visibleRegion().contains(control.rect())
+                        assert _fully_visible(control)
                     assert window.run_btn.geometry().top() > window.form_scroll.geometry().bottom()
+            if window.settings_dialog is not None:
+                window.settings_dialog.reject()
+                app.processEvents()
         window.com_y.setValue(-37)
         window.elasticity_input.setValue(.25)
         window.noise_cb.setChecked(True)
         window.noise_std_input.setValue(2.5)
         window.custom_r_input.setValue(23.)
-        for section in sections:
-            section.setExpanded(False)
-            section.setExpanded(True)
+        for tab_index in (0, 1, 2, 0):
+            window.settings.tabs.setCurrentIndex(tab_index)
+            app.processEvents()
         assert (window.com_y.value(), window.elasticity_input.value(), window.noise_std_input.value(), window.custom_r_input.value()) == (-37., .25, 2.5, 23.)
         assert window.noise_cb.isChecked()
         assert window.warning_label.text() == 'Custom'

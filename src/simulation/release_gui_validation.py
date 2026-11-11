@@ -187,8 +187,9 @@ def run(trial_report, output):
         stage('MainApp empty and saved review')
         main = show(MainApp())
         raw = main.original_widget
-        capture('01_empty', 'Actual empty Step 1 at 125%; initial controls.', [raw.load_csv_button, raw.scene_panel.details_section.button])
-        click(raw.scene_panel.details_section.button)
+        capture('01_empty', 'Actual empty Step 1 at 125%; initial controls.', [raw.load_csv_button, raw.scene_panel.open_review_button])
+        raw.review_scroll.ensureWidgetVisible(raw.scene_panel.open_review_button)
+        events()
         choose(review_path)
         click(raw.scene_panel.open_review_button)
         wait_until(lambda: raw.scene_session is not None and not raw.scene_busy)

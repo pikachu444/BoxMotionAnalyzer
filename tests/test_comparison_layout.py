@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from PySide6.QtCore import Qt, QPoint
+from PySide6.QtGui import QRegion
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QComboBox
 
@@ -52,6 +53,11 @@ def _curve(window, name):
     return next(line for line in window.graph_panel.plot_manager.ax.lines if line.get_label() == name)
 
 
+def _fully_visible(widget, rect=None):
+    rect = widget.rect() if rect is None else rect
+    return widget.isVisible() and not rect.isEmpty() and QRegion(rect).subtracted(widget.visibleRegion()).isEmpty()
+
+
 def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
     app, window = comparison
     paths = [write_proc(tmp_path / (f'{index:02}_' + 'long_name_' * 10 + '.proc'), offset=index)
@@ -70,8 +76,8 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
     target.setCurrentIndex(find_result_column_index(target, slope))
     names = list(window.model.datasets)
     assert window.control_panel.cb_view.currentData() == 'individual'
-    assert not window.control_panel.details_section.button.isChecked()
-    assert not window.control_panel.settings_section.button.isChecked()
+    assert window.control_panel.detail_tabs.currentIndex() == 0
+    assert [window.control_panel.detail_tabs.tabText(i) for i in range(2)] == ['File details', 'Playback settings']
     assert window.control_panel.gap_limit.value() == .1
     assert window.control_panel.selected_file == names[0]
     assert list(window.graph_panel.legend_labels) == [names[0]]
@@ -98,9 +104,8 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
     window.control_panel.cb_view.setCurrentIndex(1)
     assert set(window.graph_panel.legend_labels) == set(names)
     assert all(not container.isHidden() for container in window.playback_panel.containers.values())
-    for expanded in (False, True):
-        window.control_panel.details_section.setExpanded(expanded)
-        window.control_panel.settings_section.setExpanded(expanded)
+    for tab_index in (0, 1):
+        window.control_panel.detail_tabs.setCurrentIndex(tab_index)
         for width, height in ((1510, 800), (1100, 720)):
             window.resize(width, height)
             QTest.qWait(30)
@@ -113,11 +118,11 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
                 QTest.qWait(20)
                 table.setFocus()
                 QTest.keyClick(table, Qt.Key_Home, Qt.ControlModifier)
-                assert table.viewport().rect().contains(table.visualItemRect(table.item(0, 0)))
+                assert _fully_visible(table.viewport(), table.visualItemRect(table.item(0, 0)))
                 QTest.keyClick(table, Qt.Key_End, Qt.ControlModifier)
                 table.horizontalScrollBar().setValue(0)
                 assert table.currentRow() == table.rowCount() - 1
-                assert table.viewport().rect().contains(table.visualItemRect(table.item(table.currentRow(), 0)))
+                assert _fully_visible(table.viewport(), table.visualItemRect(table.item(table.currentRow(), 0)))
                 table.scrollToTop()
             # Horizontal comparison scrolling must not hide the sample text
             # underneath the render surface at either end of the file list.
@@ -126,12 +131,12 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
                 label = playback.local_controls[name]['label']
                 playback.scroll.ensureWidgetVisible(playback.containers[name])
                 app.processEvents()
-                assert label.visibleRegion().contains(label.rect())
+                assert _fully_visible(label)
             playback.scroll.horizontalScrollBar().setValue(0)
             for button in (window.control_panel.btn_add_files, window.control_panel.btn_remove_file,
                            window.control_panel.cb_view, window.playback_panel.btn_master_play,
                            window.playback_panel.master_slider, window.graph_panel.cb_plot_target):
-                assert not button.visibleRegion().isEmpty()
+                assert _fully_visible(button)
                 origin = button.mapTo(window, QPoint(0, 0))
                 assert window.rect().contains(origin) and window.rect().contains(origin + button.rect().bottomRight())
             graph = window.graph_panel
@@ -160,7 +165,7 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
                 label = graph.legend_labels[name]
                 graph.legend_scroll.ensureWidgetVisible(label)
                 app.processEvents()
-                assert label.visibleRegion().contains(label.rect())
+                assert _fully_visible(label)
             graph.legend_scroll.horizontalScrollBar().setValue(0)
 
     window.control_panel.cb_baseline.setCurrentIndex(1)
@@ -379,7 +384,7 @@ def test_compare_fit_preserves_y_up_and_labels_are_optional(tmp_path, comparison
     original_position = np.array(camera.position)
     original_focal = np.array(camera.focal_point)
     original_data = window.model.datasets[path.name].copy(deep=True)
-    QTest.mouseClick(window.control_panel.settings_section.button, Qt.LeftButton)
+    window.control_panel.detail_tabs.setCurrentIndex(1)
     app.processEvents()
     check = window.control_panel.labels_check
     assert not check.visibleRegion().isEmpty()

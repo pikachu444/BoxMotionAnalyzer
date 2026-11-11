@@ -118,7 +118,7 @@ def test_actual_review_cancel_save_and_close_at_125_percent(monkeypatch):
         open_source(source)
         for edit, value in zip((w.le_box_l, w.le_box_w, w.le_box_h), DIMS):
             edit.setText(str(value))
-        w.marker_review_section.setExpanded(True)
+        w.review_scroll.ensureWidgetVisible(w.confirm_review_dimensions)
         QTest.qWait(100)
         assert (window.width(), window.height()) == (1510, 800)
         assert window.devicePixelRatioF() == 1.25
