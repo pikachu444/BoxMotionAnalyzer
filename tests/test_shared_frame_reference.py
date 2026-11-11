@@ -53,13 +53,19 @@ def alignment_reason(times, frames, summary, gap):
     try:
         detected = bool(float(detected))
     except (ValueError, TypeError):
-        detected = str(detected).strip().lower() in ("true", "yes", "y")
+        flag = str(detected).strip().lower()
+        if flag not in ("true", "yes", "y", "false", "no", "n"):
+            return "invalid_flag"
+        detected = flag in ("true", "yes", "y")
     if not detected:
         return "t1_not_detected"
-    t1 = first.get("T1MinusTimeSec")
-    if t1 is None or not np.isfinite(float(t1)):
+    try:
+        t1 = float(first.get("T1MinusTimeSec"))
+    except (ValueError, TypeError):
         return "invalid_t1"
-    if map_target(prepare_frame_table(times, frames), float(t1), gap) is None:
+    if not np.isfinite(t1):
+        return "invalid_t1"
+    if map_target(prepare_frame_table(times, frames), t1, gap) is None:
         return "t1_timestamp_gap_too_large"
     return ""
 
@@ -67,7 +73,10 @@ def alignment_reason(times, frames, summary, gap):
 def frame_lookup(times, frames, t1, reason, relative, gap):
     if reason:
         return None
-    relative = float(relative)
+    try:
+        relative = float(relative)
+    except (ValueError, TypeError):
+        return None
     if not np.isfinite(relative):
         return None
     mapping = map_target(prepare_frame_table(times, frames), t1 + relative, gap)
@@ -137,3 +146,41 @@ def test_frame_alignment_uses_first_summary_row(flags, anchors):
     times, frames = [0.0, 0.125], [100, 104]
     summary = pd.DataFrame({"T1Detected": flags, "T1MinusTimeSec": anchors})
     assert alignment_reason(times, frames, summary, 0.05) == ""
+
+
+@pytest.mark.parametrize(("field", "value", "expected"), [
+    pytest.param("relative", "bad", None, id="F1-R1"),
+    pytest.param("relative", None, None, id="F1-R2"),
+    pytest.param("T1MinusTimeSec", "bad", "invalid_t1", id="F1-T1"),
+    pytest.param("T1Detected", "bad", "invalid_flag", id="F1-D1"),
+])
+def test_frame_rejection_counterexamples(field, value, expected):
+    times, frames = [0.0, 0.125], [100, 104]
+    if field == "relative":
+        assert frame_lookup(times, frames, 0.0, "", value, 0.05) is expected
+    else:
+        values = {"T1Detected": [True], "T1MinusTimeSec": [0.0]}
+        values[field] = [value]
+        summary = pd.DataFrame(values)
+        # For these malformed values only: invalid_t1 -> t1_time_invalid;
+        # invalid_flag -> t1_detected_invalid. Missing t1 also uses invalid_t1.
+        assert alignment_reason(times, frames, summary, 0.05) == expected
+
+
+@pytest.mark.parametrize(("flag", "expected"), [
+    (False, "t1_not_detected"), (0, "t1_not_detected"), ("false", "t1_not_detected"),
+    (np.nan, "invalid_flag"), ("nan", ""), ("yes", ""), ("y", ""), (2, ""), (-1, ""),
+])
+def test_frame_legacy_flag_interpretation(flag, expected):
+    summary = pd.DataFrame({"T1Detected": [flag], "T1MinusTimeSec": [0.0]})
+    assert alignment_reason([0.0, 0.125], [100, 104], summary, 0.05) == expected
+
+
+def test_frame_rejection_precedes_table_preparation_and_gap_validation():
+    times, frames = [0.0, 0.125], [np.inf, 104]
+    summary = pd.DataFrame({"T1Detected": ["bad"], "T1MinusTimeSec": ["bad"]})
+    assert alignment_reason(times, frames, summary, 0) == "invalid_flag"
+    summary.loc[0, "T1Detected"] = True
+    assert alignment_reason(times, frames, summary, 0) == "invalid_t1"
+    assert frame_lookup(times, frames, 0.0, "unaligned", "bad", 0) is None
+    assert frame_lookup(times, frames, 0.0, "", None, 0) is None

@@ -1,6 +1,6 @@
 # Shared core consumer contracts
 
-Last Reviewed: 2026-11-09
+Last Reviewed: 2026-11-11
 
 Source: [issue #158](https://github.com/pikachu444/BoxMotionAnalyzer/issues/158).
 
@@ -65,6 +65,7 @@ rejected = difference > limit and difference - limit > roundoff
 
 - summary의 첫 row에서 검출 flag와 t1을 읽는다. 파일 전체가 상수인지 새로 검사하지 않는다. flag 해석 → t1 유한 float → 위 테이블 준비 → t1의 최근접 매핑 유효성 순서다.
 - flag의 기존 해석에는 `yes`/`y`와 수치 truthiness도 포함된다. 문자열 `nan`과 실제 numeric NaN의 기존 처리는 다르다. 부록 C의 legacy 값 검사를 사용하며, 이번 작업에서 더 엄격하거나 관대한 규칙으로 고치지 않는다.
+- F1 공개 reference harness는 변환할 수 없는 상대시간 `"bad"`/`None`을 `None`으로 거부한다. t1 `"bad"`의 `invalid_t1`은 소비자 계약 의미 `t1_time_invalid`에, 검출 flag `"bad"`의 `invalid_flag`는 `t1_detected_invalid`에 대응한다. 이 매핑은 이번 두 변환 불가 반례에 한정한다. reference는 누락 t1도 `invalid_t1`로 표현하므로 전체 상태의 일대일 매핑이 아니다. 정상 false flag의 `t1_not_detected`, numeric NaN의 `invalid_flag`, 문자열 `"nan"`/`"yes"`/`"y"`와 수치 truthiness, 첫 summary row·frame 준비·gap 검사 순서는 유지한다. 검사는 `tests/test_shared_frame_reference.py::test_frame_rejection_counterexamples`의 F1-R1/R2/T1/D1과 legacy·순서 회귀에 둔다. 이는 실제 소비자의 상태 문자열·예외 변경이나 adapter 전후 검증·실험 승인 완료를 뜻하지 않으며 `TIME-KERNEL/1`과 실제 `ROW-1/1`의 malformed 입력 계약을 바꾸지 않는다.
 - t1 정렬은 실제 sample의 최근접 매핑을 요구한다. 기본 허용 오차는 0.05초다. t1 자체가 불허 gap 안에 있으면 정렬이 불가하며 이후 query가 exact endpoint여도 mapping은 불가다.
 - lookup은 유효한 정렬 상태 확인 → relative 유한 float 확인 → 테이블 재준비 → 절대 target 선택 → gap 설정·정책 검사 → 반환 순서다. 기존 정렬 cache와 파일 교체 시 invalidation을 유지한다.
 - 준비한 time이 유한·엄격 증가이면 공통 함수의 위치를 사용한다. 그 외에는 기존 거리 `idxmin()` 경로를 유지한다. fallback의 동률은 남은 테이블의 첫 row이며, 더 이른 timestamp라는 보장은 없다.
