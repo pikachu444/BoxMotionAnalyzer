@@ -30,7 +30,7 @@ class ComparePlaybackPanel(QGroupBox):
         self.current_elapsed = None
         self.clock = QElapsedTimer()
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setContentsMargins(6, 4, 6, 4)
         layout.setSpacing(3)
         controls = QHBoxLayout()
         self.btn_master_play = QPushButton(tr('Play'))
