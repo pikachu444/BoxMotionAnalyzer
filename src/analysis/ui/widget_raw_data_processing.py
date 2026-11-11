@@ -5,7 +5,7 @@ import numpy as np
 from dataclasses import asdict
 from copy import deepcopy
 from pathlib import Path
-from PySide6.QtCore import Signal, Qt, QThread, QTimer, QSize
+from PySide6.QtCore import Signal, Qt, QThread, QTimer, QSize, QEvent
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QLineEdit, QComboBox, QTextEdit, QGroupBox, QGridLayout, QFileDialog,
@@ -16,7 +16,7 @@ from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
 from matplotlib.figure import Figure
 
 from src.analysis.ui.plot_manager import PlotManager
-from src.utils.qt_sections import CollapsibleSection, ElidedPathLabel, set_path_label
+from src.utils.qt_sections import ElidedPathLabel, set_path_label
 from src.analysis.ui.widget_scene_review import SceneReviewWidget
 from src.analysis.ui.scene_review_flow import SceneReviewFlow
 from src.analysis.ui.data_selection_dialog import DataSelectionDialog
@@ -52,6 +52,24 @@ from src.analysis.pipeline.marker_review import (
     REVIEW_VERSION, canonical_key, copy_observations, file_digest, review_observations, analyzer_configuration,
 )
 from src.utils.ui_language import tr
+
+
+class ReviewScrollArea(QScrollArea):
+    def ensureWidgetVisible(self, widget, xmargin=50, ymargin=50):
+        # Qt scrolls to the widget center; include its extent as well.
+        super().ensureWidgetVisible(widget, xmargin + widget.width() // 2,
+                                    ymargin + widget.height() // 2)
+
+    def eventFilter(self, watched, event):
+        if event.type() == QEvent.FocusIn:
+            QTimer.singleShot(0, lambda: self.ensureWidgetVisible(watched))
+        return super().eventFilter(watched, event)
+
+
+class ElidedStatusLabel(ElidedPathLabel):
+    def setText(self, text):
+        super().setText(text)
+        self.setToolTip(text)
 
 
 class MarkerReviewWorker(QThread):
@@ -132,6 +150,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
     log_message = Signal(str)
     slice_saved = Signal(str)
     process_requested = Signal()
+    status_message = Signal(str)
 
     def __init__(self, data_loader, parser):
         super().__init__()
@@ -174,36 +193,24 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
-
-        group_box = QGroupBox(tr("Capture"))
-        group_layout = QVBoxLayout(group_box)
-
-        main_splitter = QSplitter(Qt.Orientation.Vertical)
-        main_splitter.setChildrenCollapsible(False)
-        self.capture_splitter = main_splitter
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(5)
+        self.capture_splitter = QSplitter(Qt.Orientation.Vertical)
+        self.capture_splitter.setChildrenCollapsible(False)
         self._capture_splitter_dragged = False
-        main_splitter.splitterMoved.connect(self._remember_capture_splitter_drag)
+        self.capture_splitter.splitterMoved.connect(self._remember_capture_splitter_drag)
 
-        # 1a. Top Layout: Plot and Right Panel
-        top_splitter = QSplitter(Qt.Orientation.Horizontal)
-        top_splitter.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        # Plot Container
         plot_container = QWidget()
-        plot_layout = QVBoxLayout(plot_container)
+        plot_layout = QHBoxLayout(plot_container)
         plot_layout.setContentsMargins(0, 0, 0, 0)
-        
+        plot_layout.setSpacing(0)
         self.fig = Figure(figsize=(5, 4), dpi=100)
         self.canvas = FigureCanvas(self.fig)
-        self.toolbar = NavigationToolbar(self.canvas, self)
-        self.toolbar.setIconSize(QSize(20, 20))
-        for button in self.toolbar.findChildren(QToolButton):
-            button.setFocusPolicy(Qt.StrongFocus)
-
+        self.canvas.setMinimumHeight(160)
+        self.toolbar = NavigationToolbar(self.canvas, self, vertical=True)
+        self.toolbar.coordinate_message.connect(self.status_message)
+        plot_layout.addWidget(self.canvas, 1)
         plot_layout.addWidget(self.toolbar)
-        plot_layout.addWidget(self.canvas)
-        plot_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
         self.plot_manager = PlotManager(self.canvas, self.fig)
         self.plot_manager.use_constrained_layout = True
         self.plot_manager.ax.xaxis.label.set_fontsize(9)
@@ -211,214 +218,173 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.canvas.mpl_connect('resize_event', self._fit_capture_plot_labels)
         self.plot_manager.ax.text(0.5, 0.5, tr("Load a CSV file to start."), ha='center', va='center')
         self.plot_manager.canvas.draw()
-        top_splitter.addWidget(plot_container)
+        self.capture_splitter.addWidget(plot_container)
 
-        # Right Panel
-        right_panel = QWidget()
-        right_panel_layout = QVBoxLayout()
-        right_panel.setLayout(right_panel_layout)
-        self.load_csv_button = QPushButton(tr("Open capture..."))
-        self.file_path_label = ElidedPathLabel(tr("No file selected."))
-        self.file_path_label.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextSelectableByMouse
-        )
-        
-        right_panel_layout.addWidget(self.load_csv_button)
-        right_panel_layout.addWidget(self.file_path_label)
-
-        # Box Dimensions
-        self.box_dims_group = QGroupBox(tr("Box Dimensions (mm)"))
-        box_dims_layout = QGridLayout(self.box_dims_group)
-        box_dims_layout.addWidget(QLabel("L:"), 0, 0)
-        self.le_box_l = QLineEdit(str(config_app.BOX_DIMS[0]))
-        box_dims_layout.addWidget(self.le_box_l, 0, 1)
-        box_dims_layout.addWidget(QLabel("W:"), 1, 0)
-        self.le_box_w = QLineEdit(str(config_app.BOX_DIMS[1]))
-        box_dims_layout.addWidget(self.le_box_w, 1, 1)
-        box_dims_layout.addWidget(QLabel("H:"), 2, 0)
-        self.le_box_h = QLineEdit(str(config_app.BOX_DIMS[2]))
-        box_dims_layout.addWidget(self.le_box_h, 2, 1)
-        self.box_section = CollapsibleSection(tr('Box dimensions'), self.box_dims_group)
-
-        self.marker_review_group = QGroupBox()
-        marker_review_layout = QVBoxLayout(self.marker_review_group)
-        self.marker_review_summary_label = QLabel(tr("Not reviewed"))
-        self.marker_review_summary_label.setWordWrap(True)
-        marker_review_layout.addWidget(self.marker_review_summary_label)
-        self.marker_review_source_label = QLabel(tr("Source: original"))
-        self.marker_review_source_label.setWordWrap(True)
-        self.marker_review_source_label.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextSelectableByMouse
-        )
-        marker_review_layout.addWidget(self.marker_review_source_label)
-        self.confirm_review_dimensions = QCheckBox(tr('Confirm dimensions for this capture'))
-        marker_review_layout.addWidget(self.confirm_review_dimensions)
-        marker_review_button_row = QHBoxLayout()
-        self.review_marker_flips_button = QPushButton(tr("Review"))
-        self.review_marker_flips_button.setEnabled(False)
-        self.save_corrected_source_button = QPushButton(tr("Save corrected"))
-        self.save_corrected_source_button.setEnabled(False)
-        marker_review_button_row.addWidget(self.review_marker_flips_button)
-        marker_review_button_row.addWidget(self.save_corrected_source_button)
-        marker_review_layout.addLayout(marker_review_button_row)
-        progress_row = QHBoxLayout()
-        self.marker_review_progress = QProgressBar()
-        self.cancel_marker_review_button = QPushButton(tr('Cancel'))
-        progress_row.addWidget(self.marker_review_progress, 1)
-        progress_row.addWidget(self.cancel_marker_review_button)
-        # Keep calculation cancellation outside the scrolling Details panel.
-        right_panel_layout.addLayout(progress_row)
-        self.marker_review_progress.hide()
-        self.cancel_marker_review_button.hide()
-        self.marker_review_section = CollapsibleSection(tr('Marker correction'), self.marker_review_group)
-
-        # Log Output (Local to this widget for immediate feedback, or shared?)
-        # The plan says "Encapsulates...". MainApp has a log output. 
-        # But OriginalAnalysisWidget needs to show logs too?
-        # In the original UI, the log output was in the right panel of Original Analysis.
-        self.log_output = QTextEdit()
-        self.log_output.setReadOnly(True)
-        self.log_output.setPlaceholderText(tr("[INFO] Load a CSV file to start."))
-        self.log_output.setMinimumHeight(100)
-        self.log_section = CollapsibleSection(tr('Log'), self.log_output)
-        details = QWidget()
-        details_layout = QVBoxLayout(details)
-        details_layout.setContentsMargins(0, 0, 0, 0)
-        for section in (self.box_section, self.marker_review_section, self.log_section):
-            details_layout.addWidget(section)
-        details_layout.addStretch()
-        details_scroll = QScrollArea()
-        details_scroll.setWidgetResizable(True)
-        details_scroll.setFrameShape(QScrollArea.NoFrame)
-        details_scroll.setWidget(details)
-        right_panel_layout.addWidget(details_scroll)
-        right_panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
-
-        top_splitter.addWidget(right_panel)
-        top_splitter.setChildrenCollapsible(False)
-        top_splitter.setStretchFactor(0, 1)
-        top_splitter.setStretchFactor(1, 0)
-        top_splitter.setSizes([900, 205])
-        main_splitter.addWidget(top_splitter)
         self.scene_panel = SceneReviewWidget(self)
-        main_splitter.addWidget(self.scene_panel)
+        self.review_scroll = ReviewScrollArea()
+        self.review_scroll.setWidgetResizable(True)
+        self.review_scroll.setFrameShape(QScrollArea.NoFrame)
+        self.review_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        review = QWidget()
+        review_layout = QHBoxLayout(review)
+        review_layout.setContentsMargins(0, 0, 12, 0)
+        review_layout.setSpacing(5)
+        first = QWidget()
+        first.setMinimumWidth(530)
+        first_layout = QGridLayout(first)
+        first_layout.setContentsMargins(0, 0, 0, 0)
+        first_layout.setSpacing(5)
 
-        # 1b. Bottom Controls
-        controls_widget = QWidget()
-        h_controls_layout = QHBoxLayout(controls_widget)
-        controls_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        h_controls_layout.setContentsMargins(5, 2, 5, 2)
-        h_controls_layout.setSpacing(4)
+        input_group = QGroupBox(tr('Input file'))
+        input_layout = QGridLayout(input_group)
+        input_layout.setContentsMargins(7, 7, 7, 7)
+        input_layout.setSpacing(5)
+        self.load_csv_button = QPushButton(tr('Open capture...'))
+        self.file_path_label = ElidedPathLabel(tr('No file selected.'))
+        input_layout.addWidget(self.load_csv_button, 0, 0, 1, 2)
+        input_layout.addWidget(self.file_path_label, 1, 0, 1, 2)
+        for button in (self.scene_panel.open_review_button, self.scene_panel.save_review_button,
+                       self.scene_panel.geometry_button, self.scene_panel.trial_record_button):
+            button.setMinimumWidth(button.sizeHint().width())
+        input_layout.addWidget(self.scene_panel.open_review_button, 2, 0)
+        input_layout.addWidget(self.scene_panel.save_review_button, 2, 1)
+        input_layout.addWidget(self.scene_panel.geometry_button, 3, 0)
+        input_layout.addWidget(self.scene_panel.trial_record_button, 3, 1)
+        input_layout.setRowStretch(4, 1)
+        first_layout.addWidget(input_group, 0, 0)
+        first_layout.addWidget(self.scene_panel.type_group, 0, 1)
 
-        # Plot Options
-        plot_options_group = QGroupBox(tr("Plot Options"))
-        plot_options_layout = QVBoxLayout(plot_options_group)
-        plot_options_layout.setContentsMargins(6, 5, 6, 5)
-        plot_options_layout.setSpacing(3)
-        plot_options_top_row = QHBoxLayout()
-        self.select_data_button = QPushButton(tr("Markers..."))
-        self.selected_data_label = QLabel(tr("Selected: None"))
-        self.selected_data_label.setWordWrap(True)
+        self.box_dims_group = QGroupBox(tr('Box dimensions (mm)'))
+        dims = QGridLayout(self.box_dims_group)
+        dims.setContentsMargins(7, 7, 7, 7)
+        dims.setSpacing(5)
+        self.le_box_l = QLineEdit(str(config_app.BOX_DIMS[0]))
+        self.le_box_w = QLineEdit(str(config_app.BOX_DIMS[1]))
+        self.le_box_h = QLineEdit(str(config_app.BOX_DIMS[2]))
+        for row, (name, edit) in enumerate(zip(('L:', 'W:', 'H:'),
+                                               (self.le_box_l, self.le_box_w, self.le_box_h))):
+            dims.addWidget(QLabel(name), row, 0)
+            dims.addWidget(edit, row, 1)
+        dims.setRowStretch(3, 1)
+        first_layout.addWidget(self.box_dims_group, 1, 0)
 
-        plot_options_top_row.addWidget(self.select_data_button)
-        plot_options_top_row.addWidget(self.selected_data_label)
-        plot_options_layout.addLayout(plot_options_top_row)
-
-        plot_options_bottom_row = QHBoxLayout()
-        plot_options_bottom_row.addWidget(QLabel(tr("Signal:")))
+        self.marker_review_group = QGroupBox(tr('View and marker review'))
+        view = QVBoxLayout(self.marker_review_group)
+        view.setContentsMargins(7, 7, 7, 7)
+        view.setSpacing(5)
+        select_row = QHBoxLayout()
+        self.select_data_button = QPushButton(tr('Markers...'))
         self.combo_plot_axis = QComboBox()
         self.combo_plot_axis.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
-        self.combo_plot_axis.setMinimumContentsLength(12)
-        self.combo_plot_axis.addItem(tr("Position-X"), userData=PoseCols.POS_X)
-        self.combo_plot_axis.addItem(tr("Position-Y"), userData=PoseCols.POS_Y)
-        self.combo_plot_axis.addItem(tr("Position-Z"), userData=PoseCols.POS_Z)
-        plot_options_bottom_row.addWidget(self.combo_plot_axis)
-        plot_options_bottom_row.addStretch()
-        plot_options_layout.addLayout(plot_options_bottom_row)
+        for name, axis in (('Position-X', PoseCols.POS_X), ('Position-Y', PoseCols.POS_Y), ('Position-Z', PoseCols.POS_Z)):
+            self.combo_plot_axis.addItem(tr(name), userData=axis)
+        select_row.addWidget(self.select_data_button)
+        select_row.addWidget(self.combo_plot_axis)
+        view.addLayout(select_row)
+        self.selected_data_label = QLabel(tr('Selected: None'))
+        self.selected_data_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        view.addWidget(self.selected_data_label)
+        state_row = QHBoxLayout()
+        self.marker_review_summary_label = QLabel(tr('Not reviewed'))
+        self.marker_review_source_label = QLabel(tr('Source: original'))
+        for label in (self.marker_review_summary_label, self.marker_review_source_label):
+            label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+            state_row.addWidget(label)
+        view.addLayout(state_row)
+        self.confirm_review_dimensions = QCheckBox(tr('Confirm dimensions for this capture'))
+        view.addWidget(self.confirm_review_dimensions)
+        buttons = QHBoxLayout()
+        self.review_marker_flips_button = QPushButton(tr('Review'))
+        self.review_marker_flips_button.setEnabled(False)
+        self.save_corrected_source_button = QPushButton(tr('Save corrected'))
+        self.save_corrected_source_button.setEnabled(False)
+        buttons.addWidget(self.review_marker_flips_button)
+        buttons.addWidget(self.save_corrected_source_button)
+        view.addLayout(buttons)
+        progress = QHBoxLayout()
+        self.marker_review_progress = QProgressBar()
+        self.cancel_marker_review_button = QPushButton(tr('Cancel'))
+        progress.addWidget(self.marker_review_progress, 1)
+        progress.addWidget(self.cancel_marker_review_button)
+        view.addLayout(progress)
+        self.marker_review_progress.hide()
+        self.cancel_marker_review_button.hide()
+        view.addStretch()
+        first_layout.addWidget(self.marker_review_group, 1, 1)
+        review_layout.addWidget(first)
 
-        h_controls_layout.addWidget(plot_options_group)
+        scenes = QGroupBox(tr('Scenes'))
+        scenes.setMinimumWidth(520)
+        scenes_layout = QVBoxLayout(scenes)
+        scenes_layout.setContentsMargins(7, 7, 7, 7)
+        scenes_layout.addWidget(self.scene_panel)
+        review_layout.addWidget(scenes)
+        log = QGroupBox(tr('Log'))
+        log.setMinimumWidth(180)
+        log_layout = QVBoxLayout(log)
+        log_layout.setContentsMargins(7, 7, 7, 7)
+        self.log_output = QTextEdit()
+        self.log_output.setReadOnly(True)
+        self.log_output.setPlaceholderText(tr('[INFO] Load a CSV file to start.'))
+        log_layout.addWidget(self.log_output)
+        review_layout.addWidget(log)
 
-        # Slice Range
-        self.slice_group = QGroupBox(tr("Range (s)"))
+        current = QGroupBox(tr('Current slice'))
+        current.setMinimumWidth(220)
+        current_layout = QVBoxLayout(current)
+        current_layout.setContentsMargins(7, 7, 7, 7)
+        self.slice_group = QGroupBox(tr('Range (s)'))
         self.slice_group.setCheckable(True)
         self.slice_group.setChecked(False)
-        slice_layout = QVBoxLayout(self.slice_group)
-        slice_layout.setContentsMargins(6, 5, 6, 5)
-        slice_layout.setSpacing(3)
-
-        slice_start_row = QHBoxLayout()
-        slice_start_row.addWidget(QLabel(tr("Start:")))
+        slice_layout = QGridLayout(self.slice_group)
         self.le_slice_start = QLineEdit()
-        slice_start_row.addWidget(self.le_slice_start)
-        slice_layout.addLayout(slice_start_row)
-
-        slice_end_row = QHBoxLayout()
-        slice_end_row.addWidget(QLabel(tr("End:")))
         self.le_slice_end = QLineEdit()
-        slice_end_row.addWidget(self.le_slice_end)
-        slice_layout.addLayout(slice_end_row)
-        h_controls_layout.addWidget(self.slice_group)
-
-        self.slice_output_group = QGroupBox(tr("Scene"))
-        slice_output_layout = QGridLayout(self.slice_output_group)
-        slice_output_layout.setContentsMargins(6, 5, 6, 5)
-        slice_output_layout.setSpacing(3)
-        slice_output_layout.addWidget(QLabel(tr("Name:")), 0, 0)
-        self.le_scene_name = QLineEdit("scene")
-        slice_output_layout.addWidget(self.le_scene_name, 0, 1)
-        slice_output_layout.addWidget(QLabel(tr("Padding:")), 1, 0)
+        slice_layout.addWidget(QLabel(tr('Start:')), 0, 0)
+        slice_layout.addWidget(self.le_slice_start, 0, 1)
+        slice_layout.addWidget(QLabel(tr('End:')), 1, 0)
+        slice_layout.addWidget(self.le_slice_end, 1, 1)
+        current_layout.addWidget(self.slice_group)
+        self.slice_output_group = QGroupBox(tr('Scene'))
+        output = QGridLayout(self.slice_output_group)
+        self.le_scene_name = QLineEdit('scene')
         self.slice_padding_label = QLabel(tr('{} rows per side').format(DEFAULT_SLICE_PADDING_ROWS))
-        self.slice_padding_label.setWordWrap(True)
-        slice_output_layout.addWidget(self.slice_padding_label, 1, 1)
-        slice_output_layout.addWidget(QLabel(tr("Saved:")), 2, 0)
-        self.slice_path_label = QLabel(tr("Not saved yet."))
-        self.slice_path_label.setWordWrap(True)
-        slice_output_layout.addWidget(self.slice_path_label, 2, 1)
-        h_controls_layout.addWidget(self.slice_output_group)
+        self.slice_path_label = ElidedPathLabel(tr('Not saved yet.'))
+        output.addWidget(QLabel(tr('Name:')), 0, 0)
+        output.addWidget(self.le_scene_name, 0, 1)
+        output.addWidget(QLabel(tr('Padding:')), 1, 0)
+        output.addWidget(self.slice_padding_label, 1, 1)
+        output.addWidget(QLabel(tr('Saved:')), 2, 0)
+        output.addWidget(self.slice_path_label, 2, 1)
+        current_layout.addWidget(self.slice_output_group)
+        current_layout.addStretch()
+        review_layout.addWidget(current)
+        self.review_scroll.setWidget(review)
+        for child in review.findChildren(QWidget):
+            if child.focusPolicy() & Qt.TabFocus:
+                child.installEventFilter(self.review_scroll)
+        self.capture_splitter.addWidget(self.review_scroll)
+        self.capture_splitter.setStretchFactor(0, 1)
+        self.capture_splitter.setStretchFactor(1, 0)
+        layout.addWidget(self.capture_splitter, 1)
 
-        # Paths remain selectable content, without imposing a panel/window width.
-        for label in (self.file_path_label, self.slice_path_label):
-            label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
-            label.setTextInteractionFlags(
-                Qt.TextInteractionFlag.TextSelectableByMouse
-                | Qt.TextInteractionFlag.TextSelectableByKeyboard
-            )
-
-        # Run/Export Buttons
-        run_button_layout = QVBoxLayout()
-        run_button_layout.setSpacing(3)
-        self.save_slice_button = QPushButton(tr("Save slice..."))
+        save = QHBoxLayout()
+        self.save_status_label = ElidedStatusLabel('')
+        self.save_status_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        save.addWidget(self.save_status_label, 1)
+        save.addStretch(1)
+        self.save_slice_button = QPushButton(tr('Save slice...'))
         self.save_slice_button.setEnabled(False)
-        run_button_layout.addWidget(self.save_slice_button)
-        run_button_layout.addWidget(self.scene_panel.save_all_button)
+        save.addWidget(self.save_slice_button)
+        save.addWidget(self.scene_panel.save_all_button)
         self.save_process_button = QPushButton(tr('Save and Process'))
         self.save_process_button.setEnabled(False)
-        run_button_layout.addWidget(self.save_process_button)
-        self.save_status_label = QLabel('')
-        self.save_status_label.setWordWrap(True)
-        run_button_layout.addWidget(self.save_status_label)
-        h_controls_layout.addLayout(run_button_layout)
-
-        stretch_values = config_analysis_ui.RAW_DATA_PROCESSING_LAYOUT["bottom_controls_stretch"]
-        # Reuse the existing layout tuning while Step 1 now only keeps slice-related controls.
-        h_controls_layout.setStretch(0, stretch_values[0])
-        h_controls_layout.setStretch(1, stretch_values[1])
-        h_controls_layout.setStretch(2, stretch_values[2])
-        h_controls_layout.setStretch(3, stretch_values[4])
-
-        main_splitter.addWidget(controls_widget)
-        main_splitter.setStretchFactor(0, 1)
-        main_splitter.setStretchFactor(1, 0)
-        main_splitter.setStretchFactor(2, 0)
-        main_splitter.setSizes([440, self.scene_panel.minimumSizeHint().height(),
-                               controls_widget.minimumSizeHint().height()])
-
-        group_layout.addWidget(main_splitter)
-        layout.addWidget(group_box)
+        save.addWidget(self.save_process_button)
+        for button in (self.save_slice_button, self.scene_panel.save_all_button, self.save_process_button):
+            button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        layout.addLayout(save)
         self._capture_fit_timer = QTimer(self)
         self._capture_fit_timer.setSingleShot(True)
         self._capture_fit_timer.timeout.connect(self._fit_capture_sections)
-        self.scene_panel.details_section.button.toggled.connect(lambda _: self._capture_fit_timer.start())
         self._capture_fit_timer.start()
 
     def resizeEvent(self, event):
@@ -433,10 +399,10 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         if self._capture_splitter_dragged:
             return
         splitter = self.capture_splitter
-        scene_height = self.scene_panel.minimumSizeHint().height()
-        controls_height = splitter.widget(2).minimumSizeHint().height()
-        plot_height = max(1, sum(splitter.sizes()) - scene_height - controls_height)
-        splitter.setSizes([plot_height, scene_height, controls_height])
+        review_height = self.review_scroll.widget().minimumSizeHint().height()
+        if self.review_scroll.horizontalScrollBar().maximum():
+            review_height += self.review_scroll.horizontalScrollBar().sizeHint().height()
+        splitter.setSizes([max(120, sum(splitter.sizes()) - review_height), review_height])
 
     def _connect_signals(self):
         self.load_csv_button.clicked.connect(self.open_csv_file)
@@ -510,7 +476,6 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         if self._review_invalidated:
             self.marker_review_summary_label.setText(tr('Source or geometry changed; review again'))
         elif self.marker_review_dirty:
-            self.marker_review_section.setExpanded(True)
             self.marker_review_summary_label.setText(
                 tr('{} reviewed, {} approved; unsaved').format(reviewed_count, approved_count)
             )
@@ -535,8 +500,8 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             source_text = "Source: corrected"
         else:
             source_text = "Source: original"
-        self.marker_review_source_label.setText(source_text)
-        self.marker_review_source_label.setToolTip(self.source_path or source_text)
+        self.marker_review_source_label.setText(tr(source_text))
+        self.marker_review_source_label.setToolTip(self.source_path or tr(source_text))
         self.save_corrected_source_button.setEnabled(
             self.raw_data is not None
             and self.header_info is not None
@@ -788,7 +753,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self.cancel_marker_review_button.setVisible(busy)
         self.cancel_marker_review_button.setEnabled(busy)
         if busy:
-            self.marker_review_section.setExpanded(True)
+            QTimer.singleShot(0, lambda: self.review_scroll.ensureWidgetVisible(self.cancel_marker_review_button))
             self.marker_review_summary_label.setText(tr('Preparing review'))
             self.save_slice_button.setEnabled(False)
             self.save_corrected_source_button.setEnabled(False)

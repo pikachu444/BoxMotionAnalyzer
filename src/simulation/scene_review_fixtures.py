@@ -71,7 +71,7 @@ def install_ui_fixture(widget, source, state='many'):
     if state == 'details':
         widget.scene_panel.type_combo.setCurrentText('G')
         widget.scene_panel.edition_combo.setCurrentText('2018-03')
-        widget.scene_panel.details_section.setExpanded(True)
+        widget.review_scroll.ensureWidgetVisible(widget.scene_panel.type_combo)
     widget._update_scene_gates()
     if state == 'loading':
         widget.scene_busy = True
