@@ -3360,8 +3360,8 @@
     "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
     "c985a000771263119e3cdb883b537a8a28454564"
   ],
-  "final_application_revision": null,
-  "final_application_revision_note": "The release/adoption revision is tracked by the main report. This package binds each captured module snapshot without relabeling older captures as the final application revision.",
+  "final_application_revision": "66efaf6bc54b9a2195fa619efa4891cd9c968f9f",
+  "final_application_revision_note": "Final public production source. Captures retain their exact original source snapshots through4f60836; later recorded-time/gap-tooltip display corrections ae62f45/66efaf6 passed deterministic regressions and the112-case integrated run. No second external run after the user stopped capture.",
   "curation_checks": {
     "PNG_byte_identical_to_selected_source": true,
     "source_module_digests_bound_to_committed_snapshots_with_explicit_line_ending_policy": true,
