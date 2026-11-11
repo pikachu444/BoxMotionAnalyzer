@@ -19,7 +19,6 @@ from src.simulation.engine.robot_sequence import RobotSequenceEngine, SequenceFa
 from src.simulation.robot_partial import retain_partial
 from src.simulation.scenarios import Scenarios
 from src.simulation.data_exporter import DataExporter
-from src.utils.qt_sections import CollapsibleSection
 from src.simulation.mode_profiles import ModeProfiles, require_executable, BLOCKED_REASON, drop_step
 from .mode_settings import ModeSettings, preset_steps
 from src.utils.app_identity import configure_qt_application
@@ -331,6 +330,8 @@ class SimulationUI(QWidget):
         self.analysis_windows = []
 
         self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(6, 6, 6, 6)
+        self.layout.setSpacing(5)
         self.experimental_label = QLabel(tr("Experimental"))
         self.experimental_label.setStyleSheet("color: #916000;")
         self.experimental_label.setToolTip(tr("Uncalibrated free-fall presets; supported Type H rotation and the Type G hazard block are not simulated."))
@@ -341,14 +342,14 @@ class SimulationUI(QWidget):
         self.form_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         form_widget = QWidget()
         self.form_layout = QVBoxLayout(form_widget)
-        self.form_layout.setContentsMargins(4, 4, 4, 4)
+        self.form_layout.setContentsMargins(0, 0, 0, 0)
+        self.form_layout.setSpacing(5)
         self.form_scroll.setWidget(form_widget)
         self.layout.addWidget(self.form_scroll, 1)
 
         self._init_box_group()
         self._init_scenario_group()
         self._init_export_group()
-        self.form_layout.addWidget(self.physics_section)
         self._init_noise_group()
         self.form_layout.addStretch()
 
@@ -397,11 +398,16 @@ class SimulationUI(QWidget):
         left.addStretch()
         self.left_panel.setMaximumWidth(430); self.workspace.addWidget(self.left_panel, 1)
         self.settings = ModeSettings(self)
+        self.settings.physics_page.layout().insertWidget(0, self.physics_section)
+        self.settings.observation_page.layout().insertWidget(0, self.noise_section)
+        self.settings.fit_tab()
         self.right_scroll = QScrollArea(); self.right_scroll.setWidgetResizable(True)
-        right_widget = QWidget(); right = QVBoxLayout(right_widget); right.setContentsMargins(4, 4, 4, 4);right.setSpacing(3)
+        self.right_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        right_widget = QWidget(); right = QVBoxLayout(right_widget); right.setContentsMargins(0, 0, 0, 0);right.setSpacing(5)
+        right_widget.setMinimumWidth(1)
         right.addWidget(self.settings)
         preview = QGroupBox(tr('Preset target')); preview_layout = QVBoxLayout(preview); preview_layout.addWidget(self.orientation_preview)
-        preview_layout.setContentsMargins(8,8,8,8)
+        preview_layout.setContentsMargins(7,7,7,7)
         self.orientation_preview.setMinimumHeight(160)
         preview.setMinimumHeight(200); right.addWidget(preview, 1)
         self.right_scroll.setWidget(right_widget); self.workspace.addWidget(self.right_scroll, 2)
@@ -413,8 +419,6 @@ class SimulationUI(QWidget):
         self.settings.applied.connect(self._apply_profiles)
         self.settings.selected.connect(self._select_settings_step)
         self.settings.cancel_button.clicked.connect(lambda: self.settings_dialog.reject() if self.settings_dialog else None)
-        for section in (self.rotation_section, self.physics_section, self.noise_section):
-            section.button.toggled.connect(lambda *_: QTimer.singleShot(0, self._fit_form))
         self._fit_form()
 
     def _fit_form(self):
@@ -647,6 +651,9 @@ class SimulationUI(QWidget):
     def _init_box_group(self):
         group = QGroupBox(tr("Box"))
         form = QFormLayout(group)
+        form.setContentsMargins(7, 7, 7, 7)
+        form.setSpacing(5)
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
 
         self.w_input = QDoubleSpinBox()
         self.w_input.setRange(10, 5000)
@@ -699,19 +706,24 @@ class SimulationUI(QWidget):
         form.addRow(tr("Mass (kg):"), self.mass_input)
         self.form_layout.addWidget(group)
 
-        physics = QWidget()
+        physics = QGroupBox(tr('Current run'))
         physics_form = QFormLayout(physics)
-        physics_form.setContentsMargins(8, 0, 0, 0)
+        physics_form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        physics_form.setContentsMargins(7, 7, 7, 7)
+        physics_form.setSpacing(5)
         physics_form.addRow(tr("Friction:"), self.friction_input)
         physics_form.addRow(tr("Contact damping:"), self.elasticity_input)
         for axis, control in (("X", self.com_x), ("Y", self.com_y), ("Z", self.com_z)):
             control.setToolTip(f"Local {axis} offset from the geometric box centre in mm. " + control.toolTip())
             physics_form.addRow(tr('COM {} (mm):').format(axis), control)
-        self.physics_section = CollapsibleSection(tr("Physics"), physics)
+        self.physics_section = physics
 
     def _init_scenario_group(self):
         group = QGroupBox(tr("Scenario"))
         form = QFormLayout(group)
+        form.setContentsMargins(7, 7, 7, 7)
+        form.setSpacing(5)
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
 
         self.cat_combo = QComboBox()
         for category in Scenarios.get_categories():
@@ -770,13 +782,15 @@ class SimulationUI(QWidget):
         form.addRow(tr("Preset:"), self.drop_combo)
         form.addRow(tr("Initial clearance (mm):"), self.custom_h_input)
         form.addRow(self.orientation_preview)
-        rotation = QWidget()
+        rotation = QGroupBox(tr('Rotation'))
         rotation_form = QFormLayout(rotation)
-        rotation_form.setContentsMargins(8, 0, 0, 0)
+        rotation_form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        rotation_form.setContentsMargins(7, 7, 7, 7)
+        rotation_form.setSpacing(5)
         for axis, control in (("X", self.custom_r_input), ("Y", self.custom_p_input), ("Z", self.custom_y_input)):
             control.setToolTip(tr("Box orientation: rotate about the scene X, then Y, then Z axes. Z points up. Values are angles in degrees."))
             rotation_form.addRow(tr('{} rotation (°):').format(axis), control)
-        self.rotation_section = CollapsibleSection(tr("Rotation"), rotation)
+        self.rotation_section = rotation
         form.addRow(self.rotation_section)
         form.addRow(self.warning_label)
 
@@ -869,8 +883,10 @@ class SimulationUI(QWidget):
         self.orientation_preview.set_preview_state(box_size, euler, spec, self.cat_combo.currentData())
 
     def _init_noise_group(self):
-        group = QWidget()
+        group = QGroupBox(tr('Current run'))
         layout = QVBoxLayout(group)
+        layout.setContentsMargins(7, 7, 7, 7)
+        layout.setSpacing(5)
 
         self.noise_cb = QCheckBox(tr("Corner noise"))
         self.noise_cb.setToolTip(tr("Seed 0 for repeatable stress data, not calibrated sensor noise. Body pose remains simulation truth."))
@@ -881,12 +897,14 @@ class SimulationUI(QWidget):
 
         layout.addWidget(self.noise_cb)
         layout.addWidget(self.noise_std_input)
-        self.noise_section = CollapsibleSection(tr("Noise"), group)
-        self.form_layout.addWidget(self.noise_section)
+        self.noise_section = group
 
     def _init_export_group(self):
         group = QGroupBox(tr("Run options"))
         form = QFormLayout(group)
+        form.setContentsMargins(7, 7, 7, 7)
+        form.setSpacing(5)
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
 
         self.duration_input = QDoubleSpinBox()
         self.duration_input.setRange(0.5, 60.0)

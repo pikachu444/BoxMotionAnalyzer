@@ -9,7 +9,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QTabWidget, QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox,
     QCheckBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
-    QFileDialog, QDialog, QSizePolicy, QGroupBox)
+    QFileDialog, QDialog, QSizePolicy, QGroupBox, QGridLayout)
 from src.simulation.mode_profiles import (ModeProfiles, drop_step, validate_config,
     read_profiles, save_profiles, BLOCKED_REASON, require_executable)
 from src.simulation.robot_profiles import example_plan
@@ -41,9 +41,11 @@ class ModeSettings(QWidget):
         self._active_rows = {}
         self._examples = {key: load_profile(example=key) for key in ('18', '32')}
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
+        self.setMinimumWidth(1)
         layout = QVBoxLayout(self); layout.setContentsMargins(0, 0, 0, 0);layout.setSpacing(3)
         self.mode_label = QLabel(); layout.addWidget(self.mode_label)
         self.tabs = QTabWidget(); layout.addWidget(self.tabs)
+        self.tabs.setMinimumWidth(1)
         sequence = QWidget(); seq = QVBoxLayout(sequence);seq.setSpacing(3)
         names = QFormLayout();names.setVerticalSpacing(3)
         self.sequence_name = QLineEdit(); names.addRow(tr('Sequence profile'), self.sequence_name)
@@ -94,14 +96,24 @@ class ModeSettings(QWidget):
         for label,value in zip(self.preview_labels,[row,self.sequence_preview,self.preview_face,self.preview_time]):self.preview_form.addRow(label,value)
         self.preview_box.hide();seq.addWidget(self.preview_box)
         self.tabs.addTab(sequence, tr('Sequence'))
-        physics = QWidget(); form = QFormLayout(physics)
+        self.physics_page = QWidget(); physics_layout = QVBoxLayout(self.physics_page)
+        physics_layout.setContentsMargins(7, 7, 7, 7); physics_layout.setSpacing(5)
+        physics = QGroupBox(tr('Draft profile')); form = QFormLayout(physics)
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        form.setContentsMargins(7, 7, 7, 7); form.setSpacing(5)
+        physics_layout.addWidget(physics)
         self.physics_name = QLineEdit(); form.addRow(tr('Physics profile'), self.physics_name)
         self.physics_controls = []
         for label, low, high in [('Mass (kg)', .1, 10000), ('Friction', 0, 5), ('Contact damping', 0, 1),
                 ('COM X (mm)', -2500, 2500), ('COM Y (mm)', -2500, 2500), ('COM Z (mm)', -2500, 2500)]:
             control = self.spin(low, high); form.addRow(tr(label), control); self.physics_controls.append(control)
-        self.tabs.addTab(physics, tr('Physics'))
-        observation = QWidget(); form = QFormLayout(observation)
+        self.tabs.addTab(self.physics_page, tr('Physics'))
+        self.observation_page = QWidget(); observation_layout = QVBoxLayout(self.observation_page)
+        observation_layout.setContentsMargins(7, 7, 7, 7); observation_layout.setSpacing(5)
+        observation = QGroupBox(tr('Draft profile')); form = QFormLayout(observation)
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        form.setContentsMargins(7, 7, 7, 7); form.setSpacing(5)
+        observation_layout.addWidget(observation)
         self.observation_name = QLineEdit(); form.addRow(tr('Observation profile'), self.observation_name)
         self.corner_enabled = QCheckBox(tr('Gaussian')); form.addRow(tr('Direct corner noise'), self.corner_enabled)
         row = QHBoxLayout(); self.corner_std = self.spin(.01, 100); self.corner_seed = QSpinBox(); self.corner_seed.setRange(0, 2147483647)
@@ -123,14 +135,14 @@ class ModeSettings(QWidget):
         row = QHBoxLayout(); self.axis = QComboBox(); self.axis.addItems(['X', 'Y', 'Z']); self.marker_std = self.spin(.001, 100, 3)
         row.addWidget(QLabel(tr('Local axis'))); row.addWidget(self.axis); row.addWidget(QLabel(tr('Std (mm)'))); row.addWidget(self.marker_std); form.addRow(tr('Marker fault'), row)
         self.marker_seed = QSpinBox(); self.marker_seed.setRange(0, 2147483647); form.addRow(tr('Marker seed'), self.marker_seed)
-        self.tabs.addTab(observation, tr('Markers and noise'))
+        self.tabs.addTab(self.observation_page, tr('Markers and noise'))
         self.status = QLabel(tr('Current preset plan; ISTA procedure validation is pending.')); self.status.setWordWrap(True); self.status.setTextFormat(Qt.PlainText); layout.addWidget(self.status)
-        actions = QHBoxLayout()
-        self.open_button = QPushButton(tr('Open settings…')); self.open_button.clicked.connect(self.open_settings); actions.addWidget(self.open_button)
-        self.save_button = QPushButton(tr('Save settings…')); self.save_button.clicked.connect(self.save_settings); actions.addWidget(self.save_button)
-        actions.addStretch()
-        self.apply_button = QPushButton(tr('Use in Simulation')); self.apply_button.clicked.connect(self.apply_settings); actions.addWidget(self.apply_button)
-        self.cancel_button = QPushButton(tr('Cancel')); self.cancel_button.clicked.connect(self.cancel_settings); actions.addWidget(self.cancel_button)
+        actions = QGridLayout()
+        actions.setSpacing(5)
+        self.open_button = QPushButton(tr('Open settings…')); self.open_button.clicked.connect(self.open_settings); actions.addWidget(self.open_button, 0, 0)
+        self.save_button = QPushButton(tr('Save settings…')); self.save_button.clicked.connect(self.save_settings); actions.addWidget(self.save_button, 0, 1)
+        self.apply_button = QPushButton(tr('Use in Simulation')); self.apply_button.clicked.connect(self.apply_settings); actions.addWidget(self.apply_button, 1, 0)
+        self.cancel_button = QPushButton(tr('Cancel')); self.cancel_button.clicked.connect(self.cancel_settings); actions.addWidget(self.cancel_button, 1, 1)
         layout.addLayout(actions)
         self.table.itemSelectionChanged.connect(self.select_row)
         self.table.cellChanged.connect(lambda row, column: self.select_row() if column in (1, 2, 3, 4) else None)
@@ -181,7 +193,7 @@ class ModeSettings(QWidget):
         self.run_scope.setItemData(2,', '.join(plan['selected_step_ids']) if plan else '',Qt.ToolTipRole)
         self.run_scope.setCurrentIndex(scope)
         self.preview_box.hide();self._preview_signature=None;self._preview_plan=None;self._preview_duration=config['duration_s']
-        self.mode_label.setText(tr('Robot sequence') if robot else tr('Single drop'))
+        self.mode_label.setText(tr('Draft profile') + ': ' + (tr('Robot sequence') if robot else tr('Single drop')))
         self.sequence_name.setText(sequence['profile_id']); self.robot_model.setEnabled(robot)
         for button in self.order_buttons: button.setEnabled(robot)
         selected = sequence['steps'][0]

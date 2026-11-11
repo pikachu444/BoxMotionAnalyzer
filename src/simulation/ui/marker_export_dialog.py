@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 from PySide6.QtCore import QThread, Signal, Qt
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QWidget, QLabel, QComboBox, QPushButton, QCheckBox, QSpinBox, QDoubleSpinBox,
-    QLineEdit, QProgressBar, QFileDialog, QMessageBox, QSizePolicy)
+    QLineEdit, QProgressBar, QFileDialog, QMessageBox, QSizePolicy, QGroupBox)
 
 from src.simulation.marker_fixtures import load_profile, draw_profile
 from src.simulation.marker_export import generate_marker_capture
@@ -20,7 +20,6 @@ from src.simulation.profile_document import read_document
 from src.utils.marker_profile_identity import profile_identity, validate_identity, compatibility, artifact_identity, layout_support
 from src.utils.artifact_metadata import metadata_from_source_rows
 from .marker_profile_dialog import MarkerProfileDialog
-from src.utils.qt_sections import CollapsibleSection
 from src.utils.ui_language import tr
 
 
@@ -85,6 +84,8 @@ class MarkerExportDialog(QDialog):
         self.resize(1000, 700)
         self.setMinimumSize(820, 600)
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(5)
         self.controls = QWidget()
         form = QVBoxLayout(self.controls)
         form.setContentsMargins(0, 0, 0, 0)
@@ -108,9 +109,10 @@ class MarkerExportDialog(QDialog):
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.axes = self.figure.add_subplot(111, projection='3d')
         form.addWidget(self.canvas, 1)
-        fault_widget = QWidget()
+        fault_widget = QGroupBox(tr('Faults'))
         fields = QFormLayout(fault_widget)
-        fields.setContentsMargins(8, 0, 0, 0)
+        fields.setContentsMargins(7, 7, 7, 7)
+        fields.setSpacing(5)
         self.kind = QComboBox()
         for label, key in [('None', None), ('Missing samples', 'missing'),
                            ('Local 180° half-turn', 'flip_180_local_axis'), ('Gaussian noise', 'gaussian_noise')]:
@@ -140,7 +142,7 @@ class MarkerExportDialog(QDialog):
         options.addWidget(QLabel(tr('Std'))); options.addWidget(self.std)
         options.addWidget(QLabel(tr('Seed'))); options.addWidget(self.seed)
         fields.addRow(options)
-        self.fault_section = CollapsibleSection(tr('Faults'), fault_widget)
+        self.fault_section = fault_widget
         form.addWidget(self.fault_section)
         names = QHBoxLayout()
         names.addWidget(QLabel(tr('Output folder name')))
@@ -207,6 +209,9 @@ class MarkerExportDialog(QDialog):
         self.dimensions.setChecked(dims == self.original_size)
         self.axes.clear()
         draw_profile(self.profile, self.axes)
+        self.axes.set_box_aspect(self.profile['box_dims_mm'], zoom=.8)
+        for axis in (self.axes.xaxis, self.axes.yaxis, self.axes.zaxis):
+            axis.label.set_fontsize(9)
         self.axes.legend(loc='upper left', bbox_to_anchor=(-.55, 1.))
         self.axes.set_title(tr('Box-local marker layout'))
         self.canvas.draw_idle()
