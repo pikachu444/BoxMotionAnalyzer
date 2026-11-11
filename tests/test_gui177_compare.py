@@ -308,4 +308,11 @@ def test_individual_playback_gap_does_not_claim_a_recorded_timestamp(tmp_path, c
     assert panel.widgets[path.name].isHidden()
     assert panel.master_slider.value() == 0
     assert panel.time_label.text() == 'Unavailable here'
+    assert panel.time_label.toolTip() == 'Unavailable here'
     assert panel.master_timer.isActive()
+    panel.clock = SimpleNamespace(restart=lambda: None, elapsed=lambda: 300)
+    panel._on_master_timer()
+    assert panel.time_label.text() == '1.300 s'
+    assert panel.time_label.toolTip() == 'Recorded time'
+    assert panel.master_slider.value() == 2
+    assert not panel.master_timer.isActive()

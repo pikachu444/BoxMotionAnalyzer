@@ -180,6 +180,7 @@ class ComparePlaybackPanel(QGroupBox):
                    else ResultTimeline(times, 0., '').nearest_row(elapsed, self.model.max_gap_sec))
             self._show_row(name, row, remember=True)
             self.time_label.setText(f'{times[row]:.3f} s' if row is not None else tr('Unavailable here'))
+            self.time_label.setToolTip(tr('Recorded time') if row is not None else tr('Unavailable here'))
             if row is not None:
                 self.master_slider.blockSignals(True)
                 self.master_slider.setValue(row)
