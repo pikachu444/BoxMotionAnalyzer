@@ -1,6 +1,10 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-11-09
+Last Reviewed: 2026-11-11
+
+#177의 공개판 GUI 작업은 기존 위젯과 처리 경로를 유지하며 고정 그룹·탭·실행줄로 재배치한다. 현재 구현과 검증 범위, 같은 revision의 소비자 도입 경계는 [공개 GUI 기록](../../visualization/gui_public_177.md)에 구분해 기록한다. 아래의 #78/#106/#136/#137 캡처·실행 결과는 해당 당시 revision의 이력이며 #177의 새 화면 검증으로 재사용하지 않는다.
+
+사용자가 확정한 이번 범위는 공개 저장소만이다. 소비자 저장소의 연결·도입은 후속 로드맵이며 이번 공개판 구현·검수·PR의 선행 조건이 아니다.
 
 PUB12 current delivery audit: [PUB01–12 status and original evidence](../reference/pub_delivery_status.md). PUB02–11 software is merged; native/input/human and numerical/measured acceptance remain separate. #113 registration is excluded; #152 is independent.
 
@@ -54,9 +58,9 @@ The approved wide composition keeps Mode/Settings over the left input panel. The
 #136의 플립 검토창은 폭 1100 logical px 미만에서 원본/축 미리보기 탭을,
 넓은 창에서는 두 그래프를 나란히 표시한다. 그래프와 pan/zoom 범위·사건별
 선택·명시적 Apply를 보존하며, 파일명은 가운데 생략하고 전체 경로를 유지한다.
-계산 진행률·Cancel은 Step 1의 스크롤 상세 영역 밖에 둔다.
-820×600·125% widget/render·QTest 검사와 native Windows 확인 대기는
+당시 820×600·125% widget/render·QTest 검사와 native Windows 확인 대기는
 [반응형 layout과 실행 기록](../../visualization/marker_review_responsive_layout.md)에 구분한다.
+#177에서는 Step 1 marker review 고정 그룹에 계산 진행률·Cancel을 두며 현재 레이아웃 검증은 별도 기록한다.
 
 ## 개요
 #135 CLI 회귀 실행기는 기존 단계 API와 Step2 scenario serializer를 공유한다. GUI 조작과 export 형식은 유지한다. 공개 합성 full fresh 처리와 GUI 재열기는 별도 증거이며 [실행 계약과 대기 범위](../reference/capture_regression.md)에 기록한다.
@@ -83,40 +87,36 @@ Simulation의 `Marker CSV…`에서 공개 예제/JSON 배치를 미리 보고 �
   - `.slice` 로드, processing mode / Result Resampling 설정, processing 실행, `.proc` 저장
 - `Step 2: Results`
   - `.proc` 로드, 컬럼 선택 플롯, 팝업 플롯, 지점 분석, 시나리오 CSV 내보내기
-- 하단 `QStatusBar`는 파일 로드, 처리 진행, 저장 성공/실패 상태를 표시한다.
+- 하단 `QStatusBar`는 현재 탭의 파일 로드, 처리 진행, 저장 성공/실패와 포인터 좌표를 표시한다. `MainApp`은 페이지별 마지막 상태를 보관하며 숨겨진 페이지의 신호가 활성 페이지 문구를 덮지 않는다. 입력 없는 Step 1.5의 기본 상태는 `Step 1.5: No slice loaded`다.
+- 도구 패널은 일반 `QGroupBox`, 고정 탭과 명시적 스크롤을 사용한다. 펼침/접힘 화살표와 accordion은 사용하지 않는다. 데이터 선택 트리의 행 확장은 데이터 탐색 조작으로 유지한다.
 
 ## 2. Step 1: Raw Data Slice
 `WidgetRawDataProcessing`이 담당한다.
 
 ### 2.1. 상단 레이아웃
-- 좌측: Matplotlib 그래프와 네비게이션 툴바
+- 전체 폭: Matplotlib 그래프와 오른쪽 세로 네비게이션 툴바
   - 파일 로드 직후 파싱된 `parsed_data`를 기준으로 미리보기 그래프를 그린다.
   - 원래 마커 위치의 세로축 단위는 CSV의 Length Units를 사용한다. 단위가 없으면 미확정으로 표시하며 수치를 변환하지 않는다.
   - `PlotManager`가 확대/축소, 마우스 오버, 슬라이스 구간 선택을 처리한다.
-- 우측: 제어 패널
-  - `Open`과 파일명. 전체 경로는 툴팁과 경로 복사 메뉴로 확인한다.
-  - 접어서 여는 `Box dimensions` 입력
-  - 접어서 여는 `Marker correction`
-    - 현재 입력에 사용할 치수 확인 후 `Review`
-    - 관측 scan과 이벤트별 계산 진행률, `Cancel`
-    - 현재 검토 이벤트 수와 승인 이벤트 수
-    - 현재 활성 원본 또는 corrected CSV 경로
-    - `Save corrected`
-  - 필요할 때 여는 `Log`
+- 그래프 아래: 입력/치수/Type·marker review, Scenes, Log, Current slice의 고정 그룹. 작은 창에서는 이 검토 영역 안을 스크롤한다.
+  - `Open capture...`와 파일명. 전체 경로는 툴팁과 경로 복사 메뉴로 확인한다.
+  - `Box dimensions (mm)`와 `View and marker review`는 입력이 보이는 일반 그룹이다.
+  - 치수 확인 후 `Review`, scan/fit 진행률과 `Cancel`, 검토/승인 수, 활성 source, `Save corrected`를 기존 controller에 연결한다.
+  - 그래프/검토 영역의 세로 splitter를 조절할 수 있으며 탭 전환으로 검출이나 사용자 위치를 초기화하지 않는다.
 
 ### 2.2. 하단 컨트롤
-- `Plot Options`
-  - `Select Data...`
+- `View and marker review`
+  - `Markers...`
   - 선택된 대상 표시
   - 축 선택 콤보박스 (`Position-X`, `Position-Y`, `Position-Z`)
-- `Slice Range`
+- `Current slice`의 `Range (s)`
   - 체크 가능한 그룹 박스
   - 활성화 시 `Start`, `End` 입력값과 그래프 구간 선택기가 동기화된다
-- `Slice Output`
+- `Current slice`의 `Scene`
   - `Scene Name`
   - 고정 padding 설명 (`50 rows on each side`)
   - 최근 저장된 `.slice` 경로 표시
-- 실행 버튼
+- 스크롤 밖 고정 저장줄
   - `Save slice...`는 현재 구간만 저장한다.
   - `Save and Process`는 검토한 포함 구간들을 저장하고 Step 1.5의 입력으로 전달한다. 장면 검토가 없는 수동 범위는 하나의 slice로 전달한다. 검토/저장이 끝나지 않았거나 취소·실패하면 단계가 바뀌지 않는다.
 
@@ -130,7 +130,7 @@ Simulation의 `Marker CSV…`에서 공개 예제/JSON 배치를 미리 보고 �
   - 3.1은 보정할 경우 자세 불연속을 가장 줄이는 축을 조건부 추천한다. 오류 원인 판정이 아니며 모든 이벤트의 `Apply`는 기본 OFF다. 부족한 관측, 서로 비슷한 가설, 안정되지 않은 창은 추천을 보류한다.
   - 작업자가 축을 선택하고 승인한다. 대응 마커 쌍은 필요 없지만 모든 마커의 원래 분석 면이 알려져 있어야 한다.
   - 이벤트 행과 Local axis 선택은 같은 그래프를 가리킨다. Before는 경계 이전, Original은 경계 이후의 원래 상대 회전이다. Preview X/Y/Z는 선택한 가설의 실제 재계산 값이고 Refit none은 원자료와 별개다. 구형 v2 예측값은 Predicted로 구분한다.
-  - Details는 기본적으로 접혀 있다. 비교 표본이 부족하면 Preview unavailable을 표시하고 유효한 원래 곡선은 남긴다. 기본 세로 범위는 최소 1°이며 시험 기준이나 측정 한계가 아니다. Coverage는 유효 자세·마커·공통 표본 비율을 조합한 값이며, 100%만으로 비교 가능이나 보정 확실성을 뜻하지 않는다.
+  - 긴 근거는 별도 `Evidence` 창에서 확인하며 승인 상태는 검토창에 계속 표시한다. 비교 표본이 부족하면 Preview unavailable을 표시하고 유효한 원래 곡선은 남긴다. 기본 세로 범위는 최소 1°이며 시험 기준이나 측정 한계가 아니다. Coverage는 유효 자세·마커·공통 표본 비율을 조합한 값이며, 100%만으로 비교 가능이나 보정 확실성을 뜻하지 않는다.
   - 축 미리보기만으로 Apply가 켜지지 않는다. Done은 메모리의 결정을 반영하고 Cancel은 이전 결정을 유지한다. 디스크 저장은 Step 1의 Save corrected로 수행한다.
 - 승인된 v3 보정은 XYZ와 ID를 그대로 두고 경계 이후 프레임별 분석 FaceInfo를 변경한다. 실제 물리 마커 좌표의 복원이나 Motive Rigid Body 포즈 수정은 아니다.
   - 이벤트는 시간순으로 누적 적용한다.
@@ -150,7 +150,7 @@ Simulation의 `Marker CSV…`에서 공개 예제/JSON 배치를 미리 보고 �
 ### 2.4. 촬영 구간 자동 검출 (#75)
 
 `Detect scenes`는 고정 마커 배치의 상대 운동으로 낙하 후보, 기울임·회전, 취급 후보, 자세 점프, 대기·추적 불가 구간을 찾는다. 별도 수동 관리 팝업은 사용하지 않는다. 기존 그래프 아래 목록에서 구간을 선택하면 `Slice Range`와 그래프 선택 범위가 정확한 초 단위 값으로 동기화된다.
-1510×800 및 1100×720 논리 창에서는 씬 4행을 완전히 표시한다. 더 작은 창에서는 씬 표와 Details를 스크롤한다. 그래프 도구는 Tab으로 접근할 수 있고, Step 1과 비교 그래프의 축 제목 기본 크기는 9pt다. `Signal`은 처음 검출할 때 `Vertical speed (mm/s)`를 선택하고 바로 다음에 상대 회전을 둔다. 같은 파일의 재검출은 현재 선택한 원본/파생 신호에 유한한 샘플이 있으면 그 선택을 유지한다. 신호가 사라지거나 모두 비어 있으면 수직 속도, 상대 회전, 원본 위치 순으로 유효한 신호를 선택한다. 미등록 수직 속도는 마커 배치 기준점의 월드 Y 속도이며 상자 중심·질량 중심 검증값이 아님을 툴팁으로 설명한다. 축에는 이름과 단위를 표시한다. 마커 수와 정합 잔차도 기존 선택 상자에서 볼 수 있다. 상대 회전은 최초 유효 자세와의 각도이며 누적 회전수는 아니다.
+1510×800 및 1100×720 논리 창에서는 씬 4행을 완전히 표시하는 계약을 유지한다. 더 작은 창에서는 씬 표와 고정 검토 그룹 안을 스크롤한다. 그래프 도구는 Tab으로 접근할 수 있고, Step 1과 비교 그래프의 축 제목 기본 크기는 9pt다. `Signal`은 처음 검출할 때 `Vertical speed (mm/s)`를 선택하고 바로 다음에 상대 회전을 둔다. 같은 파일의 재검출은 현재 선택한 원본/파생 신호에 유한한 샘플이 있으면 그 선택을 유지한다. 신호가 사라지거나 모두 비어 있으면 수직 속도, 상대 회전, 원본 위치 순으로 유효한 신호를 선택한다. 미등록 수직 속도는 마커 배치 기준점의 월드 Y 속도이며 상자 중심·질량 중심 검증값이 아님을 툴팁으로 설명한다. 축에는 이름과 단위를 표시한다. 마커 수와 정합 잔차도 기존 선택 상자에서 볼 수 있다. 상대 회전은 최초 유효 자세와의 각도이며 누적 회전수는 아니다.
 
 1. CSV를 열고 필요하면 `Geometry...`로 독립적으로 측정한 마커-박스 등록 정보를 선택한다. 파일 형식과 물리 전제는 [외부 자료·해석](../../simulation_external_reference_notes.md)을 따른다.
 2. `Detect scenes`를 실행하고 각 구간을 그래프와 함께 확인한다. 여러 행을 선택해 `Include` 또는 `Exclude`할 수 있다. 원인 분류와 시험에 포함할지는 별개다.
@@ -241,8 +241,8 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 `WidgetSliceProcessing`이 담당한다.
 
 ### 3.1. 입력과 실행
-- 좌측에서 Single/Batch, 실제 입력, Raw/Smoothing/Advanced 방법을 선택한다. Run과 완료 후 동작은 고정 위치에 둔다.
-- Single은 오른쪽에 마커 미리보기를, Batch는 전달된 정확한 slice 목록과 파일별 결과를 표시한다. 모드를 바꾸어도 단일 입력·결과와 배치 입력·결과를 각각 유지한다.
+- 상단 왼쪽은 Single의 마커 미리보기 또는 Batch의 정확한 slice 목록/파일별 결과이며 오른쪽 `Input and context`에서 모드와 입력·치수·구간을 확인한다. 그래프 도구는 오른쪽 세로 방향이다.
+- 하단은 `Processing method`, `Resampling`, `Log` 고정 그룹이며 필요할 때 해당 영역 안을 스크롤한다. 맨 아래에는 현재 모드의 실행·저장줄만 표시한다. 모드를 바꾸어도 단일 입력·결과와 배치 입력·결과를 각각 유지한다.
 - 파일을 열거나 Step 1에서 전달받으면 처리 준비만 한다. Run을 자동으로 누르지 않는다.
 - 단일 처리 후 `Save and View`는 저장 성공한 `.proc`를 Step 2에서 연다. `Save...`만 눌러 현재 단계에 머물 수도 있다.
 - 배치는 각 slice의 치수를 사용해 처리·저장한다. `View Results`는 이번에 저장 성공한 파일만 연다. 실패와 기존 파일 건너뛰기를 구분한다.
@@ -250,8 +250,8 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 - 실행 중에는 입력·방법·설정·모드 교체를 막는다. 저장 파일명은 완료한 실행의 방법을 사용한다.
 
 ### 3.2. 설정과 데이터 의미
-- 박스 치수, 원본·사용자 구간·패딩·보정 이력, 재샘플링 세부값, 고급 설정과 로그는 접어서 연다.
-- 파일을 열기 전 치수는 빈칸이다. 치수가 없는 slice는 입력 영역을 펼쳐 단일 처리에 필요한 수동 치수를 받는다. 별도 선택 없이 원본 slice에 쓰지 않는다.
+- 박스 치수, 원본·사용자 구간·패딩·보정 이력은 입력 문맥에서 확인한다. 재샘플링과 로그는 고정 그룹이며 고급 설정은 기존 `Processing settings...` 창으로 연다.
+- 파일을 열기 전 치수는 빈칸이다. 치수가 없는 slice는 입력 문맥에서 단일 처리에 필요한 수동 치수를 받는다. 별도 선택 없이 원본 slice에 쓰지 않는다.
 - 기본 방법은 Raw이고 Result Resampling은 OFF다. 재샘플링은 결과 시각 사이에 값을 보간하며 원래 timestamp의 값을 유지한다. 측정 정확도 향상을 뜻하지 않는다.
 - 기존 `PipelineController`와 `DropPosturePostProcessor`를 사용한다. 접촉은 높이·운동·지속성 근거로 판정하며 `t1-`는 ImpactEvent가 확인된 경우에만 정의한다. 기준면은 t1- 또는 첫 유효 프레임에서 정한다.
 - 시간·좌표·보정/장면 메타데이터와 multi-header 형식은 바꾸지 않는다. `.proc`는 임시 파일을 완전히 쓴 뒤 교체하므로 쓰기 실패로 기존 결과를 자르지 않는다.
@@ -261,12 +261,12 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 
 ### 4.1. 기본 화면
 - 상단에 현재 파일명, 표본 수, 촬영/선택 시간 범위를 표시한다. 전체 파일 경로는 툴팁과 복사 메뉴로 확인한다.
-- 좌측 `Open`은 결과 파일을 직접 연다. `Folder`는 폴더의 결과 목록을 연다. 여러 처리 결과를 전달받으면 그 목록만 사용한다.
+- 중간 세 열은 `Result files`, `Data selection`, `Drop/impact summary`다. `Open`은 결과 파일을 직접 연다. `Folder`는 폴더의 결과 목록을 연다. 여러 처리 결과를 전달받으면 그 목록만 사용한다.
 - `Compare`는 현재 또는 목록에서 선택한 파일들을 기존 비교 창에 전달한다. 같은 경로의 내용이 바뀌었으면 해당 결과만 다시 읽고, 같으면 그대로 둔다. 기존 파일과 기준 선택을 보존한다.
 - 좌측 Data 트리는 Group By와 검색을 제공한다. 체크 상태와 실제로 그린 항목을 구분해 유지한다. 기본 항목의 그룹을 펼치며 나머지는 필요할 때 연다.
 - `Clear`, `Plot`, `Popup`을 사용한다. 팝업 전체 닫기는 Popup 메뉴에 있다. 선택 개수와 창 개수 설명을 별도 행으로 늘어놓지 않는다.
-- 우측 그래프 아래 Point에서 대상 측정값과 현재 시각·값을 확인하고 `Save point CSV`로 저장한다. Max/Min/Abs Max는 수치량에만 사용하며 꼭짓점 ID에는 비활성화한다.
-- 전체 Summary와 Export input은 접어서 연다. Summary의 Posture/Impact/Contact 그룹, descriptor 설명과 Metric guide는 유지한다. t1-가 없는 값은 N/A이며 안정 접촉과 충격을 구분한다.
+- 하단은 왼쪽 그래프/오른쪽 세로 도구와 오른쪽 `Point / peaks`·`CAE export` 고정 탭이다. Point에서 대상 측정값과 현재 시각·값을 확인하고 `Save point CSV`로 저장한다. Max/Min/Abs Max는 수치량에만 사용하며 꼭짓점 ID에는 비활성화한다.
+- Summary의 Posture/Impact/Contact 그룹, descriptor 설명과 Metric guide는 유지한다. Guide는 실제 Point target의 metric key를 우선하고 없으면 기본 Guide를 재사용한다. t1-가 없는 값은 N/A이며 안정 접촉과 충격을 구분한다. CAE 입력만 탭 내부에서 스크롤하며 내보내기는 고정 하단에 둔다.
 
 ### 4.2. 파일과 그래프의 일치
 - 첫 결과는 기준면 기울기 Beta, 해당 열이 없으면 기하중심 Y를 표시한다. 파일 전환은 기존에 그리던 공통 항목만 다시 그리고 없는 항목은 제거한다.
@@ -287,19 +287,20 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 낙하/기울임의 관측값과 시험 번호의 확정은 별개다. 항목 미확정, t1 미검출, 비교 제외 조건은 단계 연결만으로 바뀌지 않는다.
 
 ## 6. Compare Results
-런처 또는 Step 2의 Compare에서 여러 저장 결과를 연다. 좌측 파일 선택과 우측 Summary·3D·Graph를 함께 사용한다.
+런처 또는 Step 2의 Compare에서 여러 저장 결과를 연다. 좌측 파일 선택과 고정 `File details`/`Playback settings` 탭, 우측 Summary→실제 3D→Graph를 함께 사용한다. 3D 높이는 splitter로 조절하며 접기 버튼은 없다.
 
 ### 6.1. 파일과 보기
 - Open으로 파일을 추가하고 목록에서 확인할 파일을 선택한다. 같은 파일의 이름과 색은 목록·범례·3D에서 일치한다. 긴 이름은 줄이고 전체 경로는 툴팁으로 확인한다.
 - 기본 Individual은 선택 파일의 곡선과 3D를 함께 보여 준다. 충격이 없는 기울임이나 안정 접촉도 바로 확인할 수 있다. 유효한 시간은 실제 초, 시간이 없거나 잘못됐으면 Sample 1부터 순서대로 탐색한다. 시간을 만들거나 잘못된 시간으로 재생하지 않는다.
 - Aligned는 충격 직전 마지막 표본을 0초로 맞춘다. 충격 뒤 자료도 유지하며 실제 접촉 시각을 0초로 바꾸지 않는다. 출처·시간·접촉 기준이 불명인 파일의 정렬 제한은 그대로다.
 - 하나의 Play와 슬라이더가 현재 보기를 제어한다. 그래프 커서와 3D 선택이 연결되고, 개별 파일의 탐색 위치·카메라는 보기나 기준 파일을 바꿔도 유지한다.
-- 3D의 첫 보기는 월드 수직축을 유지하며 상자에 맞춘다. 이후 8개 코너의 평균 중심을 따라가면서 사용자의 회전·확대·팬 오프셋을 유지한다. 화면 이동량을 실제 낙하 거리로 읽지 않는다. 겹치는 이름은 기본으로 숨기고 Settings의 Labels로 켤 수 있다.
-- Baseline은 호환 결과의 차이와 반복 관측 집계에 사용한다. 상세 출처·누락·불일치 이유는 Details에서 확인한다. 서로 다른 출처를 겹치면 Mixed sources로 표시한다.
-- Settings의 Gap limit은 표시 연결의 최대 시간 간격이며 기본 0.1초다. 물리 판정 임계값이 아니다. 긴 간격 내부·범위 밖·유효하지 않은 위치에서는 이전 3D 자세를 남기지 않는다.
+- Individual 재생 시 상단 시각은 실제 선택 표본의 기록 시각을 표시한다. gap에서는 사용할 수 없음으로 표시하고 다음 유효 표본에서 Recorded time tooltip을 복원한다. elapsed clock, ROW lookup, Aligned 정렬과 원래 수치는 바꾸지 않는다. 외부 실제 Play에서 드러난 1.036 s/1.020 s 표시 불일치와 수정 전후 검사는 [현재 기록](../../visualization/gui_public_177.md)에 남긴다.
+- 3D의 첫 보기는 월드 수직축을 유지하며 상자에 맞춘다. 이후 8개 코너의 평균 중심을 따라가면서 사용자의 회전·확대·팬 오프셋을 유지한다. 화면 이동량을 실제 낙하 거리로 읽지 않는다. 겹치는 이름은 기본으로 숨기고 Playback settings의 Labels로 켤 수 있다.
+- Baseline은 호환 결과의 차이와 반복 관측 집계에 사용한다. 상세 출처·누락·불일치 이유는 `File details`에서 확인한다. 서로 다른 출처를 겹치면 Mixed sources로 표시한다. 상단 `Files: … | Comparison observation groups: …`는 loader 파일 수와 owner의 `impact["observations"]` 항목 수를 구분하며 지표별 유효 n을 뜻하지 않는다. 제외 이유 요약도 화면에 표시한다.
+- Playback settings의 Gap limit은 표시 연결의 최대 시간 간격이며 기본 0.1초다. 물리 판정 임계값이 아니다. 긴 간격 내부·범위 밖·유효하지 않은 위치에서는 이전 3D 자세를 남기지 않는다.
 
 ### 6.2. 표와 그래프
-- Summary의 Pre-contact는 접촉 전 수직 속도·수평 속력·각속력과 조건부 속도 환산 높이를 보여 준다. Repeats는 호환되는 서로 다른 관측만 집계하며 복사본을 반복 실험으로 세지 않는다.
+- Summary의 Pre-contact는 접촉 전 수직 속도·수평 속력·각속력과 조건부 속도 환산 높이를 보여 준다. Repeats는 호환되는 서로 다른 관측만 집계하며 복사본을 반복 실험으로 세지 않는다. 현재 모드의 표시 행이 0개일 때만 짧은 빈 상태로 줄이고 그래프에 공간을 돌린다. 데이터 있는 모드로 전환하면 표와 사용자 splitter 비율을 복원한다.
 - Details는 저장된 요약값과 가능한 기준 차이를 표시한다. 꼭짓점 ID는 C1~C8로 표시하고 수치 차를 계산하지 않는다. 다른 범주값도 실제 기준값과 비교한다. 미확정·호환 불가 값은 차이를 만들지 않는다.
 - #118: 첫 접촉 또는 confidence의 사건 선언·시간 연결·출처가 불충분하면 Details에 `Unavailable`과 사유를 표시한다. 원래 저장값과 검증 수준은 tooltip으로 확인하며 무효한 값의 기준 차이는 만들지 않는다. Repeats의 n tooltip에는 파일별 제외 사유가 남는다.
 - Confidence 반복 통계는 `ImpactEvent` 상태만 포함한다. 정상 지속 접촉 등의 점수는 Details에서 상태와 `not pooled`를 함께 표시한다. 이 점수에는 plateau 근거도 포함될 수 있으며 첫 충격 확률이 아니다. 저장 사건 일관성과 Contact의 기하 재검증은 별도다.
@@ -315,11 +316,13 @@ Step 1에는 파일 로드·구간 선택에 필요한 원본 위치와 상대 �
 
 각 지표는 유효한 값이 없으면 제외하고, 하나 또는 정확히 동등한 값 여러 개면 한 번 집계한다. 서로 다른 유효 값은 그 관측의 해당 지표만 conflict로 제외한다. 기준 파일은 revision 권한을 갖지 않는다. 개별 기준 차이와 범주 reference agreement는 기준 변경에 따라 달라질 수 있다.
 
-Repeats에서 행을 선택하면 Duplicate/Invalid/Conflict 수를 짧게 표시한다. 기존 좌측 Details를 열어 observation, 공급 파일, 정확한 값, SHA-256, 다른 variant의 원래 제외 사유를 확인한다. Duplicate와 Invalid는 variant 기준, Conflict는 observation 기준이다. 상단 compatible observations는 지표 유효성 평가 전 호환 관측 수이며 유효 n은 표의 지표별 값을 따른다. Contact는 개별 Match/Different/Unclear 옆에 반복 집계 상태를 표시한다. Contact의 n/Unclear/Conflict는 관측 기준이며 excluded는 중복을 포함한 비기여 파일 수다.
+Repeats에서 행을 선택하면 Duplicate/Invalid/Conflict 수를 짧게 표시한다. 좌측 `File details`에서 observation, 공급 파일, 정확한 값, SHA-256, 다른 variant의 원래 제외 사유를 확인한다. Duplicate와 Invalid는 variant 기준, Conflict는 observation 기준이다. 상단 Comparison observation groups는 지표 유효성 평가 전 owner의 관측 항목 수이며 유효 n은 표의 지표별 값을 따른다. Contact는 개별 Match/Different/Unclear 옆에 반복 집계 상태를 표시한다. Contact의 n/Unclear/Conflict는 관측 기준이며 excluded는 중복을 포함한 비기여 파일 수다.
 
 새 revision 선택 UI나 저장 형식 변경은 없다. #118의 진단별 유효성/legacy와 #120의 아직 변경되지 않은 전체 구간 Contact 검증을 유지한다.
 
-## 7. 공개 결과를 이용한 최종 화면 확인 (#78)
+## 7. 과거 공개 결과 화면 확인 이력 (#78/#106)
+
+이 절의 실행·캡처·CI는 당시 revision의 증거다. #177 고정 레이아웃의 새 검증, 실제 OS125, 소비자 도입 또는 실데이터 승인으로 승격하지 않는다. 현재 상태는 [#177 기록](../../visualization/gui_public_177.md)을 따른다.
 
 #106 마지막 UI 단위는 실제 Windows Qt 6.11.2·125%에서 Simulation 500×600/760×780의 위·아래 스크롤과 펼친 상세 설정을 확인했다. Run과 Run all presets는 화면 안에 남는다. 옮긴 입력으로 200×120×80 mm, COM (3,−4,2) mm, 초기 회전 (20,35,−15)°, 거리 100 mm, 0.5초를 실제 실행·저장·재열기했으며 기존 63표본·0.008초 간격과 코너 재구성 오차 2.274e−13 mm가 유지됐다. 이 실행의 저장 취소·실패·재시도와 일괄 처리 중단도 관련 기존 검사로 확인했다. 런처의 불필요한 설명 문단은 제거하고 Experimental 상태만 남겼다.
 

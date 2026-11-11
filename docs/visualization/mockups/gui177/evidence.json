@@ -1,0 +1,3390 @@
+{
+  "schema_version": 1,
+  "reviewed_date": "2026-11-11",
+  "package_state": "complete representative snapshot package with explicit metadata gaps",
+  "source_identity_policy": "Capture HEAD is recorded separately from source implementation. Raw per-file digests identify working-tree bytes; committed module bindings explicitly allow exact LF or CRLF checkout bytes. Later commits are never substituted as capture HEAD.",
+  "geometry_units": "Qt client logical pixels unless a field explicitly denotes Matplotlib renderer bbox; original producer coordinates are preserved, including local child coordinates.",
+  "limits": [
+    "Synthetic fixture screenshots verify UI contracts, not measured experimental accuracy, independent repetition, solver accuracy, or consumer adoption.",
+    "Native QWidget grabs do not prove desktop foreground/occlusion, OS125, or user visual approval.",
+    "Baseline images identify owned UI implementations and installed capture environment; they are not full historical environment replays.",
+    "Archived producer scripts are current local versions, not asserted capture-time versions. Restore original paths, matching source snapshot and generated inputs before replay. Baseline producers using HEAD require the original baseline checkout. Raw generated logs/metadata may contain local paths and remain local; publish only curated metadata."
+  ],
+  "artifacts": [
+    {
+      "screen": "compare",
+      "stage": "after",
+      "language": "en",
+      "file": "compare-after-en-1100x720.png",
+      "sha256": "78b16b8d1c2e4105c320f6c19dd0d4783d544c798efff601ae912a463407476e",
+      "bytes": 49497,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/compare/after-public/final-v10-en-1100x720.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/compare/after-public/final-v10-en-evidence.json",
+      "metadata_sha256_at_packaging": "849d75c0fa69d8566e4d4429dde0c794e760cbd7c1b187670c29b6374b5d1e86",
+      "reported": {
+        "requested_client_size": [
+          1100,
+          720
+        ],
+        "actual_client_size": [
+          1100,
+          720
+        ],
+        "dpr": 1.0,
+        "dpi": 96.0,
+        "window_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "table_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "table_rows": 4,
+        "splitter": [
+          152,
+          228,
+          253
+        ],
+        "bboxes": {
+          "summary": [
+            0,
+            0,
+            775,
+            152
+          ],
+          "playback": [
+            0,
+            157,
+            775,
+            228
+          ],
+          "graph": [
+            0,
+            390,
+            775,
+            253
+          ],
+          "open": [
+            9,
+            25,
+            139,
+            26
+          ],
+          "remove": [
+            153,
+            25,
+            138,
+            26
+          ],
+          "table_mode": [
+            8,
+            24,
+            131,
+            26
+          ],
+          "guide": [
+            683,
+            24,
+            84,
+            26
+          ],
+          "play": [
+            8,
+            24,
+            81,
+            26
+          ],
+          "toolbar": [
+            561,
+            27,
+            206,
+            26
+          ],
+          "canvas": [
+            8,
+            59,
+            759,
+            186
+          ]
+        },
+        "figure_size_px": [
+          759.0,
+          186.0
+        ],
+        "axis_text": {
+          "title": "",
+          "x": "Time from pre-contact (s)",
+          "y": "Long axis tilt (\u00b0)"
+        },
+        "axis_bboxes": {
+          "title": [
+            409.0138888888889,
+            180.38985380116952,
+            0.0,
+            0.0
+          ],
+          "x": [
+            328.9513888888889,
+            11.1111111111111,
+            160.125,
+            13.0
+          ],
+          "y": [
+            11.111111111111104,
+            62.59770467836253,
+            13.000000000000004,
+            100.25
+          ]
+        },
+        "tick_bboxes": {
+          "x": [
+            {
+              "text": "\u22120.006",
+              "bbox": [
+                198.61047979797996,
+                29.666666666666657,
+                51.125,
+                14.0
+              ]
+            },
+            {
+              "text": "0.000",
+              "bbox": [
+                389.3263888888889,
+                29.666666666666657,
+                39.375,
+                14.0
+              ]
+            },
+            {
+              "text": "0.006",
+              "bbox": [
+                574.1047979797979,
+                29.666666666666657,
+                39.5,
+                14.0
+              ]
+            }
+          ],
+          "y": [
+            {
+              "text": "1.75",
+              "bbox": [
+                29.666666666666664,
+                72.18244415204677,
+                30.75,
+                14.0
+              ]
+            },
+            {
+              "text": "2.00",
+              "bbox": [
+                29.791666666666664,
+                101.8493520467836,
+                30.625,
+                14.0
+              ]
+            },
+            {
+              "text": "2.25",
+              "bbox": [
+                29.791666666666664,
+                131.51625994152042,
+                30.625,
+                14.0
+              ]
+            },
+            {
+              "text": "2.50",
+              "bbox": [
+                29.791666666666664,
+                161.18316783625724,
+                30.625,
+                14.0
+              ]
+            }
+          ]
+        },
+        "axis_font_points": [
+          9.0,
+          9.0
+        ],
+        "top_status": "Files: 2 | Comparison observation groups: 0",
+        "observations": 0,
+        "platform": "windows",
+        "qt": "6.10.1",
+        "axis_and_tick_bbox_containment_checked_at_packaging": true
+      },
+      "input": {
+        "generator": "tests/comparison_fixtures.py::write_proc; contract-1",
+        "seed": "handcrafted_dummy, same geometry/capture contents in distinct parent paths",
+        "files": [
+          {
+            "path": "tmp/gui177/compare/inputs/capture-alpha/same_capture_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc",
+            "sha256": "cfe91aee20067edc11d15d94d52a034f701ac2f85868e1e57f3958d52e5ae15b"
+          },
+          {
+            "path": "tmp/gui177/compare/inputs/capture-beta/same_capture_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc",
+            "sha256": "cfe91aee20067edc11d15d94d52a034f701ac2f85868e1e57f3958d52e5ae15b"
+          }
+        ]
+      },
+      "source": {
+        "capture_head_revision": "4f608367512001c693c9c38e1caa76cb4d54ae06",
+        "tree_state": "listed source files match source_commit_sha",
+        "module_sha256": {
+          "src/analysis/compare/main_window.py": "861a426da3ea7f36b61782db552563bf794e3f5ba013d1e3bed2d1a460a4db9a",
+          "src/analysis/compare/ui_panels.py": "1007d6b4e488c9358b608497ae45777bb514121d9176627a77f73f907c7dce47",
+          "src/analysis/compare/playback_panel.py": "647b9c459610fc34ae23ea637df93069a2475fd724f71849e7bc2fd3ec987070",
+          "src/utils/qt_sections.py": "952e2712e88ce3bfb422defbfc294e989c456202844e42d6c6da91161d6d5809",
+          "src/utils/ui_text_ko.py": "324605d3373c582a0c9fc6c4ee49f87cdf2bf262779113b0fd9078cd203d0558"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/analysis/compare/main_window.py": false,
+          "src/analysis/compare/ui_panels.py": false,
+          "src/analysis/compare/playback_panel.py": false,
+          "src/utils/qt_sections.py": false,
+          "src/utils/ui_text_ko.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/compare/main_window.py": true,
+          "src/analysis/compare/ui_panels.py": true,
+          "src/analysis/compare/playback_panel.py": true,
+          "src/utils/qt_sections.py": true,
+          "src/utils/ui_text_ko.py": true
+        },
+        "committed_module_binding": {
+          "revision": "4f608367512001c693c9c38e1caa76cb4d54ae06",
+          "per_file_byte_policy": {
+            "src/analysis/compare/main_window.py": "Git blob checked out with CRLF",
+            "src/analysis/compare/ui_panels.py": "Git blob checked out with CRLF",
+            "src/analysis/compare/playback_panel.py": "Git blob checked out with CRLF",
+            "src/utils/qt_sections.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/capture_compare.py after-v10-en en",
+        "local_script": "tmp/gui177/capture_compare.py",
+        "current_script_sha256_at_packaging": "afe6853a92e974e993fda76431cccfda1a343a8870bff5a9a2fef08721e3d090",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/capture_compare.py",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle"
+      },
+      "limits": [
+        "Only safe after-public copies selected; Playback settings tab avoids absolute private paths.",
+        "Black Qt grab 3D regions do not judge VTK output or desktop visibility; separate VTK buffers are not packaged.",
+        "Identical generated .proc copies are not independent repetitions.",
+        "v10 replaces rejected v9 ylabel-clipped capture; selected v10 axis and in-range tick bboxes are inside the physical canvas."
+      ]
+    },
+    {
+      "screen": "compare",
+      "stage": "after",
+      "language": "ko",
+      "file": "compare-after-ko-820x600.png",
+      "sha256": "51195ca0f93dbc17cd2bd5882b46ba177cd07121f07b1bd86a5ccb281d6e7f64",
+      "bytes": 38957,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/compare/after-public/final-v10-ko-820x600.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/compare/after-public/final-v10-ko-evidence.json",
+      "metadata_sha256_at_packaging": "fdc86b82e88afb55dfde1019af144cf2ba85650d44479e9ce1a6780f97d0ad65",
+      "reported": {
+        "requested_client_size": [
+          820,
+          600
+        ],
+        "actual_client_size": [
+          820,
+          600
+        ],
+        "dpr": 1.0,
+        "dpi": 96.0,
+        "window_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "table_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "table_rows": 4,
+        "splitter": [
+          152,
+          180,
+          181
+        ],
+        "bboxes": {
+          "summary": [
+            0,
+            0,
+            495,
+            152
+          ],
+          "playback": [
+            0,
+            157,
+            495,
+            180
+          ],
+          "graph": [
+            0,
+            342,
+            495,
+            181
+          ],
+          "open": [
+            9,
+            25,
+            139,
+            26
+          ],
+          "remove": [
+            153,
+            25,
+            138,
+            26
+          ],
+          "table_mode": [
+            8,
+            24,
+            128,
+            26
+          ],
+          "guide": [
+            406,
+            24,
+            81,
+            26
+          ],
+          "play": [
+            8,
+            24,
+            81,
+            26
+          ],
+          "toolbar": [
+            281,
+            27,
+            206,
+            26
+          ],
+          "canvas": [
+            8,
+            59,
+            479,
+            114
+          ]
+        },
+        "figure_size_px": [
+          479.0,
+          113.99999999999999
+        ],
+        "axis_text": {
+          "title": "",
+          "x": "\uc811\ucd09 \uc9c1\uc804 \uae30\uc900 \uc2dc\uac04 (s)",
+          "y": "\uc7a5\ucd95 \uae30\uc6b8\uae30 (\u00b0)"
+        },
+        "axis_bboxes": {
+          "title": [
+            262.8498263888889,
+            107.69544480286739,
+            0.0,
+            0.0
+          ],
+          "x": [
+            197.5373263888889,
+            11.111111111111107,
+            130.625,
+            13.0
+          ],
+          "y": [
+            11.111111111111112,
+            29.124999999999986,
+            13.046875000000005,
+            83.875
+          ]
+        },
+        "tick_bboxes": {
+          "x": [
+            {
+              "text": "-0.006",
+              "bbox": [
+                131.38533775252537,
+                29.666666666666664,
+                39.25,
+                13.0
+              ]
+            },
+            {
+              "text": "0.000",
+              "bbox": [
+                246.0998263888889,
+                29.666666666666664,
+                33.5,
+                13.0
+              ]
+            },
+            {
+              "text": "0.006",
+              "bbox": [
+                357.9393150252525,
+                29.666666666666664,
+                33.5,
+                13.0
+              ]
+            }
+          ],
+          "y": [
+            {
+              "text": "2.0",
+              "bbox": [
+                29.71354166666667,
+                66.93603572759856,
+                18.375,
+                13.0
+              ]
+            },
+            {
+              "text": "2.5",
+              "bbox": [
+                29.71354166666667,
+                90.42264701792115,
+                18.375,
+                13.0
+              ]
+            }
+          ]
+        },
+        "axis_font_points": [
+          9.0,
+          9.0
+        ],
+        "top_status": "\ud30c\uc77c: 2 | \ube44\uad50 \uad00\uce21 \uadf8\ub8f9: 0",
+        "observations": 0,
+        "platform": "windows",
+        "qt": "6.10.1",
+        "axis_and_tick_bbox_containment_checked_at_packaging": true
+      },
+      "input": {
+        "generator": "tests/comparison_fixtures.py::write_proc; contract-1",
+        "seed": "handcrafted_dummy, same geometry/capture contents in distinct parent paths",
+        "files": [
+          {
+            "path": "tmp/gui177/compare/inputs/capture-alpha/same_capture_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc",
+            "sha256": "cfe91aee20067edc11d15d94d52a034f701ac2f85868e1e57f3958d52e5ae15b"
+          },
+          {
+            "path": "tmp/gui177/compare/inputs/capture-beta/same_capture_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc",
+            "sha256": "cfe91aee20067edc11d15d94d52a034f701ac2f85868e1e57f3958d52e5ae15b"
+          }
+        ]
+      },
+      "source": {
+        "capture_head_revision": "4f608367512001c693c9c38e1caa76cb4d54ae06",
+        "tree_state": "listed source files match source_commit_sha",
+        "module_sha256": {
+          "src/analysis/compare/main_window.py": "861a426da3ea7f36b61782db552563bf794e3f5ba013d1e3bed2d1a460a4db9a",
+          "src/analysis/compare/ui_panels.py": "1007d6b4e488c9358b608497ae45777bb514121d9176627a77f73f907c7dce47",
+          "src/analysis/compare/playback_panel.py": "647b9c459610fc34ae23ea637df93069a2475fd724f71849e7bc2fd3ec987070",
+          "src/utils/qt_sections.py": "952e2712e88ce3bfb422defbfc294e989c456202844e42d6c6da91161d6d5809",
+          "src/utils/ui_text_ko.py": "324605d3373c582a0c9fc6c4ee49f87cdf2bf262779113b0fd9078cd203d0558"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/analysis/compare/main_window.py": false,
+          "src/analysis/compare/ui_panels.py": false,
+          "src/analysis/compare/playback_panel.py": false,
+          "src/utils/qt_sections.py": false,
+          "src/utils/ui_text_ko.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/compare/main_window.py": true,
+          "src/analysis/compare/ui_panels.py": true,
+          "src/analysis/compare/playback_panel.py": true,
+          "src/utils/qt_sections.py": true,
+          "src/utils/ui_text_ko.py": true
+        },
+        "committed_module_binding": {
+          "revision": "4f608367512001c693c9c38e1caa76cb4d54ae06",
+          "per_file_byte_policy": {
+            "src/analysis/compare/main_window.py": "Git blob checked out with CRLF",
+            "src/analysis/compare/ui_panels.py": "Git blob checked out with CRLF",
+            "src/analysis/compare/playback_panel.py": "Git blob checked out with CRLF",
+            "src/utils/qt_sections.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/capture_compare.py after-v10-ko ko",
+        "local_script": "tmp/gui177/capture_compare.py",
+        "current_script_sha256_at_packaging": "afe6853a92e974e993fda76431cccfda1a343a8870bff5a9a2fef08721e3d090",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/capture_compare.py",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle"
+      },
+      "limits": [
+        "Only safe after-public copies selected; Playback settings tab avoids absolute private paths.",
+        "Black Qt grab 3D regions do not judge VTK output or desktop visibility; separate VTK buffers are not packaged.",
+        "Identical generated .proc copies are not independent repetitions.",
+        "v10 replaces rejected v9 ylabel-clipped capture; selected v10 axis and in-range tick bboxes are inside the physical canvas."
+      ]
+    },
+    {
+      "screen": "compare",
+      "stage": "before",
+      "language": "en",
+      "file": "compare-before-en-1100x720.png",
+      "sha256": "a5d5ec07b30d23409a165cc12b2e5d7b8302bb8e60dc703ce8069de723fd6078",
+      "bytes": 46254,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/compare/before/en-1100x720.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/compare/before/evidence.json",
+      "metadata_sha256_at_packaging": "db904ff26370008b0224ce9b79a6e554ab240699e12adbf8ca9090849e7a11d8",
+      "reported": {
+        "requested_client_size": [
+          1100,
+          720
+        ],
+        "actual_client_size": [
+          1100,
+          720
+        ],
+        "dpr": 1.0,
+        "dpi": 96.0,
+        "window_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "table_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "table_rows": 4,
+        "splitter": [
+          151,
+          230,
+          270
+        ],
+        "bboxes": {
+          "summary": [
+            0,
+            0,
+            775,
+            151
+          ],
+          "playback": [
+            0,
+            156,
+            775,
+            230
+          ],
+          "graph": [
+            0,
+            391,
+            775,
+            270
+          ],
+          "open": [
+            11,
+            27,
+            136,
+            26
+          ],
+          "remove": [
+            153,
+            27,
+            136,
+            26
+          ],
+          "table_mode": [
+            8,
+            24,
+            131,
+            26
+          ],
+          "guide": [
+            683,
+            24,
+            84,
+            26
+          ],
+          "play": [
+            8,
+            24,
+            81,
+            26
+          ],
+          "toolbar": [
+            607,
+            27,
+            160,
+            26
+          ],
+          "canvas": [
+            8,
+            59,
+            759,
+            203
+          ]
+        },
+        "axis_bboxes": {
+          "x": [
+            324.6388888888888,
+            15.000000000000007,
+            160.125,
+            13.0
+          ],
+          "y": [
+            6.3750000000000036,
+            72.51388888888887,
+            13.000000000000004,
+            100.24999999999999
+          ]
+        },
+        "axis_font_points": [
+          9.0,
+          9.0
+        ],
+        "top_status": "2 files   0 compatible observations",
+        "observations": 0,
+        "platform": "windows",
+        "qt": "6.10.1"
+      },
+      "input": {
+        "generator": "tests/comparison_fixtures.py::write_proc; contract-1",
+        "seed": "handcrafted_dummy, same geometry/capture contents in distinct parent paths",
+        "files": [
+          {
+            "path": "tmp/gui177/compare/inputs/capture-alpha/same_capture_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc",
+            "sha256": "cfe91aee20067edc11d15d94d52a034f701ac2f85868e1e57f3958d52e5ae15b"
+          },
+          {
+            "path": "tmp/gui177/compare/inputs/capture-beta/same_capture_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc",
+            "sha256": "cfe91aee20067edc11d15d94d52a034f701ac2f85868e1e57f3958d52e5ae15b"
+          }
+        ]
+      },
+      "source": {
+        "tree_state": "baseline owned modules",
+        "module_sha256": {
+          "src/analysis/compare/main_window.py": "6d2c8d0587e589cd38462a55b51d07b207191550ecd49be918224f794c7baf95",
+          "src/analysis/compare/ui_panels.py": "a2d666236787a7598aef79fce34824c1d562f9cc98499ece20d843344ff3b4b5",
+          "src/analysis/compare/playback_panel.py": "d9977ed8ed89edc9d23f5943d4bb7183cdb6e3ac5ff341665d232b1eb18ad043",
+          "src/utils/qt_sections.py": "b00bdd63960fda6c7332f9432cccb79e04b351e31b6e61d9063c657674b8205a"
+        },
+        "binding_basis": "original pre-edit baseline UI attested by owner; module digests recomputed from baseline Git blobs, not recorded at capture",
+        "matches_baseline_modules": {
+          "src/analysis/compare/main_window.py": true,
+          "src/analysis/compare/ui_panels.py": true,
+          "src/analysis/compare/playback_panel.py": true,
+          "src/utils/qt_sections.py": true
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/compare/main_window.py": false,
+          "src/analysis/compare/ui_panels.py": false,
+          "src/analysis/compare/playback_panel.py": false,
+          "src/utils/qt_sections.py": false
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+          "per_file_byte_policy": {
+            "src/analysis/compare/main_window.py": "exact Git blob bytes",
+            "src/analysis/compare/ui_panels.py": "exact Git blob bytes",
+            "src/analysis/compare/playback_panel.py": "exact Git blob bytes",
+            "src/utils/qt_sections.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "owner_attested_baseline_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/capture_compare.py before",
+        "local_script": "tmp/gui177/capture_compare.py",
+        "current_script_sha256_at_packaging": "afe6853a92e974e993fda76431cccfda1a343a8870bff5a9a2fef08721e3d090",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/capture_compare.py"
+      },
+      "limits": [
+        "Black Qt grab 3D regions are not used to judge VTK output or real desktop visibility; separate VTK buffers are not part of this representative PNG package.",
+        "Identical generated .proc copies are not independent repetitions.",
+        "Historical command requires baseline source checkout; output stage name alone does not select baseline source."
+      ]
+    },
+    {
+      "screen": "flip",
+      "stage": "after",
+      "language": "en",
+      "file": "flip-after-en-1280x740.png",
+      "sha256": "114b0a9daed7ea8634d936e4cb5e363a5dcb4302eb6b79727855fe6510887fd1",
+      "bytes": 64761,
+      "png_pixels": [
+        1280,
+        740
+      ],
+      "source_image": "tmp/gui177/flip/after-native-en-1280x740.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/flip/native-captures.json",
+      "metadata_sha256_at_packaging": "ca89616ab2ef5a379d44b2a1cdd355697c6e655db5091d1cd968cce273dd4f40",
+      "reported": {
+        "requested": [
+          1280,
+          740
+        ],
+        "actual": [
+          1280,
+          740
+        ],
+        "application_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "actual_font_family": "\ub9d1\uc740 \uace0\ub515",
+        "actual_point_size": 9.0,
+        "DPR": 1.0,
+        "logical_DPI": 96,
+        "platform": "windows",
+        "visible_rows": 4,
+        "bbox": {
+          "table": [
+            6,
+            6,
+            1268,
+            136
+          ],
+          "original": [
+            6,
+            310,
+            632,
+            393
+          ],
+          "preview": [
+            643,
+            310,
+            631,
+            393
+          ],
+          "done": [
+            1106,
+            708,
+            81,
+            26
+          ],
+          "cancel": [
+            1193,
+            708,
+            81,
+            26
+          ]
+        },
+        "plot_axes_bbox": [
+          [
+            55.44477777777778,
+            45.44477777777778,
+            572.3882222222217,
+            322.05488888888885
+          ],
+          [
+            55.44477777777778,
+            45.44477777777778,
+            571.388222222222,
+            322.05488888888885
+          ]
+        ]
+      },
+      "input": {
+        "kind": "literal synthetic UI curves; no solver output",
+        "generator": "test_marker_review_layout.layout_fixture(6)",
+        "hash_representation": "data.to_csv().encode() SHA-256",
+        "sha256": "463becfd7d442f9d9d3b1653201d4f033e75b9682ef04fdbd55b51b895e8e806",
+        "event_ids": [
+          "ui-0",
+          "ui-1",
+          "ui-2",
+          "ui-3",
+          "ui-4",
+          "ui-5"
+        ],
+        "seeded_approval": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "seeded_axes": [
+          "X",
+          "X",
+          "X",
+          "X",
+          "X",
+          "X"
+        ]
+      },
+      "source": {
+        "tree_state": "dirty working tree; no final commit identity asserted",
+        "module_sha256": {
+          "src/analysis/ui/dialog_marker_flip_review.py": "072a0377d518694dd9603ffbb4d5e1b49d6cf1e08d37264e6651662841511a2b"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/analysis/ui/dialog_marker_flip_review.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/dialog_marker_flip_review.py": true
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+          "per_file_byte_policy": {
+            "src/analysis/ui/dialog_marker_flip_review.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/flip/capture_native.py",
+        "local_script": "tmp/gui177/flip/capture_native.py",
+        "current_script_sha256_at_packaging": "a1105225e8f572caf918ae637554df7e7ac3047538942f6d4cc6caa7e8af86b7",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/flip_capture_native.py"
+      },
+      "limits": [
+        "Baseline owned dialog loaded from Git while installed environment and other dependencies are current."
+      ]
+    },
+    {
+      "screen": "flip",
+      "stage": "after",
+      "language": "ko",
+      "file": "flip-after-ko-820x600.png",
+      "sha256": "d14b0fe0605473e8a3ef43845de3ab8535e0b1211801b98f901959b3fbcd2a46",
+      "bytes": 37863,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/flip/after-native-ko-820x600.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/flip/native-captures.json",
+      "metadata_sha256_at_packaging": "ca89616ab2ef5a379d44b2a1cdd355697c6e655db5091d1cd968cce273dd4f40",
+      "reported": {
+        "requested": [
+          820,
+          600
+        ],
+        "actual": [
+          820,
+          600
+        ],
+        "application_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "actual_font_family": "\ub9d1\uc740 \uace0\ub515",
+        "actual_point_size": 9.0,
+        "DPR": 1.0,
+        "logical_DPI": 96,
+        "platform": "windows",
+        "visible_rows": 3,
+        "bbox": {
+          "table": [
+            6,
+            6,
+            808,
+            109
+          ],
+          "original": [
+            8,
+            308,
+            802,
+            251
+          ],
+          "preview": [
+            421,
+            511,
+            800,
+            240
+          ],
+          "done": [
+            646,
+            568,
+            81,
+            26
+          ],
+          "cancel": [
+            733,
+            568,
+            81,
+            26
+          ]
+        },
+        "plot_axes_bbox": [
+          [
+            55.31977777777777,
+            45.44477777777778,
+            742.5132222222222,
+            180.05488888888885
+          ],
+          [
+            55.31977777777778,
+            45.44477777777778,
+            740.5132222222221,
+            169.0548888888889
+          ]
+        ]
+      },
+      "input": {
+        "kind": "literal synthetic UI curves; no solver output",
+        "generator": "test_marker_review_layout.layout_fixture(6)",
+        "hash_representation": "data.to_csv().encode() SHA-256",
+        "sha256": "463becfd7d442f9d9d3b1653201d4f033e75b9682ef04fdbd55b51b895e8e806",
+        "event_ids": [
+          "ui-0",
+          "ui-1",
+          "ui-2",
+          "ui-3",
+          "ui-4",
+          "ui-5"
+        ],
+        "seeded_approval": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "seeded_axes": [
+          "X",
+          "X",
+          "X",
+          "X",
+          "X",
+          "X"
+        ]
+      },
+      "source": {
+        "tree_state": "dirty working tree; no final commit identity asserted",
+        "module_sha256": {
+          "src/analysis/ui/dialog_marker_flip_review.py": "072a0377d518694dd9603ffbb4d5e1b49d6cf1e08d37264e6651662841511a2b"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/analysis/ui/dialog_marker_flip_review.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/dialog_marker_flip_review.py": true
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+          "per_file_byte_policy": {
+            "src/analysis/ui/dialog_marker_flip_review.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/flip/capture_native.py",
+        "local_script": "tmp/gui177/flip/capture_native.py",
+        "current_script_sha256_at_packaging": "a1105225e8f572caf918ae637554df7e7ac3047538942f6d4cc6caa7e8af86b7",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/flip_capture_native.py"
+      },
+      "limits": [
+        "Baseline owned dialog loaded from Git while installed environment and other dependencies are current."
+      ]
+    },
+    {
+      "screen": "flip",
+      "stage": "before",
+      "language": "en",
+      "file": "flip-before-en-1280x740.png",
+      "sha256": "feac555ca7460a462871c883e0bd39578c2a1b0b38c0e6a9a480f1a3e73de0a8",
+      "bytes": 62787,
+      "png_pixels": [
+        1280,
+        740
+      ],
+      "source_image": "tmp/gui177/flip/before-native-en-1280x740.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/flip/native-captures.json",
+      "metadata_sha256_at_packaging": "ca89616ab2ef5a379d44b2a1cdd355697c6e655db5091d1cd968cce273dd4f40",
+      "reported": {
+        "requested": [
+          1280,
+          740
+        ],
+        "actual": [
+          1280,
+          740
+        ],
+        "application_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "actual_font_family": "\ub9d1\uc740 \uace0\ub515",
+        "actual_point_size": 9.0,
+        "DPR": 1.0,
+        "logical_DPI": 96,
+        "platform": "windows",
+        "visible_rows": 3,
+        "bbox": {
+          "table": [
+            11,
+            11,
+            1258,
+            109
+          ],
+          "original": [
+            11,
+            220,
+            626,
+            449
+          ],
+          "preview": [
+            643,
+            220,
+            626,
+            449
+          ],
+          "done": [
+            1101,
+            703,
+            81,
+            26
+          ],
+          "cancel": [
+            1188,
+            703,
+            81,
+            26
+          ]
+        },
+        "plot_axes_bbox": [
+          [
+            59.81977777777778,
+            47.44477777777778,
+            562.0132222222213,
+            375.0548888888889
+          ],
+          [
+            59.81977777777778,
+            47.44477777777778,
+            562.0132222222222,
+            375.0548888888889
+          ]
+        ]
+      },
+      "input": {
+        "kind": "literal synthetic UI curves; no solver output",
+        "generator": "test_marker_review_layout.layout_fixture(6)",
+        "hash_representation": "data.to_csv().encode() SHA-256",
+        "sha256": "463becfd7d442f9d9d3b1653201d4f033e75b9682ef04fdbd55b51b895e8e806",
+        "event_ids": [
+          "ui-0",
+          "ui-1",
+          "ui-2",
+          "ui-3",
+          "ui-4",
+          "ui-5"
+        ],
+        "seeded_approval": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "seeded_axes": [
+          "X",
+          "X",
+          "X",
+          "X",
+          "X",
+          "X"
+        ]
+      },
+      "source": {
+        "tree_state": "baseline owned modules",
+        "module_sha256": {
+          "src/analysis/ui/dialog_marker_flip_review.py": "da2ab4e0206788af0e9bdf730f163c3bcbc72c50877cf48f8804f9d118591096"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/analysis/ui/dialog_marker_flip_review.py": true
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/dialog_marker_flip_review.py": false
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+          "per_file_byte_policy": {
+            "src/analysis/ui/dialog_marker_flip_review.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/flip/capture_native.py",
+        "local_script": "tmp/gui177/flip/capture_native.py",
+        "current_script_sha256_at_packaging": "a1105225e8f572caf918ae637554df7e7ac3047538942f6d4cc6caa7e8af86b7",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/flip_capture_native.py"
+      },
+      "limits": [
+        "Baseline owned dialog loaded from Git while installed environment and other dependencies are current."
+      ]
+    },
+    {
+      "screen": "processing",
+      "stage": "after",
+      "language": "en",
+      "file": "processing-after-en-1100x720.png",
+      "sha256": "a1642b94e3adbcd309ac6c42ff4585ee11fa28df3dd0de6cac86c0223a2eb204",
+      "bytes": 60641,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/processing/after_native_final_en_1100x720.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/processing/after_native_final_en_1100x720.json",
+      "metadata_sha256_at_packaging": "6e95de3d29db054a9896317d0db65559561fba6f3d8fdce7266ac8523ba5c577",
+      "reported": {
+        "client": [
+          1100,
+          720
+        ],
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "actual_font_family": "\ub9d1\uc740 \uace0\ub515",
+        "widget_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "platform": "windows",
+        "logical_dpi": 96,
+        "DPR": 1.0,
+        "buttons": {
+          "Processing settings...": [
+            15,
+            578,
+            127,
+            26
+          ],
+          "Open folder...": [
+            839,
+            62,
+            640,
+            26
+          ],
+          "Open slice...": [
+            839,
+            62,
+            246,
+            26
+          ],
+          "Apply dimensions": [
+            839,
+            261,
+            640,
+            480
+          ],
+          "Markers...": [
+            6,
+            6,
+            270,
+            26
+          ],
+          "Run batch": [
+            477,
+            909,
+            81,
+            26
+          ],
+          "View Results": [
+            563,
+            909,
+            83,
+            26
+          ],
+          "Run": [
+            827,
+            685,
+            81,
+            26
+          ],
+          "Save...": [
+            913,
+            685,
+            81,
+            26
+          ],
+          "Save and View": [
+            999,
+            685,
+            95,
+            26
+          ]
+        },
+        "canvas": [
+          780,
+          424
+        ],
+        "axes_bbox": [
+          78.40277777777777,
+          57.277777777777764,
+          686.5972222222222,
+          351.72222222222223
+        ],
+        "axis_title_pt": [
+          9.0,
+          9.0
+        ],
+        "tick_pt": [
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      },
+      "input": {
+        "kind": "generated _raw_bundle, 6 rows, four markers, no physical accuracy claim",
+        "path": "tmp/gui177/processing/public_generated_processing.slice",
+        "sha256": "da6f53d3711fcf23e460915276ae334ffd71124b048f63de2a959456160d729a",
+        "rows": 6
+      },
+      "source": {
+        "tree_state": "dirty working tree; no final commit identity asserted",
+        "module_sha256": {
+          "src/analysis/ui/widget_slice_processing.py": "677ffa615a47b7a0959c144e67f1ca3ce19907a329140604d9831808891f1d7c"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/analysis/ui/widget_slice_processing.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/widget_slice_processing.py": true
+        },
+        "capture_head_revision": "48e68fbfaec4b3a9e728183656596daf6a39083b",
+        "committed_module_binding": {
+          "revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+          "per_file_byte_policy": {
+            "src/analysis/ui/widget_slice_processing.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/processing/capture_final.py after_native_final en",
+        "local_script": "tmp/gui177/processing/capture_final.py",
+        "current_script_sha256_at_packaging": "bab396528744cdb1d90d5515fb65db50dfdaae3b07394f8b2200c49308d5a2a0",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": "windows"
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/processing_capture_final.py"
+      },
+      "limits": [
+        "Button bbox map includes hidden-mode controls; coordinates alone are not a visibility assertion."
+      ]
+    },
+    {
+      "screen": "processing",
+      "stage": "after",
+      "language": "ko",
+      "file": "processing-after-ko-820x600.png",
+      "sha256": "30844850645294af965c15023f6f5b95ccf676bfbbfea13885f0765836c41073",
+      "bytes": 50376,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/processing/after_native_final_ko_820x600.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/processing/after_native_final_ko_820x600.json",
+      "metadata_sha256_at_packaging": "d2b5085b422bb2d2761840ddc6f2124c2f66930dcc82afbbd2f2eac2b6cdd77d",
+      "reported": {
+        "client": [
+          820,
+          600
+        ],
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "actual_font_family": "\ub9d1\uc740 \uace0\ub515",
+        "widget_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "platform": "windows",
+        "logical_dpi": 96,
+        "DPR": 1.0,
+        "buttons": {
+          "\ucc98\ub9ac \uc124\uc815...": [
+            15,
+            496,
+            81,
+            26
+          ],
+          "\ud3f4\ub354 \uc5f4\uae30...": [
+            583,
+            62,
+            640,
+            26
+          ],
+          "\uc2ac\ub77c\uc774\uc2a4 \uc5f4\uae30...": [
+            583,
+            62,
+            210,
+            26
+          ],
+          "\uce58\uc218 \uc801\uc6a9": [
+            583,
+            261,
+            640,
+            480
+          ],
+          "\ub9c8\ucee4...": [
+            6,
+            6,
+            184,
+            26
+          ],
+          "\uc77c\uad04 \uc2e4\ud589": [
+            479,
+            789,
+            81,
+            26
+          ],
+          "\uacb0\uacfc \ubcf4\uae30": [
+            565,
+            789,
+            81,
+            26
+          ],
+          "\uc2e4\ud589": [
+            558,
+            565,
+            81,
+            26
+          ],
+          "\uc800\uc7a5...": [
+            644,
+            565,
+            81,
+            26
+          ],
+          "\uc800\uc7a5 \ud6c4 \ubcf4\uae30": [
+            730,
+            565,
+            84,
+            26
+          ]
+        },
+        "canvas": [
+          524,
+          342
+        ],
+        "axes_bbox": [
+          73.90277777777777,
+          56.27777777777777,
+          435.09722222222223,
+          270.72222222222223
+        ],
+        "axis_title_pt": [
+          9.0,
+          9.0
+        ],
+        "tick_pt": [
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      },
+      "input": {
+        "kind": "generated _raw_bundle, 6 rows, four markers, no physical accuracy claim",
+        "path": "tmp/gui177/processing/public_generated_processing.slice",
+        "sha256": "da6f53d3711fcf23e460915276ae334ffd71124b048f63de2a959456160d729a",
+        "rows": 6
+      },
+      "source": {
+        "tree_state": "dirty working tree; no final commit identity asserted",
+        "module_sha256": {
+          "src/analysis/ui/widget_slice_processing.py": "677ffa615a47b7a0959c144e67f1ca3ce19907a329140604d9831808891f1d7c"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/analysis/ui/widget_slice_processing.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/widget_slice_processing.py": true
+        },
+        "capture_head_revision": "48e68fbfaec4b3a9e728183656596daf6a39083b",
+        "committed_module_binding": {
+          "revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+          "per_file_byte_policy": {
+            "src/analysis/ui/widget_slice_processing.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/processing/capture_final.py after_native_final ko",
+        "local_script": "tmp/gui177/processing/capture_final.py",
+        "current_script_sha256_at_packaging": "bab396528744cdb1d90d5515fb65db50dfdaae3b07394f8b2200c49308d5a2a0",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": "windows"
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/processing_capture_final.py"
+      },
+      "limits": [
+        "Button bbox map includes hidden-mode controls; coordinates alone are not a visibility assertion."
+      ]
+    },
+    {
+      "screen": "processing",
+      "stage": "before",
+      "language": "en",
+      "file": "processing-before-en-1100x720.png",
+      "sha256": "e365fea14c5d00318f27272f88e2cb1882a5f1c6f8d0c0d239146aaec577bc6e",
+      "bytes": 46685,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/processing/before_native_final_en_1100x720.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/processing/before_native_final_en_1100x720.json",
+      "metadata_sha256_at_packaging": "02a478d814bdd40256658cab4be60e7e83f3cd272ffe84face069c5674fb701f",
+      "reported": {
+        "client": [
+          1100,
+          720
+        ],
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "actual_font_family": "\ub9d1\uc740 \uace0\ub515",
+        "widget_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "platform": "windows",
+        "logical_dpi": 96,
+        "DPR": 1.0,
+        "buttons": {
+          "Open folder...": [
+            11,
+            43,
+            640,
+            26
+          ],
+          "Open slice...": [
+            11,
+            43,
+            288,
+            26
+          ],
+          "Apply dimensions": [
+            11,
+            209,
+            640,
+            480
+          ],
+          "Processing settings...": [
+            11,
+            520,
+            640,
+            26
+          ],
+          "Run batch": [
+            11,
+            1029,
+            640,
+            26
+          ],
+          "View Results": [
+            11,
+            1061,
+            640,
+            26
+          ],
+          "Run": [
+            11,
+            651,
+            288,
+            26
+          ],
+          "Save...": [
+            11,
+            683,
+            141,
+            26
+          ],
+          "Save and View": [
+            158,
+            683,
+            141,
+            26
+          ],
+          "Markers...": [
+            313,
+            11,
+            255,
+            26
+          ]
+        },
+        "canvas": [
+          776,
+          626
+        ],
+        "axes_bbox": [
+          79.40277777777777,
+          58.27777777777777,
+          681.5972222222222,
+          552.7222222222222
+        ],
+        "axis_title_pt": [
+          10.0,
+          10.0
+        ],
+        "tick_pt": [
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      },
+      "input": {
+        "kind": "generated _raw_bundle, 6 rows, four markers, no physical accuracy claim",
+        "path": "tmp/gui177/processing/public_generated_processing.slice",
+        "sha256": "da6f53d3711fcf23e460915276ae334ffd71124b048f63de2a959456160d729a",
+        "rows": 6
+      },
+      "source": {
+        "tree_state": "baseline owned modules",
+        "module_sha256": {
+          "src/analysis/ui/widget_slice_processing.py": "721ba588dc00aaed85da11cdf6edbb7ed47141e9d05c85e9f1a9da80e0cd37e9"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/analysis/ui/widget_slice_processing.py": true
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/widget_slice_processing.py": false
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+          "per_file_byte_policy": {
+            "src/analysis/ui/widget_slice_processing.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/processing/capture_final.py before_native_final en",
+        "local_script": "tmp/gui177/processing/capture_final.py",
+        "current_script_sha256_at_packaging": "bab396528744cdb1d90d5515fb65db50dfdaae3b07394f8b2200c49308d5a2a0",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": "windows"
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/processing_capture_final.py"
+      },
+      "limits": [
+        "Button bbox map includes hidden-mode controls; coordinates alone are not a visibility assertion."
+      ]
+    },
+    {
+      "screen": "results",
+      "stage": "after",
+      "language": "en",
+      "file": "results-after-en-1100x720.png",
+      "sha256": "c803fd25d84249ef4403a578bbf982eb83cacfb0a0245a7d99399d1f8dee77ff",
+      "bytes": 51581,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/results/after-en-1100x720-native.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/results/after-native.json",
+      "metadata_sha256_at_packaging": "974ec9219bee002fe288e7af78baf87c9bdbb34241774bf2094ca9d221af0026",
+      "reported": {
+        "requested": [
+          1100,
+          720
+        ],
+        "actual": [
+          1100,
+          720
+        ],
+        "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "dpi": 96,
+        "dpr": 1.0,
+        "summary_rows": 0,
+        "axis_tight_bbox": [
+          14.999999999999998,
+          15.000000000000021,
+          703.0,
+          356.0
+        ],
+        "rects": {
+          "canvas": [
+            6,
+            328,
+            733,
+            386,
+            true
+          ],
+          "toolbar": [
+            741,
+            328,
+            34,
+            386,
+            true
+          ],
+          "result_file_list": [
+            15,
+            154,
+            272,
+            160,
+            true
+          ],
+          "result_data_tree": [
+            310,
+            154,
+            407,
+            129,
+            true
+          ],
+          "experiment_summary_table": [
+            740,
+            96,
+            345,
+            187,
+            true
+          ],
+          "export_point_button": [
+            789,
+            677,
+            294,
+            26,
+            true
+          ]
+        }
+      },
+      "input": {
+        "kind": "generated linear beta, 51 samples, seed: none; displayed folder redacted to repository-relative path",
+        "sha256": "637c422b8c0e2bc754f0d4d7638d9b215e23f7b31dd8004f1a7c193f49fb9dc6",
+        "samples": 51,
+        "seed": "none",
+        "temporary_CAE_export_sha256": "116691e9f5bc3dc5f1a46410ff2f42332c195e0a1e067e38688e5b10e483757c"
+      },
+      "source": {
+        "tree_state": "dirty working tree; no final commit identity asserted",
+        "module_sha256": {
+          "src/analysis/ui/widget_results_analyzer.py": "746d1f4489e65421be048e5f1525f8b718130227c70d060623d4ee60c1e6407d"
+        },
+        "binding_basis": "implementation owner attests capture source unchanged and matching this digest",
+        "matches_baseline_modules": {
+          "src/analysis/ui/widget_results_analyzer.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/widget_results_analyzer.py": true
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+          "per_file_byte_policy": {
+            "src/analysis/ui/widget_results_analyzer.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/results/capture.py after --native",
+        "local_script": "tmp/gui177/results/capture.py",
+        "current_script_sha256_at_packaging": "a2ba6471a66003ca3bbd3d58f91c122d4a04aab7dee0cbd0017eb478f7930dbd",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/results_capture.py"
+      },
+      "limits": [
+        "Producer sets only the displayed folder label to tmp/gui177/results before grabbing; PNG bytes were not edited.",
+        "Metadata is recorded after the separate CAE-tab grab; rects describe the primary point view, CAE-specific state is excluded here."
+      ]
+    },
+    {
+      "screen": "results",
+      "stage": "after",
+      "language": "ko",
+      "file": "results-after-ko-820x600.png",
+      "sha256": "b05025752ffae14d0f00acb3566d4b001f8f2f6d3466a8388952098f12c0de6f",
+      "bytes": 40705,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/results/after-ko-820x600-native.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/results/after-native.json",
+      "metadata_sha256_at_packaging": "974ec9219bee002fe288e7af78baf87c9bdbb34241774bf2094ca9d221af0026",
+      "reported": {
+        "requested": [
+          820,
+          600
+        ],
+        "actual": [
+          820,
+          600
+        ],
+        "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "dpi": 96,
+        "dpr": 1.0,
+        "summary_rows": 0,
+        "axis_tight_bbox": [
+          25.625000000000007,
+          14.999999999999979,
+          453.3750000000001,
+          283.99999999999994
+        ],
+        "rects": {
+          "canvas": [
+            6,
+            280,
+            494,
+            314,
+            true
+          ],
+          "toolbar": [
+            502,
+            280,
+            34,
+            314,
+            true
+          ],
+          "result_file_list": [
+            15,
+            154,
+            262,
+            112,
+            true
+          ],
+          "result_data_tree": [
+            300,
+            154,
+            261,
+            81,
+            true
+          ],
+          "experiment_summary_table": [
+            584,
+            96,
+            221,
+            139,
+            true
+          ],
+          "export_point_button": [
+            550,
+            557,
+            253,
+            26,
+            true
+          ]
+        }
+      },
+      "input": {
+        "kind": "generated linear beta, 51 samples, seed: none; displayed folder redacted to repository-relative path",
+        "sha256": "637c422b8c0e2bc754f0d4d7638d9b215e23f7b31dd8004f1a7c193f49fb9dc6",
+        "samples": 51,
+        "seed": "none",
+        "temporary_CAE_export_sha256": "116691e9f5bc3dc5f1a46410ff2f42332c195e0a1e067e38688e5b10e483757c"
+      },
+      "source": {
+        "tree_state": "dirty working tree; no final commit identity asserted",
+        "module_sha256": {
+          "src/analysis/ui/widget_results_analyzer.py": "746d1f4489e65421be048e5f1525f8b718130227c70d060623d4ee60c1e6407d"
+        },
+        "binding_basis": "implementation owner attests capture source unchanged and matching this digest",
+        "matches_baseline_modules": {
+          "src/analysis/ui/widget_results_analyzer.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/widget_results_analyzer.py": true
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+          "per_file_byte_policy": {
+            "src/analysis/ui/widget_results_analyzer.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/results/capture.py after --native",
+        "local_script": "tmp/gui177/results/capture.py",
+        "current_script_sha256_at_packaging": "a2ba6471a66003ca3bbd3d58f91c122d4a04aab7dee0cbd0017eb478f7930dbd",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/results_capture.py"
+      },
+      "limits": [
+        "Producer sets only the displayed folder label to tmp/gui177/results before grabbing; PNG bytes were not edited.",
+        "Metadata is recorded after the separate CAE-tab grab; rects describe the primary point view, CAE-specific state is excluded here."
+      ]
+    },
+    {
+      "screen": "results",
+      "stage": "before",
+      "language": "en",
+      "file": "results-before-en-1100x720.png",
+      "sha256": "879c72e58de6f1ad43b2cd3dac52c8439cd2dc69d18388e4c7fcf14498f0a172",
+      "bytes": 47717,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/results/before-en-1100x720-native.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/results/before-native.json",
+      "metadata_sha256_at_packaging": "b38cd4009166ccd7a8a1a17fe831b18cbcf8c915a7cdd21413124e75a42a4be1",
+      "reported": {
+        "requested": [
+          1100,
+          720
+        ],
+        "actual": [
+          1100,
+          720
+        ],
+        "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "dpi": 96,
+        "dpr": 1.0,
+        "summary_rows": 0,
+        "axis_tight_bbox": [
+          14.999999999999998,
+          14.999999999999986,
+          735.0,
+          379.99999999999994
+        ],
+        "rects": {
+          "canvas": [
+            320,
+            137,
+            765,
+            410,
+            true
+          ],
+          "toolbar": [
+            320,
+            101,
+            765,
+            34,
+            true
+          ],
+          "result_file_list": [
+            11,
+            381,
+            640,
+            115,
+            false
+          ],
+          "result_data_tree": [
+            22,
+            244,
+            278,
+            422,
+            true
+          ],
+          "experiment_summary_table": [
+            325,
+            668,
+            622,
+            170,
+            false
+          ],
+          "export_point_button": [
+            978,
+            616,
+            100,
+            26,
+            true
+          ]
+        }
+      },
+      "input": {
+        "kind": "generated linear beta, 51 samples, seed: none; displayed folder redacted to repository-relative path",
+        "sha256": "637c422b8c0e2bc754f0d4d7638d9b215e23f7b31dd8004f1a7c193f49fb9dc6",
+        "samples": 51,
+        "seed": "none",
+        "temporary_CAE_export_sha256": "116691e9f5bc3dc5f1a46410ff2f42332c195e0a1e067e38688e5b10e483757c"
+      },
+      "source": {
+        "tree_state": "baseline owned modules",
+        "module_sha256": {
+          "src/analysis/ui/widget_results_analyzer.py": "3c4475f3b23cea263a9f2a847e3201da35c4ae64ff2fc6a7053ad193553092ef"
+        },
+        "binding_basis": "baseline digest recomputed from Git; baseline source attested by owner",
+        "matches_baseline_modules": {
+          "src/analysis/ui/widget_results_analyzer.py": true
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/ui/widget_results_analyzer.py": false
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+          "per_file_byte_policy": {
+            "src/analysis/ui/widget_results_analyzer.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "owner_attested_baseline_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/results/capture.py before --native",
+        "local_script": "tmp/gui177/results/capture.py",
+        "current_script_sha256_at_packaging": "a2ba6471a66003ca3bbd3d58f91c122d4a04aab7dee0cbd0017eb478f7930dbd",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/results_capture.py"
+      },
+      "limits": [
+        "Producer sets only the displayed folder label to tmp/gui177/results before grabbing; PNG bytes were not edited.",
+        "Metadata is recorded after the separate CAE-tab grab; rects describe the primary point view, CAE-specific state is excluded here."
+      ]
+    },
+    {
+      "screen": "simulation",
+      "stage": "after",
+      "language": "en",
+      "file": "simulation-after-en-1100x720.png",
+      "sha256": "ca0cf3cfc1eba02b92bcb386fc2f66ad1a14e063ce7ff0dd0c5fe69885188181",
+      "bytes": 62468,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/simulation/ko-corrected-en-1100x720-sequence.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/simulation/ko-corrected-metadata.json",
+      "metadata_sha256_at_packaging": "de53e8d9f36249d23cd69c3507c832cbf97cf7a49155766d515a1264eb245b75",
+      "reported": {
+        "client_size": [
+          1100,
+          720
+        ],
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "platform": "windows",
+        "dpr": 1.0,
+        "logical_dpi": 96,
+        "bbox": null
+      },
+      "input": {
+        "kind": "SimulationUI public default ModeProfiles generated fixture v1",
+        "sha256": "b30f156eb2551d9ffd8fa363a00915f4f9cba410e62c46d5ed5a0f523bcd6479",
+        "payload_unchanged": true,
+        "hash_representation": "SHA-256 of json.dumps(ModeProfiles config, sort_keys=True, ensure_ascii=True).encode()"
+      },
+      "source": {
+        "capture_head_revision": "c985a000771263119e3cdb883b537a8a28454564",
+        "tree_state": "clean checkout at base_sha",
+        "module_sha256": {
+          "src/simulation/ui/main_window.py": "a793d8c0009a55cd8114ba08edc2fae343e64eec27b7ac4bacef2f039af8e9b6",
+          "src/simulation/ui/mode_settings.py": "9609921bf01392cf2967385bf3c2a89b56e969944b51eb564ab16196d4032511",
+          "src/simulation/ui/marker_export_dialog.py": "2877ea22ee7c5944e153e7fdc9bfc425a7b1a2094ec07f92103619913518049b",
+          "src/utils/ui_text_ko.py": "324605d3373c582a0c9fc6c4ee49f87cdf2bf262779113b0fd9078cd203d0558",
+          "tests/test_gui177_simulation.py": "35f10764a304f310b9e8897f937f13444d68dfa3ee5e8d4444991ad89fa8a3f0"
+        },
+        "binding_basis": "capture metadata and owner clean-c985 attestation",
+        "matches_baseline_modules": {
+          "src/simulation/ui/main_window.py": false,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": false,
+          "src/utils/ui_text_ko.py": false,
+          "tests/test_gui177_simulation.py": null
+        },
+        "matches_current_packaging_source": {
+          "src/simulation/ui/main_window.py": true,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": true,
+          "src/utils/ui_text_ko.py": true,
+          "tests/test_gui177_simulation.py": false
+        },
+        "committed_module_binding": {
+          "revision": "c985a000771263119e3cdb883b537a8a28454564",
+          "per_file_byte_policy": {
+            "src/simulation/ui/main_window.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/mode_settings.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/marker_export_dialog.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF",
+            "tests/test_gui177_simulation.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/simulation/capture_ko_correction.py",
+        "local_script": "tmp/gui177/simulation/capture_ko_correction.py",
+        "current_script_sha256_at_packaging": "e56dedda076965e798e8b88492796ad0bbe4beac17561ad10d788936c342d88b",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/simulation_capture_ko_correction.py",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle"
+      },
+      "limits": [
+        "Corrected snapshot at clean c985 source; later Robot-only display changes are separate.",
+        "Corrected producer did not record control/axis bboxes. They remain Pending; no geometry is borrowed from an older source snapshot."
+      ]
+    },
+    {
+      "screen": "simulation",
+      "stage": "after",
+      "language": "ko",
+      "file": "simulation-after-ko-820x600-marker-csv.png",
+      "sha256": "bdb87c65a8a380d8864803912fd67f829d9a1363550c00b24916e715917c8221",
+      "bytes": 66819,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/simulation/ko-corrected-820x600-marker-csv.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/simulation/ko-corrected-metadata.json",
+      "metadata_sha256_at_packaging": "de53e8d9f36249d23cd69c3507c832cbf97cf7a49155766d515a1264eb245b75",
+      "reported": {
+        "client_size": [
+          820,
+          600
+        ],
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "platform": "windows",
+        "dpr": 1.0,
+        "logical_dpi": 96,
+        "bbox": null
+      },
+      "input": {
+        "kind": "SimulationUI public default ModeProfiles generated fixture v1",
+        "sha256": "b30f156eb2551d9ffd8fa363a00915f4f9cba410e62c46d5ed5a0f523bcd6479",
+        "payload_unchanged": true,
+        "hash_representation": "SHA-256 of json.dumps(ModeProfiles config, sort_keys=True, ensure_ascii=True).encode()"
+      },
+      "source": {
+        "capture_head_revision": "c985a000771263119e3cdb883b537a8a28454564",
+        "tree_state": "clean checkout at base_sha",
+        "module_sha256": {
+          "src/simulation/ui/main_window.py": "a793d8c0009a55cd8114ba08edc2fae343e64eec27b7ac4bacef2f039af8e9b6",
+          "src/simulation/ui/mode_settings.py": "9609921bf01392cf2967385bf3c2a89b56e969944b51eb564ab16196d4032511",
+          "src/simulation/ui/marker_export_dialog.py": "2877ea22ee7c5944e153e7fdc9bfc425a7b1a2094ec07f92103619913518049b",
+          "src/utils/ui_text_ko.py": "324605d3373c582a0c9fc6c4ee49f87cdf2bf262779113b0fd9078cd203d0558",
+          "tests/test_gui177_simulation.py": "35f10764a304f310b9e8897f937f13444d68dfa3ee5e8d4444991ad89fa8a3f0"
+        },
+        "binding_basis": "capture metadata and owner clean-c985 attestation",
+        "matches_baseline_modules": {
+          "src/simulation/ui/main_window.py": false,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": false,
+          "src/utils/ui_text_ko.py": false,
+          "tests/test_gui177_simulation.py": null
+        },
+        "matches_current_packaging_source": {
+          "src/simulation/ui/main_window.py": true,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": true,
+          "src/utils/ui_text_ko.py": true,
+          "tests/test_gui177_simulation.py": false
+        },
+        "committed_module_binding": {
+          "revision": "c985a000771263119e3cdb883b537a8a28454564",
+          "per_file_byte_policy": {
+            "src/simulation/ui/main_window.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/mode_settings.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/marker_export_dialog.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF",
+            "tests/test_gui177_simulation.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/simulation/capture_ko_correction.py",
+        "local_script": "tmp/gui177/simulation/capture_ko_correction.py",
+        "current_script_sha256_at_packaging": "e56dedda076965e798e8b88492796ad0bbe4beac17561ad10d788936c342d88b",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/simulation_capture_ko_correction.py",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle"
+      },
+      "limits": [
+        "Corrected snapshot at clean c985 source; later Robot-only display changes are separate.",
+        "Corrected producer did not record control/axis bboxes. They remain Pending; no geometry is borrowed from an older source snapshot."
+      ]
+    },
+    {
+      "screen": "simulation",
+      "stage": "after",
+      "language": "ko",
+      "file": "simulation-after-ko-820x600-markers-dialog.png",
+      "sha256": "e381ca8d0516b4387907d30de6b74bde396c2b3a50f1457a323fe44598ded893",
+      "bytes": 29513,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/simulation/ko-corrected-820x600-markers-dialog.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/simulation/ko-corrected-metadata.json",
+      "metadata_sha256_at_packaging": "de53e8d9f36249d23cd69c3507c832cbf97cf7a49155766d515a1264eb245b75",
+      "reported": {
+        "client_size": [
+          820,
+          600
+        ],
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "platform": "windows",
+        "dpr": 1.0,
+        "logical_dpi": 96,
+        "bbox": null
+      },
+      "input": {
+        "kind": "SimulationUI public default ModeProfiles generated fixture v1",
+        "sha256": "b30f156eb2551d9ffd8fa363a00915f4f9cba410e62c46d5ed5a0f523bcd6479",
+        "payload_unchanged": true,
+        "hash_representation": "SHA-256 of json.dumps(ModeProfiles config, sort_keys=True, ensure_ascii=True).encode()"
+      },
+      "source": {
+        "capture_head_revision": "c985a000771263119e3cdb883b537a8a28454564",
+        "tree_state": "clean checkout at base_sha",
+        "module_sha256": {
+          "src/simulation/ui/main_window.py": "a793d8c0009a55cd8114ba08edc2fae343e64eec27b7ac4bacef2f039af8e9b6",
+          "src/simulation/ui/mode_settings.py": "9609921bf01392cf2967385bf3c2a89b56e969944b51eb564ab16196d4032511",
+          "src/simulation/ui/marker_export_dialog.py": "2877ea22ee7c5944e153e7fdc9bfc425a7b1a2094ec07f92103619913518049b",
+          "src/utils/ui_text_ko.py": "324605d3373c582a0c9fc6c4ee49f87cdf2bf262779113b0fd9078cd203d0558",
+          "tests/test_gui177_simulation.py": "35f10764a304f310b9e8897f937f13444d68dfa3ee5e8d4444991ad89fa8a3f0"
+        },
+        "binding_basis": "capture metadata and owner clean-c985 attestation",
+        "matches_baseline_modules": {
+          "src/simulation/ui/main_window.py": false,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": false,
+          "src/utils/ui_text_ko.py": false,
+          "tests/test_gui177_simulation.py": null
+        },
+        "matches_current_packaging_source": {
+          "src/simulation/ui/main_window.py": true,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": true,
+          "src/utils/ui_text_ko.py": true,
+          "tests/test_gui177_simulation.py": false
+        },
+        "committed_module_binding": {
+          "revision": "c985a000771263119e3cdb883b537a8a28454564",
+          "per_file_byte_policy": {
+            "src/simulation/ui/main_window.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/mode_settings.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/marker_export_dialog.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF",
+            "tests/test_gui177_simulation.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/simulation/capture_ko_correction.py",
+        "local_script": "tmp/gui177/simulation/capture_ko_correction.py",
+        "current_script_sha256_at_packaging": "e56dedda076965e798e8b88492796ad0bbe4beac17561ad10d788936c342d88b",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/simulation_capture_ko_correction.py",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle"
+      },
+      "limits": [
+        "Corrected snapshot at clean c985 source; later Robot-only display changes are separate.",
+        "Corrected producer did not record control/axis bboxes. They remain Pending; no geometry is borrowed from an older source snapshot."
+      ]
+    },
+    {
+      "screen": "simulation",
+      "stage": "after",
+      "language": "ko",
+      "file": "simulation-after-ko-820x600-physics-dialog.png",
+      "sha256": "6f41aab5abfa7acc3a3fe7b20736e0ee4bae5ca26db3141e1fae170371d9987a",
+      "bytes": 25909,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/simulation/ko-corrected-820x600-physics-dialog.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/simulation/ko-corrected-metadata.json",
+      "metadata_sha256_at_packaging": "de53e8d9f36249d23cd69c3507c832cbf97cf7a49155766d515a1264eb245b75",
+      "reported": {
+        "client_size": [
+          820,
+          600
+        ],
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "platform": "windows",
+        "dpr": 1.0,
+        "logical_dpi": 96,
+        "bbox": null
+      },
+      "input": {
+        "kind": "SimulationUI public default ModeProfiles generated fixture v1",
+        "sha256": "b30f156eb2551d9ffd8fa363a00915f4f9cba410e62c46d5ed5a0f523bcd6479",
+        "payload_unchanged": true,
+        "hash_representation": "SHA-256 of json.dumps(ModeProfiles config, sort_keys=True, ensure_ascii=True).encode()"
+      },
+      "source": {
+        "capture_head_revision": "c985a000771263119e3cdb883b537a8a28454564",
+        "tree_state": "clean checkout at base_sha",
+        "module_sha256": {
+          "src/simulation/ui/main_window.py": "a793d8c0009a55cd8114ba08edc2fae343e64eec27b7ac4bacef2f039af8e9b6",
+          "src/simulation/ui/mode_settings.py": "9609921bf01392cf2967385bf3c2a89b56e969944b51eb564ab16196d4032511",
+          "src/simulation/ui/marker_export_dialog.py": "2877ea22ee7c5944e153e7fdc9bfc425a7b1a2094ec07f92103619913518049b",
+          "src/utils/ui_text_ko.py": "324605d3373c582a0c9fc6c4ee49f87cdf2bf262779113b0fd9078cd203d0558",
+          "tests/test_gui177_simulation.py": "35f10764a304f310b9e8897f937f13444d68dfa3ee5e8d4444991ad89fa8a3f0"
+        },
+        "binding_basis": "capture metadata and owner clean-c985 attestation",
+        "matches_baseline_modules": {
+          "src/simulation/ui/main_window.py": false,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": false,
+          "src/utils/ui_text_ko.py": false,
+          "tests/test_gui177_simulation.py": null
+        },
+        "matches_current_packaging_source": {
+          "src/simulation/ui/main_window.py": true,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": true,
+          "src/utils/ui_text_ko.py": true,
+          "tests/test_gui177_simulation.py": false
+        },
+        "committed_module_binding": {
+          "revision": "c985a000771263119e3cdb883b537a8a28454564",
+          "per_file_byte_policy": {
+            "src/simulation/ui/main_window.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/mode_settings.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/marker_export_dialog.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF",
+            "tests/test_gui177_simulation.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/simulation/capture_ko_correction.py",
+        "local_script": "tmp/gui177/simulation/capture_ko_correction.py",
+        "current_script_sha256_at_packaging": "e56dedda076965e798e8b88492796ad0bbe4beac17561ad10d788936c342d88b",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/simulation_capture_ko_correction.py",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle"
+      },
+      "limits": [
+        "Corrected snapshot at clean c985 source; later Robot-only display changes are separate.",
+        "Corrected producer did not record control/axis bboxes. They remain Pending; no geometry is borrowed from an older source snapshot."
+      ]
+    },
+    {
+      "screen": "simulation",
+      "stage": "after",
+      "language": "ko",
+      "file": "simulation-after-ko-820x600-robot-settings.png",
+      "sha256": "44e1ecaed9fd0fef02f51aa116eab7bbaac2869b81c761cf6e1d94937cd28894",
+      "bytes": 31692,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/simulation/robot-corrected-ko-820x600-settings.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/simulation/robot-corrected-metadata.json",
+      "metadata_sha256_at_packaging": "d75a38d59877e997e8589df7e24edc61de4f2e364ee7ba4ee48dfcf527a27935",
+      "reported": {
+        "client_size": [
+          820,
+          600
+        ],
+        "window_client_size": [
+          820,
+          600
+        ],
+        "control_bboxes": {
+          "handling": [
+            94,
+            128,
+            440,
+            26
+          ],
+          "attachment_face": [
+            574,
+            128,
+            220,
+            26
+          ],
+          "run_scope": [
+            94,
+            157,
+            596,
+            26
+          ],
+          "table": [
+            24,
+            186,
+            770,
+            178
+          ],
+          "apply_button": [
+            13,
+            520,
+            395,
+            26
+          ],
+          "cancel_button": [
+            413,
+            520,
+            394,
+            26
+          ]
+        },
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "platform": "windows",
+        "dpr": 1.0,
+        "logical_dpi": 96
+      },
+      "input": {
+        "kind": "SimulationUI generated default Robot ModeProfiles fixture v1",
+        "sha256": "3433295fef65b0d3f180f31829690540b947964ad7f3677905f3596c5bb44469",
+        "payload_unchanged": true,
+        "handling_display_key_pairs": [
+          {
+            "display": "\ucde8\uae09 \ubc29\uc2dd \uc120\ud0dd",
+            "key": null
+          },
+          {
+            "display": "G: \ub4e4\uc5b4 \uc62c\ub9b0 \ub4a4 \ubc29\ucd9c",
+            "key": "airborne"
+          },
+          {
+            "display": "H: \ubc14\ub2e5 \uc9c0\uc9c0 \uae30\uc6b8\uc784",
+            "key": "floor_supported"
+          },
+          {
+            "display": "\ubc29\ucd9c \uc5c6\uc774 \uc720\uc9c0",
+            "key": "held_only"
+          }
+        ]
+      },
+      "source": {
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "capture_head_revision": "996a8dc2c2e48698ce64639a6e22534abec8e7f4",
+        "tree_state": "clean checkout at base_sha",
+        "module_sha256": {
+          "src/simulation/ui/main_window.py": "a793d8c0009a55cd8114ba08edc2fae343e64eec27b7ac4bacef2f039af8e9b6",
+          "src/simulation/ui/mode_settings.py": "c539eea9f762f1de6477094b29558a315fd8bacfaebbc3d0b8dda8eb5286cefb",
+          "src/simulation/ui/marker_export_dialog.py": "2877ea22ee7c5944e153e7fdc9bfc425a7b1a2094ec07f92103619913518049b",
+          "src/utils/ui_text_ko.py": "324605d3373c582a0c9fc6c4ee49f87cdf2bf262779113b0fd9078cd203d0558",
+          "tests/test_gui177_simulation.py": "b223495a1a251c4d3253c168e09c296bc8ab573ff315cd07dc8d30ee56641110"
+        },
+        "binding_basis": "capture metadata and owner clean-996 attestation",
+        "matches_current_packaging_source": {
+          "src/simulation/ui/main_window.py": true,
+          "src/simulation/ui/mode_settings.py": true,
+          "src/simulation/ui/marker_export_dialog.py": true,
+          "src/utils/ui_text_ko.py": true,
+          "tests/test_gui177_simulation.py": true
+        },
+        "committed_module_binding": {
+          "revision": "996a8dc2c2e48698ce64639a6e22534abec8e7f4",
+          "per_file_byte_policy": {
+            "src/simulation/ui/main_window.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/mode_settings.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/marker_export_dialog.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF",
+            "tests/test_gui177_simulation.py": "exact Git blob bytes"
+          }
+        }
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/simulation/capture_robot_ko.py",
+        "local_script": "tmp/gui177/simulation/capture_robot_ko.py",
+        "archive": "producers/simulation_capture_robot_ko.py",
+        "current_script_sha256_at_packaging": "6e2f7a80eaf26f79af437d17ace8701db83ce3d4df3a97e37adddc27553d0ffe",
+        "script_availability": "archived current bytes; restore original relative path before use; not standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        }
+      },
+      "limits": [
+        "Separate later Robot-only display snapshot; earlier c985 Single-mode captures retain their exact source identity."
+      ]
+    },
+    {
+      "screen": "simulation",
+      "stage": "after",
+      "language": "ko",
+      "file": "simulation-after-ko-820x600.png",
+      "sha256": "7fcc74da841ff9e0083f020798f520213df7845333378a8a9b8929e1adc796cd",
+      "bytes": 25093,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/simulation/ko-corrected-ko-820x600-sequence.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/simulation/ko-corrected-metadata.json",
+      "metadata_sha256_at_packaging": "de53e8d9f36249d23cd69c3507c832cbf97cf7a49155766d515a1264eb245b75",
+      "reported": {
+        "client_size": [
+          820,
+          600
+        ],
+        "app_font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "resolved_font": "\ub9d1\uc740 \uace0\ub515",
+        "platform": "windows",
+        "dpr": 1.0,
+        "logical_dpi": 96,
+        "bbox": null
+      },
+      "input": {
+        "kind": "SimulationUI public default ModeProfiles generated fixture v1",
+        "sha256": "b30f156eb2551d9ffd8fa363a00915f4f9cba410e62c46d5ed5a0f523bcd6479",
+        "payload_unchanged": true,
+        "hash_representation": "SHA-256 of json.dumps(ModeProfiles config, sort_keys=True, ensure_ascii=True).encode()"
+      },
+      "source": {
+        "capture_head_revision": "c985a000771263119e3cdb883b537a8a28454564",
+        "tree_state": "clean checkout at base_sha",
+        "module_sha256": {
+          "src/simulation/ui/main_window.py": "a793d8c0009a55cd8114ba08edc2fae343e64eec27b7ac4bacef2f039af8e9b6",
+          "src/simulation/ui/mode_settings.py": "9609921bf01392cf2967385bf3c2a89b56e969944b51eb564ab16196d4032511",
+          "src/simulation/ui/marker_export_dialog.py": "2877ea22ee7c5944e153e7fdc9bfc425a7b1a2094ec07f92103619913518049b",
+          "src/utils/ui_text_ko.py": "324605d3373c582a0c9fc6c4ee49f87cdf2bf262779113b0fd9078cd203d0558",
+          "tests/test_gui177_simulation.py": "35f10764a304f310b9e8897f937f13444d68dfa3ee5e8d4444991ad89fa8a3f0"
+        },
+        "binding_basis": "capture metadata and owner clean-c985 attestation",
+        "matches_baseline_modules": {
+          "src/simulation/ui/main_window.py": false,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": false,
+          "src/utils/ui_text_ko.py": false,
+          "tests/test_gui177_simulation.py": null
+        },
+        "matches_current_packaging_source": {
+          "src/simulation/ui/main_window.py": true,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": true,
+          "src/utils/ui_text_ko.py": true,
+          "tests/test_gui177_simulation.py": false
+        },
+        "committed_module_binding": {
+          "revision": "c985a000771263119e3cdb883b537a8a28454564",
+          "per_file_byte_policy": {
+            "src/simulation/ui/main_window.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/mode_settings.py": "Git blob checked out with CRLF",
+            "src/simulation/ui/marker_export_dialog.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF",
+            "tests/test_gui177_simulation.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/simulation/capture_ko_correction.py",
+        "local_script": "tmp/gui177/simulation/capture_ko_correction.py",
+        "current_script_sha256_at_packaging": "e56dedda076965e798e8b88492796ad0bbe4beac17561ad10d788936c342d88b",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/simulation_capture_ko_correction.py",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle"
+      },
+      "limits": [
+        "Corrected snapshot at clean c985 source; later Robot-only display changes are separate.",
+        "Corrected producer did not record control/axis bboxes. They remain Pending; no geometry is borrowed from an older source snapshot."
+      ]
+    },
+    {
+      "screen": "simulation",
+      "stage": "before",
+      "language": "en",
+      "file": "simulation-before-en-1100x720.png",
+      "sha256": "9ee4e73f2277986afc8e0592c9d6cc249e0554209d1850cfb86aa0496a9887f5",
+      "bytes": 61210,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/simulation/native-before-final-en-1100x720-sequence.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/simulation/native-before-final-metadata.json",
+      "metadata_sha256_at_packaging": "2bbb069167b9eaf2e35a57cb40cc458be727187701f5a76cfcef136dbf0dd84b",
+      "reported": {
+        "requested_size": [
+          1100,
+          720
+        ],
+        "client_size": [
+          1100,
+          720
+        ],
+        "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "dpr": 1.0,
+        "logical_dpi": 96,
+        "platform": "windows",
+        "bbox": {
+          "mode_combo": {
+            "bbox": [
+              48,
+              33,
+              233,
+              26
+            ],
+            "visible": true,
+            "fully_visible": true,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "run_btn": {
+            "bbox": [
+              11,
+              549,
+              115,
+              26
+            ],
+            "visible": true,
+            "fully_visible": true,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "batch_btn": {
+            "bbox": [
+              132,
+              549,
+              115,
+              26
+            ],
+            "visible": true,
+            "fully_visible": true,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "marker_btn": {
+            "bbox": [
+              253,
+              549,
+              115,
+              26
+            ],
+            "visible": true,
+            "fully_visible": true,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "custom_r_input": {
+            "bbox": [
+              115,
+              350,
+              553,
+              24
+            ],
+            "visible": false,
+            "fully_visible": false,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "custom_p_input": {
+            "bbox": [
+              115,
+              380,
+              553,
+              24
+            ],
+            "visible": false,
+            "fully_visible": false,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "custom_y_input": {
+            "bbox": [
+              115,
+              410,
+              553,
+              24
+            ],
+            "visible": false,
+            "fully_visible": false,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "friction_input": {
+            "bbox": [
+              128,
+              487,
+              529,
+              24
+            ],
+            "visible": false,
+            "fully_visible": false,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "com_y": {
+            "bbox": [
+              128,
+              577,
+              529,
+              24
+            ],
+            "visible": false,
+            "fully_visible": false,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "noise_cb": {
+            "bbox": [
+              26,
+              660,
+              622,
+              24
+            ],
+            "visible": false,
+            "fully_visible": false,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "noise_std_input": {
+            "bbox": [
+              26,
+              826,
+              622,
+              24
+            ],
+            "visible": false,
+            "fully_visible": false,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          },
+          "orientation_preview": {
+            "bbox": [
+              390,
+              474,
+              683,
+              219
+            ],
+            "visible": true,
+            "fully_visible": true,
+            "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+          }
+        },
+        "resolved_font": null
+      },
+      "input": {
+        "kind": "SimulationUI public default ModeProfiles generated fixture v1",
+        "sha256": "b30f156eb2551d9ffd8fa363a00915f4f9cba410e62c46d5ed5a0f523bcd6479",
+        "hash_representation": "SHA-256 of json.dumps(ModeProfiles config, sort_keys=True, ensure_ascii=True).encode()"
+      },
+      "source": {
+        "tree_state": "baseline owned modules",
+        "module_sha256": {
+          "src/utils/qt_sections.py": "b00bdd63960fda6c7332f9432cccb79e04b351e31b6e61d9063c657674b8205a",
+          "src/simulation/ui/mode_settings.py": "dec1790fb7b4990455d36de8aa78f6fc1fc8ae918922c91a0d65dd152fd588a8",
+          "src/simulation/ui/marker_export_dialog.py": "b42c48b564eb0a9710e076e93b6f547a8bdaaeb6351367dbd04dc53dae65f5ed",
+          "src/simulation/ui/main_window.py": "81a79e44dc06b5c39664da5a31416172892903c226690b20ca07123fcdc1cad8"
+        },
+        "binding_basis": "capture metadata",
+        "matches_baseline_modules": {
+          "src/utils/qt_sections.py": true,
+          "src/simulation/ui/mode_settings.py": true,
+          "src/simulation/ui/marker_export_dialog.py": true,
+          "src/simulation/ui/main_window.py": true
+        },
+        "matches_current_packaging_source": {
+          "src/utils/qt_sections.py": false,
+          "src/simulation/ui/mode_settings.py": false,
+          "src/simulation/ui/marker_export_dialog.py": false,
+          "src/simulation/ui/main_window.py": false
+        },
+        "capture_head_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "committed_module_binding": {
+          "revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+          "per_file_byte_policy": {
+            "src/utils/qt_sections.py": "exact Git blob bytes",
+            "src/simulation/ui/mode_settings.py": "exact Git blob bytes",
+            "src/simulation/ui/marker_export_dialog.py": "exact Git blob bytes",
+            "src/simulation/ui/main_window.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/simulation/capture.py native-before-final --baseline",
+        "local_script": "tmp/gui177/simulation/capture.py",
+        "current_script_sha256_at_packaging": "8bce62ebdc83dc7ff81f2fa5b4d716bb2bd2c00139bca763f0fb96fbd05f4c04",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": "windows"
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to the capture process, not an OS display setting.",
+        "archive": "producers/simulation_capture.py"
+      },
+      "limits": [
+        "Sequence screen only; detailed physics/noise/marker-dialog access is tested separately."
+      ]
+    },
+    {
+      "screen": "step1",
+      "stage": "after",
+      "language": "en",
+      "file": "step1-after-en-1100x720.png",
+      "sha256": "b4f19d3ffb17fa66e56939abb72a77ea1802873ec48a9ce0a64c1f6acc1a3a32",
+      "bytes": 73999,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/common-native-v7-en/common-native-en-1100x720-step0.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/common-native-v7-en/metadata.json",
+      "metadata_sha256_at_packaging": "5b68a7bef276ba347cb8ad4871c3f7df1ab1091c53e6ecea0d06fbcc0cb3fb7b",
+      "reported": {
+        "requested": [
+          1100,
+          720
+        ],
+        "actual": [
+          1100,
+          720
+        ],
+        "dpr": 1.0,
+        "dpi": 96,
+        "table": {
+          "total_rows": 24,
+          "complete_rows": 4,
+          "header_height": 24,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "scrollbar_height": 12,
+          "scrollbar_visible": true
+        },
+        "bbox": {
+          "canvas": [
+            14,
+            37,
+            1036,
+            226
+          ],
+          "table": [
+            558,
+            373,
+            502,
+            136
+          ],
+          "toolbar": [
+            1050,
+            37,
+            34,
+            226
+          ],
+          "save_slice": [
+            735,
+            657,
+            111,
+            26
+          ],
+          "save_all": [
+            851,
+            657,
+            119,
+            26
+          ],
+          "save_process": [
+            975,
+            657,
+            109,
+            26
+          ],
+          "mpl_x_label": [
+            521.2013888888889,
+            4.167000000000002,
+            51.0,
+            13.0
+          ],
+          "mpl_y_label": [
+            4.166999999999998,
+            65.32638888888889,
+            13.00000000000001,
+            137.625
+          ]
+        },
+        "toolbar_width": 34,
+        "icon_size": 16,
+        "missing_glyphs": [],
+        "inaccessible_actions": [],
+        "font": [
+          "\ub9d1\uc740 \uace0\ub515",
+          9.0
+        ],
+        "actual_font": [
+          "\ub9d1\uc740 \uace0\ub515",
+          9.0
+        ],
+        "platform": "windows",
+        "axis_label_bbox_inside_canvas": true,
+        "source_files_unchanged_during_capture": true
+      },
+      "input": {
+        "source_kind": "handcrafted_dummy",
+        "source_sha256": "92780ff83de7db3d0ffcde45edc0246bdab04cb8b1a8259d05eaf8a5ec366d3c",
+        "scene_count": 24,
+        "include": 2,
+        "exclude": 22,
+        "generator": "src.simulation.scene_review_fixtures.public_raw/install_ui_fixture"
+      },
+      "source": {
+        "tree_state": "dirty working tree; no final commit identity asserted",
+        "module_sha256": {
+          "src/analysis/app/main_window.py": "dcc57a1f3540d2f0ecc2de2d8408bdfb476905df165d7fbec0fe99b964d74371",
+          "src/analysis/ui/widget_raw_data_processing.py": "c210a5b51c221464e69c32a430d1eb348dd935232be97bab08f64ebdc5a2dad6",
+          "src/analysis/ui/widget_scene_review.py": "e514f3b04561d4091090b017a5617a4bd808bc337612572749bbc57a361b270c",
+          "src/analysis/ui/widget_slice_processing.py": "677ffa615a47b7a0959c144e67f1ca3ce19907a329140604d9831808891f1d7c",
+          "src/analysis/ui/widget_results_analyzer.py": "746d1f4489e65421be048e5f1525f8b718130227c70d060623d4ee60c1e6407d",
+          "src/analysis/ui/plot_manager.py": "366d4c78c0011ed8d39f9aefe7ba50c3f9df7e3da2689cdd13828d64005a7377",
+          "src/utils/plot_toolbar.py": "2862ec50e87cddb73e5e9e7438d6f2da15213295a8125e22a51a14ff5c38f171",
+          "src/utils/qt_sections.py": "952e2712e88ce3bfb422defbfc294e989c456202844e42d6c6da91161d6d5809",
+          "src/utils/ui_language.py": "8302192b9fbb793a2517dc379b1efbf96d6361ea684321927f85d4651e32f64a",
+          "src/utils/ui_text_ko.py": "e5cbab513ced5a7b5eb89ea85854aa747d5bbf13b9af08c407b12070cb266711",
+          "src/utils/app_identity.py": "a7610aa3b59d8d0404060518a638a00f669c14383e11a653908541fd5e6e4a43",
+          "src/simulation/scene_review_fixtures.py": "18592eb56fe30760fa1de0ddbced0e9e56be75e1eb1545283c6d5b66407ae625"
+        },
+        "binding_basis": "capture metadata with source-before/after equality assertion",
+        "matches_baseline_modules": {
+          "src/analysis/app/main_window.py": false,
+          "src/analysis/ui/widget_raw_data_processing.py": false,
+          "src/analysis/ui/widget_scene_review.py": false,
+          "src/analysis/ui/widget_slice_processing.py": false,
+          "src/analysis/ui/widget_results_analyzer.py": false,
+          "src/analysis/ui/plot_manager.py": false,
+          "src/utils/plot_toolbar.py": false,
+          "src/utils/qt_sections.py": false,
+          "src/utils/ui_language.py": false,
+          "src/utils/ui_text_ko.py": false,
+          "src/utils/app_identity.py": false,
+          "src/simulation/scene_review_fixtures.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/app/main_window.py": true,
+          "src/analysis/ui/widget_raw_data_processing.py": true,
+          "src/analysis/ui/widget_scene_review.py": true,
+          "src/analysis/ui/widget_slice_processing.py": true,
+          "src/analysis/ui/widget_results_analyzer.py": true,
+          "src/analysis/ui/plot_manager.py": true,
+          "src/utils/plot_toolbar.py": true,
+          "src/utils/qt_sections.py": true,
+          "src/utils/ui_language.py": true,
+          "src/utils/ui_text_ko.py": false,
+          "src/utils/app_identity.py": true,
+          "src/simulation/scene_review_fixtures.py": true
+        },
+        "capture_head_revision": "80343c9877b4893febfc164f67b1d2e34fef90e6",
+        "committed_module_binding": {
+          "revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+          "per_file_byte_policy": {
+            "src/analysis/app/main_window.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/widget_raw_data_processing.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/widget_scene_review.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/widget_slice_processing.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/widget_results_analyzer.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/plot_manager.py": "Git blob checked out with CRLF",
+            "src/utils/plot_toolbar.py": "Git blob checked out with CRLF",
+            "src/utils/qt_sections.py": "Git blob checked out with CRLF",
+            "src/utils/ui_language.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF",
+            "src/utils/app_identity.py": "Git blob checked out with CRLF",
+            "src/simulation/scene_review_fixtures.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/common_native.py en",
+        "local_script": "tmp/gui177/common_native.py",
+        "current_script_sha256_at_packaging": "20276f613cbcbdc660671ef6d1b60bfb2f68f90a3cba5036fa4e5f89fbebf953",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/common_native.py"
+      },
+      "limits": [
+        "Representative populated Step1 screen; full18 size/page/language matrix and hidden-page resize checks remain in local source metadata."
+      ]
+    },
+    {
+      "screen": "step1",
+      "stage": "after",
+      "language": "ko",
+      "file": "step1-after-ko-820x600.png",
+      "sha256": "2850dc7db8bee1aa1bffc6e49f6eb7b0c2c5a5c41c18e6f99cef417177d9e569",
+      "bytes": 52676,
+      "png_pixels": [
+        820,
+        600
+      ],
+      "source_image": "tmp/gui177/common-native-v7-ko/common-native-ko-820x600-step0.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/common-native-v7-ko/metadata.json",
+      "metadata_sha256_at_packaging": "2b2a56b3f722b314e1426bf9b32c4fa030b7dc55585019abc6e863d6746571ed",
+      "reported": {
+        "requested": [
+          820,
+          600
+        ],
+        "actual": [
+          820,
+          600
+        ],
+        "dpr": 1.0,
+        "dpi": 96,
+        "table": {
+          "total_rows": 24,
+          "complete_rows": 2,
+          "header_height": 24,
+          "row_heights": [
+            24,
+            24,
+            24,
+            24
+          ],
+          "scrollbar_height": 12,
+          "scrollbar_visible": true
+        },
+        "bbox": {
+          "canvas": [
+            14,
+            37,
+            756,
+            175
+          ],
+          "table": [
+            558,
+            322,
+            502,
+            88
+          ],
+          "toolbar": [
+            770,
+            37,
+            34,
+            175
+          ],
+          "save_slice": [
+            474,
+            537,
+            112,
+            26
+          ],
+          "save_all": [
+            591,
+            537,
+            124,
+            26
+          ],
+          "save_process": [
+            720,
+            537,
+            84,
+            26
+          ],
+          "mpl_x_label": [
+            388.8888888888889,
+            4.167000000000002,
+            42.5,
+            13.0
+          ],
+          "mpl_y_label": [
+            4.1669999999999945,
+            88.20138888888889,
+            28.000000000000007,
+            39.875
+          ]
+        },
+        "toolbar_width": 34,
+        "icon_size": 16,
+        "missing_glyphs": [],
+        "inaccessible_actions": [],
+        "font": [
+          "\ub9d1\uc740 \uace0\ub515",
+          9.0
+        ],
+        "actual_font": [
+          "\ub9d1\uc740 \uace0\ub515",
+          9.0
+        ],
+        "platform": "windows",
+        "axis_label_bbox_inside_canvas": true,
+        "source_files_unchanged_during_capture": true
+      },
+      "input": {
+        "source_kind": "handcrafted_dummy",
+        "source_sha256": "92780ff83de7db3d0ffcde45edc0246bdab04cb8b1a8259d05eaf8a5ec366d3c",
+        "scene_count": 24,
+        "include": 2,
+        "exclude": 22,
+        "generator": "src.simulation.scene_review_fixtures.public_raw/install_ui_fixture"
+      },
+      "source": {
+        "tree_state": "dirty working tree; no final commit identity asserted",
+        "module_sha256": {
+          "src/analysis/app/main_window.py": "dcc57a1f3540d2f0ecc2de2d8408bdfb476905df165d7fbec0fe99b964d74371",
+          "src/analysis/ui/widget_raw_data_processing.py": "c210a5b51c221464e69c32a430d1eb348dd935232be97bab08f64ebdc5a2dad6",
+          "src/analysis/ui/widget_scene_review.py": "e514f3b04561d4091090b017a5617a4bd808bc337612572749bbc57a361b270c",
+          "src/analysis/ui/widget_slice_processing.py": "677ffa615a47b7a0959c144e67f1ca3ce19907a329140604d9831808891f1d7c",
+          "src/analysis/ui/widget_results_analyzer.py": "746d1f4489e65421be048e5f1525f8b718130227c70d060623d4ee60c1e6407d",
+          "src/analysis/ui/plot_manager.py": "366d4c78c0011ed8d39f9aefe7ba50c3f9df7e3da2689cdd13828d64005a7377",
+          "src/utils/plot_toolbar.py": "2862ec50e87cddb73e5e9e7438d6f2da15213295a8125e22a51a14ff5c38f171",
+          "src/utils/qt_sections.py": "952e2712e88ce3bfb422defbfc294e989c456202844e42d6c6da91161d6d5809",
+          "src/utils/ui_language.py": "8302192b9fbb793a2517dc379b1efbf96d6361ea684321927f85d4651e32f64a",
+          "src/utils/ui_text_ko.py": "e5cbab513ced5a7b5eb89ea85854aa747d5bbf13b9af08c407b12070cb266711",
+          "src/utils/app_identity.py": "a7610aa3b59d8d0404060518a638a00f669c14383e11a653908541fd5e6e4a43",
+          "src/simulation/scene_review_fixtures.py": "18592eb56fe30760fa1de0ddbced0e9e56be75e1eb1545283c6d5b66407ae625"
+        },
+        "binding_basis": "capture metadata with source-before/after equality assertion",
+        "matches_baseline_modules": {
+          "src/analysis/app/main_window.py": false,
+          "src/analysis/ui/widget_raw_data_processing.py": false,
+          "src/analysis/ui/widget_scene_review.py": false,
+          "src/analysis/ui/widget_slice_processing.py": false,
+          "src/analysis/ui/widget_results_analyzer.py": false,
+          "src/analysis/ui/plot_manager.py": false,
+          "src/utils/plot_toolbar.py": false,
+          "src/utils/qt_sections.py": false,
+          "src/utils/ui_language.py": false,
+          "src/utils/ui_text_ko.py": false,
+          "src/utils/app_identity.py": false,
+          "src/simulation/scene_review_fixtures.py": false
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/app/main_window.py": true,
+          "src/analysis/ui/widget_raw_data_processing.py": true,
+          "src/analysis/ui/widget_scene_review.py": true,
+          "src/analysis/ui/widget_slice_processing.py": true,
+          "src/analysis/ui/widget_results_analyzer.py": true,
+          "src/analysis/ui/plot_manager.py": true,
+          "src/utils/plot_toolbar.py": true,
+          "src/utils/qt_sections.py": true,
+          "src/utils/ui_language.py": true,
+          "src/utils/ui_text_ko.py": false,
+          "src/utils/app_identity.py": true,
+          "src/simulation/scene_review_fixtures.py": true
+        },
+        "capture_head_revision": "80343c9877b4893febfc164f67b1d2e34fef90e6",
+        "committed_module_binding": {
+          "revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+          "per_file_byte_policy": {
+            "src/analysis/app/main_window.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/widget_raw_data_processing.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/widget_scene_review.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/widget_slice_processing.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/widget_results_analyzer.py": "Git blob checked out with CRLF",
+            "src/analysis/ui/plot_manager.py": "Git blob checked out with CRLF",
+            "src/utils/plot_toolbar.py": "Git blob checked out with CRLF",
+            "src/utils/qt_sections.py": "Git blob checked out with CRLF",
+            "src/utils/ui_language.py": "Git blob checked out with CRLF",
+            "src/utils/ui_text_ko.py": "Git blob checked out with CRLF",
+            "src/utils/app_identity.py": "Git blob checked out with CRLF",
+            "src/simulation/scene_review_fixtures.py": "Git blob checked out with CRLF"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/common_native.py ko",
+        "local_script": "tmp/gui177/common_native.py",
+        "current_script_sha256_at_packaging": "20276f613cbcbdc660671ef6d1b60bfb2f68f90a3cba5036fa4e5f89fbebf953",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/common_native.py"
+      },
+      "limits": [
+        "Representative populated Step1 screen; full18 size/page/language matrix and hidden-page resize checks remain in local source metadata."
+      ]
+    },
+    {
+      "screen": "step1",
+      "stage": "before",
+      "language": "en",
+      "file": "step1-before-en-1100x720.png",
+      "sha256": "2c89d2fed830717a3b170e3917f369a8fe4309fda66cafc7c26485d2470fb565",
+      "bytes": 64513,
+      "png_pixels": [
+        1100,
+        720
+      ],
+      "source_image": "tmp/gui177/step1/before_1100x720.png",
+      "capture_kind": "Native Windows QWidget.grab; unedited PNG byte copy",
+      "metadata_source": "tmp/gui177/step1/before.json",
+      "metadata_sha256_at_packaging": "da08245609f35a2e78e44ef08fea01c30b676ef718fbf13d4e425f72d32eb560",
+      "reported": {
+        "requested": [
+          1100,
+          720
+        ],
+        "actual": [
+          1100,
+          720
+        ],
+        "font": "\ub9d1\uc740 \uace0\ub515,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+        "DPR": 1.0,
+        "table_bbox": [
+          0,
+          50,
+          1036,
+          124
+        ],
+        "logical_DPI": null,
+        "actual_font_family": null
+      },
+      "input": {
+        "kind": "public synthetic scene-review fixture",
+        "generator": "src/simulation/scene_review_fixtures.py::public_raw/install_ui_fixture",
+        "path": "tmp/gui177/step1/observations/public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_public_synthetic_scene_review_long_capture_filename_.csv",
+        "sha256": null,
+        "seeded_decisions": "2 include, 22 exclude (owner fixture attestation)"
+      },
+      "source": {
+        "tree_state": "baseline owned modules",
+        "module_sha256": {
+          "src/analysis/app/main_window.py": "d6b4252ba53ce11bb21765f146cd8a045c85344cd87643fadc8a21ff98a89830",
+          "src/analysis/ui/widget_raw_data_processing.py": "fba529ce307823dbec923b4c661b45033263a54a8cb5ac776e184388182f4dc7",
+          "src/analysis/ui/widget_scene_review.py": "e78e6727afc5ac8dbb4ff003f734bdec186f76e68aad10c2c41623caeaeea657",
+          "src/utils/qt_sections.py": "b00bdd63960fda6c7332f9432cccb79e04b351e31b6e61d9063c657674b8205a"
+        },
+        "binding_basis": "original pre-edit baseline UI attested by owner; module digests recomputed from baseline Git blobs, not recorded at capture",
+        "matches_baseline_modules": {
+          "src/analysis/app/main_window.py": true,
+          "src/analysis/ui/widget_raw_data_processing.py": true,
+          "src/analysis/ui/widget_scene_review.py": true,
+          "src/utils/qt_sections.py": true
+        },
+        "matches_current_packaging_source": {
+          "src/analysis/app/main_window.py": false,
+          "src/analysis/ui/widget_raw_data_processing.py": false,
+          "src/analysis/ui/widget_scene_review.py": false,
+          "src/utils/qt_sections.py": false
+        },
+        "capture_head_revision": null,
+        "committed_module_binding": {
+          "revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+          "per_file_byte_policy": {
+            "src/analysis/app/main_window.py": "exact Git blob bytes",
+            "src/analysis/ui/widget_raw_data_processing.py": "exact Git blob bytes",
+            "src/analysis/ui/widget_scene_review.py": "exact Git blob bytes",
+            "src/utils/qt_sections.py": "exact Git blob bytes"
+          }
+        },
+        "baseline_comparison_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+        "owner_attested_baseline_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e"
+      },
+      "producer": {
+        "command": ".venv/Scripts/python.exe tmp/gui177/step1/capture_before.py",
+        "local_script": "tmp/gui177/step1/capture_before.py",
+        "current_script_sha256_at_packaging": "f8f39f7ed56df5100e30f47c6435d42260a041d9bf6978e2abd6b25b53a3ee52",
+        "script_availability": "archived current bytes; restore to original repository-relative path before use; not a standalone replay bundle",
+        "environment": {
+          "QT_QPA_PLATFORM": null
+        },
+        "environment_note": "null means unset; native Windows default. Environment belongs to capture process.",
+        "archive": "producers/step1_capture_before.py"
+      },
+      "limits": [
+        "Original baseline input hash, logical DPI, resolved actual font and full control bbox were not recorded. Missing values are not inferred from later captures.",
+        "Historical command requires baseline source checkout; current producer imports current source and does not select baseline itself."
+      ]
+    }
+  ],
+  "pending": [
+    "Baseline Step1 input hash/DPI/resolved-font/full bbox were not recorded.",
+    "Corrected c985 Simulation control/axis bbox were not recorded."
+  ],
+  "translation_snapshot_difference": {
+    "from_revision": "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+    "to_revision": "c985a000771263119e3cdb883b537a8a28454564",
+    "path": "src/utils/ui_text_ko.py",
+    "existing_key_values_identical": true,
+    "new_keys": [
+      "BACK",
+      "BOTTOM",
+      "Box local X (mm)",
+      "Box local Y (mm)",
+      "Box local Z (mm)",
+      "Edit marker layout\u2026",
+      "FRONT",
+      "Import layout\u2026",
+      "LEFT",
+      "RIGHT",
+      "TOP"
+    ],
+    "verification": "AST literal evaluation of both committed KOREAN dictionaries; every earlier effective key retains the same value."
+  },
+  "archived_producers": [
+    {
+      "file": "producers/capture_compare.py",
+      "restore_to": "tmp/gui177/capture_compare.py",
+      "sha256": "afe6853a92e974e993fda76431cccfda1a343a8870bff5a9a2fef08721e3d090",
+      "bytes": 6525,
+      "version_basis": "current local producer at packaging; capture-time script digest was not recorded unless explicitly noted"
+    },
+    {
+      "file": "producers/common_native.py",
+      "restore_to": "tmp/gui177/common_native.py",
+      "sha256": "20276f613cbcbdc660671ef6d1b60bfb2f68f90a3cba5036fa4e5f89fbebf953",
+      "bytes": 8338,
+      "version_basis": "current local producer at packaging; capture-time script digest was not recorded unless explicitly noted"
+    },
+    {
+      "file": "producers/flip_capture_native.py",
+      "restore_to": "tmp/gui177/flip/capture_native.py",
+      "sha256": "a1105225e8f572caf918ae637554df7e7ac3047538942f6d4cc6caa7e8af86b7",
+      "bytes": 3644,
+      "version_basis": "current local producer at packaging; capture-time script digest was not recorded unless explicitly noted"
+    },
+    {
+      "file": "producers/processing_capture_final.py",
+      "restore_to": "tmp/gui177/processing/capture_final.py",
+      "sha256": "bab396528744cdb1d90d5515fb65db50dfdaae3b07394f8b2200c49308d5a2a0",
+      "bytes": 3529,
+      "version_basis": "current local producer at packaging; capture-time script digest was not recorded unless explicitly noted"
+    },
+    {
+      "file": "producers/results_capture.py",
+      "restore_to": "tmp/gui177/results/capture.py",
+      "sha256": "a2ba6471a66003ca3bbd3d58f91c122d4a04aab7dee0cbd0017eb478f7930dbd",
+      "bytes": 5177,
+      "version_basis": "current local producer at packaging; capture-time script digest was not recorded unless explicitly noted"
+    },
+    {
+      "file": "producers/simulation_capture.py",
+      "restore_to": "tmp/gui177/simulation/capture.py",
+      "sha256": "8bce62ebdc83dc7ff81f2fa5b4d716bb2bd2c00139bca763f0fb96fbd05f4c04",
+      "bytes": 5463,
+      "version_basis": "current local producer at packaging; capture-time script digest was not recorded unless explicitly noted"
+    },
+    {
+      "file": "producers/simulation_capture_ko_correction.py",
+      "restore_to": "tmp/gui177/simulation/capture_ko_correction.py",
+      "sha256": "e56dedda076965e798e8b88492796ad0bbe4beac17561ad10d788936c342d88b",
+      "bytes": 3620,
+      "version_basis": "current local producer at packaging; capture-time script digest was not recorded unless explicitly noted"
+    },
+    {
+      "file": "producers/step1_capture_before.py",
+      "restore_to": "tmp/gui177/step1/capture_before.py",
+      "sha256": "f8f39f7ed56df5100e30f47c6435d42260a041d9bf6978e2abd6b25b53a3ee52",
+      "bytes": 989,
+      "version_basis": "current local producer at packaging; capture-time script digest was not recorded unless explicitly noted"
+    },
+    {
+      "file": "producers/simulation_capture_robot_ko.py",
+      "restore_to": "tmp/gui177/simulation/capture_robot_ko.py",
+      "sha256": "6e2f7a80eaf26f79af437d17ace8701db83ce3d4df3a97e37adddc27553d0ffe",
+      "bytes": 3380,
+      "version_basis": "current local producer at packaging; capture-time script digest not recorded"
+    }
+  ],
+  "selection": "EN before/after at 1100x720 (flip 1280x740), KO after at 820x600; additional corrected Simulation dialog captures.",
+  "package_start_head_revision": "80343c9877b4893febfc164f67b1d2e34fef90e6",
+  "baseline_revision": "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+  "packaging_head_revision": "4f608367512001c693c9c38e1caa76cb4d54ae06",
+  "subsequent_robot_display_snapshot": {
+    "revision": "996a8dc2c2e48698ce64639a6e22534abec8e7f4",
+    "earlier_single_mode_revision": "c985a000771263119e3cdb883b537a8a28454564",
+    "source_diff_scope": "Robot handling labels, dynamic Saved selection and Custom display prefixes; internal keys/payload preserved per owner tests",
+    "basis": "main orchestrator and implementation owner scope attestation; separate Robot capture binds later source bytes"
+  },
+  "source_snapshot_commits": [
+    "4f608367512001c693c9c38e1caa76cb4d54ae06",
+    "6265af474888fdd32fc27f49d6b5c059e7b8aa71",
+    "996a8dc2c2e48698ce64639a6e22534abec8e7f4",
+    "a6e5c0e0f41392408e9ab9022b14d53dd405ac1e",
+    "c985a000771263119e3cdb883b537a8a28454564"
+  ],
+  "final_application_revision": null,
+  "final_application_revision_note": "The release/adoption revision is tracked by the main report. This package binds each captured module snapshot without relabeling older captures as the final application revision.",
+  "curation_checks": {
+    "PNG_byte_identical_to_selected_source": true,
+    "source_module_digests_bound_to_committed_snapshots_with_explicit_line_ending_policy": true,
+    "curator_visual_review_of_selected_images": "safe generated inputs, readable representative controls; not human approval or desktop foreground proof",
+    "comparison_v10_selected_axis_and_tick_bboxes_inside_canvas": true,
+    "raw_internal_logs_not_packaged": true
+  },
+  "external_input_evidence": {
+    "record": "external/external-input.json",
+    "sha256": "259d4923c7b481e6990f9724d99cfad09ac725651d931918c3967247dee98d97",
+    "kind": "Windows sky SendInput and foreground target capture",
+    "passes": [
+      "actual box initially visible at Sample 1",
+      "file switch and actual source colour",
+      "3D camera drag and preservation on file return",
+      "analysis tab status and reviewed decisions retained"
+    ],
+    "observed_failure": "Before correction, Individual playback displayed requested clock1.036 while Sample3 and cursor were1.020. Red/green deterministic Qt tests verify correction; no second external run after user requested capture stop.",
+    "source_scope": "Execution base996a8dc plus concurrent compare layout edits; exact whole-layout snapshot not captured. Playback source is byte-identical996a8dc..4f60836 before presentation correction ae62f45/66efaf6. Separate clean4f QWidget captures verify final graph layout.",
+    "limits": [
+      "No actual OS125 or independent human acceptance",
+      "No marker rendering claim: fixture has box corners only",
+      "No three fresh cleanup cycles; historical unchanged-lifecycle evidence linked in status record"
+    ]
+  }
+}

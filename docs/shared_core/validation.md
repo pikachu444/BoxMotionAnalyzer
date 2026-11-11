@@ -1,6 +1,18 @@
 # Issue #158 validation and handoff
 
-Last Reviewed: 2026-11-09
+Last Reviewed: 2026-11-11
+
+This is a historical #158 checkpoint, including later observations explicitly
+attributed below to their source revisions. Its issue-state inventory, test
+counts, GUI captures, wheel execution and approval waits are not fresh #177
+results. The [current status and evidence index](../visualization/gui_public_177.md)
+separates live issue state, public software checks, Windows display, actual
+OS125, numerical/measured validation, consumer adoption and package release.
+Keep this checkpoint and its original evidence intact when recording follow-up.
+
+The current user's scope is public-repository work only. Consumer adoption
+below is historical handoff/future-roadmap context, not a dependency of the
+current public implementation, review or PR; no consumer path is required.
 
 [Issue #158](https://github.com/pikachu444/BoxMotionAnalyzer/issues/158) defines
 the scope, expected results, and approval gates. The remote main baseline is

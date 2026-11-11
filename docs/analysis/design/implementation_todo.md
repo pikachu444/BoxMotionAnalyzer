@@ -1,12 +1,19 @@
 # Analysis Implementation TODO
 
-Last Reviewed: 2026-11-10
+Last Reviewed: 2026-11-11
 
 This is the handoff document for ongoing Analysis GUI, Drop Posture, and experiment comparison work. Read it before continuing related implementation. Current behavior is documented in `gui_overview.md`, architecture in `system_design.md`, and result schema details in `../reference/result_schema_notes.md`.
 
 Use `[O]` for completed items and `[ ]` for remaining items. When a task is completed, change its checkbox to `[O]` and update the stable design/reference documents. Keep this file focused on active handoff items, not as a permanent design archive.
 
+Current user scope is the public repository only. Consumer integration/adoption
+is a separate later roadmap, not a dependency of this chat or a request for
+consumer paths or private inputs.
+
 ## TODO List
+- [ ] #177 public GUI implementation and scoped validation: GUI-01/02 #178, GUI-03 #179, GUI-04 #180, GUI-05 #181, GUI-07 #182, GUI-06 #183, GUI-08 #184. Canonical fixed groups/tabs and page-scoped status are implemented; seven-file regression passed 55 checks and final offscreen synthetic-125 integrated run passed 112 checks. Current production `66efaf6` includes independently checked recorded-time/gap-tooltip display fixes; actual foreground 3D/file/camera observations and precise dirty-source limits are recorded. Latest code review found no data/math P1/P2. Final PR/head CI reconciliation remains pending in [current status](../../visualization/gui_public_177.md). Children remain OPEN through that gate; actual OS125 is separate and unperformed.
+- [ ] #177 F1/F2/F3 follow-up to #158/#168/#160/#162/#170: F1 correction `48e68fb` reproduces and fixes all four controls; combined kernel/ROW/FRAME 49 checks and source/adoption checks pass. F2 freshly reproduces the original full-baseline offscreen English 1120-width failure and verifies fixed-group geometry without restoring accordion. F3 current/historical state and evidence are recorded; final PR/head CI reconciliation remains pending; current production `66efaf6` passed the 112-case local integrated run. The 2026-11-10 `d0c91f6…` review counts remain historical.
+- [ ] Later roadmap, outside this public-only task: #177 P3/P4/P5 pin the verified public revision and adopt the same GUI/common source by import or governed byte-identical transitional copy. Consumer adapter comparison, real experiment/save/reload/CAE approval, rollback and source-drift ownership are not run here and do not block the public implementation/PR. Public generated fixtures do not complete those future gates.
 - [O] #145 / PUB12 document mapping and independent audit: [PUB01–12 delivery/evidence/status](../reference/pub_delivery_status.md) maps current code, source-head CI, original reports, independent findings, exclusions and waits. Link/CLI/schema checks passed; the new-context Astra/high reviewer accepted the corrected documents after H scope P2 was resolved. Final commit required CI/merge and issue completion remain the publication gate tracked in #145; other native/numerical/measured waits remain below.
 - [O] #144 / PUB11 software, independent correction review and publication: PR #156 / head492322c required CI38286906108 / merge698c0d5 main CI38297290908 succeeded. Four P1 corrections and actual fresh full/cancellation/resume evidence are retained in `../reference/regression_evidence.md`. Native/input/human, numerical and #104 measured acceptance remain separate.
 - [O] #143 / PUB10 software implementation and independent correction review: optional virtual

@@ -1,0 +1,61 @@
+{
+  "kind": "sky Windows target capture and SendInput",
+  "execution_source": "996a8dc2c2e48698ce64639a6e22534abec8e7f4",
+  "platform": "windows",
+  "dpr": 1,
+  "actions": [
+    {
+      "action": "activate analysis",
+      "result": "pass"
+    },
+    {
+      "action": "click Step 1.5",
+      "result": "pass",
+      "observed_status": "Step 1.5: No slice loaded"
+    },
+    {
+      "action": "click Step 1",
+      "result": "pass",
+      "observed_status": "File loaded and parsed.",
+      "reviewed": 24,
+      "save_included": 2
+    },
+    {
+      "action": "activate comparison before playback",
+      "result": "pass",
+      "observed": "actual box visible; Sample 1 at 1.000 s"
+    },
+    {
+      "action": "select second file",
+      "result": "pass",
+      "observed": "public_box_b.proc actual box and orange identity"
+    },
+    {
+      "action": "drag 3D viewport; select first then second file",
+      "result": "pass",
+      "observed": "camera rotation preserved on return"
+    },
+    {
+      "action": "click Play",
+      "result": "display mismatch",
+      "observed": "Sample 3 and graph cursor at 1.020 s; top clock 1.036 s; diagnostic sent to compare owner"
+    }
+  ],
+  "capture": "analysis-return.png",
+  "scope": "Generated fixture; current-scale external input and target window capture. OS125, measured accuracy, package release not tested.",
+  "captures": [
+    "analysis-return.png",
+    "compare-initial.png",
+    "compare-camera.png",
+    "compare-play.png"
+  ],
+  "source_state": "Execution base996a8dc with concurrent compare layout edits; exact whole-window dirty snapshot was not recorded. Analysis UI and playback behavior are bound separately; no clean final-layout claim.",
+  "playback_source_binding": "playback_panel.py identical at996a8dc and4f60836 before the recorded-time correction ae62f45; subsequent presentation-only correction verified with deterministic Qt tests.",
+  "publication_scope": "Generated public fixtures, current OS scale1.0, external SendInput and foreground target-window capture. No marker-rendering, actual OS125, full physical accuracy, or three fresh cleanup cycles claimed.",
+  "files": {
+    "analysis-return.png": "d0894547c479cb60001cd33f15553bd35d4791f5fb9ebc4e482e6ee630c9b15b",
+    "compare-initial.png": "866c88ac7121a52a7ccacaeec71427871a7e298e1c45be9aa4551b4a9a1af26c",
+    "compare-camera.png": "aef51d81fa70b8f962285675a464bce631383e8eb257d7d929dd5f43f9315a9e",
+    "compare-play.png": "86f831b0362ec5723105ca26ac7cd36d011ed11d5bff4e62d9663e48e3e89084"
+  }
+}
