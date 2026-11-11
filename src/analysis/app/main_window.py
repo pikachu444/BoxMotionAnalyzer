@@ -104,20 +104,36 @@ class MainApp(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(6, 6, 6, 6)
+        main_layout.setSpacing(5)
 
         self.tab_widget = AnalysisTabs()
-        self.tab_widget.currentChanged.connect(lambda _: self.tab_widget.updateGeometry())
         main_layout.addWidget(self.tab_widget)
 
         self.original_widget = WidgetRawDataProcessing(self.data_loader, self.parser)
         self.processing_widget = WidgetSliceProcessing(self.data_loader, self.parser)
         self.result_widget = WidgetResultsAnalyzer(self.data_loader)
+        self._page_status = {
+            self.original_widget: '',
+            self.processing_widget: tr('Step 1.5: No slice loaded'),
+            self.result_widget: '',
+        }
 
         self.tab_widget.addTab(self.original_widget, tr("Step 1: Scenes"))
         self.tab_widget.addTab(self.processing_widget, tr("Step 1.5: Process"))
         self.tab_widget.addTab(self.result_widget, tr("Step 2: Results"))
 
         self.setStatusBar(QStatusBar())
+        self.tab_widget.currentChanged.connect(self._restore_page_status)
+
+    def _set_page_status(self, page, message):
+        self._page_status[page] = message
+        if self.tab_widget.currentWidget() is page:
+            self.statusBar().showMessage(message)
+
+    def _restore_page_status(self, _index):
+        self.tab_widget.updateGeometry()
+        self.statusBar().showMessage(self._page_status.get(self.tab_widget.currentWidget(), ''))
 
     def _connect_signals(self):
         self.original_widget.file_loaded.connect(self.on_file_loaded)
@@ -127,18 +143,20 @@ class MainApp(QMainWindow):
 
         self.result_widget.log_message.connect(self.original_widget.append_log)
         self.result_widget.log_message.connect(self.processing_widget.append_log)
-        self.result_widget.log_message.connect(
-            lambda message: self.statusBar().showMessage(message.split('] ', 1)[-1])
-        )
         self.processing_widget.processing_requested.connect(self.run_processing_pipeline)
         self.processing_widget.results_ready.connect(self.view_saved_results)
         self.result_widget.compare_requested.connect(self.open_comparison)
         self.processing_widget.log_message.connect(self.processing_widget.append_log)
-        for widget in (self.original_widget, self.processing_widget):
+        for widget in (self.original_widget, self.processing_widget, self.result_widget):
             widget.log_message.connect(
-                lambda message: self.statusBar().showMessage(message.split('] ', 1)[-1]))
+                lambda message, page=widget: self._set_page_status(page, message.split('] ', 1)[-1]))
+            status_signal = getattr(widget, 'status_message', None)
+            if status_signal is not None:
+                status_signal.connect(lambda message, page=widget: self._set_page_status(page, message))
 
         self.pipeline_controller.log_message.connect(self.processing_widget.append_log)
+        self.pipeline_controller.log_message.connect(
+            lambda message: self._set_page_status(self.processing_widget, message.split('] ', 1)[-1]))
         self.pipeline_controller.analysis_finished.connect(self._receive_processing_result)
         self.pipeline_controller.analysis_failed.connect(self._receive_processing_error)
 
@@ -155,10 +173,10 @@ class MainApp(QMainWindow):
                 self.current_timeline_context['full_start_sec'] = None
                 self.current_timeline_context['full_end_sec'] = None
 
-        self.statusBar().showMessage(tr("File loaded and parsed."))
+        self._set_page_status(self.original_widget, tr("File loaded and parsed."))
 
     def on_slice_saved(self, slice_path):
-        self.statusBar().showMessage(tr('Scene slice saved: {}').format(slice_path))
+        self._set_page_status(self.original_widget, tr('Scene slice saved: {}').format(slice_path))
 
     def process_saved_scenes(self):
         worker = getattr(self, 'worker', None)
@@ -172,7 +190,7 @@ class MainApp(QMainWindow):
         paths = self.original_widget.save_for_processing()
         if paths and self.processing_widget.load_processing_inputs(paths, confirm=False):
             self.tab_widget.setCurrentWidget(self.processing_widget)
-            self.statusBar().showMessage(tr('Ready to process.'))
+            self._set_page_status(self.processing_widget, tr('Ready to process.'))
 
     def view_saved_results(self, paths):
         if self.result_widget.open_result_files(paths):
@@ -205,7 +223,7 @@ class MainApp(QMainWindow):
         from copy import deepcopy
         self.processing_timeline_context = deepcopy(timeline_context or {})
         self.processing_outcome = None
-        self.statusBar().showMessage(tr("Running processing..."))
+        self._set_page_status(self.processing_widget, tr("Running processing..."))
         self.worker = PipelineWorker(
             self.pipeline_controller,
             config,
@@ -238,17 +256,17 @@ class MainApp(QMainWindow):
     def on_processing_finished(self, result_df):
         if result_df.empty:
             self.processing_widget.on_processing_finished(result_df)
-            self.statusBar().showMessage(tr("Processing failed."))
+            self._set_page_status(self.processing_widget, tr("Processing failed."))
             return
 
         processed_with_context = add_timeline_context_columns(result_df, self.processing_timeline_context)
         self.processing_widget.on_processing_finished(processed_with_context)
-        self.statusBar().showMessage(tr("Processing complete."))
+        self._set_page_status(self.processing_widget, tr("Processing complete."))
 
     def on_processing_failed(self, error_message):
         QMessageBox.critical(self, tr("Processing Failed"), tr('An error occurred during processing:\n{}').format(error_message))
         self.processing_widget.on_processing_failed()
-        self.statusBar().showMessage(tr("Processing failed."))
+        self._set_page_status(self.processing_widget, tr("Processing failed."))
 
 
 if __name__ == '__main__':
