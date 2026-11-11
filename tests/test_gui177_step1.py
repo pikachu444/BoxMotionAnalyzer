@@ -66,7 +66,7 @@ def test_s01_rows_actions_and_decisions_survive_navigation(workspace, size, rows
     assert (window.width(), window.height()) == size
     capture.canvas.draw()
     label_bbox = capture.plot_manager.ax.yaxis.label.get_window_extent(capture.canvas.get_renderer())
-    assert label_bbox.y0 >= 0 and label_bbox.y1 <= capture.canvas.height()
+    assert label_bbox.y0 >= 0 and label_bbox.y1 <= capture.fig.bbox.height
     assert [table.horizontalHeader().logicalIndex(i) for i in range(9)] == [0, 5, 1, 2, 3, 4, 6, 7, 8]
     for row in range(rows):
         rect = table.visualItemRect(table.item(row, 0))
@@ -148,4 +148,4 @@ def test_graph_labels_fit_after_resize_while_another_tab_is_selected(workspace):
     QTest.qWait(100)
     capture.canvas.draw()
     bounds = capture.plot_manager.ax.yaxis.label.get_window_extent(capture.canvas.get_renderer())
-    assert 0 <= bounds.y0 <= bounds.y1 <= capture.canvas.height()
+    assert 0 <= bounds.y0 <= bounds.y1 <= capture.fig.bbox.height

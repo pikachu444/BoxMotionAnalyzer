@@ -135,6 +135,24 @@ def test_m01_mode_roundtrip_draft_cancel_apply_and_run_payload(window, monkeypat
     applied = window._capture_config()
     window.mode_combo.setCurrentIndex(1)
     robot = window._capture_config()
+    if QApplication.instance().property('interfaceLanguage') == 'ko':
+        for index, (label, key) in enumerate((('Choose handling', None),
+            ('G: Lift and release', 'airborne'), ('H: Virtual tip on floor', 'floor_supported'),
+            ('Hold without release', 'held_only'))):
+            assert panel.handling.itemText(index) == tr(label) and panel.handling.itemText(index) != label
+            assert panel.handling.itemData(index) == key
+        for index, (label, key) in enumerate((('Entire plan', 'entire'),
+            ('Selected drop', 'selected'), ('Saved selection', 'captured'))):
+            assert panel.run_scope.itemText(index) == tr(label) and panel.run_scope.itemText(index) != label
+            assert panel.run_scope.itemData(index) == key
+        marker = deepcopy(panel.marker)
+        panel.marker['profile']['profile_id'] = 'fixture-identifier'
+        panel._select_marker_name()
+        assert panel.marker_combo.currentText() == tr('Custom') + ': fixture-identifier'
+        assert panel.marker_combo.currentData() == 'custom'
+        panel.marker = marker
+        panel._select_marker_name()
+        assert window._capture_config() == robot
     assert not window.batch_btn.isEnabled()
     assert not window.rotation_section.isEnabled()
     window.mode_combo.setCurrentIndex(0)

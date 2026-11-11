@@ -53,7 +53,7 @@ class ModeSettings(QWidget):
         names.addRow(tr('Robot model'), self.robot_model); seq.addLayout(names)
         self.handling = QComboBox()
         for label,key in [('Choose handling',None),('G: Lift and release','airborne'),
-                ('H: Virtual tip on floor','floor_supported'),('Hold without release','held_only')]:self.handling.addItem(label,key)
+                ('H: Virtual tip on floor','floor_supported'),('Hold without release','held_only')]:self.handling.addItem(tr(label),key)
         self.attachment_face = QComboBox();self.attachment_face.addItem(tr('Top-facing face (auto)'),'upward')
         for face in ['+X','-X','+Y','-Y','+Z','-Z']:self.attachment_face.addItem(face,face)
         self.attachment_face.setToolTip(tr('Faces use box-local axes. Auto selects the face currently pointing upward.'))
@@ -189,7 +189,7 @@ class ModeSettings(QWidget):
         scope=(1 if len(plan['selected_step_ids'])==1 and len(sequence['steps'])>1 else
             2 if plan['selected_step_ids']!=[s['step_id'] for s in sequence['steps']] else 0) if plan else 0
         self.run_scope.model().item(2).setEnabled(plan is not None)
-        self.run_scope.setItemText(2,f"Saved selection ({len(plan['selected_step_ids'])} / {len(sequence['steps'])})" if plan else tr('Saved selection'))
+        self.run_scope.setItemText(2,tr('Saved selection') + f" ({len(plan['selected_step_ids'])} / {len(sequence['steps'])})" if plan else tr('Saved selection'))
         self.run_scope.setItemData(2,', '.join(plan['selected_step_ids']) if plan else '',Qt.ToolTipRole)
         self.run_scope.setCurrentIndex(scope)
         self.preview_box.hide();self._preview_signature=None;self._preview_plan=None;self._preview_duration=config['duration_s']
@@ -451,8 +451,8 @@ class ModeSettings(QWidget):
         profile = self.marker['profile']; key = next((key for key, value in self._examples.items() if profile == value), 'custom')
         if key == 'custom':
             index = self.marker_combo.findData(key)
-            if index < 0: self.marker_combo.addItem('Custom: '+profile['profile_id'], key)
-            else: self.marker_combo.setItemText(index, 'Custom: '+profile['profile_id'])
+            if index < 0: self.marker_combo.addItem(tr('Custom') + ': '+profile['profile_id'], key)
+            else: self.marker_combo.setItemText(index, tr('Custom') + ': '+profile['profile_id'])
         self.marker_combo.setCurrentIndex(self.marker_combo.findData(key))
 
     def change_marker(self):
