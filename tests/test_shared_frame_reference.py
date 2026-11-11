@@ -180,7 +180,7 @@ def test_frame_rejection_precedes_table_preparation_and_gap_validation():
     times, frames = [0.0, 0.125], [np.inf, 104]
     summary = pd.DataFrame({"T1Detected": ["bad"], "T1MinusTimeSec": ["bad"]})
     assert alignment_reason(times, frames, summary, 0) == "invalid_flag"
-    summary.loc[0, "T1Detected"] = True
+    summary = pd.DataFrame({"T1Detected": [True], "T1MinusTimeSec": ["bad"]})
     assert alignment_reason(times, frames, summary, 0) == "invalid_t1"
     assert frame_lookup(times, frames, 0.0, "unaligned", "bad", 0) is None
     assert frame_lookup(times, frames, 0.0, "", None, 0) is None
