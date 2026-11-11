@@ -1,18 +1,64 @@
 """Simulation input identity, camera semantics and reachable Run actions."""
+import os
+from pathlib import Path
+
 import numpy as np
 import pytest
 from scipy.spatial.transform import Rotation
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QRegion
+from PySide6.QtGui import QFont, QFontDatabase, QFontInfo, QRegion
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QScrollArea, QStyleFactory
 
 from src.simulation.scenarios import Scenarios
 from src.simulation.ui.main_window import OrientationPreviewWidget, SimulationUI
+from src.utils.ui_language import active_language
 
 
 def _fully_visible(widget):
     return widget.isVisible() and not widget.rect().isEmpty() and QRegion(widget.rect()).subtracted(widget.visibleRegion()).isEmpty()
+
+
+def _register_offscreen_fonts(app, registered):
+    if app.platformName() == 'offscreen':
+        directory = Path(os.environ.get('WINDIR', 'C:/Windows')) / 'Fonts'
+        for filename, family in (('segoeui.ttf', 'Segoe UI'), ('malgun.ttf', 'Malgun Gothic')):
+            path = directory / filename
+            if family not in QFontDatabase.families() and path.is_file():
+                font_id = QFontDatabase.addApplicationFont(str(path))
+                assert font_id >= 0, f'Could not load diagnostic font {filename}'
+                registered.append(font_id)
+
+
+def _fhd_geometry(window):
+    settings = window.settings
+    preview = window.preview_group
+    viewport = window.right_scroll.viewport()
+    page = settings.tabs.currentWidget()
+    font = QFontInfo(window.font())
+    preview_rect = preview.rect()
+    preview_rect.moveTopLeft(preview.mapTo(viewport, preview_rect.topLeft()))
+    margins = window.right_layout.contentsMargins()
+    preview_minimum = max(preview.minimumHeight(), preview.minimumSizeHint().height())
+    return dict(language=active_language(), style=window.style().objectName(), font_family=font.family(),
+        font_points=font.pointSizeF(), font_pixels=font.pixelSize(), font_height=window.fontMetrics().height(),
+        dpr=window.devicePixelRatioF(), dpi=window.logicalDpiY(),
+        viewport=viewport.rect().getRect(), preview=preview_rect.getRect(),
+        mandatory_minimum=settings.minimumSizeHint().height() + preview_minimum
+            + window.right_layout.spacing() + margins.top() + margins.bottom(),
+        content_minimum=window.right_scroll.widget().minimumSizeHint().height(),
+        content_hfw=window.right_layout.totalHeightForWidth(viewport.width()),
+        settings=settings.geometry().getRect(), settings_minimum=settings.minimumSizeHint().height(),
+        settings_maximum=settings.maximumHeight(), tabs_height=settings.tabs.height(),
+        page=page.geometry().getRect(), page_hint=page.layout().sizeHint().height(),
+        page_hfw=page.layout().totalHeightForWidth(page.width()), preview_minimum=preview_minimum,
+        preview_hint=preview.sizeHint().height(), orientation_height=window.orientation_preview.height(),
+        orientation_minimum=window.orientation_preview.minimumHeight(),
+        table_height=settings.table.height(), table_viewport=settings.table.viewport().height(),
+        five_rows=5 * settings.table.rowHeight(0), table_header=settings.table.horizontalHeader().height(),
+        table_hbar_max=settings.table.horizontalScrollBar().maximum(),
+        table_hbar_height=settings.table.horizontalScrollBar().height(),
+        scroll_max=window.right_scroll.verticalScrollBar().maximum())
 
 
 def test_startup_window_fits_screen_and_robot_target_is_reachable():
@@ -98,16 +144,28 @@ def test_robot_summary_and_whole_target_fit_fhd_without_scrolling():
         window.close();app.processEvents()
 
 
-@pytest.mark.parametrize('point_size', [9, 11])
-def test_fhd_robot_preview_fits_content_at_current_font_metrics(point_size):
+@pytest.mark.parametrize('point_size, language', [(9, 'en'), (9, 'ko'), (11, 'en'), (11, 'ko')])
+def test_fhd_robot_preview_fits_content_at_current_font_metrics(point_size, language):
     app = QApplication.instance() or QApplication([])
     original_font = app.font()
     original_style = app.style().objectName()
-    app.setStyle('windows11' if 'windows11' in QStyleFactory.keys() else 'Windows')
-    app.setFont(QFont('Segoe UI', point_size))
-    window = SimulationUI()
-    window.show()
+    original_language = app.property('interfaceLanguage')
+    registered_fonts = []
+    window = None
     try:
+        _register_offscreen_fonts(app, registered_fonts)
+        family = 'Segoe UI' if 'Segoe UI' in QFontDatabase.families() else QFontInfo(original_font).family()
+        assert family, 'A resolved system font is required for font-metric evidence'
+        app.setStyle('windows11' if 'windows11' in QStyleFactory.keys() else 'Windows')
+        app.setFont(QFont(family, point_size))
+        app.setProperty('interfaceLanguage', language)
+        window = SimulationUI()
+        window.show()
+        actual_font = QFontInfo(window.font())
+        assert actual_font.family() == family, _fhd_geometry(window)
+        assert abs(actual_font.pointSizeF() - point_size) <= .5, _fhd_geometry(window)
+        assert actual_font.pixelSize() > 0, _fhd_geometry(window)
+        assert active_language() == language
         window.resize(1536, 864)
         QTest.qWait(50)
         window.mode_combo.setCurrentIndex(1)
@@ -118,13 +176,21 @@ def test_fhd_robot_preview_fits_content_at_current_font_metrics(point_size):
         window.settings.preview_sequence()
         QTest.qWait(50)
         app.processEvents()
-        assert _fully_visible(window.settings.preview_box)
-        assert _fully_visible(window.settings.apply_button)
-        assert _fully_visible(window.preview_group)
-        assert window.right_scroll.verticalScrollBar().maximum() == 0
+        assert _fully_visible(window.settings.preview_box), _fhd_geometry(window)
+        assert _fully_visible(window.settings.apply_button), _fhd_geometry(window)
+        if point_size == 9:
+            assert _fully_visible(window.preview_group), _fhd_geometry(window)
+            assert window.right_scroll.verticalScrollBar().maximum() == 0, _fhd_geometry(window)
+        else:
+            # Actual Segoe 11pt needs 874 px of mandatory content in an 848 px viewport.
+            window.right_scroll.ensureWidgetVisible(window.preview_group)
+            app.processEvents()
+            assert _fully_visible(window.preview_group), _fhd_geometry(window)
         assert window.orientation_preview.height() >= 160
         assert window.settings.table.viewport().height() >= 5 * window.settings.table.rowHeight(0)
         assert window._capture_config() == configuration
+        assert all(_fully_visible(button) for button in (window.run_btn, window.batch_btn, window.marker_btn)), _fhd_geometry(window)
+        assert window.font().pointSize() == point_size
         for size in ((1510, 800), (1100, 720), (820, 600)):
             window.resize(*size)
             QTest.qWait(30)
@@ -153,17 +219,33 @@ def test_fhd_robot_preview_fits_content_at_current_font_metrics(point_size):
                     assert window.settings.table.viewport().height() >= 5 * window.settings.table.rowHeight(0)
             if window.settings_dialog:
                 window.settings_dialog.accept()
+            preview_scroll = window.form_scroll if window._narrow else window.right_scroll
+            preview_target = window.orientation_preview if window._narrow else window.preview_group
+            preview_scroll.ensureWidgetVisible(preview_target)
+            app.processEvents()
+            assert _fully_visible(preview_target), (point_size, size, _fhd_geometry(window))
+            assert window.orientation_preview.height() >= 160, (point_size, size, _fhd_geometry(window))
             assert window._capture_config() == configuration
         window.resize(1536, 864)
         window.settings.tabs.setCurrentIndex(0)
         QTest.qWait(40)
-        assert _fully_visible(window.preview_group)
-        assert window.right_scroll.verticalScrollBar().maximum() == 0
+        if point_size == 9:
+            assert _fully_visible(window.preview_group), _fhd_geometry(window)
+            assert window.right_scroll.verticalScrollBar().maximum() == 0, _fhd_geometry(window)
+        else:
+            window.right_scroll.ensureWidgetVisible(window.preview_group)
+            app.processEvents()
+            assert _fully_visible(window.preview_group), _fhd_geometry(window)
+        assert window.font().pointSize() == point_size
     finally:
-        window.close()
+        if window is not None:
+            window.close()
+        app.setProperty('interfaceLanguage', original_language)
         app.setStyle(original_style)
         app.setFont(original_font)
         app.processEvents()
+        for font_id in registered_fonts:
+            assert QFontDatabase.removeApplicationFont(font_id)
 
 
 def test_small_simulation_form_keeps_run_fixed_and_settings_intact():
