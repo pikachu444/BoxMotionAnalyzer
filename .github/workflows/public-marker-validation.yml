@@ -95,6 +95,13 @@ jobs:
         run: >-
           python -m pytest -q
           tests/test_ui_language.py
+          tests/test_gui177_common.py
+          tests/test_gui177_step1.py
+          tests/test_gui177_flip.py
+          tests/test_gui177_processing.py
+          tests/test_gui177_results.py
+          tests/test_gui177_compare.py
+          tests/test_gui177_simulation.py
           tests/test_comparison_layout.py
           tests/test_collinear_profile_recovery.py
           tests/test_marker_profile_identity.py
