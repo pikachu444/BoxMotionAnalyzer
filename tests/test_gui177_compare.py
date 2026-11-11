@@ -1,5 +1,6 @@
 """GUI-06 generated-data contracts; these fixtures do not validate trial physics."""
 import hashlib
+from types import SimpleNamespace
 
 import pandas as pd
 import pytest
@@ -267,3 +268,44 @@ def test_whole_region_visibility_rejects_partial_and_empty(comparison):
         assert fully_visible(child)
     finally:
         host.close()
+
+
+def test_individual_end_playback_displays_recorded_sample_time(tmp_path, comparison):
+    app, window = comparison
+    path = write_proc(tmp_path / 'three-samples.proc')
+    window.load_result_files([str(path)])
+    panel = window.playback_panel
+    panel.clock = SimpleNamespace(restart=lambda: None, elapsed=lambda: 36)
+    panel.toggle_master_playback()
+    panel._on_master_timer()
+    assert panel.master_slider.value() == 2
+    assert panel.widgets[path.name].last_row == 2
+    assert window.graph_panel.cursor.get_xdata()[0] == 1.020
+    assert panel.time_label.text() == '1.020 s'
+    assert panel.time_label.toolTip() == 'Recorded time'
+    assert not panel.master_timer.isActive()
+    assert panel.btn_master_play.text() == 'Play'
+    # Aligned playback keeps the owner's elapsed axis and existing end clamp.
+    window.control_panel.cb_view.setCurrentIndex(1)
+    panel.master_slider.setValue(0)
+    panel.toggle_master_playback()
+    panel._on_master_timer()
+    assert panel.current_elapsed == pytest.approx(panel.bounds[1])
+    assert window.graph_panel.cursor.get_xdata()[0] == pytest.approx(panel.bounds[1])
+    assert panel.time_label.text() == f'{panel.bounds[1]:+.3f} s'
+    assert panel.time_label.toolTip() == 'Time from the last sample before contact'
+    assert not panel.master_timer.isActive()
+
+
+def test_individual_playback_gap_does_not_claim_a_recorded_timestamp(tmp_path, comparison):
+    app, window = comparison
+    path = write_proc(tmp_path / 'gap-samples.proc', times=(1., 1.01, 1.30))
+    window.load_result_files([str(path)])
+    panel = window.playback_panel
+    panel.clock = SimpleNamespace(restart=lambda: None, elapsed=lambda: 150)
+    panel.toggle_master_playback()
+    panel._on_master_timer()
+    assert panel.widgets[path.name].isHidden()
+    assert panel.master_slider.value() == 0
+    assert panel.time_label.text() == 'Unavailable here'
+    assert panel.master_timer.isActive()
