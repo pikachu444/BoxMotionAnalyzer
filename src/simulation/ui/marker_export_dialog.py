@@ -116,7 +116,7 @@ class MarkerExportDialog(QDialog):
         self.kind = QComboBox()
         for label, key in [('None', None), ('Missing samples', 'missing'),
                            ('Local 180° half-turn', 'flip_180_local_axis'), ('Gaussian noise', 'gaussian_noise')]:
-            self.kind.addItem(label, key)
+            self.kind.addItem(tr(label), key)
         fields.addRow(tr('Fault'), self.kind)
         self.channel = QComboBox()
         self.channel.addItem(tr('Solved rigid-body markers'), 'rigid_body_markers')
@@ -205,7 +205,7 @@ class MarkerExportDialog(QDialog):
         selected = self.profile_combo.currentData()
         self.profile = copy.deepcopy(self.imported_profile) if selected == 'custom' else load_profile(example=selected)
         dims = tuple(self.profile['box_dims_mm'])
-        self.dimensions.setText('Use layout box: ' + ' × '.join(f'{d:g}' for d in dims) + ' mm')
+        self.dimensions.setText(tr('Use layout box: {} mm').format(' × '.join(f'{d:g}' for d in dims)))
         self.dimensions.setChecked(dims == self.original_size)
         self.axes.clear()
         draw_profile(self.profile, self.axes)

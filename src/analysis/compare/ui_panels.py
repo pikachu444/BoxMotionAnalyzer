@@ -543,6 +543,14 @@ class CompareTablePanel(QGroupBox):
 
 from src.utils.plot_toolbar import PlotToolbar as NavigationToolbar
 
+
+class _ComparePlotManager(PlotManager):
+    def _layout_axes(self):
+        # Keep the same compact padding after resize as after a metric change.
+        self.fig.tight_layout(pad=.3)
+        self.canvas.draw_idle()
+
+
 class CompareGraphPanel(QGroupBox):
     """File colours and canonical metric keys are shared with the other views."""
     plot_target_changed = Signal(object)
@@ -586,7 +594,7 @@ class CompareGraphPanel(QGroupBox):
         target_layout.addWidget(self.legend_scroll, stretch=1)
         target_layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas, stretch=1)
-        self.plot_manager = PlotManager(self.canvas, self.fig)
+        self.plot_manager = _ComparePlotManager(self.canvas, self.fig)
         self.plot_manager.ax.xaxis.label.set_fontsize(9)
         self.plot_manager.ax.yaxis.label.set_fontsize(9)
         self.cursor = None

@@ -17,10 +17,10 @@ def fully_visible(widget):
 
 
 @pytest.fixture
-def window():
+def window(request):
     app = QApplication.instance() or QApplication([])
     original_language = app.property('interfaceLanguage')
-    app.setProperty('interfaceLanguage', 'en')
+    app.setProperty('interfaceLanguage', getattr(request, 'param', 'en'))
     widget = SimulationUI()
     widget.show()
     app.processEvents()
@@ -109,6 +109,7 @@ def test_m02_fixed_groups_tabs_and_actions_are_reachable(window, size, language)
         app.processEvents()
 
 
+@pytest.mark.parametrize('window', ['en', 'ko'], indirect=True)
 def test_m01_mode_roundtrip_draft_cancel_apply_and_run_payload(window, monkeypatch, tmp_path):
     window.custom_r_input.setValue(23)
     window.custom_p_input.setValue(-17)
@@ -160,10 +161,25 @@ def test_m01_mode_roundtrip_draft_cancel_apply_and_run_payload(window, monkeypat
     assert window._capture_config() == applied
 
 
+@pytest.mark.parametrize('window', ['en', 'ko'], indirect=True)
 def test_m02_marker_fault_group_keeps_defaults_conditions_and_csv_payload(window, monkeypatch, tmp_path):
     before = window._capture_config()
     window.open_marker_export()
     dialog = window.marker_dialog
+    if QApplication.instance().property('interfaceLanguage') == 'ko':
+        for key, control in zip(('Mass (kg)', 'Friction', 'Contact damping', 'COM X (mm)',
+                                 'COM Y (mm)', 'COM Z (mm)'), window.settings.physics_controls):
+            label = control.parentWidget().layout().labelForField(control)
+            assert label.text() == tr(key) and label.text() != key
+        assert dialog.dimensions.text() == tr('Use layout box: {} mm').format('200 × 120 × 80')
+        assert not dialog.dimensions.text().startswith('Use layout box')
+        fault_labels = ('None', 'Missing samples', 'Local 180° half-turn', 'Gaussian noise')
+        fault_keys = (None, 'missing', 'flip_180_local_axis', 'gaussian_noise')
+        for combo in (window.settings.fault_kind, dialog.kind):
+            assert combo.itemText(0) == '없음'
+            for index, (label, key) in enumerate(zip(fault_labels, fault_keys)):
+                assert combo.itemText(index) == tr(label) and combo.itemText(index) != label
+                assert combo.itemData(index) == key
     dialog.resize(820, 600)
     QApplication.processEvents()
     dialog.canvas.draw()

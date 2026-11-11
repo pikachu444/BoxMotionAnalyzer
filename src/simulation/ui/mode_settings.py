@@ -126,7 +126,7 @@ class ModeSettings(QWidget):
         form.addRow(tr('Marker profile'), row)
         self.use_layout_box = QCheckBox(tr('Use layout box dimensions')); form.addRow('', self.use_layout_box)
         self.fault_kind = QComboBox()
-        for label, key in [('None', None), ('Missing samples', 'missing'), ('Local 180° half-turn', 'flip_180_local_axis'), ('Gaussian noise', 'gaussian_noise')]: self.fault_kind.addItem(label, key)
+        for label, key in [('None', None), ('Missing samples', 'missing'), ('Local 180° half-turn', 'flip_180_local_axis'), ('Gaussian noise', 'gaussian_noise')]: self.fault_kind.addItem(tr(label), key)
         form.addRow(tr('Marker faults'), self.fault_kind)
         self.channel = QComboBox(); self.channel.addItem(tr('Solved rigid-body markers'), 'rigid_body_markers'); self.channel.addItem(tr('Physical markers'), 'physical_markers')
         form.addRow(tr('Marker channel'), self.channel)

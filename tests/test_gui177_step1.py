@@ -64,6 +64,9 @@ def test_s01_rows_actions_and_decisions_survive_navigation(workspace, size, rows
     capture.review_scroll.ensureWidgetVisible(capture.scene_panel, 0, 0)
     QTest.qWait(50)
     assert (window.width(), window.height()) == size
+    capture.canvas.draw()
+    label_bbox = capture.plot_manager.ax.yaxis.label.get_window_extent(capture.canvas.get_renderer())
+    assert label_bbox.y0 >= 0 and label_bbox.y1 <= capture.canvas.height()
     assert [table.horizontalHeader().logicalIndex(i) for i in range(9)] == [0, 5, 1, 2, 3, 4, 6, 7, 8]
     for row in range(rows):
         rect = table.visualItemRect(table.item(row, 0))
@@ -106,3 +109,43 @@ def test_s03_new_source_invalidates_old_scene_session(workspace, tmp_path):
     assert capture.scene_panel.session is None
     assert old.rows[0]['decision'] == 'include'
     assert not capture.scene_panel.save_all_button.isEnabled()
+
+
+def test_scene_signal_display_is_translated_without_changing_identity(workspace, tmp_path, monkeypatch):
+    from matplotlib import rcParams
+    from PySide6.QtCore import QSettings
+    from src.utils import ui_language
+
+    window, capture, source = workspace
+    app = QApplication.instance()
+    previous = app.property('interfaceLanguage')
+    fonts, unicode_minus = list(rcParams['font.sans-serif']), rcParams['axes.unicode_minus']
+    settings = QSettings(str(tmp_path / 'language.ini'), QSettings.IniFormat)
+    settings.setValue('interface/language', 'ko')
+    monkeypatch.setattr(ui_language, '_settings', lambda: settings)
+    ui_language.configure_language(app)
+    try:
+        key = capture.combo_plot_axis.currentData()
+        capture.update_plot()
+        assert capture.combo_plot_axis.currentData() == key == 'Vertical speed (mm/s)'
+        assert capture.plot_manager.ax.get_ylabel() == '수직 속도 (mm/s)'
+        assert capture.plot_manager.ax.get_legend().get_texts()[0].get_text() == '수직 속도 (mm/s)'
+    finally:
+        app.setProperty('interfaceLanguage', previous)
+        capture.update_plot()
+        rcParams['font.sans-serif'] = fonts
+        rcParams['axes.unicode_minus'] = unicode_minus
+
+
+def test_graph_labels_fit_after_resize_while_another_tab_is_selected(workspace):
+    window, capture, source = workspace
+    window.resize(1510, 800)
+    QTest.qWait(50)
+    window.tab_widget.setCurrentIndex(2)
+    window.resize(820, 600)
+    QTest.qWait(50)
+    window.tab_widget.setCurrentIndex(0)
+    QTest.qWait(100)
+    capture.canvas.draw()
+    bounds = capture.plot_manager.ax.yaxis.label.get_window_extent(capture.canvas.get_renderer())
+    assert 0 <= bounds.y0 <= bounds.y1 <= capture.canvas.height()

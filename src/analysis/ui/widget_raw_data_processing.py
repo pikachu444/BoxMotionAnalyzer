@@ -206,7 +206,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         plot_layout.setSpacing(0)
         self.fig = Figure(figsize=(5, 4), dpi=100)
         self.canvas = FigureCanvas(self.fig)
-        self.canvas.setMinimumHeight(160)
+        self.canvas.setMinimumHeight(175)
         self.toolbar = NavigationToolbar(self.canvas, self, vertical=True)
         self.toolbar.coordinate_message.connect(self.status_message)
         plot_layout.addWidget(self.canvas, 1)
@@ -386,6 +386,14 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         self._capture_fit_timer.setSingleShot(True)
         self._capture_fit_timer.timeout.connect(self._fit_capture_sections)
         self._capture_fit_timer.start()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        QTimer.singleShot(0, self._refresh_capture_plot_labels)
+
+    def _refresh_capture_plot_labels(self):
+        self._fit_capture_plot_labels()
+        self.canvas.draw_idle()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -981,15 +989,11 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
         if not hasattr(self, 'combo_plot_axis') or not self.canvas.isVisible():
             return
         signal = self.combo_plot_axis.currentData()
-        compact = self.canvas.height() < 160
+        compact = self.canvas.height() < 200
         if signal == 'Vertical speed (mm/s)':
-            self.plot_manager.ax.set_ylabel('Speed\n(mm/s)' if compact else signal)
+            self.plot_manager.ax.set_ylabel(tr('Speed') + '\n(mm/s)' if compact else tr(signal))
         elif signal == 'Relative rotation (deg)':
-            self.plot_manager.ax.set_ylabel('Rotation\n(deg)' if compact else signal)
-        legend = self.plot_manager.ax.get_legend()
-        if legend is not None:
-            legend.set_visible(not (compact and self.scene_session is not None
-                                   and signal in self.scene_session.result.signals))
+            self.plot_manager.ax.set_ylabel(tr('Rotation') + '\n(deg)' if compact else tr(signal))
 
     def _draw_capture_plot(self):
         self.combo_plot_axis.setToolTip('')
@@ -1003,14 +1007,18 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
             row = self.scene_panel.selected_row()
             plot_data = self.scene_session.result.signals
             self.plot_manager.draw_plot(plot_data, [selected_axis_generic])
-            self.plot_manager.ax.set_ylabel(selected_axis_generic)
+            self.plot_manager.ax.set_ylabel(tr(selected_axis_generic))
+            legend = self.plot_manager.ax.get_legend()
+            if legend is not None:
+                for label in legend.get_texts():
+                    label.set_text(tr(label.get_text()))
             if not np.isfinite(plot_data[selected_axis_generic].to_numpy(dtype=float)).any():
                 self.plot_manager.ax.set_title(tr('Signal unavailable'))
             if selected_axis_generic == 'Vertical speed (mm/s)':
                 registration = self.scene_session.result.registration
                 point = ('marker-layout reference point (box center and COM unverified)' if registration is None
                          else 'center of mass' if registration.com_offset_mm is not None else 'box center')
-                self.combo_plot_axis.setToolTip(tr('World Y velocity of the {}; positive is upward.').format(point))
+                self.combo_plot_axis.setToolTip(tr('World Y velocity of the {}; positive is upward.').format(tr(point)))
             self.plot_manager.enable_interactions(df)
             if row:
                 self.plot_manager.set_selector_active(True)

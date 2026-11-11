@@ -234,11 +234,13 @@ def test_fixed_tabs_and_controls_fit_supported_sizes(tmp_path, comparison, monke
 
 def test_whole_region_visibility_rejects_partial_and_empty(comparison):
     app, _ = comparison
-    parent = QWidget()
-    parent.resize(40, 40)
+    host = QWidget()
+    host.resize(200, 200)
+    parent = QWidget(host)
+    parent.setFixedSize(40, 40)
     child = QWidget(parent)
     child.setGeometry(20, 0, 40, 40)
-    parent.show()
+    host.show()
     app.processEvents()
     try:
         assert not fully_visible(child)
@@ -247,4 +249,4 @@ def test_whole_region_visibility_rejects_partial_and_empty(comparison):
         app.processEvents()
         assert fully_visible(child)
     finally:
-        parent.close()
+        host.close()
