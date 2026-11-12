@@ -101,6 +101,10 @@ class PlotManager(QObject):
         category_columns = [col for col in columns_to_plot if col in data_df and is_corner_id_column(col)]
         if numeric_columns and category_columns:
             self.category_ax = self.ax.twinx()
+            sizes = getattr(self, '_category_label_sizes',
+                            (self.ax.xaxis.label.get_fontsize(), self.ax.yaxis.label.get_fontsize()))
+            self.category_ax.xaxis.label.set_fontsize(sizes[0])
+            self.category_ax.yaxis.label.set_fontsize(sizes[1])
             self.category_ax.grid(False)
         lines = []
         for i, col_name in enumerate(columns_to_plot):
@@ -138,13 +142,18 @@ class PlotManager(QObject):
         return [self.ax] + ([self.category_ax] if self.category_ax is not None else [])
 
     def reset_axes(self):
+        label_sizes = (self.ax.xaxis.label.get_fontsize(), self.ax.yaxis.label.get_fontsize())
         if self.annot is not None and self.annot.axes is not None:
             self.annot.remove()
         self.annot = None
         if self.category_ax is not None:
+            self._category_label_sizes = (self.category_ax.xaxis.label.get_fontsize(),
+                                          self.category_ax.yaxis.label.get_fontsize())
             self.category_ax.remove()
             self.category_ax = None
         self.ax.clear()
+        self.ax.xaxis.label.set_fontsize(label_sizes[0])
+        self.ax.yaxis.label.set_fontsize(label_sizes[1])
 
     def capture_limits(self):
         return [(axis.get_xlim(), axis.get_ylim()) for axis in self.axes]

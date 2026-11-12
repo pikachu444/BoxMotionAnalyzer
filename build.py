@@ -65,6 +65,7 @@ def build(mode):
         '--paths', 'src',
         '--icon', icon_path,
         '--add-data', add_data_arg,
+        '--add-data', f"src/analysis/ui/assets{get_pyinstaller_data_sep()}src/analysis/ui/assets",
         '--collect-binaries', 'mujoco',
         '--collect-binaries', 'glfw',
         entry_point    # 진입점

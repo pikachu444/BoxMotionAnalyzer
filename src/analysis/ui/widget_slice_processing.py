@@ -1,6 +1,6 @@
 import os
 
-from PySide6.QtCore import Signal, Qt, QPoint
+from PySide6.QtCore import Signal, Qt, QPoint, QTimer, QEvent
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import (
     QApplication,
@@ -32,6 +32,14 @@ from src.config import config_app, config_analysis_ui
 from src.config.data_columns import DisplayNames, PoseCols, RawMarkerCols, RigidBodyCols
 from src.utils.qt_sections import set_path_label, unique_path_labels
 from src.utils.ui_language import tr
+
+
+class _StatusLabel(QLabel):
+    text_changed = Signal(str)
+
+    def setText(self, text):
+        super().setText(text)
+        self.text_changed.emit(text)
 
 
 class _ProcessingScrollArea(QScrollArea):
@@ -249,6 +257,105 @@ class WidgetSliceProcessing(QWidget):
         self.save_view_button.clicked.connect(self.save_and_view)
         self.view_batch_button.clicked.connect(lambda: self.results_ready.emit(self.batch_success_paths.copy()))
         self._update_processing_mode_ui()
+        self._arrange_settings_cards()
+
+    def _arrange_settings_cards(self):
+        self.log_group.setParent(self.context_group)
+        self.context_group.layout().addWidget(self.log_group)
+        self.log_output.setMinimumSize(20, 35)
+        self.log_group.setMinimumHeight(72)
+        self.log_group.setMaximumHeight(104)
+        def card(title):
+            group = QGroupBox(tr(title))
+            layout = QVBoxLayout(group)
+            layout.setContentsMargins(7, 7, 7, 7)
+            layout.setSpacing(6)
+            return group, layout
+        self.plot_options, plot = card('Plot Options')
+        for widget in (self.select_data_button, self.combo_plot_axis, self.selected_data_label):
+            plot.addWidget(widget)
+        plot.addStretch()
+        method = self.method_controls.layout()
+        radios = QHBoxLayout()
+        self.rb_processing_standard.setText(tr('Smoothing'))
+        for widget in (self.rb_processing_raw, self.rb_processing_standard, self.rb_processing_advanced):
+            method.removeWidget(widget)
+            radios.addWidget(widget)
+        method.insertLayout(0, radios)
+        self.method_controls.setTitle(tr('Processing Mode'))
+        self.output_group, output = card('Output')
+        for source in (self.result_status_label, self.proc_path_label):
+            footer = QLabel(source.text())
+            footer.setWordWrap(True)
+            self.action_stack.widget(0).layout().itemAt(0).layout().replaceWidget(source, footer)
+            source.text_changed.connect(footer.setText)
+            output.addWidget(source)
+        output.addStretch()
+        self.batch_group, batch = card('Batch')
+        self.batch_hint = QLabel(tr('Choose Batch above to process a folder.'))
+        self.batch_hint.setWordWrap(True)
+        batch.addWidget(self.batch_hint)
+        batch.addWidget(self.overwrite_proc_checkbox)
+        batch_summary = QLabel(self.batch_summary_label.text())
+        batch_summary.setWordWrap(True)
+        self.batch_summary_label.text_changed.connect(batch_summary.setText)
+        batch.addWidget(batch_summary)
+        batch.addStretch()
+        old = self.settings_scroll.takeWidget()
+        self.settings_content = QWidget()
+        self.settings_grid = QGridLayout(self.settings_content)
+        self.settings_grid.setContentsMargins(6, 6, 6, 6)
+        self.settings_grid.setSpacing(6)
+        self.setting_cards = [self.plot_options, self.resampling_group, self.method_controls,
+                              self.output_group, self.batch_group]
+        for widget, minimum in zip(self.setting_cards, (170, 185, 230, 180, 185)):
+            widget.setParent(self.settings_content)
+            widget.setMinimumWidth(minimum)
+        self._mode_row_minimum = radios.minimumSize().width() + 14
+        old.deleteLater()
+        self.settings_scroll.setWidget(self.settings_content)
+        self.settings_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.settings_scroll.viewport().installEventFilter(self)
+        self.action_stack.setMinimumHeight(48)
+        self._initial_split_applied = False
+        self._reflow_settings()
+        self._set_input_mode(self.input_mode_combo.currentIndex())
+        self.run_batch_button.setEnabled(bool(self.batch_input_paths))
+
+    def eventFilter(self, obj, event):
+        if hasattr(self, 'settings_grid') and obj is self.settings_scroll.viewport() and event.type() == QEvent.Resize:
+            self._reflow_settings()
+        return super().eventFilter(obj, event)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if not self._initial_split_applied:
+            self._initial_split_applied = True
+            QTimer.singleShot(0, self, self._initialize_split_sizes)
+
+    def _initialize_split_sizes(self):
+        available = self.workflow_splitter.height()
+        top = 430 if self.width() >= 1300 else 345 if self.width() >= 950 else 265
+        self.workflow_splitter.setSizes([top, max(1, available - top)])
+        self.log_group.setMaximumHeight(104 if self.width() >= 1300 else 90 if self.width() >= 950 else 80)
+        right = 330 if self.width() >= 1300 else 300 if self.width() >= 950 else 270
+        self.context_splitter.setSizes([max(280, self.context_splitter.width() - right), right])
+
+    def _reflow_settings(self):
+        width = self.settings_scroll.viewport().width()
+        count = 5 if width >= 1300 else 3 if width >= 950 else 2
+        minimum = max(230, self._mode_row_minimum)
+        if (width - (count + 1) * 6) / count < minimum:
+            count = 1
+        if getattr(self, 'card_columns', None) == count:
+            return
+        while self.settings_grid.count():
+            self.settings_grid.takeAt(0)
+        for column in range(5):
+            self.settings_grid.setColumnStretch(column, 1 if column < count else 0)
+        for i, widget in enumerate(self.setting_cards):
+            self.settings_grid.addWidget(widget, i // count, i % count)
+        self.card_columns = count
 
     def _update_context_minimum_width(self):
         # A scrollable context still has to fit each control across its width.
@@ -263,6 +370,10 @@ class WidgetSliceProcessing(QWidget):
         # These describe the retained single slice, never the whole batch.
         self.box_dims_group.setVisible(index == 0)
         self.slice_summary_group.setVisible(index == 0)
+        if hasattr(self, 'plot_options'):
+            self.plot_options.setEnabled(index == 0 and not (self.single_running or self.batch_running))
+            self.overwrite_proc_checkbox.setEnabled(index == 1 and not (self.single_running or self.batch_running))
+            self.output_group.setVisible(index == 0)
         self.status_message.emit(
             tr('Step 1.5: No slice loaded') if index == 0 and not self.slice_path
             else self.batch_summary_label.text() if index else self.result_status_label.text()
@@ -350,13 +461,13 @@ class WidgetSliceProcessing(QWidget):
         self.rb_processing_advanced.setChecked(self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_ADVANCED)
         self.processing_settings_button = QPushButton(tr('Processing settings...'))
         self.processing_mode_description = QLabel()
-        self.result_status_label = QLabel(tr('Not processed'))
+        self.result_status_label = _StatusLabel(tr('Not processed'))
         self.result_status_label.setWordWrap(True)
-        self.proc_path_label = QLabel()
+        self.proc_path_label = _StatusLabel()
         self.select_slice_folder_button = QPushButton(tr('Open folder...'))
         self.batch_folder_label = QLabel()
         self.overwrite_proc_checkbox = QCheckBox(tr('Overwrite existing results'))
-        self.batch_summary_label = QLabel(tr('No slices'))
+        self.batch_summary_label = _StatusLabel(tr('No slices'))
         self.batch_summary_label.setWordWrap(True)
         self.run_batch_button = QPushButton(tr('Run batch'))
         self.run_button = QPushButton(tr('Run'))
@@ -612,6 +723,7 @@ class WidgetSliceProcessing(QWidget):
         self.batch_summary_label.setText(tr('{} slices ready').format(len(paths)))
         self.view_batch_button.setEnabled(False)
         self.input_mode_combo.setCurrentIndex(1)
+        self.run_batch_button.setEnabled(bool(paths))
 
     def _populate_batch_table(self):
         self.batch_table.setRowCount(len(self.batch_input_paths))
@@ -761,8 +873,6 @@ class WidgetSliceProcessing(QWidget):
                     columns_to_plot.append(col_name)
 
         self.plot_manager.draw_plot(df, columns_to_plot)
-        self.plot_manager.ax.xaxis.label.set_fontsize(9)
-        self.plot_manager.ax.yaxis.label.set_fontsize(9)
         self.plot_manager._layout_axes()
 
     def open_data_selection_dialog(self):
@@ -785,6 +895,8 @@ class WidgetSliceProcessing(QWidget):
         self._update_processing_mode_ui()
 
     def _update_processing_mode_ui(self):
+        self.processing_settings_button.setVisible(
+            self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_ADVANCED)
         self.processing_settings_button.setEnabled(
             self.current_processing_mode == config_analysis_ui.PROCESSING_MODE_ADVANCED
         )
@@ -954,7 +1066,7 @@ class WidgetSliceProcessing(QWidget):
 
     def _set_batch_controls_enabled(self, enabled: bool):
         self.select_slice_folder_button.setEnabled(enabled)
-        self.run_batch_button.setEnabled(enabled)
+        self.run_batch_button.setEnabled(enabled and bool(self.batch_input_paths))
         self.load_slice_button.setEnabled(enabled)
         self.run_button.setEnabled(enabled and self.parsed_data is not None
                                    and (self._metadata_has_box_dimensions(self.slice_metadata)
@@ -965,10 +1077,14 @@ class WidgetSliceProcessing(QWidget):
         self.save_proc_button.setEnabled(enabled and self.current_processed_result is not None)
         self.save_view_button.setEnabled(enabled and self.current_processed_result is not None)
         self.view_batch_button.setEnabled(enabled and bool(self.batch_success_paths))
+        self.plot_options.setEnabled(enabled and self.input_mode_combo.currentIndex() == 0)
+        self.overwrite_proc_checkbox.setEnabled(enabled and self.input_mode_combo.currentIndex() == 1)
 
     def run_batch_processing(self):
         if self.single_running or self.batch_running:
             return
+        self.batch_success_paths = []
+        self.view_batch_button.setEnabled(False)
         folder_path = self.batch_slice_folder
         if not folder_path:
             self.append_log("[ERROR] Select a slice folder before running batch processing.")

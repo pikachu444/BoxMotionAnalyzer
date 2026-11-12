@@ -197,7 +197,7 @@ class DropPosturePostProcessor:
 
         t1_minus_pos = None
         if impact_detected:
-            t1_minus_pos = max(int(impact_start) - 1, 0)
+            t1_minus_pos = int(impact_start) - 1 if int(impact_start) > 0 else None
 
         return {
             "t1_minus_pos": t1_minus_pos,
@@ -243,13 +243,7 @@ class DropPosturePostProcessor:
             contact_sets.append(tuple(int(index) + 1 for index in contact_indices))
         return contact_sets
 
-    def _impact_sequence_summary(
-        self,
-        *,
-        contact_sets: list[tuple[int, ...]],
-        index: pd.Index,
-        min_event_frames: int = 2,
-    ) -> dict[str, object]:
+    def _accepted_events(self, contact_sets, min_event_frames=2):
         events = []
         current_set = tuple()
         current_start = None
@@ -277,6 +271,17 @@ class DropPosturePostProcessor:
             current_length = 1 if contact_set else 0
 
         flush_current()
+
+        return events
+
+    def _impact_sequence_summary(
+        self,
+        *,
+        contact_sets: list[tuple[int, ...]],
+        index: pd.Index,
+        min_event_frames: int = 2,
+    ) -> dict[str, object]:
+        events = self._accepted_events(contact_sets, min_event_frames)
 
         if not events:
             return {
@@ -461,7 +466,9 @@ class DropPosturePostProcessor:
         vertical_positions = corner_positions[:, :, self.vertical_axis_idx]
         rotations = result[[PoseCols.ROT_X, PoseCols.ROT_Y, PoseCols.ROT_Z]].to_numpy(dtype=float)
         valid = np.isfinite(corner_positions).all(axis=(1, 2)) & np.isfinite(rotations).all(axis=1)
-        if valid.all():
+        times = np.asarray(result.index, dtype=float)
+        valid_clock = np.isfinite(times).all() and (len(times) < 2 or np.all(np.diff(times) > 0))
+        if valid.all() and valid_clock:
             contact_analysis = self._contact_analysis(
                 min_heights=vertical_positions.min(axis=1),
                 index=result.index,
@@ -510,6 +517,12 @@ class DropPosturePostProcessor:
             contact_analysis=contact_analysis,
         )
 
+        from src.analysis.pipeline.contact_reducers import final_face
+        tail = final_face(result.index, R.from_rotvec(rotations) if valid.all() else rotations,
+                          corner_positions, np.ptp(self.local_box_corners, axis=0),
+                          floor=self.floor_level, threshold=contact_threshold_mm,
+                          vertical_axis=self.vertical_axis_idx)
+        summary["DropPostureSummary_FinalFace"] = tail.value if tail.value is not None else ""
         result = result.join(metrics)
         for column, value in summary.items():
             result[column] = value

@@ -83,6 +83,7 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.remove_file_requested.connect(self._on_remove_file)
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
         self.table_panel.resolution_details_changed.connect(self._on_resolution_details)
+        self.table_panel.metric_context_changed.connect(self.control_panel.set_metric_context)
         self.table_panel.display_rows_changed.connect(self._on_summary_rows_changed)
         self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
         self.control_panel.view_changed.connect(self._on_view_changed)

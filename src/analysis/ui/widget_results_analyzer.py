@@ -43,7 +43,7 @@ from src.config.result_metric_descriptors import (
     get_drop_posture_summary_descriptors,
     get_result_metric_descriptor,
 )
-from src.utils.ui_language import tr
+from src.utils.ui_language import tr, active_language
 
 class WidgetResultsAnalyzer(QWidget):
     # Signals
@@ -202,8 +202,14 @@ class WidgetResultsAnalyzer(QWidget):
         self.experiment_summary_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.experiment_summary_table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.experiment_summary_table.setAlternatingRowColors(True)
-        self.experiment_summary_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.experiment_summary_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.experiment_summary_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.experiment_summary_table.setWordWrap(True)
+        summary_rows_timer = QTimer(self.experiment_summary_table)
+        summary_rows_timer.setSingleShot(True)
+        summary_rows_timer.setInterval(0)
+        summary_rows_timer.timeout.connect(self.experiment_summary_table.resizeRowsToContents)
+        self.experiment_summary_table.horizontalHeader().sectionResized.connect(lambda *_: summary_rows_timer.start())
         experiment_summary_layout.addWidget(self.experiment_summary_table)
 
         experiment_summary_footer = QHBoxLayout()
@@ -261,6 +267,10 @@ class WidgetResultsAnalyzer(QWidget):
         self.manual_height_checkbox.setEnabled(False)
         analysis_scenario_layout.addWidget(self.offset_manual_checkbox)
         analysis_scenario_layout.addWidget(self.manual_height_checkbox)
+        self.use_selected_velocities_checkbox = QCheckBox(tr('Use selected-time velocities'))
+        self.use_selected_velocities_checkbox.setEnabled(False)
+        self.use_selected_velocities_checkbox.toggled.connect(self._update_scenario_origin)
+        analysis_scenario_layout.addWidget(self.use_selected_velocities_checkbox)
 
         self.offset_combos = []
         self.manual_height_inputs = []
@@ -270,6 +280,7 @@ class WidgetResultsAnalyzer(QWidget):
 
             combo = QComboBox()
             combo.addItems([f"C{j + 1}" for j in range(8)])
+            combo.setCurrentIndex(i)
             combo.setEnabled(False)
             combo.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
             offsets_layout.addWidget(combo, i, 1)
@@ -298,7 +309,13 @@ class WidgetResultsAnalyzer(QWidget):
         analysis_scenario_layout.addStretch()
         scenario_scroll.setWidget(analysis_scenario_group)
         scenario_tab_layout.addWidget(scenario_scroll, 1)
+        self.scenario_origin_label = QLabel()
+        self.scenario_origin_label.setWordWrap(True)
+        self.scenario_origin_label.setTextFormat(Qt.PlainText)
+        self.scenario_origin_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        scenario_tab_layout.addWidget(self.scenario_origin_label)
         scenario_tab_layout.addWidget(self.export_scenario_button)
+        self._update_scenario_origin()
         main_plot_group = QWidget()
         main_plot_layout = QHBoxLayout(main_plot_group)
         main_plot_layout.setContentsMargins(0, 0, 0, 0)
@@ -312,6 +329,8 @@ class WidgetResultsAnalyzer(QWidget):
         main_plot_layout.addWidget(self.toolbar)
         main_plot_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.plot_manager = PlotManager(self.canvas, self.fig)
+        self.plot_manager.ax.xaxis.label.set_fontsize(9)
+        self.plot_manager.ax.yaxis.label.set_fontsize(9)
 
         self.tool_tabs = QTabWidget()
         self.tool_tabs.addTab(point_analysis_group, tr("Point / peaks"))
@@ -488,7 +507,7 @@ class WidgetResultsAnalyzer(QWidget):
         if self._is_missing_value(value):
             return "N/A"
         column = descriptor.column if descriptor is not None else None
-        formatted = format_result_value(column, value)
+        formatted = tr(str(value)) if descriptor is not None and descriptor.value_kind == 'categorical' else format_result_value(column, value)
         if descriptor is not None and descriptor.unit:
             return f"{formatted} {descriptor.unit}"
         return formatted
@@ -541,55 +560,40 @@ class WidgetResultsAnalyzer(QWidget):
         if self.result_data is None or self.result_data.empty:
             self._clear_experiment_summary("Drop Posture data unavailable")
             return
-
-        descriptors = get_drop_posture_summary_descriptors()
-        available_columns = {descriptor.column for descriptor in descriptors if descriptor.column in self.result_data.columns}
-        if not available_columns:
-            self._clear_experiment_summary("Drop Posture data unavailable")
-            return
-
+        from src.analysis.compare.summary_metrics import resolve_summary_metrics
+        self.resolved_summary = resolve_summary_metrics(self.result_data)
         self.experiment_summary_table.setRowCount(0)
-        t1_available = self._is_t1_summary_available()
-        populated_count = 0
-
-        for group in DROP_POSTURE_SUMMARY_GROUP_ORDER:
-            group_descriptors = [descriptor for descriptor in descriptors if descriptor.group == group]
-            present_descriptors = [
-                descriptor for descriptor in group_descriptors if descriptor.column in available_columns
-            ]
-            if not present_descriptors:
-                continue
-
-            self._add_experiment_summary_group_row(group.value)
-            for descriptor in present_descriptors:
-                value = None if descriptor.t1_based and not t1_available else self._first_value(descriptor.column)
-                self._add_experiment_summary_value_row(descriptor, value)
-                populated_count += 1
-
-        if t1_available:
-            self.experiment_summary_status_label.setText(tr("Impact detected"))
-        else:
-            self.experiment_summary_status_label.setText(tr("No impact detected"))
+        descriptors = get_drop_posture_summary_descriptors()
+        for title, role in (('Core metrics', 'core'), ('Supporting metrics', 'supporting'), ('Diagnostics', 'diagnostic')):
+            self._add_experiment_summary_group_row(title)
+            for descriptor in descriptors:
+                if descriptor.comparison_role != role:
+                    continue
+                resolved = self.resolved_summary[descriptor.column[2]]
+                self._add_experiment_summary_value_row(descriptor, resolved.value)
+                row = self.experiment_summary_table.rowCount() - 1
+                label = self.experiment_summary_table.item(row, 0)
+                if active_language() == 'ko':
+                    label.setText(descriptor.label_ko or tr(descriptor.display_name))
+                label.setData(Qt.UserRole, descriptor.stable_id)
+                value_item = self.experiment_summary_table.item(row, 1)
+                if resolved.value is None:
+                    value_item.setText(tr('Unavailable'))
+                detail = '\n'.join(filter(None, (descriptor.definition_ko if active_language() == 'ko' else descriptor.long_description,
+                    resolved.reason, ('Time: ' + str(resolved.sample_time) + ' s') if resolved.sample_time is not None else '',
+                    resolved.method, resolved.reference)))
+                label.setToolTip(detail)
+                value_item.setToolTip(detail)
+        self.experiment_summary_status_label.setText(tr('Recorded values and validated context'))
         self.experiment_summary_table.resizeRowsToContents()
 
     def open_metric_guide(self):
         if self.metric_guide_dialog is None:
             self.metric_guide_dialog = DropPostureMetricGuideDialog(get_drop_posture_summary_descriptors(), self)
-        dialog = self.metric_guide_dialog
-        dialog.show()
-        scroll = dialog.findChild(QScrollArea)
-        target = self.find_max_target_combo.currentData()
-        descriptor = get_result_metric_descriptor(target) if target else None
-        if descriptor:
-            prefix = f"<b>{tr(descriptor.display_name)}</b>"
-            label = next((item for item in scroll.findChildren(QLabel) if item.text().startswith(prefix)), None)
-            if label is not None:
-                QTimer.singleShot(0, lambda: scroll.ensureWidgetVisible(label)
-                                  if self.find_max_target_combo.currentData() == target else None)
-        else:
-            scroll.verticalScrollBar().setValue(0)
-        dialog.raise_()
-        dialog.activateWindow()
+        self.metric_guide_dialog.focus_metric(self.find_max_target_combo.currentData(), context='step2:summary')
+        self.metric_guide_dialog.show()
+        self.metric_guide_dialog.raise_()
+        self.metric_guide_dialog.activateWindow()
 
     def _refresh_result_file_list(self, folder_path, selected_file=None, files=None):
         self.result_file_list.clear()
@@ -708,9 +712,9 @@ class WidgetResultsAnalyzer(QWidget):
         data = data.copy()
         if data.index.name != TimeCols.TIME:
             if RESULT_TIME_COL in data.columns:
-                data = data.set_index(RESULT_TIME_COL)
+                data = data.set_index(RESULT_TIME_COL, drop=False)
             elif TimeCols.TIME in data.columns:
-                data = data.set_index(TimeCols.TIME)
+                data = data.set_index(TimeCols.TIME, drop=False)
             else:
                 raise ValueError('The file needs a Time column in seconds.')
         times = pd.to_numeric(data.index, errors='coerce').to_numpy(dtype=float)
@@ -1088,6 +1092,9 @@ class WidgetResultsAnalyzer(QWidget):
     def clear_selection(self):
         self.checked_result_columns.clear()
         self.refresh_result_tree()
+        self.selected_point_info = {'time': None, 'index': None}
+        self.update_point_selection_ui()
+        self._sync_popup_cursors()
 
     def _update_find_max_targets(self, checked_columns):
         current_target = self.find_max_target_combo.currentData()
@@ -1101,7 +1108,10 @@ class WidgetResultsAnalyzer(QWidget):
 
     def _on_point_target_changed(self, *_):
         column = self.find_max_target_combo.currentData()
+        column = normalize_result_column(column) if column is not None else None
         quantitative = column is not None and not is_corner_id_column(column)
+        if quantitative and self.result_data is not None and column in self.result_data:
+            quantitative = bool(np.isfinite(pd.to_numeric(self.result_data[column], errors='coerce')).any())
         for button in (self.find_abs_max_button, self.find_max_button, self.find_min_button):
             button.setEnabled(quantitative)
         self.find_max_target_combo.setToolTip(get_result_metric_tooltip(column))
@@ -1121,9 +1131,6 @@ class WidgetResultsAnalyzer(QWidget):
     def _draw_result_columns(self, columns):
         plot_df = self.result_data[columns].copy() if columns else None
         self.plot_manager.draw_plot(plot_df, columns)
-        for axis in self.plot_manager.axes:
-            axis.xaxis.label.set_size(9)
-            axis.yaxis.label.set_size(9)
         if columns:
             self.plot_manager.ax.set_title("")
         self.plot_manager.canvas.draw_idle()
@@ -1161,6 +1168,11 @@ class WidgetResultsAnalyzer(QWidget):
             popup.set_selected_time_cursor(selected_time)
 
     def _select_time_by_xdata(self, xdata, value=None):
+        target = self.find_max_target_combo.currentData()
+        target = normalize_result_column(target) if target is not None else None
+        if target is not None and target in self.result_data:
+            if not np.isfinite(pd.to_numeric(self.result_data[target], errors='coerce')).any():
+                return
         nearest_index = self._get_nearest_row_index(xdata)
         if nearest_index is None:
             return
@@ -1200,6 +1212,7 @@ class WidgetResultsAnalyzer(QWidget):
             return None
 
     def update_point_selection_ui(self, value=None):
+        self._update_scenario_origin()
         if self.result_point_cursor:
             try:
                 self.result_point_cursor.remove()
@@ -1306,6 +1319,9 @@ class WidgetResultsAnalyzer(QWidget):
 
         try:
             series = pd.to_numeric(self.result_data[target_column], errors='coerce')
+            series = series.where(np.isfinite(series))
+            if not series.notna().any():
+                return
             if mode == "abs_max":
                 extreme_index = series.abs().idxmax()
                 extreme_value = self.result_data.loc[extreme_index, target_column]
@@ -1388,6 +1404,10 @@ class WidgetResultsAnalyzer(QWidget):
         is_manual_offset_enabled = self.offset_manual_checkbox.isChecked()
         for height_input in self.manual_height_inputs:
             height_input.setEnabled(is_manual_offset_enabled and checked)
+        self.use_selected_velocities_checkbox.setEnabled(is_manual_offset_enabled and checked)
+        if not (is_manual_offset_enabled and checked):
+            self.use_selected_velocities_checkbox.setChecked(False)
+        self._update_scenario_origin()
 
     def _update_offset_choices(self):
         all_options = [f"C{i+1}" for i in range(8)]
@@ -1405,92 +1425,71 @@ class WidgetResultsAnalyzer(QWidget):
             combo.setCurrentText(current_selection)
             combo.blockSignals(False)
 
+    def _update_scenario_origin(self, *_):
+        if not hasattr(self, 'scenario_origin_label'):
+            return
+        manual = self.offset_manual_checkbox.isChecked() and self.manual_height_checkbox.isChecked()
+        if manual:
+            label = 'Manual heights / selected-time velocities. Mixed initial conditions.' if self.use_selected_velocities_checkbox.isChecked() else 'Manual heights / rest initial conditions. Six declared velocities: 0.'
+        else:
+            label = 'Selected-time heights and analysis-frame velocities.'
+        time = getattr(self, 'selected_point_info', {}).get('time')
+        self.scenario_origin_label.setText(tr(label) + '\n' + (tr('Selected time: {time} s').format(time=f'{float(time):.9g}') if time is not None else tr('No point selected')))
+        self.scenario_origin_label.setToolTip(tr('Heights: mm. Translational velocity: mm/s. Angular velocity: rad/s. '
+            'Six signed components use the FrameAnalyzer analysis frame at the selected sample, which need not be t1-. '
+            'Historical CoM headers do not establish an inertial COM registration.'))
+
+    def _prepare_scenario_payload(self):
+        from src.analysis.pipeline.scenario_export import scenario_text, scenario_bytes, _finite
+        index = self.selected_point_info.get('index')
+        if self.result_data is None or index is None or not 0 <= index < len(self.result_data):
+            raise ValueError('No valid recorded point selected')
+        row = self.result_data.iloc[index]
+        manual = self.offset_manual_checkbox.isChecked()
+        manual_height = manual and self.manual_height_checkbox.isChecked()
+        offsets = self._get_manual_offset_data(row) if manual else self._get_automatic_offset_data(row)
+        columns = dict(zip(('ANG_VEL_X', 'ANG_VEL_Y', 'ANG_VEL_Z', 'TRA_VEL_X', 'TRA_VEL_Y', 'TRA_VEL_Z'),
+            (HeaderL3.V_RX_ANA, HeaderL3.V_RY_ANA, HeaderL3.V_RZ_ANA, HeaderL3.V_TX_ANA, HeaderL3.V_TY_ANA, HeaderL3.V_TZ_ANA)))
+        velocities = {}
+        rest = manual_height and not self.use_selected_velocities_checkbox.isChecked()
+        for name, component in columns.items():
+            column = (HeaderL1.VEL, HeaderL2.COM, component)
+            if rest:
+                velocities[name] = 0.
+            else:
+                if column not in row.index:
+                    raise ValueError(name + ': selected-time measured velocity column is missing')
+                velocities[name] = _finite(row[column], name)
+        text = scenario_text(offsets, velocities, self.le_scene_name.text(), self.le_run_time.text(), self.le_time_step.text())
+        return scenario_bytes(text)
+
     def export_analysis_scenario(self):
-        if self.result_data is None or self.selected_point_info.get('time') is None:
-            self.log_message.emit("[ERROR] No data point selected.")
+        from src.analysis.pipeline.scenario_export import atomic_write_scenario
+        try:
+            payload = self._prepare_scenario_payload()
+        except (ValueError, TypeError, KeyError, UnicodeError) as error:
+            self.log_message.emit(f"[ERROR] Could not prepare scenario: {error}")
             return
-
-        selected_time = self.selected_point_info['time']
-        time_point_data = None
-        if not (self.offset_manual_checkbox.isChecked() and self.manual_height_checkbox.isChecked()):
-            time_point_data = self.result_data.loc[selected_time]
-
-        is_manual_offset = self.offset_manual_checkbox.isChecked()
-        if is_manual_offset:
-            data_for_manual = time_point_data if not self.manual_height_checkbox.isChecked() else None
-            offset_data = self._get_manual_offset_data(data_for_manual)
-        else:
-            offset_data = self._get_automatic_offset_data(time_point_data)
-
-        if not offset_data or len(offset_data) < 3:
-            self.log_message.emit("[ERROR] Could not determine 3 offset points.")
-            return
-
-        vel_cols = {
-            'ANG_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_RX_ANA),
-            'ANG_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_RY_ANA),
-            'ANG_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_RZ_ANA),
-            'TRA_VEL_X': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TX_ANA),
-            'TRA_VEL_Y': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TY_ANA),
-            'TRA_VEL_Z': (HeaderL1.VEL, HeaderL2.COM, HeaderL3.V_TZ_ANA),
-        }
-        if time_point_data is not None:
-            velocities = {key: time_point_data.get(col, 0.0) for key, col in vel_cols.items()}
-        else:
-            velocities = {key: 0.0 for key in vel_cols.keys()}
-
-        from src.analysis.pipeline.scenario_export import scenario_text
-        csv_string = scenario_text(offset_data, velocities, self.le_scene_name.text(),
-                                   self.le_run_time.text(), self.le_time_step.text())
-
-        suggested_filename = f"scenario_{self.le_scene_name.text()}.csv" if self.le_scene_name.text() else "analysis_scenario.csv"
-        filepath, _ = QFileDialog.getSaveFileName(self, tr("Export Analysis Scenario"), suggested_filename, "CSV Files (*.csv)")
-
+        suggested = f"scenario_{self.le_scene_name.text()}.csv" if self.le_scene_name.text() else "analysis_scenario.csv"
+        filepath, _ = QFileDialog.getSaveFileName(self, tr("Export Analysis Scenario"), suggested, "CSV Files (*.csv)")
         if filepath:
             try:
-                with open(filepath, 'w') as f:
-                    f.write(csv_string)
+                atomic_write_scenario(filepath, payload)
                 self.log_message.emit(f"[SUCCESS] Analysis scenario exported to {filepath}")
-            except Exception as e:
-                self.log_message.emit(f"[ERROR] Could not export scenario: {e}")
+            except (OSError, ValueError) as error:
+                self.log_message.emit(f"[ERROR] Could not export scenario: {error}")
 
     def _get_automatic_offset_data(self, time_point_data):
-        height_cols = [(HeaderL1.ANALYSIS, f'C{i+1}', HeaderL3.REL_H) for i in range(8)]
-        corner_heights = {}
-        for i, col in enumerate(height_cols):
-            if col in time_point_data:
-                corner_heights[f'C{i+1}'] = time_point_data[col]
-            else:
-                self.log_message.emit(f"[WARNING] Column {col} not found in data.")
-                return []
-
-        if not corner_heights: return []
-        min_corner = min(corner_heights, key=corner_heights.get)
-        min_corner_num = int(min_corner[1:])
-        group1 = {f'C{i}': corner_heights[f'C{i}'] for i in range(1, 5)}
-        group2 = {f'C{i}': corner_heights[f'C{i}'] for i in range(5, 9)}
-        target_group = group1 if 1 <= min_corner_num <= 4 else group2
-        sorted_corners = sorted(target_group.items(), key=lambda item: item[1])
-        return sorted_corners[:3]
+        from src.analysis.pipeline.scenario_export import automatic_offsets
+        return automatic_offsets(time_point_data)
 
     def _get_manual_offset_data(self, time_point_data):
-        selected_corners = [combo.currentText() for combo in self.offset_combos]
-        offset_data = []
-        use_manual_heights = self.manual_height_checkbox.isChecked()
-
-        for i, corner_name in enumerate(selected_corners):
-            height_value = 0.0
-            if use_manual_heights:
-                try:
-                    height_value = float(self.manual_height_inputs[i].text())
-                except ValueError:
-                    self.log_message.emit(f"[WARNING] Invalid manual height input for Offset {i}. Using 0.0.")
-            else:
-                if time_point_data is not None:
-                    height_col = (HeaderL1.ANALYSIS, corner_name, HeaderL3.REL_H)
-                    if height_col in time_point_data:
-                        height_value = time_point_data[height_col]
-                    else:
-                        self.log_message.emit(f"[WARNING] Column {height_col} not found. Using 0.0.")
-            offset_data.append((corner_name, height_value))
-        return offset_data
+        from src.analysis.pipeline.scenario_export import _finite
+        corners = [combo.currentText() for combo in self.offset_combos]
+        if len(set(corners)) != 3 or any(c not in {f'C{i}' for i in range(1, 9)} for c in corners):
+            raise ValueError('Three different C1..C8 offset corners are required')
+        result = []
+        for i, corner in enumerate(corners):
+            value = self.manual_height_inputs[i].text() if self.manual_height_checkbox.isChecked() else time_point_data[(HeaderL1.ANALYSIS, corner, HeaderL3.REL_H)]
+            result.append((corner, _finite(value, corner + ' height')))
+        return result

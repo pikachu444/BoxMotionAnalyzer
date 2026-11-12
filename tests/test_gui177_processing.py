@@ -95,6 +95,7 @@ def test_fixed_groups_action_bars_scroll_and_toolbar(app, slice_path, language, 
             assert widget.box_dims_group.isHidden() == bool(index)
             assert widget.slice_summary_group.isHidden() == bool(index)
         # A small window reaches settings through their own explicit scroll.
+        widget.rb_processing_advanced.setChecked(True)
         for field in (widget.le_resampling_range_end, widget.processing_settings_button):
             widget.settings_scroll.ensureWidgetVisible(field)
             app.processEvents()

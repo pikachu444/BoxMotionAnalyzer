@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QTableWidget, QTableWidgetItem, QHeaderView, QListWidget, QComboBox, QSplitter,
     QGroupBox, QFrame, QListWidgetItem, QPlainTextEdit, QDoubleSpinBox,
-    QScrollArea, QSizePolicy, QFormLayout, QCheckBox, QLayout, QTabWidget
+    QScrollArea, QSizePolicy, QFormLayout, QCheckBox, QLayout, QTabWidget, QDialog, QDialogButtonBox, QApplication
 )
 from PySide6.QtWidgets import QToolButton
 from PySide6.QtCore import Qt, Signal, QSize
@@ -50,6 +50,7 @@ class _ElidedContextLabel(QLabel):
 class CompareTablePanel(QGroupBox):
     """Displays differences in Drop Posture Summary metrics."""
     resolution_details_changed = Signal(str)
+    metric_context_changed = Signal(object)
     display_rows_changed = Signal(int)
 
     def __init__(self):
@@ -124,25 +125,24 @@ class CompareTablePanel(QGroupBox):
             self.table.horizontalScrollBar().setValue(horizontal)
         self._last_mode = mode
         self._show_resolution()
+        self._sanitize_tooltips()
         rows = self.table.rowCount()
         self.table.setVisible(rows > 0)
         self.empty_label.setVisible(rows == 0)
         self.display_rows_changed.emit(rows)
 
     def _open_metric_guide(self):
-        if self._metric_guide is not None:
-            self._metric_guide.raise_()
-            self._metric_guide.activateWindow()
-            return
         item = self.table.item(self.table.currentRow(), 0)
         key = item.data(Qt.UserRole) if item else None
-        dialog = MetricGuideDialog(self, key)
-        self._metric_guide = dialog
-        def finished():
-            self._metric_guide = None
-            dialog.deleteLater()
-        dialog.finished.connect(finished)
-        dialog.open()
+        if self.view_combo.currentIndex() == 3:
+            key = 'contact'
+        if self._metric_guide is None:
+            self._metric_guide = MetricGuideDialog(self, key)
+        dialog = self._metric_guide
+        dialog.focus_metric(key, context='compare')
+        dialog.show()
+        dialog.raise_()
+        dialog.activateWindow()
 
     def _file_label(self, name, source, width=None):
         # Reserve a short first line for the reference marker. Keep two lines
@@ -171,10 +171,7 @@ class CompareTablePanel(QGroupBox):
             self.table.resizeRowsToContents()
 
     def _file_identity(self, name):
-        impact = self._table_data[2]
-        entries = impact.get('files', {}).get(name, {}).get('metric_resolution', {}) if impact else {}
-        path = next(iter(entries.values()), {}).get('path', name)
-        return (tr('Baseline') + '\n' if name == self._table_data[1] else '') + path
+        return (tr('Baseline') + '\n' if name == self._table_data[1] else '') + self.file_labels.get(name, name)
 
     def _repeat_cohort_text(self, source):
         baseline = self._table_data[1] or ''
@@ -242,7 +239,7 @@ class CompareTablePanel(QGroupBox):
             result = data['result']
             resolution = data['metric_resolution']['contact']
             labels = [self._file_label(name, SOURCE_LABELS.get(data['source'], 'Unknown')), result.intended or '—',
-                      result.observed or '—', result.outcome + ' / ' + resolution['status'], self._number(result.time_s)]
+                      result.observed or '—', tr(result.outcome) + ' / ' + CompareControlPanel._availability(resolution['status']), self._number(result.time_s)]
             for col, label in enumerate(labels):
                 item = QTableWidgetItem(label)
                 detail = [self._file_identity(name), result.reason, self._variant_detail(name, resolution)] + data['reasons']
@@ -264,7 +261,7 @@ class CompareTablePanel(QGroupBox):
 
     def _metric_item(self, key, descriptors=METRICS):
         descriptor = descriptors[key]
-        label = descriptor['label']
+        label = tr(descriptor['label'])
         if descriptor['unit']:
             label += f" ({descriptor['unit']})"
         if descriptor['role'] == 'diagnostic' and descriptors is METRICS:
@@ -389,6 +386,7 @@ class CompareTablePanel(QGroupBox):
         return text + '\nSHA-256: ' + entry['sha256'] + '\n' + entry['path']
 
     def _show_resolution(self, *_):
+        self._emit_metric_context()
         mode = self.view_combo.currentIndex()
         if mode == 3 and self._contact_data:
             names = list(self._contact_data['files'])
@@ -444,6 +442,39 @@ class CompareTablePanel(QGroupBox):
         details.append('\nPolicy: ' + impact.get('resolution_policy', ''))
         self.resolution_label.setText(tr('Duplicate {}   Invalid {}   Conflict {}   Details at left').format(duplicates, invalid, conflicts))
         self.resolution_details_changed.emit('\n'.join(details))
+
+    def _emit_metric_context(self):
+        mode = self.view_combo.currentIndex()
+        row, column = self.table.currentRow(), self.table.currentColumn()
+        if mode == 3 and self._contact_data:
+            names = list(self._contact_data['files'])
+            if 0 <= row < len(names):
+                self.metric_context_changed.emit(dict(key='contact', descriptor={'label':'Intended contact comparison', 'unit':''},
+                    owner=self._contact_data, file=names[row]))
+                return
+        item = self.table.item(row, 0) if row >= 0 else None
+        key = item.data(Qt.UserRole) if item else None
+        owner = self._posture_data if mode in (4, 5) else self._contact_data if mode == 3 else self._table_data[2]
+        descriptors = POSTURE_METRICS if mode in (4, 5) else METRICS
+        if key not in descriptors or not owner:
+            self.metric_context_changed.emit({})
+            return
+        names = list(owner.get('files', {}))
+        name = names[column - 1] if mode in (0, 4) and 0 < column <= len(names) else None
+        self.metric_context_changed.emit(dict(key=key, descriptor=descriptors[key], owner=owner, file=name))
+
+    def _sanitize_tooltips(self):
+        # Full owner strings remain available through explicit Diagnostics.
+        for row in range(self.table.rowCount()):
+            for column in range(0 if self.view_combo.currentIndex() == 3 else 1, self.table.columnCount()):
+                item = self.table.item(row, column)
+                if item:
+                    item.setData(Qt.UserRole + 20, item.toolTip())
+                    item.setToolTip(tr('Validated value and metric-specific availability. Open Diagnostics for source details.'))
+        for column in range(1, self.table.columnCount()):
+            item = self.table.horizontalHeaderItem(column)
+            if item:
+                item.setToolTip(tr('File context and comparison status are shown in Experiment info.'))
 
     def _render_diagnostics(self, diff_data, baseline_name):
         if not diff_data:
@@ -723,7 +754,13 @@ class CompareControlPanel(QGroupBox):
         self._resolution_details = ''
         self.detail_tabs = QTabWidget()
         self.detail_tabs.setDocumentMode(True)
-        self.detail_tabs.addTab(self.details, tr('File details'))
+        self.detail_tabs.addTab(self.details, tr('Experiment info'))
+        self.diagnostics_button = QPushButton(tr('Diagnostics…'))
+        self.diagnostics_button.clicked.connect(self._open_diagnostics)
+        layout.addWidget(self.diagnostics_button)
+        self.diagnostics_dialog = None
+        self._metric_context = {}
+        self._model = None
         settings = QWidget()
         settings_form = QFormLayout(settings)
         settings_form.setContentsMargins(0, 0, 0, 0)
@@ -732,9 +769,11 @@ class CompareControlPanel(QGroupBox):
         self.gap_limit.setRange(.0001, 3600)
         self.gap_limit.setValue(.1)
         self.gap_limit.setSuffix(' s')
-        self.gap_limit.setToolTip(tr('Display continuity only. Do not connect samples across a longer gap.'))
+        self.gap_limit.setToolTip(tr('Applies to graph line connections and playback sample selection. Not a physical tolerance for impact detection or metric calculations.'))
         self.gap_limit.valueChanged.connect(lambda *_: self.view_changed.emit())
-        settings_form.addRow(tr('Gap limit'), self.gap_limit)
+        gap_label = QLabel(tr('Display/playback maximum gap (s)'))
+        gap_label.setWordWrap(True)
+        settings_form.addRow(gap_label, self.gap_limit)
         self.labels_check = QCheckBox(tr('Labels'))
         self.labels_check.toggled.connect(self.labels_changed.emit)
         settings_form.addRow(self.labels_check)
@@ -761,12 +800,107 @@ class CompareControlPanel(QGroupBox):
         self._resolution_details = text
         self._update_details()
 
+    def set_metric_context(self, context):
+        self._metric_context = context
+        name = context.get('file')
+        if name and name != self.selected_file:
+            for row in range(self.file_list.count()):
+                if self.file_list.item(row).data(Qt.UserRole) == name:
+                    self.file_list.setCurrentRow(row)
+                    break
+        self._update_details()
+
+    def _open_diagnostics(self):
+        if self.diagnostics_dialog is None:
+            self.diagnostics_dialog = QDialog(self)
+            self.diagnostics_dialog.setWindowTitle(tr('Diagnostics'))
+            self.diagnostics_dialog.resize(800, 600)
+            body = QVBoxLayout(self.diagnostics_dialog)
+            self.diagnostics_text = QPlainTextEdit()
+            self.diagnostics_text.setReadOnly(True)
+            body.addWidget(self.diagnostics_text)
+            buttons = QDialogButtonBox(QDialogButtonBox.Close)
+            copy = buttons.addButton(tr('Copy'), QDialogButtonBox.ActionRole)
+            copy.clicked.connect(lambda: QApplication.clipboard().setText(self.diagnostics_text.toPlainText()))
+            buttons.rejected.connect(self.diagnostics_dialog.hide)
+            body.addWidget(buttons)
+        self._update_details()
+        self.diagnostics_dialog.show()
+        self.diagnostics_dialog.raise_()
+
+    @staticmethod
+    def _availability(status):
+        return tr({'contributing':'Included in repeats', 'equivalent':'Same trial; counted once',
+                   'conflict':'Results for this trial disagree; excluded for this metric',
+                   'invalid':'Required evidence for this metric is unavailable',
+                   'ineligible':'Conditions for repeat comparison are not met'}.get(status,
+                       'Required evidence for this metric is unavailable'))
+
     def _update_details(self):
         current = self.file_list.currentItem()
-        sections = [current.toolTip()] if current else []
+        sections = [current.data(Qt.UserRole + 2) or ''] if current else []
         if self._resolution_details:
             sections.append(self._resolution_details)
-        self.details.setPlainText('\n\n'.join(sections))
+        if self.diagnostics_dialog is not None:
+            self.diagnostics_text.setPlainText('\n\n'.join(sections))
+        if not current:
+            self.details.clear()
+            return
+        lines = [current.text()]
+        model, name = self._model, current.data(Qt.UserRole)
+        if model is not None and name in model.identities:
+            identity = model.identities[name]
+            values = identity.values
+            if identity.source_kind in ('mujoco_synthetic', 'handcrafted_dummy'):
+                lines.insert(0, tr('Synthetic validation data'))
+            lines.extend([tr('Model') + ': ' + str(values.get('ModelId') or tr('Unknown')),
+                'L / W / H (mm): ' + ' / '.join(str(values.get(k) or tr('Unknown')) for k in ('BoxLengthMm','BoxWidthMm','BoxHeightMm')),
+                tr('Scenario') + ': ' + str(values.get('ScenarioId') or tr('Unknown')),
+                tr('Source') + ': ' + tr(SOURCE_LABELS.get(identity.source_kind, 'Unknown')),
+                tr('Individual view') + ': ' + tr('Available'),
+                tr('Time alignment') + ': ' + tr('Available' if model.timelines[name].aligned else 'First impact time unavailable; cannot align')])
+            try:
+                from src.analysis.compare.impact_metrics import _observation_context
+                review, _ = _observation_context(model.datasets[name])
+                approved = review is not None and review['candidate'].get('decision') == 'include' and review['candidate'].get('evidence_status') == 'current' and review['identity'].get('confirmed') is True
+                lines.append(tr('Scenario approval') + ': ' + tr('Current included review' if approved else 'Unconfirmed'))
+            except (ValueError, TypeError, KeyError):
+                lines.append(tr('Scenario approval') + ': ' + tr('Unavailable'))
+        context = self._metric_context
+        if context:
+            key, owner, descriptor = context['key'], context['owner'], context['descriptor']
+            metric_name = context.get('file') or name
+            data = owner.get('files', {}).get(metric_name)
+            if data:
+                result = data['result']
+                metric = getattr(result, 'metrics', {}).get(key)
+                selected_value = getattr(metric, 'value', getattr(result, 'outcome', None))
+                resolution = data['metric_resolution'].get(key, {})
+                lines.extend(['', tr(descriptor['label']),
+                    tr('Selected value') + ': ' + (str(selected_value) + ' ' + descriptor['unit'] if selected_value is not None else tr('Unavailable')),
+                    tr('Repeat comparison') + ': ' + self._availability(resolution.get('status')),
+                    tr('Time basis') + ': ' + tr('Absolute recorded seconds; playback can use time relative to pre-contact')])
+                evidence = getattr(result, 'evidence', {})
+                time = None if descriptor.get('whole') else getattr(result, 'time_s', getattr(result, 'evaluation_time_s', evidence.get('evaluation_time_s')))
+                if time is not None:
+                    lines.append(tr('Evaluation time') + f': {time:.9g} s')
+                reference = getattr(result, 'reference', None)
+                if reference:
+                    lines.append(tr('Reference face') + ': ' + str(reference[0]))
+                if evidence.get('sample_count'):
+                    lines.append(tr('Evaluation window') + f": {evidence['window_start_s']:.9g}–{evidence['window_end_s']:.9g} s")
+                if descriptor.get('whole') and model is not None and metric_name in model.timelines:
+                    times = model.timelines[metric_name].times
+                    if times is not None and len(times):
+                        lines.append(tr('Evaluation window') + f': {times[0]:.9g}–{times[-1]:.9g} s')
+                stats = owner.get('statistics', {}) if key == 'contact' else owner.get('statistics', {}).get(key, {})
+                lines.append(tr('Metric repeats n') + ': ' + str(stats.get('n', 0)))
+                lines.append(tr('Comparison group files') + ': ' + str(len(owner.get('files', {}))))
+                if stats.get('n', 0) < 3:
+                    lines.append(tr('Fewer than 3 comparable observations.'))
+                if self.diagnostics_dialog is not None:
+                    self.diagnostics_text.appendPlainText('\nSelected owner result:\n' + repr(result) + '\n' + repr(resolution))
+        self.details.setPlainText('\n'.join(lines))
 
     @staticmethod
     def _short_status(model, name):
@@ -780,6 +914,7 @@ class CompareControlPanel(QGroupBox):
         return 'Not comparable' if model.exclusion_reasons(name) else 'Ready'
 
     def update_files(self, file_names, baseline, model=None, impact=None):
+        self._model = model
         selected = self.selected_file
         previous_row = self.file_list.currentRow()
         self.file_list.blockSignals(True)
@@ -805,7 +940,8 @@ class CompareControlPanel(QGroupBox):
                     details += '\n\n' + '\n\n'.join(METRICS[key]['label'] + '\n' + CompareTablePanel._variant_detail(name, entry)
                         for key, entry in impact['files'][name]['metric_resolution'].items())
                 details += '\n\n' + '\n'.join(f'{key}: {value}' for key, value in model.identities[name].values.items())
-            item.setToolTip(details)
+            item.setData(Qt.UserRole + 2, details)
+            item.setToolTip(file_labels[name] + '\n' + tr(status))
             self.file_list.addItem(item)
         if file_names:
             row = file_names.index(selected) if selected in file_names else min(max(0, previous_row), len(file_names) - 1)
@@ -819,6 +955,6 @@ class CompareControlPanel(QGroupBox):
         for name in file_names:
             self.cb_baseline.addItem(file_labels[name], name)
             if model:
-                self.cb_baseline.setItemData(self.cb_baseline.count() - 1, model.file_paths[name], Qt.ToolTipRole)
+                self.cb_baseline.setItemData(self.cb_baseline.count() - 1, file_labels[name], Qt.ToolTipRole)
         self.cb_baseline.setCurrentIndex(self.cb_baseline.findData(baseline))
         self.cb_baseline.blockSignals(False)

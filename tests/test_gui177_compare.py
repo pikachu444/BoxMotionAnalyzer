@@ -41,7 +41,7 @@ def test_c01_owner_counts_source_identity_and_individual_data(tmp_path, comparis
     assert window.warning_label.text() == 'Files: 2 | Comparison observation groups: 0'
     assert window.control_panel.detail_tabs.count() == 2
     assert window.control_panel.detail_tabs.currentIndex() == 0
-    assert [window.control_panel.detail_tabs.tabText(index) for index in range(2)] == ['File details', 'Playback settings']
+    assert [window.control_panel.detail_tabs.tabText(index) for index in range(2)] == ['Experiment info', 'Playback settings']
     assert not any(type(widget).__name__ == 'CollapsibleSection' for widget in window.findChildren(QWidget))
     expected = unique_path_labels(paths)
     assert len(set(expected)) == 2 and all('capture-' in label for label in expected)
@@ -55,8 +55,11 @@ def test_c01_owner_counts_source_identity_and_individual_data(tmp_path, comparis
     assert window.table_panel.table.rowCount() > 0
     assert window.table_panel.table.isVisible()
     assert window.table_panel.maximumHeight() > 110
-    assert str(paths[1]) in window.control_panel.details.toPlainText()
-    assert 'ModelId: contract-box' in window.control_panel.details.toPlainText()
+    assert str(paths[1]) not in window.control_panel.details.toPlainText()
+    window.control_panel._open_diagnostics()
+    assert str(paths[1]) in window.control_panel.diagnostics_text.toPlainText()
+    assert 'Model: contract-box' in window.control_panel.details.toPlainText()
+    assert 'ModelId: contract-box' in window.control_panel.diagnostics_text.toPlainText()
     viewer = window.playback_panel.widgets[names[1]]
     camera = viewer.plotter.camera
     window.playback_panel.master_slider.setValue(2)
@@ -71,7 +74,9 @@ def test_c01_owner_counts_source_identity_and_individual_data(tmp_path, comparis
     assert window.playback_panel.master_slider.value() == 2
     assert window.right_splitter.sizes() == splitter
     window.table_panel.view_combo.setCurrentIndex(1)
-    assert str(paths[1]) in window.table_panel.cohort_label.toolTip()
+    assert str(paths[1]) not in window.table_panel.cohort_label.toolTip()
+    assert expected[1] in window.table_panel.cohort_label.toolTip()
+    assert str(paths[1]) in window.control_panel.diagnostics_text.toPlainText()
     assert [hashlib.sha256(path.read_bytes()).hexdigest() for path in paths] == hashes
 
 
@@ -89,7 +94,9 @@ def test_c02_owner_alignment_exclusion_is_visible_and_not_pooled(tmp_path, compa
     reason = window.model.timelines[second].reason
     assert reason and not window.model.timelines[second].aligned
     assert reason in window.alignment_label.text()
-    assert reason in window.control_panel.details.toPlainText()
+    assert reason not in window.control_panel.details.toPlainText()
+    window.control_panel._open_diagnostics()
+    assert reason in window.control_panel.diagnostics_text.toPlainText()
     window.control_panel.cb_view.setCurrentIndex(1)
     assert second not in window.graph_panel.legend_labels
     assert first in window.graph_panel.legend_labels
@@ -99,7 +106,9 @@ def test_c02_owner_alignment_exclusion_is_visible_and_not_pooled(tmp_path, compa
     owner = window.model.get_impact_comparison()
     assert all(value['n'] == 0 for value in owner['statistics'].values())
     window.table_panel.view_combo.setCurrentIndex(1)
-    assert str(paths[1]) in window.control_panel.details.toPlainText()
+    assert str(paths[1]) not in window.control_panel.details.toPlainText()
+    window.control_panel._open_diagnostics()
+    assert str(paths[1]) in window.control_panel.diagnostics_text.toPlainText()
     assert reason in window.alignment_label.text()
     window.control_panel.cb_view.setCurrentIndex(0)
     window.playback_panel.master_slider.setValue(1)
@@ -197,7 +206,7 @@ def test_fixed_tabs_and_controls_fit_supported_sizes(tmp_path, comparison, monke
         translated.resize(*size)
         QTest.qWait(30)
         assert (translated.width(), translated.height()) == size
-        assert translated.control_panel.detail_tabs.tabText(0) == tr('File details')
+        assert translated.control_panel.detail_tabs.tabText(0) == tr('Experiment info')
         for mode, key in ((0, 'vertical_velocity'), (4, 'beta')):
             translated.table_panel.view_combo.setCurrentIndex(mode)
             assert translated.table_panel.table.horizontalHeaderItem(0).text() == tr('Metric')
