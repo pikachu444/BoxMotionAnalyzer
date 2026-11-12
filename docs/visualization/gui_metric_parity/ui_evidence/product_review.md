@@ -230,3 +230,32 @@ No product correction, font/OS change, test edit or weakened assertion was used.
 This result establishes the controlled declared native Windows Qt configuration;
 it does not relabel the failed offscreen run as passing. The checker process exited
 before GUI ownership was handed back to the main agent.
+
+## Final comparison selection correction recheck
+
+On implementation `28ff53a4c92f7897ae68e445228a820dbdf633a2`, the same reviewer
+rechecked the correction that synchronizes the canonical selected file before the
+summary table emits its typed context. The unchanged regression
+`tests/test_comparison_layout.py::test_calibration_badge_and_time_tooltip_follow_current_view`
+passed: **1 passed in 4.09s**, exit code 0, using the task Python with native Windows
+Qt/PySide6 6.12.0 and desktop OpenGL.
+
+A separate bounded actual Compare window check passed **106 UI conditions, zero
+failures**, exit code 0. Two handcrafted files distinguish recorded A from B with
+its Time column removed, separate model labels and distinct graph payloads.
+Actual Qt mouse events exercised Control→numeric table, numeric table→Control,
+Contact-row→Control and Control selection while Contact was active. File identity,
+Experiment info metadata, graph source/data/recorded-versus-Sample clock, and
+playback file/row/time agreed at each step. Contact refresh, baseline change,
+removing A and reloading A in the changed file order retained B and its selected
+sample. No asynchronous Qt callback exception occurred; the input file bytes did
+not change.
+
+The exact states, conditions, runtime and source hashes are preserved in
+`product_selection_sync_qt612.json`, with `product-selection-B-no-time.png` and
+`product-selection-contact-B.png`. This is selection-routing evidence using real
+widgets, not physical qualification or proof from the comparison fixtures' metadata.
+The GUI process exited and ownership was returned before the main agent resumed
+its GUI work. No product/script changes, external desktop clicks, OS125 or human
+acceptance are claimed by this recheck. No blocking selection defect remains in
+the checked scope.

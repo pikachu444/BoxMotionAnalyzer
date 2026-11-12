@@ -2,7 +2,7 @@
 
 Last Reviewed: 2026-11-12
 
-Use `adoption_manifest.json` to select the fixed public source commit and verify every listed file's SHA-256. `sha256` covers committed Git blob bytes; `validated_checkout_sha256` records the tested Windows checkout bytes. Account explicitly for Git newline conversion when comparing another checkout. The listed revision identifies the implementation; later evidence-only commits need not change that source. No separate GUI package is invented by this delivery.
+Use `adoption_manifest.json` to select the fixed public source commit and verify every listed file's SHA-256. `sha256` covers committed Git blob bytes; `validated_checkout_sha256` records the tested Windows checkout bytes. Account explicitly for Git newline conversion when comparing another checkout. The listed revision identifies the implementation; later evidence-only commits need not change that source. Keep the accompanying publication manifest when checking out its earlier source pin; a historical manifest already present at that pinned commit is not the publication manifest. No separate GUI package is invented by this delivery.
 
 1. Check out the fixed public commit in an isolated checkout. Install the existing `requirements.txt` dependencies; the manifest records the versions actually used in public verification.
 2. Keep the listed `src/analysis`, `src/config` and `src/utils` files together. Keep the existing `bma_shared_core` connection and its ROW/FRAME/TIME-KERNEL contracts. Prefer importing the same public source. If a transitional copy is necessary, compare its bytes with the manifest and assign an owner to source drift.

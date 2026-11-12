@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_revision": "593c669a37ce485aa76b7881e79ff6b26360ce58",
+  "source_revision": "28ff53a4c92f7897ae68e445228a820dbdf633a2",
   "baseline_revision": "20dd4ce53a6d401fd6e219d6086b7600dba35ad7",
   "files": [
     {
@@ -40,8 +40,8 @@
     },
     {
       "path": "src/analysis/compare/main_window.py",
-      "sha256": "d4e9e0ebd156bfa383758419f854faa66edd0abcf4e2f15ab599765ee8d2c3be",
-      "validated_checkout_sha256": "2e7a77dd6d35b03a4796c89e5029753b5dcaa220d2cca260ad19acdc7783054d"
+      "sha256": "5b093c313dc3b53b87e5cfd6a72114b2b291fe9dbe164df279c2ed4e4f17e2d0",
+      "validated_checkout_sha256": "806ee494b766e679137d3309ef392c3cd0a0e135dbdb13c2b0c0318f6d0c38e6"
     },
     {
       "path": "src/analysis/compare/metric_guide.py",
@@ -55,8 +55,8 @@
     },
     {
       "path": "src/analysis/compare/ui_panels.py",
-      "sha256": "7edce7e95dadc3f03a222870dcee2e4c17bd8dae34e77e3ab98c549dd885acef",
-      "validated_checkout_sha256": "cdb30d6abfd29c9d3ecff2d412e3579898dd848fd8e4bc460e1b2c44dba32453"
+      "sha256": "c2b7aa8815184f552e9de01a1a7a057ea8321ee5057abeea46e8b64b4ea4a50b",
+      "validated_checkout_sha256": "3360ab8ff66e67cd7bfc2c4ed9bf95c80947078e7d46d01dff06e7b81fc106f8"
     },
     {
       "path": "src/analysis/pipeline/contact_reducers.py",
@@ -162,6 +162,11 @@
       "path": "tests/public_ci_inventory.json",
       "sha256": "f6aaa0a0aaa74d7c1d0a5b9ce1b776b0567b5f2e15dca3db9de1e8b9e5fe2099",
       "validated_checkout_sha256": "5e6de739b641dbbfd5f5bc8b8b82bf407cd9625bcd38fd7b3b534761dc6e9a49"
+    },
+    {
+      "path": "tests/test_comparison_layout.py",
+      "sha256": "fd86f906043d7b6dc1cf726377481b348fb40a30aa929363dc975bcc58e6997c",
+      "validated_checkout_sha256": "e14310090a373aec1eb28f3ae0ead6dbb0343fbc18ab2f57aed2236bdeb240d8"
     },
     {
       "path": "tests/test_comparison_reference_gui.py",
