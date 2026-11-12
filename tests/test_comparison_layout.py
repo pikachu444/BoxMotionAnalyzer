@@ -77,7 +77,7 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
     names = list(window.model.datasets)
     assert window.control_panel.cb_view.currentData() == 'individual'
     assert window.control_panel.detail_tabs.currentIndex() == 0
-    assert [window.control_panel.detail_tabs.tabText(i) for i in range(2)] == ['File details', 'Playback settings']
+    assert [window.control_panel.detail_tabs.tabText(i) for i in range(2)] == ['Experiment info', 'Playback settings']
     assert window.control_panel.gap_limit.value() == .1
     assert window.control_panel.selected_file == names[0]
     assert list(window.graph_panel.legend_labels) == [names[0]]
@@ -309,7 +309,9 @@ def test_missing_identity_is_neutral_and_mixed_aligned_sources_stay_visible(tmp_
     first = window.control_panel.file_list.item(0)
     assert 'Not comparable' in first.text()
     assert 'Different setup' not in first.text()
-    assert 'ModelId: missing' in first.toolTip()
+    assert 'ModelId: missing' not in first.toolTip()
+    window.control_panel._open_diagnostics()
+    assert 'ModelId: missing' in window.control_panel.diagnostics_text.toPlainText()
     assert 'Mixed sources' not in window.warning_label.text()
     window.control_panel.cb_view.setCurrentIndex(1)
     assert 'Mixed sources' in window.warning_label.text()
@@ -344,8 +346,14 @@ def test_calibration_badge_and_time_tooltip_follow_current_view(tmp_path, compar
     assert time.text() == '1.000 s'
     assert time.toolTip() == 'Recorded time'
     window.control_panel.file_list.setCurrentRow(1)
+    assert window.control_panel.selected_file == paths[1].name
+    assert window.table_panel.table.currentRow() == 1
     assert time.text() == 'Sample 1'
     assert time.toolTip() == 'Sample row (time unavailable)'
+    table.view_combo.setCurrentIndex(0)
+    assert window.control_panel.selected_file == paths[1].name
+    assert table.table.currentColumn() == 2
+    assert time.text() == 'Sample 1'
     window._on_remove_file(paths[0].name)
     window._on_remove_file(paths[1].name)
     assert table.validation_badge.isHidden()

@@ -189,6 +189,7 @@ class CompareMainWindow(QMainWindow):
 
     def _on_view_changed(self):
         self.model.max_gap_sec = self.control_panel.gap_limit.value()
+        self.table_panel.set_selected_file(self.control_panel.selected_file)
         self.playback_panel.set_view(self.control_panel.cb_view.currentData(), self.control_panel.selected_file)
         self._on_plot_target_changed(self.graph_panel.cb_plot_target.currentData())
         self._update_view_status()
@@ -266,6 +267,7 @@ class CompareMainWindow(QMainWindow):
         # Update Table
         diff_data = self.model.get_summary_differences()
         was_empty = self._summary_empty
+        self.table_panel.set_selected_file(self.control_panel.selected_file)
         self.table_panel.update_table(diff_data, baseline, impact, self.model.get_contact_comparison(),
                                       self.model.get_posture_comparison())
         

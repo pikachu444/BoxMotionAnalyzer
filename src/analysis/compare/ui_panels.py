@@ -99,6 +99,7 @@ class CompareTablePanel(QGroupBox):
         self._selected_metric = 'vertical_velocity'
         self._selected_posture_metric = 'beta'
         self._selected_contact = None
+        self._context_file = None
         self.table.currentCellChanged.connect(self._show_resolution)
         self.table.cellClicked.connect(self._show_resolution)
         self.table.horizontalHeader().sectionResized.connect(self._refresh_file_labels)
@@ -124,6 +125,7 @@ class CompareTablePanel(QGroupBox):
             self.table.verticalScrollBar().setValue(vertical)
             self.table.horizontalScrollBar().setValue(horizontal)
         self._last_mode = mode
+        self.set_selected_file(self._context_file)
         self._show_resolution()
         self._sanitize_tooltips()
         rows = self.table.rowCount()
@@ -462,6 +464,22 @@ class CompareTablePanel(QGroupBox):
         names = list(owner.get('files', {}))
         name = names[column - 1] if mode in (0, 4) and 0 < column <= len(names) else None
         self.metric_context_changed.emit(dict(key=key, descriptor=descriptors[key], owner=owner, file=name))
+
+    def set_selected_file(self, name):
+        self._context_file = name
+        mode = self.view_combo.currentIndex()
+        owner = self._contact_data if mode == 3 else self._posture_data if mode == 4 else self._table_data[2]
+        names = list(owner.get('files', {})) if owner else []
+        if name not in names or mode not in (0, 3, 4):
+            return
+        self.table.blockSignals(True)
+        try:
+            if mode == 3:
+                self.table.setCurrentCell(names.index(name), max(0, self.table.currentColumn()))
+            elif self.table.rowCount():
+                self.table.setCurrentCell(max(0, self.table.currentRow()), names.index(name) + 1)
+        finally:
+            self.table.blockSignals(False)
 
     def _sanitize_tooltips(self):
         # Full owner strings remain available through explicit Diagnostics.
