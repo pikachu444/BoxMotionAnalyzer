@@ -231,13 +231,10 @@ class CompareMainWindow(QMainWindow):
         self.warning_label.setText(self._summary_status + ('   ' + tr('Mixed sources') if mixed else ''))
         reasons = list(dict.fromkeys([timeline.reason for timeline in self.model.timelines.values() if timeline.reason]
                                     + self._owner_exclusion_reasons))
-        summary = '; '.join(tr(reason) for reason in reasons[:2])
-        if len(reasons) > 2:
-            summary += '; ' + tr('{} more reasons; see File details.').format(len(reasons) - 2)
+        summary = tr('Some files need alignment or comparison evidence. Open Diagnostics for details.')
         self.alignment_label.setText(summary if reasons else
                                      tr('Actual-time alignment available') if self.model.datasets else tr('No results loaded.'))
-        self.alignment_label.setToolTip('\n'.join(
-            self.model.status_text(name) for name in self.model.datasets))
+        self.alignment_label.setToolTip(self.alignment_label.text())
 
     def _on_elapsed_changed(self, elapsed):
         if self.control_panel.cb_view.currentData() == 'aligned':
@@ -284,6 +281,7 @@ class CompareMainWindow(QMainWindow):
             title = controls['title']
             display_name = file_labels[name]
             set_path_label(title, self.model.file_paths[name], display_name=display_name)
+            title.setToolTip(display_name)
             title.setText(title.fontMetrics().elidedText(display_name, Qt.ElideMiddle, 250))
         self.graph_panel.set_plot_targets(targets)
         self._on_view_changed()

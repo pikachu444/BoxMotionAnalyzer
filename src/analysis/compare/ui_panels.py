@@ -394,7 +394,7 @@ class CompareTablePanel(QGroupBox):
             names = list(self._contact_data['files'])
             row = self.table.currentRow()
             if not 0 <= row < len(names):
-                self.resolution_details_changed.emit('')
+                self._emit_resolution_details('')
                 return
             self._selected_contact = name = names[row]
             data = self._contact_data['files'][name]
@@ -405,10 +405,10 @@ class CompareTablePanel(QGroupBox):
                 details.extend(['', 'Observation status: ' + observation['status'], observation['reason'],
                                 'Sources: ' + ', '.join(observation['sources'])])
                 details.extend(self._variant_detail(v['file'], v) for v in observation['variants'])
-            self.resolution_details_changed.emit('\n'.join(details))
+            self._emit_resolution_details('\n'.join(details))
             return
         if mode not in (1, 5):
-            self.resolution_details_changed.emit('')
+            self._emit_resolution_details('')
             return
         row = self.table.currentRow()
         item = self.table.item(row, 0) if row >= 0 else None
@@ -416,7 +416,7 @@ class CompareTablePanel(QGroupBox):
         impact = self._posture_data if mode == 5 else self._table_data[2]
         descriptors = POSTURE_METRICS if mode == 5 else METRICS
         if key not in descriptors or not impact:
-            self.resolution_details_changed.emit('')
+            self._emit_resolution_details('')
             return
         if mode == 5:
             self._selected_posture_metric = key
@@ -443,7 +443,15 @@ class CompareTablePanel(QGroupBox):
                                 '; '.join(data['reasons'])])
         details.append('\nPolicy: ' + impact.get('resolution_policy', ''))
         self.resolution_label.setText(tr('Duplicate {}   Invalid {}   Conflict {}   Details at left').format(duplicates, invalid, conflicts))
-        self.resolution_details_changed.emit('\n'.join(details))
+        self._emit_resolution_details('\n'.join(details))
+
+    def _emit_resolution_details(self, owner_details):
+        item = self.table.currentItem()
+        cell_details = (item.data(Qt.UserRole + 20) or item.toolTip()) if item else ''
+        parts = [owner_details] if owner_details else []
+        if cell_details:
+            parts.append('Selected table cell:\n' + cell_details)
+        self.resolution_details_changed.emit('\n\n'.join(parts))
 
     def _emit_metric_context(self):
         mode = self.view_combo.currentIndex()
@@ -697,6 +705,7 @@ class CompareGraphPanel(QGroupBox):
             label.setTextFormat(Qt.PlainText)
             display_name = file_labels.get(name, name)
             set_path_label(label, (paths or {}).get(name, name), display_name=display_name)
+            label.setToolTip(display_name)
             label.setText(label.fontMetrics().elidedText(display_name, Qt.ElideMiddle, 240))
             label.setMinimumWidth(label.sizeHint().width())
             label.setProperty('fileKey', name)

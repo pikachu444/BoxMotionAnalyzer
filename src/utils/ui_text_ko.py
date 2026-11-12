@@ -1,6 +1,9 @@
 """Korean text for the application's presentation layer."""
 
 KOREAN = {
+    'Some files need alignment or comparison evidence. Open Diagnostics for details.': '일부 파일에 정렬 또는 비교 근거가 필요합니다. 진단 정보에서 이유를 확인하세요.',
+    'No sample is available at this time. Open Diagnostics for details.': '이 시점에 표시할 표본이 없습니다. 진단 정보에서 확인하세요.',
+    'Time alignment is unavailable. Open Diagnostics for details.': '시간 정렬을 사용할 수 없습니다. 진단 정보에서 확인하세요.',
     'Step 1.5: No slice loaded': 'Step 1.5: 열린 slice 없음',
     'Input and context': '입력 및 문맥',
     'View and marker review': '신호와 마커 검토',

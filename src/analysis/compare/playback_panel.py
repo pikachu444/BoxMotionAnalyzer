@@ -100,7 +100,7 @@ class ComparePlaybackPanel(QGroupBox):
             title = QLabel()
             title.setText(title.fontMetrics().elidedText(name, Qt.ElideMiddle, 210))
             title.setTextFormat(Qt.PlainText)
-            title.setToolTip(self.model.file_paths[name])
+            title.setToolTip(name)
             title.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
             heading.addWidget(title, stretch=1)
             layout.addLayout(heading)
@@ -232,11 +232,12 @@ class ComparePlaybackPanel(QGroupBox):
             viewer.setVisible(available)
         if row is None:
             control['label'].setText(tr('Unavailable here') if timeline.aligned else tr('Alignment unavailable'))
-            control['label'].setToolTip(timeline.reason or 'Outside this recording or inside a gap')
+            control['label'].setToolTip(tr('No sample is available at this time. Open Diagnostics for details.')
+                if timeline.aligned else tr('Time alignment is unavailable. Open Diagnostics for details.'))
             return
         if remember:
             control['row'] = row
-        time_text = f'{timeline.times[row]:.3f} s' if timeline.times is not None else 'time unavailable'
+        time_text = f'{timeline.times[row]:.3f} s' if timeline.times is not None else tr('time unavailable')
         control['label'].setText(tr('Sample {}  {}').format(row + 1, time_text) if available else tr('Position unavailable'))
         control['label'].setToolTip(tr('Sample {}: {}').format(row + 1, time_text) if available else tr('No finite position data for this sample'))
         if available:

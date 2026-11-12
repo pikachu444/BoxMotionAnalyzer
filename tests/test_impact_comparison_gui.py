@@ -26,6 +26,15 @@ def _load(window, paths, monkeypatch, app):
     _events(app)
 
 
+def _diagnostic_cell(window, row, column):
+    window.table_panel.table.setCurrentCell(row, column)
+    window.control_panel._open_diagnostics()
+    QApplication.processEvents()
+    details = window.control_panel.diagnostics_text.toPlainText()
+    assert 'Selected table cell:\n' in details
+    return details.rsplit('Selected table cell:\n', 1)[1].split('\nSelected owner result:\n', 1)[0]
+
+
 def test_metric_variants_keep_counts_and_expose_reasons_on_baseline_change(tmp_path, monkeypatch):
     import numpy as np
     app = QApplication.instance() or QApplication([])
@@ -47,19 +56,22 @@ def test_metric_variants_keep_counts_and_expose_reasons_on_baseline_change(tmp_p
         window.control_panel.detail_tabs.setCurrentWidget(window.control_panel.details)
         window.control_panel.file_list.setCurrentRow(1)
         _events(app)
-        assert window.control_panel.details.toPlainText().startswith(str(paths[1]))
-        assert '\n\nVertical velocity' in window.control_panel.details.toPlainText()
-        assert 'Vertical velocity' in window.control_panel.file_list.item(1).toolTip()
+        window.control_panel._open_diagnostics()
+        assert str(paths[1]) not in window.control_panel.details.toPlainText()
+        assert paths[1].name in window.control_panel.details.toPlainText()
+        assert window.control_panel.diagnostics_text.toPlainText().startswith(str(paths[1]))
+        assert '\n\nVertical velocity' in window.control_panel.diagnostics_text.toPlainText()
+        assert 'Vertical velocity' not in window.control_panel.file_list.item(1).toolTip()
         QTest.mouseClick(panel.table.viewport(), Qt.LeftButton,
                          pos=panel.table.visualItemRect(panel.table.item(row, 0)).center())
-        assert window.control_panel.details.toPlainText().startswith(str(paths[1]))
-        assert '\n\nVertical velocity' in window.control_panel.details.toPlainText()
+        assert window.control_panel.diagnostics_text.toPlainText().startswith(str(paths[1]))
+        assert '\n\nVertical velocity' in window.control_panel.diagnostics_text.toPlainText()
         for path in paths:
             window.control_panel.cb_baseline.setCurrentText(path.name)
             _events(app)
             assert [panel.table.item(row, col).text() for col in (1, 2, 3, 4, 5)] == ['2 (low)', '-3', '-4', '-2', '2']
             assert panel.resolution_label.text().startswith('Duplicate 1   Invalid 1   Conflict 0')
-            details = window.control_panel.details.toPlainText()
+            details = window.control_panel.diagnostics_text.toPlainText()
             assert 'Sources:' in details and 'valid.proc' in details and 'copy.proc' in details
             assert 'invalid.proc: invalid' in details and 'SHA-256:' in details
             assert panel.table.currentRow() == row
@@ -68,14 +80,15 @@ def test_metric_variants_keep_counts_and_expose_reasons_on_baseline_change(tmp_p
         _load(window, [conflict], monkeypatch, app)
         assert panel.table.item(row, 1).text() == '1 (low)'
         assert 'Conflict 1' in panel.resolution_label.text()
-        assert 'Conflicting valid variants' in window.control_panel.details.toPlainText()
-        assert 'invalid.proc: invalid' in window.control_panel.details.toPlainText()
+        assert 'Conflicting valid variants' in window.control_panel.diagnostics_text.toPlainText()
+        assert 'invalid.proc: invalid' in window.control_panel.diagnostics_text.toPlainText()
         panel.view_combo.setCurrentIndex(3)
         _events(app)
-        assert '\n\nContact\n' in window.control_panel.details.toPlainText()
+        assert '\n\nContact\n' in window.control_panel.diagnostics_text.toPlainText()
         panel.view_combo.setCurrentIndex(2)
         _events(app)
-        assert window.control_panel.details.toPlainText() == window.control_panel.file_list.currentItem().toolTip()
+        assert window.control_panel.diagnostics_text.toPlainText().startswith(window.control_panel.file_list.currentItem().data(Qt.UserRole + 2))
+        assert 'SHA-256:' not in window.control_panel.details.toPlainText()
         _load(window, [], monkeypatch, app)
         assert len(window.model.datasets) == 5
     finally:
@@ -103,7 +116,10 @@ def test_distinct_repeat_count_survives_duplicate_baseline_remove_and_reload(tmp
         assert len(window.model.datasets) == 4
         assert window.warning_label.text() == 'Files: 4 | Comparison observation groups: 3'
         duplicate = window.control_panel.file_list.item(3)
-        assert 'equivalent' in duplicate.toolTip()
+        assert 'equivalent' not in duplicate.toolTip()
+        window.control_panel.file_list.setCurrentRow(3)
+        window.control_panel._open_diagnostics()
+        assert 'equivalent' in window.control_panel.diagnostics_text.toPlainText()
         row = _metric_row(panel.table, 'Vertical velocity')
         assert panel.table.item(row, 1).text() == '3'
         assert panel.table.item(row, 2).text() == '-2'
@@ -152,14 +168,14 @@ def test_unconfirmed_h_height_has_visible_reason_and_modes_do_not_hide_it(tmp_pa
         panel = window.table_panel
         row = _metric_row(panel.table, 'Velocity-equivalent height')
         assert panel.table.item(row, 1).text() == '—'
-        assert 'confirmed 2018-03 Type G free fall' in panel.table.item(row, 1).toolTip()
+        assert 'confirmed 2018-03 Type G free fall' in _diagnostic_cell(window, row, 1)
         for index in (1, 2, 0):
             panel.view_combo.setCurrentIndex(index)
             _events(app)
             assert panel.table.rowCount() > 0
         row = _metric_row(panel.table, 'Velocity-equivalent height')
         assert panel.table.item(row, 1).text() == '—'
-        assert 'confirmed 2018-03 Type G free fall' in panel.table.item(row, 1).toolTip()
+        assert 'confirmed 2018-03 Type G free fall' in _diagnostic_cell(window, row, 1)
         assert not errors
     finally:
         window.close()
@@ -186,21 +202,21 @@ def test_stale_contact_reasons_and_confidence_state_survive_mode_changes(tmp_pat
         for label in ('First contact', 'Contact confidence'):
             row = _metric_row(panel.table, label)
             assert panel.table.item(row, 1).text() == '0 (low)'
-            assert 'conflicts' in panel.table.item(row, 1).toolTip()
+            assert 'conflicts' in _diagnostic_cell(window, row, 1)
             assert panel.table.item(row, 6).text() == 'Unavailable'
         panel.view_combo.setCurrentIndex(2)
         _events(app)
         row = _metric_row(panel.table, 'First impact contact')
         assert panel.table.item(row, 1).text().startswith('Unavailable —')
         assert 'conflicts' in panel.table.item(row, 1).text()
-        assert 'Saved value: {C1,C2}' in panel.table.item(row, 1).toolTip()
+        assert 'Saved value: {C1,C2}' in _diagnostic_cell(window, row, 1)
         _load(window, [valid], monkeypatch, app)
         panel.view_combo.setCurrentIndex(1)
         assert panel.table.item(_metric_row(panel.table, 'First contact'), 1).text() == '1 (low)'
         panel.view_combo.setCurrentIndex(2)
         row = _metric_row(panel.table, 'Contact confidence')
         assert panel.table.item(row, 2).text() == '0.75 (ImpactEvent)'
-        assert 'not a calibrated probability' in panel.table.item(row, 2).toolTip()
+        assert 'not a calibrated probability' in _diagnostic_cell(window, row, 2)
         for mode in (0, 3, 1, 2):
             panel.view_combo.setCurrentIndex(mode)
             _events(app)
@@ -235,7 +251,7 @@ def test_no_impact_confidence_is_separate_and_malformed_score_is_not_displayed_a
         row = _metric_row(panel.table, 'Contact confidence')
         assert panel.table.item(row, 1).text() == '0.2 (SustainedContact; not pooled)'
         assert panel.table.item(row, 2).text() == 'Unavailable — invalid saved value'
-        assert 'ContactConfidence: outside' in panel.table.item(row, 2).toolTip()
+        assert 'ContactConfidence: outside' in _diagnostic_cell(window, row, 2)
         assert window.model.get_impact_comparison()['statistics']['contact_confidence']['n'] == 0
     finally:
         window.close()
@@ -282,7 +298,7 @@ def test_public_event_display_retains_real_qt_screens_and_literal_counts(tmp_pat
         _events(app)
         row = _metric_row(panel.table, 'First contact')
         assert panel.table.item(row, 1).text() == '1 (low)'
-        assert 'stale.proc' in panel.table.item(row, 1).toolTip()
+        assert 'stale.proc' in _diagnostic_cell(window, row, 1)
         panel.table.scrollToItem(panel.table.item(row, 1))
         _events(app)
         window.grab().save(str(out / 'repeats.png'))
@@ -308,7 +324,7 @@ def test_public_event_display_retains_real_qt_screens_and_literal_counts(tmp_pat
         assert rendered is not None and rendered.std() > 1
         evidence['screens'].append('vtk.png')
         evidence['statistics'] = window.model.get_impact_comparison()['statistics']
-        evidence['first_contact_reason'] = panel.table.item(row, 2).toolTip()
+        evidence['first_contact_reason'] = _diagnostic_cell(window, row, 2)
         assert evidence['statistics']['first_contact']['n'] == 1
         assert evidence['statistics']['contact_confidence']['n'] == 1
         assert evidence['statistics']['contact_confidence']['mean'] == .75

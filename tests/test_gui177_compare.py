@@ -93,12 +93,15 @@ def test_c02_owner_alignment_exclusion_is_visible_and_not_pooled(tmp_path, compa
     selected = window.control_panel.selected_file
     reason = window.model.timelines[second].reason
     assert reason and not window.model.timelines[second].aligned
-    assert reason in window.alignment_label.text()
+    assert reason not in window.alignment_label.text()
+    assert 'Open Diagnostics' in window.alignment_label.text()
     assert reason not in window.control_panel.details.toPlainText()
     window.control_panel._open_diagnostics()
     assert reason in window.control_panel.diagnostics_text.toPlainText()
     window.control_panel.cb_view.setCurrentIndex(1)
     assert second not in window.graph_panel.legend_labels
+    assert reason not in window.playback_panel.local_controls[second]['label'].toolTip()
+    assert 'Open Diagnostics' in window.playback_panel.local_controls[second]['label'].toolTip()
     assert first in window.graph_panel.legend_labels
     assert window.model.playback_row(second, 0.) is None
     assert window.model.baseline_name == baseline
@@ -109,7 +112,7 @@ def test_c02_owner_alignment_exclusion_is_visible_and_not_pooled(tmp_path, compa
     assert str(paths[1]) not in window.control_panel.details.toPlainText()
     window.control_panel._open_diagnostics()
     assert str(paths[1]) in window.control_panel.diagnostics_text.toPlainText()
-    assert reason in window.alignment_label.text()
+    assert reason not in window.alignment_label.text()
     window.control_panel.cb_view.setCurrentIndex(0)
     window.playback_panel.master_slider.setValue(1)
     assert window.playback_panel.widgets[second].last_row == 1
@@ -160,7 +163,9 @@ def test_c03_empty_selected_mode_restores_user_splitter_and_keeps_warnings(tmp_p
     assert window.table_panel.height() <= 110
     assert window.right_splitter.sizes()[1] == original[1]
     assert window.right_splitter.sizes()[2] > original[2]
-    assert window.model.timelines[path.name].reason in window.alignment_label.text()
+    assert window.model.timelines[path.name].reason not in window.alignment_label.text()
+    window.control_panel._open_diagnostics()
+    assert window.model.timelines[path.name].reason in window.control_panel.diagnostics_text.toPlainText()
     assert fully_visible(window.table_panel.view_combo)
     assert fully_visible(window.table_panel.guide_button)
     window.table_panel.view_combo.setCurrentIndex(0)
@@ -250,7 +255,8 @@ def test_fixed_tabs_and_controls_fit_supported_sizes(tmp_path, comparison, monke
         assert graph.legend_scroll.geometry().bottom() < graph.canvas.geometry().top()
         for label in graph.legend_labels.values():
             assert 'capture-' in label.text()
-            assert label.toolTip() in translated.model.file_paths.values()
+            assert str(paths[0].parent.parent) not in label.toolTip()
+            assert label.property('fullPath') in translated.model.file_paths.values()
         assert not any(type(widget).__name__ == 'CollapsibleSection' for widget in translated.findChildren(QWidget))
     finally:
         translated.close()

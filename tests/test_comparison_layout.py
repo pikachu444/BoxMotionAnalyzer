@@ -94,7 +94,8 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
     color = curve.get_color()
     assert window.control_panel.file_list.currentItem().data(Qt.UserRole + 1) == color
     assert window.graph_panel.legend_labels[names[-1]].property('fileColor') == color
-    assert window.graph_panel.legend_labels[names[-1]].toolTip() == str(paths[-1])
+    assert window.graph_panel.legend_labels[names[-1]].toolTip() == paths[-1].name
+    assert window.graph_panel.legend_labels[names[-1]].property('fullPath') == str(paths[-1])
     assert window.playback_panel.containers[names[-1]].isVisible()
     assert all(window.playback_panel.containers[name].isHidden() for name in names[:-1])
     edge_rgb = viewer.edge_property.SetColor.call_args.args
@@ -158,7 +159,8 @@ def test_file_names_colours_selection_and_small_layout(tmp_path, comparison):
                 assert _curve(window, name).get_color() == window.model.file_colors[name]
                 label = graph.legend_labels[name]
                 assert not label.text().isdigit() and name[:3] in label.text()
-                assert window.model.file_paths[name] == label.toolTip()
+                assert label.toolTip() == name
+                assert window.model.file_paths[name] == label.property('fullPath')
                 assert label.width() >= label.fontMetrics().horizontalAdvance(label.text())
             assert graph.legend_scroll.horizontalScrollBar().maximum() > 0
             for name in (names[0], names[-1]):
