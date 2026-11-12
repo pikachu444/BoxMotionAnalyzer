@@ -1167,12 +1167,24 @@ class WidgetResultsAnalyzer(QWidget):
                 continue
             popup.set_selected_time_cursor(selected_time)
 
+    def _has_usable_result_observations(self):
+        if self.result_data is None or self.result_data.empty:
+            return False
+        for column in self.result_data.columns:
+            if column not in DISPLAY_RESULT_COLUMNS:
+                continue
+            values = self.result_data[column]
+            if is_corner_id_column(column):
+                if values.map(lambda value: format_result_value(column, value) != 'Unknown').any():
+                    return True
+            elif np.isfinite(pd.to_numeric(values, errors='coerce')).any():
+                return True
+        return False
+
     def _select_time_by_xdata(self, xdata, value=None):
-        target = self.find_max_target_combo.currentData()
-        target = normalize_result_column(target) if target is not None else None
-        if target is not None and target in self.result_data:
-            if not np.isfinite(pd.to_numeric(self.result_data[target], errors='coerce')).any():
-                return
+        if not self._has_usable_result_observations():
+            self.update_point_selection_ui()
+            return
         nearest_index = self._get_nearest_row_index(xdata)
         if nearest_index is None:
             return
@@ -1212,6 +1224,9 @@ class WidgetResultsAnalyzer(QWidget):
             return None
 
     def update_point_selection_ui(self, value=None):
+        if not self._has_usable_result_observations():
+            self.selected_point_info = {'time': None, 'index': None}
+            self._sync_popup_cursors()
         self._update_scenario_origin()
         if self.result_point_cursor:
             try:
@@ -1360,7 +1375,8 @@ class WidgetResultsAnalyzer(QWidget):
         self._find_extreme_point("min")
 
     def on_export_point_data_click(self):
-        if self.result_data is None or self.selected_point_info.get('index') is None:
+        if not self._has_usable_result_observations() or self.selected_point_info.get('index') is None:
+            self.update_point_selection_ui()
             self.log_message.emit("[ERROR] No point selected to export.")
             return
 
@@ -1442,7 +1458,7 @@ class WidgetResultsAnalyzer(QWidget):
     def _prepare_scenario_payload(self):
         from src.analysis.pipeline.scenario_export import scenario_text, scenario_bytes, _finite
         index = self.selected_point_info.get('index')
-        if self.result_data is None or index is None or not 0 <= index < len(self.result_data):
+        if not self._has_usable_result_observations() or index is None or not 0 <= index < len(self.result_data):
             raise ValueError('No valid recorded point selected')
         row = self.result_data.iloc[index]
         manual = self.offset_manual_checkbox.isChecked()
