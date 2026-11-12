@@ -1,0 +1,79 @@
+{
+  "status": "passed",
+  "fixture_manifest_sha256": "f2028e13d3f25899931af4922ac331eab69cd3b5aa23f30a3e85956adc01bfb1",
+  "numerical_limits": {
+    "position_max_component_error_mm": 0.05,
+    "orientation_geodesic_error_rad": 0.001,
+    "interior_velocity_component_error_mm_s": 2.5,
+    "whole_window_angle_error_deg": 0.1,
+    "fixed_face_height_range_error_mm": 0.25,
+    "arithmetic_rtol": 1e-09,
+    "arithmetic_atol": 1e-09,
+    "optimizer_options": {
+      "maxiter": 1500,
+      "xatol": 0.0001,
+      "fatol": 0.0001
+    },
+    "basis": "Predeclared numerical regression limits, not optimizer stopping guarantees or physical accuracy. For central differences at dt=0.02 s, |position error|<=0.05 mm contributes at most 0.05/0.02=2.5 mm/s to each interior velocity component. Boundary samples are excluded. Orientation error<=0.001 rad bounds a 200-by-80 mm face separation error by sqrt(200^2+80^2)*0.001<0.216 mm; the frozen range limit is 0.25 mm. The frozen 0.1 degree angle limit exceeds 0.001*180/pi degrees. Pure arithmetic/geometry cases retain rtol=atol=1e-9. No angular-velocity or acceleration error limit is inferred from these values.",
+    "failure_policy": "Investigate a failed fixed limit; never relax it after observing optimizer output."
+  },
+  "producer_policy": "actual Raw; 11 included frames per input",
+  "cases": [
+    {
+      "id": "affine_identity",
+      "source_sha256": "885b4cd47b04d1e2de584eb3a9c432ef704396ebb9ef9815557da6977a156c0a",
+      "optimizer_calls": 11,
+      "processed_rows": 11,
+      "times_s": [
+        0.1,
+        0.12,
+        0.14,
+        0.16,
+        0.18,
+        0.2,
+        0.22,
+        0.24,
+        0.26,
+        0.28,
+        0.3
+      ],
+      "max_position_component_error_mm": 0.00011712695140886353,
+      "max_orientation_geodesic_error_rad": 4.404108563098131e-06,
+      "max_interior_velocity_component_error_mm_s": 0.0027605251416389365,
+      "max_beta_deg": 0.0001782752155273857,
+      "max_delta_h_mm": 0.0006244439392730783,
+      "contact_state": "NoContact",
+      "contact_confidence": 0.0
+    },
+    {
+      "id": "affine_offset_tilt",
+      "source_sha256": "db031a878758c8d5a7262cdaed7f2807fd154de3df4c64f5bf7ca71967000759",
+      "optimizer_calls": 11,
+      "processed_rows": 11,
+      "times_s": [
+        0.1,
+        0.12,
+        0.14,
+        0.16,
+        0.18,
+        0.2,
+        0.22,
+        0.24,
+        0.26,
+        0.28,
+        0.3
+      ],
+      "max_position_component_error_mm": 4.906348335964594e-05,
+      "max_orientation_geodesic_error_rad": 2.4673289555343543e-06,
+      "max_interior_velocity_component_error_mm_s": 0.0020131901850013573,
+      "max_beta_deg": 30.000085893611477,
+      "max_delta_h_mm": 100.00034071129767,
+      "contact_state": "NoContact",
+      "contact_confidence": 0.0
+    }
+  ],
+  "optimizer_calls_total": 22,
+  "comparison_files": 2,
+  "repeat_n": 0,
+  "experimental_repeat_claim": false
+}

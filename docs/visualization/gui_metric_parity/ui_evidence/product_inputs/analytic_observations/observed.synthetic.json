@@ -1,0 +1,726 @@
+{
+  "schema_version": 1,
+  "generator_version": "1.0",
+  "source_kind": "handcrafted_dummy",
+  "evidence_level": "synthetic_integration",
+  "seed": 74082,
+  "profile": {
+    "profile_id": "public-asymmetric-example-18",
+    "profile_version": "1",
+    "units": "mm",
+    "origin": "box-geometric-center",
+    "dimension_policy": "absolute-mm",
+    "box_dims_mm": [
+      200.0,
+      120.0,
+      80.0
+    ],
+    "publication": "public-example-not-production-standard",
+    "source": "explicit handcrafted geometry; no capture-derived coordinates",
+    "license": "same as repository source code",
+    "markers": [
+      {
+        "id": "F1",
+        "face": "FRONT",
+        "xyz_mm": [
+          21,
+          12,
+          40
+        ]
+      },
+      {
+        "id": "F2",
+        "face": "FRONT",
+        "xyz_mm": [
+          -51,
+          19,
+          40
+        ]
+      },
+      {
+        "id": "F3",
+        "face": "FRONT",
+        "xyz_mm": [
+          30,
+          -35,
+          40
+        ]
+      },
+      {
+        "id": "F4",
+        "face": "FRONT",
+        "xyz_mm": [
+          -9,
+          -8,
+          40
+        ]
+      },
+      {
+        "id": "B1",
+        "face": "BACK",
+        "xyz_mm": [
+          17,
+          -31,
+          -40
+        ]
+      },
+      {
+        "id": "B2",
+        "face": "BACK",
+        "xyz_mm": [
+          -39,
+          23,
+          -40
+        ]
+      },
+      {
+        "id": "B3",
+        "face": "BACK",
+        "xyz_mm": [
+          42,
+          28,
+          -40
+        ]
+      },
+      {
+        "id": "R1",
+        "face": "RIGHT",
+        "xyz_mm": [
+          100,
+          12,
+          8
+        ]
+      },
+      {
+        "id": "R2",
+        "face": "RIGHT",
+        "xyz_mm": [
+          100,
+          -28,
+          19
+        ]
+      },
+      {
+        "id": "R3",
+        "face": "RIGHT",
+        "xyz_mm": [
+          100,
+          31,
+          -18
+        ]
+      },
+      {
+        "id": "L1",
+        "face": "LEFT",
+        "xyz_mm": [
+          -100,
+          -18,
+          7
+        ]
+      },
+      {
+        "id": "L2",
+        "face": "LEFT",
+        "xyz_mm": [
+          -100,
+          25,
+          21
+        ]
+      },
+      {
+        "id": "L3",
+        "face": "LEFT",
+        "xyz_mm": [
+          -100,
+          19,
+          -25
+        ]
+      },
+      {
+        "id": "T1",
+        "face": "TOP",
+        "xyz_mm": [
+          7,
+          60,
+          -9
+        ]
+      },
+      {
+        "id": "T2",
+        "face": "TOP",
+        "xyz_mm": [
+          -45,
+          60,
+          23
+        ]
+      },
+      {
+        "id": "T3",
+        "face": "TOP",
+        "xyz_mm": [
+          51,
+          60,
+          18
+        ]
+      },
+      {
+        "id": "M1",
+        "face": "BOTTOM",
+        "xyz_mm": [
+          -12,
+          -60,
+          25
+        ]
+      },
+      {
+        "id": "M2",
+        "face": "BOTTOM",
+        "xyz_mm": [
+          38,
+          -60,
+          -18
+        ]
+      }
+    ]
+  },
+  "layout_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+  "coordinate_policy": "world-y-up-box-local-fixed-center-v1",
+  "units": {
+    "length": "mm",
+    "time": "s",
+    "rotation": "dimensionless rotation matrix"
+  },
+  "operation_order": [
+    "truth geometry",
+    "cumulative solved local half turns",
+    "stable-ID noise and world offsets",
+    "freeze prior final pre-label sample",
+    "missing mask",
+    "physical label routing"
+  ],
+  "event_order": "start_index then original ordinal within each operation",
+  "index_semantics": "zero-based sample positions; start inclusive, end exclusive; no interpolation",
+  "endpoint_semantics": "last_* is the included final sample; end_*_exclusive is the next actual sample or null at N",
+  "marker_identity": "physical stable IDs precede label routing; output labels may refer to other physical IDs",
+  "mapping_composition": "each mapping copies its source from currently routed output labels, simultaneously, then the next mapping composes on that result",
+  "half_turn_semantics": "R_solved = R_truth @ F; F accumulates local half turns; physical truth is unchanged",
+  "noise_model": "independent zero-mean Gaussian coordinate noise; uncalibrated synthetic model",
+  "rotation_matrix_tolerance": 1e-09,
+  "events": [],
+  "expected_approval": false,
+  "expected_recommendation": null,
+  "plan_spec": "ISTA6A-PLAN-20261001-v1",
+  "marker_profile_identity": {
+    "schema_version": 1,
+    "plan_spec": "ISTA6A-PLAN-20261001-v1",
+    "object_type": "MarkerProfileIdentity",
+    "source_profile": {
+      "profile_id": "public-asymmetric-example-18",
+      "profile_version": "1",
+      "units": "mm",
+      "origin": "box-geometric-center",
+      "dimension_policy": "absolute-mm",
+      "box_dims_mm": [
+        200.0,
+        120.0,
+        80.0
+      ],
+      "publication": "public-example-not-production-standard",
+      "source": "explicit handcrafted geometry; no capture-derived coordinates",
+      "license": "same as repository source code",
+      "markers": [
+        {
+          "id": "F1",
+          "face": "FRONT",
+          "xyz_mm": [
+            21,
+            12,
+            40
+          ]
+        },
+        {
+          "id": "F2",
+          "face": "FRONT",
+          "xyz_mm": [
+            -51,
+            19,
+            40
+          ]
+        },
+        {
+          "id": "F3",
+          "face": "FRONT",
+          "xyz_mm": [
+            30,
+            -35,
+            40
+          ]
+        },
+        {
+          "id": "F4",
+          "face": "FRONT",
+          "xyz_mm": [
+            -9,
+            -8,
+            40
+          ]
+        },
+        {
+          "id": "B1",
+          "face": "BACK",
+          "xyz_mm": [
+            17,
+            -31,
+            -40
+          ]
+        },
+        {
+          "id": "B2",
+          "face": "BACK",
+          "xyz_mm": [
+            -39,
+            23,
+            -40
+          ]
+        },
+        {
+          "id": "B3",
+          "face": "BACK",
+          "xyz_mm": [
+            42,
+            28,
+            -40
+          ]
+        },
+        {
+          "id": "R1",
+          "face": "RIGHT",
+          "xyz_mm": [
+            100,
+            12,
+            8
+          ]
+        },
+        {
+          "id": "R2",
+          "face": "RIGHT",
+          "xyz_mm": [
+            100,
+            -28,
+            19
+          ]
+        },
+        {
+          "id": "R3",
+          "face": "RIGHT",
+          "xyz_mm": [
+            100,
+            31,
+            -18
+          ]
+        },
+        {
+          "id": "L1",
+          "face": "LEFT",
+          "xyz_mm": [
+            -100,
+            -18,
+            7
+          ]
+        },
+        {
+          "id": "L2",
+          "face": "LEFT",
+          "xyz_mm": [
+            -100,
+            25,
+            21
+          ]
+        },
+        {
+          "id": "L3",
+          "face": "LEFT",
+          "xyz_mm": [
+            -100,
+            19,
+            -25
+          ]
+        },
+        {
+          "id": "T1",
+          "face": "TOP",
+          "xyz_mm": [
+            7,
+            60,
+            -9
+          ]
+        },
+        {
+          "id": "T2",
+          "face": "TOP",
+          "xyz_mm": [
+            -45,
+            60,
+            23
+          ]
+        },
+        {
+          "id": "T3",
+          "face": "TOP",
+          "xyz_mm": [
+            51,
+            60,
+            18
+          ]
+        },
+        {
+          "id": "M1",
+          "face": "BOTTOM",
+          "xyz_mm": [
+            -12,
+            -60,
+            25
+          ]
+        },
+        {
+          "id": "M2",
+          "face": "BOTTOM",
+          "xyz_mm": [
+            38,
+            -60,
+            -18
+          ]
+        }
+      ]
+    },
+    "profile_hash": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+    "geometry_hash": "868a2cf41cccc297a1defe244768467debb5bec2062becff14cbd4253d309148",
+    "observation_mapping_hash": "5ebfae4bdc7a401ad802c8995793606d2a678fc6414934550480da83aa93267e",
+    "policy": {
+      "schema_version": 1,
+      "plan_spec": "ISTA6A-PLAN-20261001-v1",
+      "object_type": "MarkerInterpretationPolicy",
+      "version": "marker-interpretation-v1",
+      "coordinate_policy": "world-y-up-box-local-fixed-center-v1",
+      "units_policy": "bma-mm-s-rotvec-rad-summary-deg-v1",
+      "local_frame": {
+        "origin": "box-geometric-center",
+        "handedness": "right",
+        "axes": {
+          "X": "Right",
+          "Y": "Top",
+          "Z": "Front"
+        },
+        "position_units": "mm",
+        "time_units": "s",
+        "rotation": "local-to-world; p_world = R @ p_local + T"
+      },
+      "world_vertical_axis_index": 1,
+      "label_prefixes": {
+        "F": "FRONT",
+        "B": "BACK",
+        "L": "LEFT",
+        "R": "RIGHT",
+        "T": "TOP",
+        "FA": "FRONT",
+        "BA": "BACK",
+        "M": "BOTTOM"
+      },
+      "faces": {
+        "TOP": {
+          "axis_idx": 1,
+          "direction": 1,
+          "bound_axes_indices": [
+            0,
+            2
+          ],
+          "corners": [
+            2,
+            3,
+            7,
+            6
+          ]
+        },
+        "BOTTOM": {
+          "axis_idx": 1,
+          "direction": -1,
+          "bound_axes_indices": [
+            0,
+            2
+          ],
+          "corners": [
+            0,
+            1,
+            5,
+            4
+          ]
+        },
+        "RIGHT": {
+          "axis_idx": 0,
+          "direction": 1,
+          "bound_axes_indices": [
+            1,
+            2
+          ],
+          "corners": [
+            1,
+            2,
+            6,
+            5
+          ]
+        },
+        "LEFT": {
+          "axis_idx": 0,
+          "direction": -1,
+          "bound_axes_indices": [
+            1,
+            2
+          ],
+          "corners": [
+            0,
+            4,
+            7,
+            3
+          ]
+        },
+        "FRONT": {
+          "axis_idx": 2,
+          "direction": 1,
+          "bound_axes_indices": [
+            0,
+            1
+          ],
+          "corners": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        "BACK": {
+          "axis_idx": 2,
+          "direction": -1,
+          "bound_axes_indices": [
+            0,
+            1
+          ],
+          "corners": [
+            0,
+            3,
+            2,
+            1
+          ]
+        }
+      },
+      "normals": {
+        "FRONT": [
+          0,
+          0,
+          1
+        ],
+        "BACK": [
+          0,
+          0,
+          -1
+        ],
+        "RIGHT": [
+          1,
+          0,
+          0
+        ],
+        "LEFT": [
+          -1,
+          0,
+          0
+        ],
+        "TOP": [
+          0,
+          1,
+          0
+        ],
+        "BOTTOM": [
+          0,
+          -1,
+          0
+        ]
+      },
+      "corner_basis": [
+        [
+          -1.0,
+          -1.0,
+          -1.0
+        ],
+        [
+          1.0,
+          -1.0,
+          -1.0
+        ],
+        [
+          1.0,
+          1.0,
+          -1.0
+        ],
+        [
+          -1.0,
+          1.0,
+          -1.0
+        ],
+        [
+          -1.0,
+          -1.0,
+          1.0
+        ],
+        [
+          1.0,
+          -1.0,
+          1.0
+        ],
+        [
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          -1.0,
+          1.0,
+          1.0
+        ]
+      ],
+      "simulation_world_transform": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "simulation_half_turns": {
+        "X": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        ],
+        "Y": [
+          [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        ],
+        "Z": [
+          [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "analysis_half_turn_rotvecs": {
+        "X": [
+          3.141592653589793,
+          0.0,
+          0.0
+        ],
+        "Y": [
+          0.0,
+          3.141592653589793,
+          0.0
+        ],
+        "Z": [
+          0.0,
+          0.0,
+          3.141592653589793
+        ]
+      },
+      "local_axis_indices": {
+        "X": 0,
+        "Y": 1,
+        "Z": 2
+      },
+      "half_turn_face_maps": {
+        "X": {
+          "FRONT": "BACK",
+          "BACK": "FRONT",
+          "TOP": "BOTTOM",
+          "BOTTOM": "TOP"
+        },
+        "Y": {
+          "FRONT": "BACK",
+          "BACK": "FRONT",
+          "LEFT": "RIGHT",
+          "RIGHT": "LEFT"
+        },
+        "Z": {
+          "LEFT": "RIGHT",
+          "RIGHT": "LEFT",
+          "TOP": "BOTTOM",
+          "BOTTOM": "TOP"
+        }
+      },
+      "half_turn_operation": "cumulative local R @ F; assigned face map; observed XYZ and IDs unchanged"
+    },
+    "policy_hash": "0fa231f9cb7f64fc70e4df28f0f8ecf0dad972f9ed5cc15f40e2c32e1e238272",
+    "semantic_hash": "ace28694bd558bd740fbfceac0afb734b646586e8148aef5ca1b3e5cd7b7094b",
+    "semantic_version": "marker-interpretation-v1/ace28694bd558bd740fbfceac0afb734b646586e8148aef5ca1b3e5cd7b7094b"
+  },
+  "input_sha256": {
+    "trajectory": "46cdf816a9fe6cb910b0d77df2b53dcca94a796848c68f64cdab2ad9646bd56d",
+    "profile": "66ac8c6d2bcd9b531d532a23c2af7b04e72a7ae1ab1ae8aa8c0c8ec7ef77bafb",
+    "spec": "0bb942c3953ec3e7e0e7cef46cf444423b85412be8460027737cdf15cfc3fd6c"
+  },
+  "com_available": false,
+  "files": {
+    "observed.csv": "04a1eed24423a368d45f4e6736cb6b267805aefc22cdb6b2f86a98501deb1e09",
+    "truth_pose.csv": "22ccff936418c0324a4c527b2b572330446c97ebfd3313f66e7f679c9ce42d08",
+    "truth_markers.csv": "b532a00e84e527044086b0fd4df4d465ed4528b8131767f83032cb15a187c4be"
+  },
+  "source_sha256": {
+    "marker_corruption.py": "fc63da6b2c9916221fa80af37f525fb7d1f7e3529929055f2a5423fe655bc7fd",
+    "corruption_export.py": "2c974c9e272604a065ab5be5e6f51e5155b0fed2db95b571e1759069d9b08b2e",
+    "marker_fixtures.py": "f855d00b31a1b13017ef82e1d60c0d7ef19e925b7bd1eb51342998ba2c0081af",
+    "observation_profile.py": "42a7b9707acbab49de9fd75651e90a8ee32367f7d3e539080908efe40c34740b"
+  },
+  "observed_contract": "Separate Marker physical positions and Rigid Body Marker solved constraints. Physical faults do not model a Motive solver response.",
+  "completion": "complete"
+}

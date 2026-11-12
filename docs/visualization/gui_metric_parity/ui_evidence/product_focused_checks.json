@@ -1,0 +1,2234 @@
+{
+  "platform": "windows",
+  "qt": "6.10.1",
+  "scope": "Focused native-platform Qt/QTest reinspection of responsive initial layout and full-size diagrams; no optimizer/solver/native desktop input/OS125/human approval",
+  "captures": [
+    {
+      "name": "product-process-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-en-1510x800.png",
+      "settings_viewport": [
+        1498,
+        303
+      ],
+      "card_columns": 5,
+      "top_height": 427,
+      "right_width": 329,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-en-1510x800.png",
+      "settings_viewport": [
+        1498,
+        323
+      ],
+      "card_columns": 5,
+      "top_height": 407,
+      "right_width": 329,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-en-1100x720.png",
+      "settings_viewport": [
+        1088,
+        308
+      ],
+      "card_columns": 3,
+      "top_height": 342,
+      "right_width": 299,
+      "log_height": 90,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-en-1100x720.png",
+      "settings_viewport": [
+        1088,
+        328
+      ],
+      "card_columns": 3,
+      "top_height": 322,
+      "right_width": 299,
+      "log_height": 90,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-en-820x600.png",
+      "settings_viewport": [
+        796,
+        267
+      ],
+      "card_columns": 2,
+      "top_height": 263,
+      "right_width": 268,
+      "log_height": 80,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-en-820x600.png",
+      "settings_viewport": [
+        796,
+        287
+      ],
+      "card_columns": 2,
+      "top_height": 243,
+      "right_width": 268,
+      "log_height": 80,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-guide-en-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-en-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-diagram-en-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-diagram-en-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-en-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-en-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-diagram-en-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-diagram-en-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-keyboard-en",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-keyboard-en.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:TargetPostureError_deg",
+      "entries": 61
+    },
+    {
+      "name": "product-diagram-posture-en-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-posture-en-640x480.png"
+    },
+    {
+      "name": "product-diagram-posture-panned-en",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-posture-panned-en.png"
+    },
+    {
+      "name": "product-diagram-impact-en-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-impact-en-640x480.png"
+    },
+    {
+      "name": "product-diagram-contact-en-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-contact-en-640x480.png"
+    },
+    {
+      "name": "product-diagram-posture-en-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-posture-en-1100x760.png"
+    },
+    {
+      "name": "product-diagram-impact-en-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-impact-en-1100x760.png"
+    },
+    {
+      "name": "product-diagram-contact-en-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-contact-en-1100x760.png"
+    },
+    {
+      "name": "product-process-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-ko-1510x800.png",
+      "settings_viewport": [
+        1498,
+        303
+      ],
+      "card_columns": 5,
+      "top_height": 427,
+      "right_width": 329,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-ko-1510x800.png",
+      "settings_viewport": [
+        1498,
+        323
+      ],
+      "card_columns": 5,
+      "top_height": 407,
+      "right_width": 329,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-ko-1100x720.png",
+      "settings_viewport": [
+        1088,
+        308
+      ],
+      "card_columns": 3,
+      "top_height": 342,
+      "right_width": 299,
+      "log_height": 90,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-ko-1100x720.png",
+      "settings_viewport": [
+        1088,
+        328
+      ],
+      "card_columns": 3,
+      "top_height": 322,
+      "right_width": 299,
+      "log_height": 90,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-ko-820x600.png",
+      "settings_viewport": [
+        796,
+        267
+      ],
+      "card_columns": 2,
+      "top_height": 263,
+      "right_width": 268,
+      "log_height": 80,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-ko-820x600.png",
+      "settings_viewport": [
+        796,
+        287
+      ],
+      "card_columns": 2,
+      "top_height": 243,
+      "right_width": 268,
+      "log_height": 80,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-guide-ko-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-ko-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-diagram-ko-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-diagram-ko-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-ko-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-ko-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-diagram-ko-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-diagram-ko-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-keyboard-ko",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-keyboard-ko.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:TargetPostureError_deg",
+      "entries": 61
+    },
+    {
+      "name": "product-diagram-posture-ko-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-posture-ko-640x480.png"
+    },
+    {
+      "name": "product-diagram-posture-panned-ko",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-posture-panned-ko.png"
+    },
+    {
+      "name": "product-diagram-impact-ko-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-impact-ko-640x480.png"
+    },
+    {
+      "name": "product-diagram-contact-ko-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-contact-ko-640x480.png"
+    },
+    {
+      "name": "product-diagram-posture-ko-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-posture-ko-1100x760.png"
+    },
+    {
+      "name": "product-diagram-impact-ko-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-impact-ko-1100x760.png"
+    },
+    {
+      "name": "product-diagram-contact-ko-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagram-contact-ko-1100x760.png"
+    }
+  ],
+  "checks": [
+    {
+      "name": "en processing slice load (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-en-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "en responsive initial top target (1510, 800)",
+      "result": "pass",
+      "actual": 427,
+      "target": 430
+    },
+    {
+      "name": "en responsive initial Log target (1510, 800)",
+      "result": "pass",
+      "actual": 104,
+      "target": 104
+    },
+    {
+      "name": "en processing card columns (1510, 800)",
+      "result": "pass",
+      "columns": 5,
+      "expected": 5
+    },
+    {
+      "name": "en processing fixed footer (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing no horizontal settings scroll (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing Advanced settings reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing range field reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en batch disables plot controls (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-en-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "en mode switch preserves splitter (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en real resize roundtrip preserves user splitter (1510, 800)",
+      "result": "pass",
+      "before": [
+        407,
+        323
+      ],
+      "after": [
+        407,
+        323
+      ]
+    },
+    {
+      "name": "en hide/show does not reseed splitter (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en moved controls remain locked (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing slice load (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-en-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "en responsive initial top target (1100, 720)",
+      "result": "pass",
+      "actual": 342,
+      "target": 345
+    },
+    {
+      "name": "en responsive initial Log target (1100, 720)",
+      "result": "pass",
+      "actual": 90,
+      "target": 90
+    },
+    {
+      "name": "en processing card columns (1100, 720)",
+      "result": "pass",
+      "columns": 3,
+      "expected": 3
+    },
+    {
+      "name": "en processing fixed footer (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing no horizontal settings scroll (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing Advanced settings reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing range field reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en batch disables plot controls (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-en-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "en mode switch preserves splitter (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en real resize roundtrip preserves user splitter (1100, 720)",
+      "result": "pass",
+      "before": [
+        322,
+        328
+      ],
+      "after": [
+        322,
+        328
+      ]
+    },
+    {
+      "name": "en hide/show does not reseed splitter (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en moved controls remain locked (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing slice load (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-en-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "en responsive initial top target (820, 600)",
+      "result": "pass",
+      "actual": 263,
+      "target": 265
+    },
+    {
+      "name": "en responsive initial Log target (820, 600)",
+      "result": "pass",
+      "actual": 80,
+      "target": 80
+    },
+    {
+      "name": "en processing card columns (820, 600)",
+      "result": "pass",
+      "columns": 2,
+      "expected": 2
+    },
+    {
+      "name": "en processing fixed footer (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing no horizontal settings scroll (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing Advanced settings reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing range field reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en batch disables plot controls (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-en-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "en mode switch preserves splitter (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en real resize roundtrip preserves user splitter (820, 600)",
+      "result": "pass",
+      "before": [
+        243,
+        287
+      ],
+      "after": [
+        243,
+        287
+      ]
+    },
+    {
+      "name": "en hide/show does not reseed splitter (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en moved controls remain locked (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en compare wrapper shared renderer",
+      "result": "pass"
+    },
+    {
+      "name": "en Step2 wrapper shared renderer",
+      "result": "pass"
+    },
+    {
+      "name": "product-guide-en-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "product-guide-diagram-en-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "product-guide-en-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "product-guide-diagram-en-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "en Guide actual width thresholds",
+      "result": "pass",
+      "cases": [
+        {
+          "content_width": 999,
+          "columns": 1
+        },
+        {
+          "content_width": 1000,
+          "columns": 2
+        },
+        {
+          "content_width": 1001,
+          "columns": 2
+        }
+      ]
+    },
+    {
+      "name": "en hidden target revealed",
+      "result": "pass"
+    },
+    {
+      "name": "en all Guide entries keyboard reachable",
+      "result": "pass",
+      "visited": 61,
+      "expected": 61
+    },
+    {
+      "name": "en Guide keyboard headings scroll into view",
+      "result": "pass",
+      "outside": []
+    },
+    {
+      "name": "en Guide fixed Close keyboard reachable",
+      "result": "pass"
+    },
+    {
+      "name": "en Guide content fits viewport after threshold reflows",
+      "result": "pass",
+      "viewport": 596,
+      "content": 596,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-guide-keyboard-en: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "en Guide empty filter message",
+      "result": "pass"
+    },
+    {
+      "name": "en unknown target Interpretation top",
+      "result": "pass"
+    },
+    {
+      "name": "en Guide Escape hides",
+      "result": "pass"
+    },
+    {
+      "name": "en Guide same instance reopen context",
+      "result": "pass"
+    },
+    {
+      "name": "en missing diagram text alternative",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram button Tab reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram keyboard opens owned window (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture full original pixels/aspect (640, 480)",
+      "result": "pass",
+      "original_pixels": [
+        1540,
+        784
+      ],
+      "display_pixels": [
+        1540,
+        784
+      ]
+    },
+    {
+      "name": "product-diagram-posture-en-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "en Posture diagram fixed Close fully visible (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture full image keyboard reaches Key_Right edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture full image keyboard reaches Key_Down edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "product-diagram-posture-panned-en: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "en Posture diagram Close keyboard reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram Close hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram same object reopens (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram Escape hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram button Tab reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram keyboard opens owned window (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact full original pixels/aspect (640, 480)",
+      "result": "pass",
+      "original_pixels": [
+        1400,
+        700
+      ],
+      "display_pixels": [
+        1400,
+        700
+      ]
+    },
+    {
+      "name": "product-diagram-impact-en-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "en Impact diagram fixed Close fully visible (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact full image keyboard reaches Key_Right edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact full image keyboard reaches Key_Down edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram Close keyboard reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram Close hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram same object reopens (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram Escape hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram button Tab reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram keyboard opens owned window (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact full original pixels/aspect (640, 480)",
+      "result": "pass",
+      "original_pixels": [
+        1400,
+        700
+      ],
+      "display_pixels": [
+        1400,
+        700
+      ]
+    },
+    {
+      "name": "product-diagram-contact-en-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "en Contact diagram fixed Close fully visible (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact full image keyboard reaches Key_Right edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact full image keyboard reaches Key_Down edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram Close keyboard reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram Close hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram same object reopens (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram Escape hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram button Tab reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram keyboard opens owned window (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture full original pixels/aspect (1100, 760)",
+      "result": "pass",
+      "original_pixels": [
+        1540,
+        784
+      ],
+      "display_pixels": [
+        1540,
+        784
+      ]
+    },
+    {
+      "name": "product-diagram-posture-en-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "en Posture diagram fixed Close fully visible (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture full image keyboard reaches Key_Right edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture full image keyboard reaches Key_Down edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram Close keyboard reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram Close hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram same object reopens (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Posture diagram Escape hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram button Tab reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram keyboard opens owned window (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact full original pixels/aspect (1100, 760)",
+      "result": "pass",
+      "original_pixels": [
+        1400,
+        700
+      ],
+      "display_pixels": [
+        1400,
+        700
+      ]
+    },
+    {
+      "name": "product-diagram-impact-en-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "en Impact diagram fixed Close fully visible (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact full image keyboard reaches Key_Right edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact full image keyboard reaches Key_Down edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram Close keyboard reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram Close hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram same object reopens (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Impact diagram Escape hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram button Tab reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram keyboard opens owned window (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact full original pixels/aspect (1100, 760)",
+      "result": "pass",
+      "original_pixels": [
+        1400,
+        700
+      ],
+      "display_pixels": [
+        1400,
+        700
+      ]
+    },
+    {
+      "name": "product-diagram-contact-en-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "en Contact diagram fixed Close fully visible (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact full image keyboard reaches Key_Right edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact full image keyboard reaches Key_Down edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram Close keyboard reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram Close hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram same object reopens (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en Contact diagram Escape hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "en full-size missing image has text alternative",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing slice load (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-ko-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "ko responsive initial top target (1510, 800)",
+      "result": "pass",
+      "actual": 427,
+      "target": 430
+    },
+    {
+      "name": "ko responsive initial Log target (1510, 800)",
+      "result": "pass",
+      "actual": 104,
+      "target": 104
+    },
+    {
+      "name": "ko processing card columns (1510, 800)",
+      "result": "pass",
+      "columns": 5,
+      "expected": 5
+    },
+    {
+      "name": "ko processing fixed footer (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing no horizontal settings scroll (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing Advanced settings reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing range field reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko batch disables plot controls (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-ko-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "ko mode switch preserves splitter (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko real resize roundtrip preserves user splitter (1510, 800)",
+      "result": "pass",
+      "before": [
+        407,
+        323
+      ],
+      "after": [
+        407,
+        323
+      ]
+    },
+    {
+      "name": "ko hide/show does not reseed splitter (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko moved controls remain locked (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing slice load (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-ko-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "ko responsive initial top target (1100, 720)",
+      "result": "pass",
+      "actual": 342,
+      "target": 345
+    },
+    {
+      "name": "ko responsive initial Log target (1100, 720)",
+      "result": "pass",
+      "actual": 90,
+      "target": 90
+    },
+    {
+      "name": "ko processing card columns (1100, 720)",
+      "result": "pass",
+      "columns": 3,
+      "expected": 3
+    },
+    {
+      "name": "ko processing fixed footer (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing no horizontal settings scroll (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing Advanced settings reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing range field reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko batch disables plot controls (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-ko-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "ko mode switch preserves splitter (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko real resize roundtrip preserves user splitter (1100, 720)",
+      "result": "pass",
+      "before": [
+        322,
+        328
+      ],
+      "after": [
+        322,
+        328
+      ]
+    },
+    {
+      "name": "ko hide/show does not reseed splitter (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko moved controls remain locked (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing slice load (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-ko-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "ko responsive initial top target (820, 600)",
+      "result": "pass",
+      "actual": 263,
+      "target": 265
+    },
+    {
+      "name": "ko responsive initial Log target (820, 600)",
+      "result": "pass",
+      "actual": 80,
+      "target": 80
+    },
+    {
+      "name": "ko processing card columns (820, 600)",
+      "result": "pass",
+      "columns": 2,
+      "expected": 2
+    },
+    {
+      "name": "ko processing fixed footer (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing no horizontal settings scroll (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing Advanced settings reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing range field reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko batch disables plot controls (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-ko-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "ko mode switch preserves splitter (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko real resize roundtrip preserves user splitter (820, 600)",
+      "result": "pass",
+      "before": [
+        243,
+        287
+      ],
+      "after": [
+        243,
+        287
+      ]
+    },
+    {
+      "name": "ko hide/show does not reseed splitter (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko moved controls remain locked (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko compare wrapper shared renderer",
+      "result": "pass"
+    },
+    {
+      "name": "ko Step2 wrapper shared renderer",
+      "result": "pass"
+    },
+    {
+      "name": "product-guide-ko-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "product-guide-diagram-ko-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "product-guide-ko-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "product-guide-diagram-ko-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "ko Guide actual width thresholds",
+      "result": "pass",
+      "cases": [
+        {
+          "content_width": 999,
+          "columns": 1
+        },
+        {
+          "content_width": 1000,
+          "columns": 2
+        },
+        {
+          "content_width": 1001,
+          "columns": 2
+        }
+      ]
+    },
+    {
+      "name": "ko hidden target revealed",
+      "result": "pass"
+    },
+    {
+      "name": "ko all Guide entries keyboard reachable",
+      "result": "pass",
+      "visited": 61,
+      "expected": 61
+    },
+    {
+      "name": "ko Guide keyboard headings scroll into view",
+      "result": "pass",
+      "outside": []
+    },
+    {
+      "name": "ko Guide fixed Close keyboard reachable",
+      "result": "pass"
+    },
+    {
+      "name": "ko Guide content fits viewport after threshold reflows",
+      "result": "pass",
+      "viewport": 596,
+      "content": 596,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-guide-keyboard-ko: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "ko Guide empty filter message",
+      "result": "pass"
+    },
+    {
+      "name": "ko unknown target Interpretation top",
+      "result": "pass"
+    },
+    {
+      "name": "ko Guide Escape hides",
+      "result": "pass"
+    },
+    {
+      "name": "ko Guide same instance reopen context",
+      "result": "pass"
+    },
+    {
+      "name": "ko missing diagram text alternative",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram button Tab reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram keyboard opens owned window (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture full original pixels/aspect (640, 480)",
+      "result": "pass",
+      "original_pixels": [
+        1540,
+        784
+      ],
+      "display_pixels": [
+        1540,
+        784
+      ]
+    },
+    {
+      "name": "product-diagram-posture-ko-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "ko Posture diagram fixed Close fully visible (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture full image keyboard reaches Key_Right edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture full image keyboard reaches Key_Down edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "product-diagram-posture-panned-ko: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "ko Posture diagram Close keyboard reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram Close hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram same object reopens (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram Escape hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram button Tab reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram keyboard opens owned window (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact full original pixels/aspect (640, 480)",
+      "result": "pass",
+      "original_pixels": [
+        1400,
+        700
+      ],
+      "display_pixels": [
+        1400,
+        700
+      ]
+    },
+    {
+      "name": "product-diagram-impact-ko-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "ko Impact diagram fixed Close fully visible (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact full image keyboard reaches Key_Right edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact full image keyboard reaches Key_Down edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram Close keyboard reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram Close hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram same object reopens (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram Escape hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram button Tab reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram keyboard opens owned window (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact full original pixels/aspect (640, 480)",
+      "result": "pass",
+      "original_pixels": [
+        1400,
+        700
+      ],
+      "display_pixels": [
+        1400,
+        700
+      ]
+    },
+    {
+      "name": "product-diagram-contact-ko-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "ko Contact diagram fixed Close fully visible (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact full image keyboard reaches Key_Right edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact full image keyboard reaches Key_Down edge (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram Close keyboard reachable (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram Close hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram same object reopens (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram Escape hides (640, 480)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram button Tab reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram keyboard opens owned window (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture full original pixels/aspect (1100, 760)",
+      "result": "pass",
+      "original_pixels": [
+        1540,
+        784
+      ],
+      "display_pixels": [
+        1540,
+        784
+      ]
+    },
+    {
+      "name": "product-diagram-posture-ko-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "ko Posture diagram fixed Close fully visible (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture full image keyboard reaches Key_Right edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture full image keyboard reaches Key_Down edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram Close keyboard reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram Close hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram same object reopens (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Posture diagram Escape hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram button Tab reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram keyboard opens owned window (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact full original pixels/aspect (1100, 760)",
+      "result": "pass",
+      "original_pixels": [
+        1400,
+        700
+      ],
+      "display_pixels": [
+        1400,
+        700
+      ]
+    },
+    {
+      "name": "product-diagram-impact-ko-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "ko Impact diagram fixed Close fully visible (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact full image keyboard reaches Key_Right edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact full image keyboard reaches Key_Down edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram Close keyboard reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram Close hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram same object reopens (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Impact diagram Escape hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram button Tab reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram keyboard opens owned window (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact full original pixels/aspect (1100, 760)",
+      "result": "pass",
+      "original_pixels": [
+        1400,
+        700
+      ],
+      "display_pixels": [
+        1400,
+        700
+      ]
+    },
+    {
+      "name": "product-diagram-contact-ko-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "ko Contact diagram fixed Close fully visible (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact full image keyboard reaches Key_Right edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact full image keyboard reaches Key_Down edge (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram Close keyboard reachable (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram Close hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram same object reopens (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko Contact diagram Escape hides (1100, 760)",
+      "result": "pass"
+    },
+    {
+      "name": "ko full-size missing image has text alternative",
+      "result": "pass"
+    }
+  ],
+  "findings": [],
+  "source_hashes": {
+    "src/analysis/ui/widget_slice_processing.py": "51b897da842881fcb2b7d2ad40dabc9845a59fed93a617866cf10e4946b372bc",
+    "src/analysis/ui/shared_metric_guide.py": "90f58a549f44107f0fa60f2e55451c52cc6110dcfb69df090b64da9d21b1ed16"
+  }
+}

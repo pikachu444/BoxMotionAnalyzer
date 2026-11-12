@@ -1,6 +1,8 @@
 # Export Analysis Scenario 형식 설명서
 
-Last Reviewed: 2026-10-02
+Last Reviewed: 2026-11-12
+
+#188 preserves the seven-line bytes for valid legacy inputs. Manual Offset+Manual Height defaults to six declared rest velocities; `Use selected-time velocities` explicitly selects six finite sampled analysis-frame components instead. Leaving manual-height mode resets that option OFF. Missing/nonfinite measured components, invalid heights/runtime/timestep and delimiter-containing scene names are rejected before opening the destination. The complete text is strictly encoded with the runtime encoding/newline policy, written to a same-directory temporary file and replaced only on success. Point CSV retains pandas UTF-8 behavior. [Literal goldens and verification](../../visualization/gui_metric_parity/validation_report.md).
 
 이 문서는 현재 `WidgetResultsAnalyzer.export_analysis_scenario()`가 생성하는 파일 형식을 설명한다.
 

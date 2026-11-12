@@ -1,6 +1,8 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-11-10
+Last Reviewed: 2026-11-12
+
+#188의 공개 지표·GUI 후속은 하나의 지표 registry/Guide, 검증된 요약 adapter, Step1.5 설정 카드, 비교창 실험 정보·진단 분리와 원자적 CAE 저장을 연결합니다. [계약·실행·검수·도입 범위](docs/visualization/gui_metric_parity/validation_report.md)를 참고하세요. P07은 사용자 승인에 따라 입력별11프레임의 실제 최적화를 계측하며, 합성 소프트웨어 검증과 실측 정확도 승인을 구분합니다.
 
 PUB02–11 소프트웨어는 병합·필수 CI를 마쳤습니다. [PUB별 구현·원본 증거·완료와 대기](docs/analysis/reference/pub_delivery_status.md)를 참고하세요. #104는 독립 실측 자료를 확보할 수 없어 미실시로 종료했고, #113 등록 기능은 사용자 결정으로 제외했습니다.
 

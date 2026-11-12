@@ -1,0 +1,572 @@
+{
+  "revision": "20dd4ce + in-progress metric source",
+  "qt": "6.10.1",
+  "platform": "windows",
+  "scope": "Actual Qt widget render buffers with prototype-only reparenting. Each capture initializes proposed splitter targets. No native input/human/OS125 acceptance.",
+  "screenshots": [
+    {
+      "name": "prototype-process-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-en-1510x800.png",
+      "settings_viewport": [
+        1498,
+        301
+      ],
+      "settings_columns": 5,
+      "top_height": 429,
+      "right_width": 345,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-process-batch-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-batch-en-1510x800.png",
+      "settings_viewport": [
+        1498,
+        301
+      ],
+      "settings_columns": 5,
+      "top_height": 429,
+      "right_width": 345,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-results-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-en-1510x800.png"
+    },
+    {
+      "name": "prototype-process-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-en-1100x720.png",
+      "settings_viewport": [
+        1088,
+        306
+      ],
+      "settings_columns": 3,
+      "top_height": 344,
+      "right_width": 300,
+      "log_height": 90,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-process-batch-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-batch-en-1100x720.png",
+      "settings_viewport": [
+        1088,
+        306
+      ],
+      "settings_columns": 3,
+      "top_height": 344,
+      "right_width": 300,
+      "log_height": 90,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-results-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-en-1100x720.png"
+    },
+    {
+      "name": "prototype-process-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-en-820x600.png",
+      "settings_viewport": [
+        796,
+        265
+      ],
+      "settings_columns": 2,
+      "top_height": 265,
+      "right_width": 270,
+      "log_height": 80,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-process-batch-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-batch-en-820x600.png",
+      "settings_viewport": [
+        796,
+        265
+      ],
+      "settings_columns": 2,
+      "top_height": 265,
+      "right_width": 270,
+      "log_height": 80,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-results-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-en-820x600.png"
+    },
+    {
+      "name": "prototype-results-rest-en",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-rest-en.png"
+    },
+    {
+      "name": "prototype-results-selected-en",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-selected-en.png"
+    },
+    {
+      "name": "prototype-guide-en-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-guide-en-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "visible_entries": 84
+    },
+    {
+      "name": "prototype-guide-en-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-guide-en-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "visible_entries": 84
+    },
+    {
+      "name": "prototype-guide-search-en",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-guide-search-en.png",
+      "content_width": 596,
+      "columns": 1,
+      "visible_entries": 2
+    },
+    {
+      "name": "prototype-guide-empty-en",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-guide-empty-en.png",
+      "content_width": 608,
+      "columns": 1,
+      "visible_entries": 0
+    },
+    {
+      "name": "prototype-process-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-ko-1510x800.png",
+      "settings_viewport": [
+        1498,
+        301
+      ],
+      "settings_columns": 5,
+      "top_height": 429,
+      "right_width": 345,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-process-batch-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-batch-ko-1510x800.png",
+      "settings_viewport": [
+        1498,
+        301
+      ],
+      "settings_columns": 5,
+      "top_height": 429,
+      "right_width": 345,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-results-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-ko-1510x800.png"
+    },
+    {
+      "name": "prototype-process-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-ko-1100x720.png",
+      "settings_viewport": [
+        1088,
+        306
+      ],
+      "settings_columns": 3,
+      "top_height": 344,
+      "right_width": 300,
+      "log_height": 90,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-process-batch-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-batch-ko-1100x720.png",
+      "settings_viewport": [
+        1088,
+        306
+      ],
+      "settings_columns": 3,
+      "top_height": 344,
+      "right_width": 300,
+      "log_height": 90,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-results-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-ko-1100x720.png"
+    },
+    {
+      "name": "prototype-process-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-ko-820x600.png",
+      "settings_viewport": [
+        796,
+        265
+      ],
+      "settings_columns": 2,
+      "top_height": 265,
+      "right_width": 270,
+      "log_height": 80,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-process-batch-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-process-batch-ko-820x600.png",
+      "settings_viewport": [
+        796,
+        265
+      ],
+      "settings_columns": 2,
+      "top_height": 265,
+      "right_width": 270,
+      "log_height": 80,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "prototype-results-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-ko-820x600.png"
+    },
+    {
+      "name": "prototype-results-rest-ko",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-rest-ko.png"
+    },
+    {
+      "name": "prototype-results-selected-ko",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-results-selected-ko.png"
+    },
+    {
+      "name": "prototype-guide-ko-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-guide-ko-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "visible_entries": 84
+    },
+    {
+      "name": "prototype-guide-ko-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-guide-ko-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "visible_entries": 84
+    },
+    {
+      "name": "prototype-guide-search-ko",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-guide-search-ko.png",
+      "content_width": 596,
+      "columns": 1,
+      "visible_entries": 2
+    },
+    {
+      "name": "prototype-guide-empty-ko",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-guide-empty-ko.png",
+      "content_width": 608,
+      "columns": 1,
+      "visible_entries": 0
+    }
+  ]
+}

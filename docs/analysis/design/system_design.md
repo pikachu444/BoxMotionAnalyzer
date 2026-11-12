@@ -1,6 +1,8 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-11-11
+Last Reviewed: 2026-11-12
+
+#188 keeps numeric validity in existing producers and comparison owners. `compare.summary_metrics` resolves context-qualified display values, `contact_reducers` supplies stable-tail/net-path reducers, and `shared_metric_guide` renders one registry for both hosts. UI typed context is separate from raw Diagnostics. [Public contracts and same-source adoption](../../visualization/gui_metric_parity/adoption_readme.md).
 
 #177은 공개 canonical 위젯의 고정 레이아웃과 연결 계약을 정리한다. 현재 화면과 공개 검증/소비자 도입의 구분은 [공개 GUI 기록](../../visualization/gui_public_177.md)을 따른다. 이 문서의 이전 실행 근거는 각 당시 revision에 한정되며 새 GUI의 검증을 뜻하지 않는다.
 

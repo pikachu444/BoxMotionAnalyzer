@@ -1,0 +1,89 @@
+{
+  "scope": "Current base product widget; same synthetic display input as proposed prototype. No source edits.",
+  "screenshots": [
+    {
+      "name": "prototype-before-process-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-before-process-en-1510x800.png"
+    },
+    {
+      "name": "prototype-before-process-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-before-process-en-1100x720.png"
+    },
+    {
+      "name": "prototype-before-process-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-before-process-en-820x600.png"
+    },
+    {
+      "name": "prototype-before-process-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-before-process-ko-1510x800.png"
+    },
+    {
+      "name": "prototype-before-process-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-before-process-ko-1100x720.png"
+    },
+    {
+      "name": "prototype-before-process-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "device_pixel_ratio": 1.0,
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/prototype-before-process-ko-820x600.png"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "scope": "Qt-level input/state only; no native automation input or production acceptance",
+  "checks": [
+    {
+      "check": "Resampling ON + limited range activates original factor/end controls",
+      "result": "pass"
+    },
+    {
+      "check": "Single/Batch prototype swaps preserve one mode combo and original stacks",
+      "result": "pass"
+    },
+    {
+      "check": "Qt keyboard Tab reaches group filter from Search",
+      "result": "pass"
+    },
+    {
+      "check": "Qt Tab chain reaches fixed Close",
+      "result": "pass",
+      "tab_steps": 3,
+      "limitation": "Passive rich-label entries skipped; product must supply keyboard entry navigation"
+    },
+    {
+      "check": "Full context-qualified ID search yields exactly one target",
+      "result": "pass"
+    },
+    {
+      "check": "Empty search state explains no matches",
+      "result": "pass"
+    },
+    {
+      "check": "Close via Qt keyboard hides reusable prototype; same object reopens",
+      "result": "pass"
+    },
+    {
+      "check": "Guide reflows at actual999/1000/1001px content widths",
+      "result": "pass",
+      "cases": [
+        {
+          "actual_content_width": 999,
+          "actual_client": [
+            1043,
+            760
+          ],
+          "columns": 1
+        },
+        {
+          "actual_content_width": 1000,
+          "actual_client": [
+            1044,
+            760
+          ],
+          "columns": 2
+        },
+        {
+          "actual_content_width": 1001,
+          "actual_client": [
+            1045,
+            760
+          ],
+          "columns": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "fixture_scope": "Public deterministic analytic inputs; no measured experiment truth",
+  "generator": {
+    "version": "gui-metric-parity-v1",
+    "seed": "No random draws in analytic metric cases",
+    "sources": [
+      "tests/test_gui_metric_parity_contract.py",
+      "tests/impact_metric_fixtures.py",
+      "tests/test_contact_comparison.py",
+      "tests/test_posture_comparison.py"
+    ],
+    "coordinates": "world Y up; recorded box-local axes and public C1..C8 identities",
+    "units": "mm, seconds, radian rotvecs, degree summary angles; declared unsupported units rejected",
+    "schema": "Existing three-level result headers and complete public registered review fixtures; A02 also uses real public raw CSV headers",
+    "default_geometry_mm": [
+      200,
+      120,
+      80
+    ],
+    "default_samples": "13 samples at0.008s in the registered contact fixture; case-specific intervals are declared in tests"
+  },
+  "tolerances": {
+    "arithmetic_geometry_rtol": 1e-09,
+    "arithmetic_geometry_atol": 1e-09,
+    "derivative": "NumPy actual-time central finite differences. Interior linear first derivative=200; linear second derivative=0. Quadratic at t=.2 gives first400 and second1000. Interior samples avoid first-order edge stencils; tolerance1e-9 fixed by analytic exactness and floating roundoff.",
+    "persistence": "Existing constant nonempty contact set lasting>=2 samples; no new tolerance",
+    "sweep": "Radius epsilon1e-6mm, angular-travel epsilon1e-6rad; exact half-turn ambiguity is rejected"
+  },
+  "cases": [
+    {
+      "id": "A01",
+      "input": "x=10+200t mm; t=[0,.1,.2,.3,.4]s",
+      "expected": {
+        "x_at_.2_mm": 50,
+        "velocity_mm_s": 200,
+        "acceleration_mm_s2": 0
+      },
+      "test": "test_a01_a02_recorded_derivatives_have_analytic_interior_units"
+    },
+    {
+      "id": "A01R",
+      "input": "Same x samples; evaluate .15s only with explicit factor2 resampling",
+      "expected": {
+        "x_at_.15_mm": 40,
+        "original_grid_contains_.15": false
+      },
+      "test": "test_a01r_interpolation_only_when_explicitly_enabled"
+    },
+    {
+      "id": "A02",
+      "input": "x=10+200t+500t² mm; equivalent metre raw headers also tested separately",
+      "expected": {
+        "x_at_.2_mm": 70,
+        "velocity_at_.2_mm_s": 400,
+        "acceleration_at_.2_mm_s2": 1000,
+        "parser_converts_length_units": false,
+        "unsupported_metre_scene_input": "rejected before fitting"
+      },
+      "tests": "Independent A02 raw loader/parser boundary cases and derivative case in test_gui_metric_parity_contract.py"
+    },
+    {
+      "id": "A03",
+      "input": "100mm parallel-edge spacing; rotations0,+30,-30deg; vertical offset0 or200mm",
+      "expected": {
+        "face_range_at_0_mm": 0,
+        "face_range_at_30_mm": 50,
+        "signed_long_tilt_deg": [
+          0,
+          30,
+          -30
+        ]
+      },
+      "tests": "Independent A03 exact face-geometry cases in test_gui_metric_parity_contract.py"
+    },
+    {
+      "id": "A04",
+      "input": {
+        "times_s": [
+          0,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "face_ranges_mm": [
+          0,
+          50,
+          20,
+          10
+        ],
+        "supplied_t1_index": 2,
+        "detector_onset_index": 3
+      },
+      "expected": {
+        "peak_mm": 50,
+        "precontact_mm": 20
+      },
+      "test": "test_a04_precontact_sample_is_not_whole_window_peak",
+      "limit": "Reducer-only fixture; it does not establish persistent contact detection"
+    },
+    {
+      "id": "A05",
+      "input": {
+        "eligible_mm": [
+          10,
+          12,
+          14
+        ],
+        "owner": "ComparisonModel, distinct source identities"
+      },
+      "expected": {
+        "n": 3,
+        "mean": 12,
+        "min": 10,
+        "max": 14,
+        "range": 4,
+        "zero_eligible_n": 0,
+        "zero_eligible_numerical_summary": null
+      },
+      "tests": "Independent A05 real owner statistics cases in test_gui_metric_parity_contract.py"
+    },
+    {
+      "id": "A06",
+      "input": {
+        "absolute_time_shift_s": 100,
+        "vertical_coordinate_and_floor_shift_mm": 1000
+      },
+      "expected": "Absolute event times shift100s; absolute heights shift1000mm; durations, same-face differences and fixed-face identity stay unchanged",
+      "tests": "Independent A06 save/reload translation case in test_gui_metric_parity_contract.py"
+    },
+    {
+      "id": "A07",
+      "input": "Duplicate/decreasing time, missing/NaN geometry, invalid target, insufficient support, incompatible units/reference, unsupported derivative policy",
+      "expected": "Reasoned rejection/unavailable; unrelated valid components remain; no invented0, direction, approval or pass",
+      "tests": "Contract parameterized owner, target, snapshot, reducer and invalid-context cases"
+    },
+    {
+      "id": "snapshot",
+      "input": {
+        "velocity_mm_s": [
+          300,
+          -400,
+          0
+        ],
+        "angular_norm_rad_s": 2
+      },
+      "expected": {
+        "vertical": -400,
+        "horizontal": 300,
+        "angular": 2
+      },
+      "test": "test_snapshot_reads_saved_components_and_preserves_fit_quantities"
+    },
+    {
+      "id": "height",
+      "input": "Reviewed geometric-centre snapshot -sqrt(2*9810*500)mm/s",
+      "expected_mm": 500,
+      "limit": "Distinct from explicitly registered inertial-COM endpoint fit with g9.80665m/s²",
+      "test": "test_geometric_height_500mm_with_exact_context_is_distinct_from_com_fit"
+    },
+    {
+      "id": "sweep",
+      "input": "Consecutive radius steps +90,+90 or +90,-90 degrees",
+      "expected": [
+        {
+          "net_deg": 180,
+          "consistency": 1,
+          "direction": "CCW"
+        },
+        {
+          "net_deg": 0,
+          "consistency": 0,
+          "direction": "Indeterminate"
+        }
+      ],
+      "test": "test_contact_sweep_literal_principal_steps_net_and_cancellation"
+    },
+    {
+      "id": "exports",
+      "expected": "Checked-in literal Point LF/UTF-8 and CAE measured/rest seven-line goldens; exact quote/comma text roundtrip; encoding/partial-write/replace failures preserve sentinel bytes",
+      "tests": "tests/test_gui_metric_parity_exports.py plus real CAE UI workflow cases"
+    }
+  ],
+  "small_production_hop": {
+    "status": "passed: user-approved actual bounded optimization",
+    "requested_route": "CSV load -> .1-.3s11-frame saved slice -> real Raw/get_raw_mode_options processing -> saved proc -> Step2/Guide -> two-file comparison",
+    "generator": "tests/gui_metric_parity_fixtures.py",
+    "fixture_manifest": "pipeline_fixture_manifest.json",
+    "receipt": "pipeline_hop_receipt.json",
+    "actual_optimizer_calls_per_case": 11,
+    "actual_optimizer_calls_total": 22,
+    "padded_source_rows": 61,
+    "processed_rows_per_case": 11,
+    "test": "test_real_public_raw_slice_proc_summary_guide_and_comparison_hop"
+  },
+  "gui_evidence": "ui_evidence/product_review.md",
+  "calibration_status": "Not measured; no synthetic result promoted to experimental reference"
+}
