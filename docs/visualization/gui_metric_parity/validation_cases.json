@@ -179,6 +179,19 @@
       "id": "exports",
       "expected": "Checked-in literal Point LF/UTF-8 and CAE measured/rest seven-line goldens; exact quote/comma text roundtrip; encoding/partial-write/replace failures preserve sentinel bytes",
       "tests": "tests/test_gui_metric_parity_exports.py plus real CAE UI workflow cases"
+    },
+    {
+      "id": "capture-v3-final-face",
+      "input": "Unchanged declared public analytic corpus: two identity settled tails and one supported edge-pivot tail",
+      "expected": {
+        "two_drops-scene-0": "BOTTOM",
+        "two_drops-scene-1": "BOTTOM",
+        "supported_H-scene-0": "BOTTOM",
+        "other_scenes": "unavailable in existing comparison owner"
+      },
+      "basis": "Independent identity/pivot minimum-height formulas and unique rotation-mean bounds; all other oracles/tolerances preserved",
+      "test": "test_capture_corpus_v3_final_face_availability_is_analytic_and_rejects_old_unavailable",
+      "migration": "public-analytic-corpus-v2 -> v3, separate matching semantic-review records; no experimental promotion"
     }
   ],
   "small_production_hop": {

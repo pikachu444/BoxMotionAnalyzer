@@ -6,7 +6,7 @@ This record covers public software behavior and generated analytic inputs. It do
 
 ## Source and environment
 
-The implementation started from public main `20dd4ce53a6d401fd6e219d6086b7600dba35ad7` (PR #186), the exact #188 baseline. The fixed implementation revision is `1da5ce51833daf0e9f8946141972124765220870`; its file hashes are recorded in `adoption_manifest.json`; required definitions and actual producer identities are recorded in `metric_contract.json`. Local verification uses Windows, Python3.13 and the declared project dependencies. Exact observed versions and final command receipts are added below before publication.
+The implementation started from public main `20dd4ce53a6d401fd6e219d6086b7600dba35ad7` (PR #186), the exact #188 baseline. The fixed implementation revision is `97f92df772e0f7776d37a6b41bf7f3469fe7fc0f`; its file hashes are recorded in `adoption_manifest.json`; required definitions and actual producer identities are recorded in `metric_contract.json`. Local verification uses Windows, Python3.13 and the declared project dependencies. Exact observed versions and final command receipts are added below before publication.
 
 ## Independent verification and corrections
 
@@ -57,7 +57,7 @@ Actual OS125 and human acceptance are not run. Windows Qt widgets, QTest interac
 
 The public source and adoption instructions are available for review. Private experimental/CAE regression, binding approval and consumer rollout remain the consumer owner's later work.
 
-## Final local receipts
+## Earlier local receipts before hosted corrections
 
 The isolated executable is `tmp/issue188-qt612/Scripts/python.exe`: Windows Python3.13.5, PySide6/shiboken6.12.0, NumPy2.3.5, pandas2.3.3, SciPy1.16.3 and Matplotlib3.10.7. It uses the existing declared application dependencies through a local site-packages binding; the adoption manifest lists the observed versions. GUI processes ran sequentially. No OS-wide Qt, display or clipboard setting changed.
 
@@ -81,7 +81,7 @@ The independent UI reviewer reproduced both affected-layout failures exactly und
 
 The unchanged affected40-test native Windows control passed40/40 in53.98s (exit0). The measured platform/font/geometry comparison is in `ui_evidence/product_qpa_control_qt612.json`; `execution_evidence/parity-affected-windows-control.xml` retains JUnit execution. No source or test assertion was changed for this correction of the execution configuration. Diagnostic logs normalize trailing blank spacing only.
 
-Publication is tracked in [PR #197](https://github.com/pikachu444/BoxMotionAnalyzer/pull/197). Both complete required hosted workflows must succeed on the same final head before merge. The final source pin1da5ce5 includes the comparison-selection and Diagnostics corrections; earlier593c669 and28ff53a UI/numerical evidence retains its historical scope; immutable workflow receipts and merge lifecycle are maintained on that PR.
+Publication is tracked in [PR #197](https://github.com/pikachu444/BoxMotionAnalyzer/pull/197). Both complete required hosted workflows must succeed on the same final head before merge. The earlier source pin1da5ce5 includes the comparison-selection and Diagnostics corrections; earlier593c669 and28ff53a UI/numerical evidence retains its historical scope; immutable workflow receipts and merge lifecycle are maintained on that PR.
 
 ## Broader comparison selection correction
 
@@ -121,3 +121,13 @@ The five failed tests had three causes:
 3. The v2 capture oracle hardcoded unavailable FinalFace. With the requested new producer, exactly three analytic scenes legitimately emit BOTTOM. This caused two full-capture tests and a cancellation/checkpoint test to fail. Independent Sol/xhigh review derived BOTTOM from declared identity/pivot geometry, then confirmed exactly those three oracle availability changes in newly generated v3 assets. All37 downloaded v2 files,6 raw hashes, trajectories, other metrics, approvals, tolerances and scene intervals were preserved. The active migration has separate review metadata and v1→v2 history; preflight requires approved, matching semantic-review records. No actual observed result was copied into an expected numerical value.
 
 Original v2 assets and failed reports are archived byte-for-byte in `execution_evidence/ci_43140730694/`, with hashes in `failure_summary.json`. The main code reviewer checked the migration, protocol checks, negative review tests and QObject-bound current-state reveal and found no material blocker. The extra analytic migration regression adds one node:1,995 required check02 nodes, preserving all prior nodes. The numerical contract suite now passes156/156 with the same two intentional overflow-input warnings. Fresh full/cancel/GUI execution and the next hosted gate are recorded separately below.
+
+### Correction execution on97f92df
+
+`QT_QPA_PLATFORM=windows QT_OPENGL=desktop python -m pytest tests/test_capture_regression.py::test_fresh_full_capture_pipeline_preserves_every_approved_scene tests/test_capture_regression.py::test_actual_step2_compare_and_scenario_export_reuse_fresh_results tests/test_capture_regression.py::test_ci_reopens_full_evidence_and_rejects_independent_review_failures tests/test_regression_evidence.py::test_one_shot_cancel_keeps_successful_checkpoint_and_explicit_resume -q --basetemp=tmp/parity-hosted-fix-fresh --junitxml=tmp/parity-hosted-fix-fresh.xml` passed10/10 in75.01s,0 failed/error/skipped,exit0.
+
+This was a clean tracked-source local execution on97f92df: all6 scenes freshly processed,0 reused/failed,449 real fits and452 approved result rows (3 missing tracking rows were not fitted). It exercised original-source/time preservation, protected-sidecar isolation, all metric comparisons, scenario guards, actual Step2/Compare/export, strict report-reopen fault rejection and explicit cancel/checkpoint/resume. The resumed representative attempt counted its reused scene separately from its fresh scene; it is not substituted for the6-scene fresh full run.
+
+The independent GPT-6.1 Sol/xhigh adviser reopened all saved results with optimization disabled and verified132/132 strict metric comparisons, every v2/v3 preservation claim and all39 original ZIP entry hashes. It confirmed the10/10 JUnit result with no bounded numerical blocker. `execution_evidence/local_97f92df_fresh_v3.zip` retains fresh assets, results and reports at their original relative paths; its companion JSON records hashes, counts and scope. This local success does not relabel failed hosted43140730694 as passing. The final public merge still requires both complete required hosted workflows on the final head.
+
+The next-attempt collection check `python -m src.simulation.ci_evidence prepare --output tmp/issue188-final-1995-freeze` exited0 and matched all12 frozen jobs. Check02 now has1,995 required nodes: all prior1,994 retained and one analytic migration regression added. Intermediate API conclusions are not treated as proof of passing continued steps; the complete raw-outcome gate is authoritative.
