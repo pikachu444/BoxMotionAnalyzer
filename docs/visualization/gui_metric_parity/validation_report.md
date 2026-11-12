@@ -2,6 +2,10 @@
 
 Last Reviewed: 2026-11-12
 
+Post-merge follow-ups are recorded separately in [#198–#200 execution and
+decision status](followups_198_200.md). The #200 tail-support policy is pending;
+its characterization does not change or reapprove the original implementation.
+
 This record covers public software behavior and generated analytic inputs. It does not establish measured experimental accuracy, package qualification, private adoption or human GUI acceptance.
 
 ## Source and environment

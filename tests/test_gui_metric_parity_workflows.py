@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import numpy as np
 import pandas as pd
 import pytest
-from PySide6.QtCore import Qt, QCoreApplication, QEvent
+from PySide6.QtCore import Qt, QCoreApplication, QEvent, QPoint
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QFileDialog
 
@@ -60,6 +60,176 @@ def results(app):
 
 def activate(widget, frame, path='public.proc'):
     widget._activate_result_data(widget._prepare_result_data(frame), path)
+
+
+def click_result_canvas(manager, time):
+    """Send a Qt click through the installed Matplotlib event connection."""
+    canvas, axis = manager.canvas, manager.ax
+    axis.set_xlim(-.02, .12)
+    canvas.draw()
+    QApplication.processEvents()
+    x, y = axis.transData.transform((time, sum(axis.get_ylim()) / 2))
+    ratio = canvas.device_pixel_ratio
+    position = QPoint(round(x / ratio), round((canvas.figure.bbox.height - y) / ratio))
+    events = []
+    connection = canvas.mpl_connect('button_press_event', events.append)
+    try:
+        QTest.mouseClick(canvas, Qt.LeftButton, Qt.NoModifier, position)
+        QApplication.processEvents()
+    finally:
+        canvas.mpl_disconnect(connection)
+    assert len(events) == 1 and events[0].inaxes in manager.axes
+    assert events[0].xdata == pytest.approx(time, abs=.005)
+
+
+@pytest.mark.parametrize('source', ['main', 'popup'])
+@pytest.mark.parametrize('target_present', [False, True])
+def test_canvas_click_rejects_entirely_missing_result(results, source, target_present):
+    column = ('Velocity', 'CoM', 'Global_V_TX')
+    frame = pd.DataFrame({RESULT_TIME_COL: [0., .1], column: [np.nan, np.nan],
+                          ('Velocity', 'CoM', 'Global_V_TY'): [np.nan, np.nan]})
+    frame.columns = pd.MultiIndex.from_tuples(frame.columns)
+    activate(results, frame)
+    if target_present:
+        results.checked_result_columns = {column}
+        results.plot_selected_results()
+    if source == 'popup':
+        results._open_popup([column])
+        manager = next(iter(results.popup_windows.values())).plot_manager
+    else:
+        manager = results.plot_manager
+    assert (results.find_max_target_combo.currentData() is not None) == target_present
+    click_result_canvas(manager, .1)
+    assert results.selected_point_info == dict(time=None, index=None)
+    assert not results.export_point_button.isEnabled()
+    assert not results.export_scenario_button.isEnabled()
+    assert all(not button.isEnabled() for button in (
+        results.find_abs_max_button, results.find_max_button, results.find_min_button))
+    assert all(popup.cursor_line is None for popup in results.popup_windows.values())
+
+
+@pytest.mark.parametrize('column,values,usable', [
+    (('Velocity', 'CoM', 'Global_V_TX'), [0., 0.], True),
+    (('Velocity', 'CoM', 'Global_V_TX'), [2., 3.], True),
+    (('Velocity', 'CoM', 'Global_V_TX'), [0., np.nan], True),
+    (('Velocity', 'CoM', 'Global_V_TX'), [np.inf, -np.inf], False),
+    (('Analysis', 'DropPosture', 'CminIndex'), [1., 8.], True),
+    (('Analysis', 'DropPosture', 'CminIndex'), [0., 9.], False),
+    (('Analysis', 'DropPosture', 'CminIndex'), [1.5, np.nan], False),
+    (('Analysis', 'DropPosture', 'CminIndex'), [True, False], False),
+    (('Analysis', 'Notes', 'Text'), ['observed', 'text'], False),
+])
+def test_canvas_point_requires_supported_result_observation(results, column, values, usable):
+    frame = pd.DataFrame({RESULT_TIME_COL: [0., .1], column: values,
+        ('Info', 'Frame', 'Frame'): [1, 2], ('Frame', 'Frame', 'Frame'): [1, 2],
+        ('Info', 'Artifact', 'SchemaVersion'): [1, 1],
+        ('Artifact', 'Identity', 'Version'): [1, 1],
+        ('Info', 'Label', 'Text'): ['capture', 'description']})
+    frame.columns = pd.MultiIndex.from_tuples(frame.columns)
+    activate(results, frame)
+    assert results.find_max_target_combo.currentData() is None
+    click_result_canvas(results.plot_manager, .1)
+    assert results.selected_point_info == (dict(time=.1, index=1) if usable else dict(time=None, index=None))
+    assert results.export_point_button.isEnabled() == usable
+    assert results.export_scenario_button.isEnabled() == usable
+
+
+def test_point_time_survives_nan_target_and_exports_whole_row(results, tmp_path, monkeypatch):
+    observed = ('Velocity', 'CoM', 'Global_V_TX')
+    missing = ('Velocity', 'CoM', 'Global_V_TY')
+    text = ('Info', 'Label', 'Text')
+    precise = .123456789012345
+    frame = pd.DataFrame({RESULT_TIME_COL: [0., .1], observed: [0., precise],
+                          missing: [np.nan, np.nan], text: ['first', '쉼표, "인용"']})
+    frame.columns = pd.MultiIndex.from_tuples(frame.columns)
+    activate(results, frame)
+    # A point and its complete export do not require any plotted series.
+    click_result_canvas(results.plot_manager, .1)
+    assert results.selected_point_info == dict(time=.1, index=1)
+    results.checked_result_columns = {observed, missing}
+    results.refresh_result_tree()
+    for index in range(results.find_max_target_combo.count()):
+        if tuple(results.find_max_target_combo.itemData(index)) == missing:
+            results.find_max_target_combo.setCurrentIndex(index)
+            break
+    assert tuple(results.find_max_target_combo.currentData()) == missing
+    assert results.selected_point_info == dict(time=.1, index=1)
+    assert results.export_point_button.isEnabled()
+    assert not results.find_max_button.isEnabled()
+    results._open_popup([missing])
+    popup = next(iter(results.popup_windows.values()))
+    click_result_canvas(popup.plot_manager, 0.)
+    assert results.selected_point_info == dict(time=0., index=0)
+    click_result_canvas(results.plot_manager, .1)
+    assert results.selected_point_info == dict(time=.1, index=1)
+    assert popup.cursor_line is not None
+    path = tmp_path / 'whole-point.csv'
+    monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *_: (str(path), ''))
+    results.export_point_button.click()
+    saved = pd.read_csv(path, header=[0, 1, 2], index_col=0, encoding='utf-8', float_precision='round_trip')
+    assert saved.columns.tolist() == frame.columns.tolist()
+    assert saved.index.tolist() == [.1]
+    assert saved[observed].iloc[0] == precise
+    assert pd.isna(saved[missing].iloc[0])
+    assert saved[text].iloc[0] == frame[text].iloc[1]
+    assert str(precise).encode('ascii') in path.read_bytes()
+
+
+def test_point_lifecycle_preserves_good_context_and_rejects_missing_replacement(results, tmp_path, monkeypatch):
+    column = ('Velocity', 'CoM', 'Global_V_TX')
+    frames = {
+        'good': pd.DataFrame({RESULT_TIME_COL: [0., .1], column: [0., 1.]}),
+        'missing': pd.DataFrame({RESULT_TIME_COL: [0., .1], column: [np.nan, np.nan]}),
+        'bad': pd.DataFrame({RESULT_TIME_COL: [0., .1], column: ['bad', 'bad']}),
+    }
+    paths = {}
+    for name, frame in frames.items():
+        frame.columns = pd.MultiIndex.from_tuples(frame.columns)
+        paths[name] = tmp_path / (name + '.proc')
+        frame.to_csv(paths[name], index=False)
+    assert results.load_result_file(str(paths['good']))
+    results.checked_result_columns = {column}
+    results.plot_selected_results()
+    results.open_popup_current_selection()
+    popup = next(iter(results.popup_windows.values()))
+    click_result_canvas(popup.plot_manager, .1)
+    original = results.result_data
+    monkeypatch.setattr(QFileDialog, 'getOpenFileName', lambda *_: ('', ''))
+    results.open_result_button.click()
+    assert not results.load_result_file(str(paths['bad']))
+    assert results.result_data is original
+    assert results.selected_point_info == dict(time=.1, index=1)
+    assert results.export_point_button.isEnabled() and popup.cursor_line is not None
+    destination = tmp_path / 'sentinel.csv'
+    destination.write_bytes(b'original sentinel')
+    monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *_: ('', ''))
+    results.export_point_button.click()
+    assert destination.read_bytes() == b'original sentinel'
+    results.clear_selection()
+    assert results.selected_point_info == dict(time=None, index=None)
+    assert not results.export_point_button.isEnabled() and popup.cursor_line is None
+    click_result_canvas(popup.plot_manager, .1)
+    assert results.selected_point_info == dict(time=.1, index=1)
+    assert results.load_result_file(str(paths['missing']))
+    assert popup.result_data is results.result_data
+    assert results.selected_point_info == dict(time=None, index=None)
+    assert not results.export_point_button.isEnabled() and popup.cursor_line is None
+    click_result_canvas(popup.plot_manager, .1)
+    assert results.selected_point_info == dict(time=None, index=None)
+    # Both direct export entry points reject even a stale programmatic point.
+    results.selected_point_info = dict(time=.1, index=1)
+    monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *_: pytest.fail('No save dialog without observations'))
+    with pytest.raises(ValueError, match='No valid recorded point'):
+        results._prepare_scenario_payload()
+    results.on_export_point_data_click()
+    assert results.selected_point_info == dict(time=None, index=None)
+    assert not results.export_scenario_button.isEnabled()
+    assert destination.read_bytes() == b'original sentinel'
+    results.selected_point_info = dict(time=.1, index=1)
+    results.update_point_selection_ui()
+    assert results.selected_point_info == dict(time=None, index=None)
+    with pytest.raises(ValueError, match='no result samples'):
+        results._prepare_result_data(frames['good'].iloc[:0])
 
 
 def export_frame():

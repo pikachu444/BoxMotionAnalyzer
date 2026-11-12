@@ -942,3 +942,78 @@ def test_selected_series_unknown_columns_do_not_guess_a_related_definition(colum
     from src.config.result_metric_descriptors import get_series_metric_descriptor
 
     assert get_series_metric_descriptor(column) is None
+
+
+def postprocessed_metric_frame(frame=None):
+    frame = metric_frame() if frame is None else frame
+    processor = DropPosturePostProcessor(face_definitions=FACE_DEFINITIONS, local_box_corners=LOCAL)
+    data = {getattr(PoseCols, 'ROT_' + axis): frame[('Position', 'CoM', 'P_R' + axis)].to_numpy()
+            for axis in 'XYZ'}
+    for i, columns in enumerate(processor.corner_coord_cols, 1):
+        for axis, column in zip('XYZ', columns):
+            data[column] = frame[('Position', f'C{i}', 'P_T' + axis)].to_numpy()
+    generated = processor.process(pd.DataFrame(data, index=frame[('Info', 'Time', 'Time')].to_numpy()))
+    for column in generated.columns:
+        if column.startswith('DropPostureSummary_'):
+            frame[(*SUMMARY, column.removeprefix('DropPostureSummary_'))] = generated[column].iloc[0]
+    return frame
+
+
+def test_detector_replay_accepts_postprocessed_control_and_rejects_stale_adjacent_pair():
+    frame = postprocessed_metric_frame()
+    times = frame[('Info', 'Time', 'Time')]
+    assert frame[(*SUMMARY, 'T1MinusTimeSec')].iloc[0] == times.iloc[9]
+    assert frame[(*SUMMARY, 'FirstImpactTimeSec')].iloc[0] == times.iloc[10]
+    result = resolve_summary_metrics(frame, target_context=target_context(frame))
+    assert result['TargetPostureError_deg'].value == pytest.approx(0.)
+    assert result['VerticalVelAtT1Minus_mm_s'].value == -400.
+    assert result['EquivalentFreeFallHeight_mm'].value == pytest.approx(400.**2 / (2 * 9810.))
+    assert calculate_contact_comparison(frame).outcome == 'Match'
+    frame[(*SUMMARY, 'T1MinusTimeSec')] = times.iloc[8]
+    frame[(*SUMMARY, 'FirstImpactTimeSec')] = times.iloc[9]
+    original = frame.copy(deep=True)
+    target = calculate_target_posture_error(frame, target_context=target_context(frame))
+    result = resolve_summary_metrics(frame, target_context=target_context(frame))
+    for metric in [target, *(result[key] for key in ('TargetPostureError_deg', 'VerticalVelAtT1Minus_mm_s',
+                    'VxyAtT1Minus_mm_s', 'AngularSpeedAtT1Minus_rad_s', 'PeakDescentSpeed_mm_s',
+                    'EquivalentFreeFallHeight_mm'))]:
+        unavailable(metric)
+        assert 'detector' in metric.reason.lower()
+    assert result['ContactState'].value == 'ImpactEvent'
+    assert calculate_contact_comparison(frame).outcome == 'Unclear'
+    pd.testing.assert_frame_equal(frame, original)
+
+
+def test_detector_precontact_precedes_later_accepted_contact_set():
+    frame = metric_frame()
+    for i in range(len(frame)):
+        angle = 10. if i == 10 else (-10. if i >= 11 else 0.)
+        rotation = Rotation.from_euler('z', angle, degrees=True)
+        points = rotation.apply(LOCAL)
+        time = frame[('Info', 'Time', 'Time')].iloc[i]
+        clearance = max(0., .5 * 9806.65 * (.08**2 - time**2))
+        center = clearance - points[:, 1].min()
+        for j, axis in enumerate('XYZ'):
+            frame.loc[i, ('Position', 'CoM', 'P_R' + axis)] = rotation.as_rotvec()[j]
+            frame.loc[i, ('Position', 'CoM', 'P_T' + axis)] = center if axis == 'Y' else 0.
+            for corner in range(1, 9):
+                frame.loc[i, ('Position', f'C{corner}', 'P_T' + axis)] = (
+                    points[corner - 1, j] + (center if axis == 'Y' else 0.))
+    frame = postprocessed_metric_frame(frame)
+    times = frame[('Info', 'Time', 'Time')]
+    assert frame[(*SUMMARY, 'T1MinusTimeSec')].iloc[0] == times.iloc[9]
+    assert frame[(*SUMMARY, 'FirstImpactTimeSec')].iloc[0] == times.iloc[11]
+    assert frame[(*SUMMARY, 'FirstImpactContact')].iloc[0] == '{C2,C6}'
+    target = calculate_target_posture_error(frame, target_context=target_context(frame))
+    result = resolve_summary_metrics(frame, target_context=target_context(frame))
+    assert target.value == pytest.approx(0.), target.reason
+    assert result['TargetPostureError_deg'].value == pytest.approx(0.)
+    assert result['VerticalVelAtT1Minus_mm_s'].value == -400.
+    assert result['VerticalVelAtT1Minus_mm_s'].sample_time == times.iloc[9]
+    assert calculate_contact_comparison(frame).outcome == 'Unclear'
+    change_review(frame, lambda review: review['candidate'].update(start=float(times.iloc[10])))
+    from src.analysis.compare.summary_metrics import _detector_precontact, _geometry
+    with pytest.raises(ValueError, match='outside the reviewed interval'):
+        _detector_precontact(frame, json.loads(frame[REVIEW].iloc[0]), _geometry(frame))
+    unavailable(calculate_target_posture_error(frame, target_context=target_context(frame)))
+    unavailable(resolve_summary_metrics(frame)['VerticalVelAtT1Minus_mm_s'])

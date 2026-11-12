@@ -97,6 +97,7 @@ jobs:
           tests/test_ui_language.py
           tests/test_gui177_common.py
           tests/test_gui_metric_parity_contract.py
+          tests/test_final_face_resampling_contract.py
           tests/test_gui_metric_parity_exports.py
           tests/test_gui_metric_parity_workflows.py
           tests/test_gui177_step1.py

@@ -87,6 +87,49 @@ def _included_review(df, dims, floor):
     return review, registration
 
 
+
+def _contact_replay(geometry):
+    _, dimensions, floor, settings, times, _, points, valid = geometry
+    if not valid.all():
+        raise ValueError('Contact detector requires complete consistent pose/corner observations')
+    processor = DropPosturePostProcessor(face_definitions=FACE_DEFINITIONS,
+        local_box_corners=calculate_local_box_corners(dimensions), floor_level=floor)
+    threshold = _number(settings['postprocess']['contact_threshold_mm'])
+    if threshold <= 0:
+        raise ValueError('Recorded contact threshold must be positive')
+    analysis = processor._contact_analysis(min_heights=points[:, :, 1].min(axis=1),
+                                           index=pd.Index(times), contact_threshold_mm=threshold)
+    sets = processor._contact_sets(points[:, :, 1], threshold, active_mask=analysis['active_mask'],
+                                   relative_contact_band=analysis['relative_contact_band'])
+    return analysis, processor._accepted_events(sets)
+
+
+def _detector_precontact(df, review, geometry):
+    times = geometry[4]
+    analysis, accepted = _contact_replay(geometry)
+    detector_index = analysis['t1_minus_pos']
+    if detector_index is None or not analysis['impact_detected']:
+        raise ValueError('Contact detector has no precontact sample')
+    saved_t1 = _number(_constant(df, (*SUMMARY, 'T1MinusTimeSec')))
+    if saved_t1 != times[detector_index]:
+        raise ValueError('Saved T1MinusTimeSec differs from the contact detector precontact sample')
+    saved_impact = _number(_constant(df, (*SUMMARY, 'FirstImpactTimeSec')))
+    if not accepted or saved_impact != times[accepted[0]['start_pos']]:
+        raise ValueError('Saved FirstImpactTimeSec differs from the accepted contact detector event')
+    impact_index = accepted[0]['start_pos']
+    if detector_index >= impact_index:
+        raise ValueError('Contact detector precontact sample does not precede the accepted event')
+    if review is not None and times[detector_index] < review['candidate']['start']:
+        raise ValueError('Contact detector precontact sample is outside the reviewed interval')
+    # The legacy declaration validator assumes adjacency; validate its other
+    # provenance and gap checks against the accepted event's actual bracket.
+    bracket = df.copy()
+    bracket[(*SUMMARY, 'T1MinusTimeSec')] = times[impact_index - 1]
+    event = validate_first_event(bracket, review)
+    if not event.valid:
+        raise ValueError(event.reason)
+    return detector_index
+
 def calculate_target_posture_error(df, *, target_context=None):
     key = 'TargetPostureError_deg'
     reason = 'No independently approved t1- target posture'
@@ -116,10 +159,8 @@ def calculate_target_posture_error(df, *, target_context=None):
                 or record['ista_type'] != review['identity']['ista_type']
                 or record['applied_edition'] != review['identity'].get('applied_edition')):
             raise ValueError('Target registration or scenario edition differs from the current review')
-        event = validate_first_event(df, review)
-        if not event.valid:
-            raise ValueError(event.reason)
-        index = event.indices[0]
+        index = _detector_precontact(df, review,
+            (artifact, dims, floor, settings, times, pose, points, valid))
         if not valid[index]:
             raise ValueError('Optimized precontact pose and corner geometry are unavailable or inconsistent')
         observed = Rotation.from_rotvec(pose[index, 3:]).inv().apply([0., -1., 0.])
@@ -171,11 +212,13 @@ def resolve_summary_metrics(df, *, target_context=None):
         evidence=dict(outcome=contact.outcome, intended=contact.intended, observed=contact.observed,
                       registration_sha256=contact.registration_sha256, target_key=contact.target_key))
     event = None
+    review_error = ''
     try:
         review, _ = _observation_context(df)
         event = validate_first_event(df, review)
     except (ValueError, TypeError, KeyError) as error:
         review, event_reason = None, str(error)
+        review_error = str(error)
     else:
         event_reason = event.reason
     # Preserve independent diagnostic fields even when an event-dependent field fails.
@@ -187,23 +230,11 @@ def resolve_summary_metrics(df, *, target_context=None):
         pass
     diagnostic_expected, diagnostic_error = {}, ''
     try:
-        _, dimensions, floor, settings, times, _, points, valid = _geometry(df)
-        if not valid.all():
-            raise ValueError('Contact diagnostics require complete consistent pose/corner observations')
-        processor = DropPosturePostProcessor(face_definitions=FACE_DEFINITIONS,
-            local_box_corners=calculate_local_box_corners(dimensions), floor_level=floor)
-        threshold = _number(settings['postprocess']['contact_threshold_mm'])
-        if threshold <= 0:
-            raise ValueError('Recorded contact threshold must be positive')
-        analysis = processor._contact_analysis(min_heights=points[:, :, 1].min(axis=1),
-                                               index=pd.Index(times), contact_threshold_mm=threshold)
-        sets = processor._contact_sets(points[:, :, 1], threshold, active_mask=analysis['active_mask'],
-                                       relative_contact_band=analysis['relative_contact_band'])
+        analysis, accepted = _contact_replay(_geometry(df))
         diagnostic_expected = dict(ContactState=analysis['contact_state'], T1Detected=analysis['t1_detected'],
             ImpactDetected=analysis['impact_detected'], SustainedContactDetected=analysis['sustained_contact_detected'],
             ContactDetectionMethod=analysis['contact_detection_method'],
-            ContactConfidence=analysis['contact_confidence'],
-            ImpactEventCount=len(processor._accepted_events(sets)))
+            ContactConfidence=analysis['contact_confidence'], ImpactEventCount=len(accepted))
     except (ValueError, TypeError, KeyError, AttributeError, IndexError) as error:
         diagnostic_error = str(error)
     for key in ('ReferenceFace', 'T1MinusTimeSec', 'T1Detected', 'FirstImpactTimeSec', 'FirstImpactContact',
@@ -280,11 +311,12 @@ def resolve_summary_metrics(df, *, target_context=None):
             put(key, MetricValue(None, str(error)))
     try:
         artifact, dims, floor = _processing_context(df, raw_pose=False)
-        if not event or not event.valid:
-            raise ValueError(event_reason)
-        index = event.indices[0]
-        sample = float(event.times_s[0])
-        _, _, _, settings, times, _, _, geometry_valid = _geometry(df)
+        if review_error:
+            raise ValueError(review_error)
+        geometry = _geometry(df)
+        index = _detector_precontact(df, review, geometry)
+        _, _, _, settings, times, _, _, geometry_valid = geometry
+        sample = float(times[index])
         derivative = settings['single_pass'].get('derivatives', {})
         if (derivative.get('time_policy') != 'actual-dt;finite-difference-numpy-gradient;finite-angle-matrix'
                 or derivative.get('segmentation_policy') != 'face-boundaries-and-finite-contiguous-pose-v3'):
