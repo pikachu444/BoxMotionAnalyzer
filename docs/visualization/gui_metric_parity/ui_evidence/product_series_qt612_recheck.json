@@ -1,0 +1,1919 @@
+{
+  "started_utc": "2026-11-12T01:25:50.524957+00:00",
+  "finished_utc": "2026-11-12T01:26:16.721333+00:00",
+  "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+  "executable": "tmp\\issue188-qt612\\Scripts\\python.exe",
+  "pyside": "6.12.0",
+  "qt": "6.12.0",
+  "platform": "windows",
+  "source_hashes": {
+    "src/analysis/ui/shared_metric_guide.py": "b61a3cdb6fd2f789dbb98707abd134024dd0ec786279aa093a7b61cde7ba7409",
+    "src/config/result_metric_descriptors.py": "f5d54c2ed9d125c4b3a1fb6e3901bc91bea8036c069913acde688912a2d63e0f",
+    "src/analysis/ui/widget_results_analyzer.py": "e68798422a1331f409693229da013d7dad1a52c3f3f35d044b6fe2360a52a5e6"
+  },
+  "scope": "Actual native-platform Qt/QTest selected-series Guide context checks. In-memory all-missing public frame; no pipeline, optimizer, solver, external desktop click, OS125 or human acceptance.",
+  "checks": [
+    {
+      "name": "en/1100/0 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "en/1100/0 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/0 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 heading visible",
+      "result": "pass",
+      "heading_y": 491
+    },
+    {
+      "name": "en/1100/1 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/1 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 heading visible",
+      "result": "pass",
+      "heading_y": 491
+    },
+    {
+      "name": "en/1100/2 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/2 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "en/1100/3 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/3 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 heading visible",
+      "result": "pass",
+      "heading_y": 491
+    },
+    {
+      "name": "en/1100/4 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/4 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 heading visible",
+      "result": "pass",
+      "heading_y": 491
+    },
+    {
+      "name": "en/1100/5 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/5 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 heading visible",
+      "result": "pass",
+      "heading_y": 491
+    },
+    {
+      "name": "en/1100/6 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/6 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "en/1100/7 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100/7 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 object identities distinct",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 hidden target restores filters",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 actual Tab reaches selected card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 unknown removes stale series",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 unknown interpretation at top",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 Escape hides",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 reopen same host object",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 rapid replacement leaves one final card",
+      "result": "pass"
+    },
+    {
+      "name": "en/1100 summary clears row-specific card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 heading visible",
+      "result": "pass",
+      "heading_y": 211
+    },
+    {
+      "name": "en/640/0 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/0 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 heading visible",
+      "result": "pass",
+      "heading_y": 195
+    },
+    {
+      "name": "en/640/1 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/1 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 heading visible",
+      "result": "pass",
+      "heading_y": 195
+    },
+    {
+      "name": "en/640/2 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/2 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 heading visible",
+      "result": "pass",
+      "heading_y": 211
+    },
+    {
+      "name": "en/640/3 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/3 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 heading visible",
+      "result": "pass",
+      "heading_y": 195
+    },
+    {
+      "name": "en/640/4 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/4 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 heading visible",
+      "result": "pass",
+      "heading_y": 195
+    },
+    {
+      "name": "en/640/5 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/5 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 heading visible",
+      "result": "pass",
+      "heading_y": 195
+    },
+    {
+      "name": "en/640/6 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/6 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 heading visible",
+      "result": "pass",
+      "heading_y": 211
+    },
+    {
+      "name": "en/640/7 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "en/640/7 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 object identities distinct",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 hidden target restores filters",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 actual Tab reaches selected card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 unknown removes stale series",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 unknown interpretation at top",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 Escape hides",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 reopen same host object",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 rapid replacement leaves one final card",
+      "result": "pass"
+    },
+    {
+      "name": "en/640 summary clears row-specific card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "ko/1100/0 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/0 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "ko/1100/1 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/1 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "ko/1100/2 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/2 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "ko/1100/3 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/3 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 heading visible",
+      "result": "pass",
+      "heading_y": 491
+    },
+    {
+      "name": "ko/1100/4 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/4 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "ko/1100/5 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/5 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "ko/1100/6 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/6 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 heading visible",
+      "result": "pass",
+      "heading_y": 507
+    },
+    {
+      "name": "ko/1100/7 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100/7 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 object identities distinct",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 hidden target restores filters",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 actual Tab reaches selected card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 unknown removes stale series",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 unknown interpretation at top",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 Escape hides",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 reopen same host object",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 rapid replacement leaves one final card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/1100 summary clears row-specific card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 heading visible",
+      "result": "pass",
+      "heading_y": 227
+    },
+    {
+      "name": "ko/640/0 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/0 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 heading visible",
+      "result": "pass",
+      "heading_y": 211
+    },
+    {
+      "name": "ko/640/1 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/1 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 heading visible",
+      "result": "pass",
+      "heading_y": 211
+    },
+    {
+      "name": "ko/640/2 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/2 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 heading visible",
+      "result": "pass",
+      "heading_y": 227
+    },
+    {
+      "name": "ko/640/3 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/3 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 heading visible",
+      "result": "pass",
+      "heading_y": 195
+    },
+    {
+      "name": "ko/640/4 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/4 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 heading visible",
+      "result": "pass",
+      "heading_y": 211
+    },
+    {
+      "name": "ko/640/5 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/5 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 heading visible",
+      "result": "pass",
+      "heading_y": 211
+    },
+    {
+      "name": "ko/640/6 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/6 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 actual client",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 host reuses dialog",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 exact fulltuple identity",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 one on-demand card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 literal unit",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 explicit non-alias caution",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 available definition for missing samples",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 card focus",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 heading visible",
+      "result": "pass",
+      "heading_y": 227
+    },
+    {
+      "name": "ko/640/7 no horizontal clipping",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 Korean label",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 stale tuple removed",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640/7 same tuple reuses card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 object identities distinct",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 hidden target restores filters",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 actual Tab reaches selected card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 unknown removes stale series",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 unknown interpretation at top",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 Escape hides",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 reopen same host object",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 rapid replacement leaves one final card",
+      "result": "pass"
+    },
+    {
+      "name": "ko/640 summary clears row-specific card",
+      "result": "pass"
+    },
+    {
+      "name": "No asynchronous Qt callback exception",
+      "result": "pass",
+      "errors": []
+    },
+    {
+      "name": "Relevant source unchanged during check",
+      "result": "pass"
+    }
+  ],
+  "captures": [
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-en-1100x760-0.png",
+      "client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": "step2:series:Analysis:DropPosture:BetaDeg",
+      "viewport_width": 1056,
+      "content_width": 1056,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-en-1100x760-2.png",
+      "client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": "step2:series:Velocity:CoM:BoxLocal_V_TX",
+      "viewport_width": 1056,
+      "content_width": 1056,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-en-640x480-0.png",
+      "client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": "step2:series:Analysis:DropPosture:BetaDeg",
+      "viewport_width": 596,
+      "content_width": 596,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-en-640x480-2.png",
+      "client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": "step2:series:Velocity:CoM:BoxLocal_V_TX",
+      "viewport_width": 596,
+      "content_width": 596,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-unknown-en.png",
+      "client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": null,
+      "viewport_width": 596,
+      "content_width": 596,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-ko-1100x760-0.png",
+      "client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": "step2:series:Analysis:DropPosture:BetaDeg",
+      "viewport_width": 1056,
+      "content_width": 1056,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-ko-1100x760-2.png",
+      "client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": "step2:series:Velocity:CoM:BoxLocal_V_TX",
+      "viewport_width": 1056,
+      "content_width": 1056,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-ko-640x480-0.png",
+      "client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": "step2:series:Analysis:DropPosture:BetaDeg",
+      "viewport_width": 596,
+      "content_width": 596,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-ko-640x480-2.png",
+      "client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": "step2:series:Velocity:CoM:BoxLocal_V_TX",
+      "viewport_width": 596,
+      "content_width": 596,
+      "horizontal_max": 0
+    },
+    {
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-series-unknown-ko.png",
+      "client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0",
+      "device_pixel_ratio": 1.0,
+      "focused_metric": null,
+      "viewport_width": 596,
+      "content_width": 596,
+      "horizontal_max": 0
+    }
+  ],
+  "failures": []
+}

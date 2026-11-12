@@ -15,6 +15,7 @@ from src.analysis.pipeline.parser import Parser
 from src.analysis.ui.widget_raw_data_processing import WidgetRawDataProcessing
 from src.config.data_columns import FACE_PREFIX_TO_INFO
 from src.simulation.scene_fixtures import write_sequence
+from test_impact_comparison_gui import _diagnostic_cell
 
 
 def _events(app):
@@ -157,12 +158,12 @@ def test_contact_view_compares_exact_feature_and_excludes_conflicting_hypotheses
         table = window.table_panel.table
         assert [table.item(i, 3).text().split(' / ')[0] for i in range(3)] == ['Match', 'Different', 'Unclear']
         assert [table.item(i, 2).text() for i in range(2)] == ['Bottom', 'Bottom']
-        assert 'No independent intended contact' in table.item(2, 3).toolTip()
+        assert 'No independent intended contact' in _diagnostic_cell(window, 2, 3)
         summary = window.model.get_contact_comparison()
         assert summary['statistics'] == {'n': 0, 'Match': 0, 'Different': 0, 'Unclear': 0, 'excluded': 3, 'conflicts': 1}
-        assert all('Conflicting intended contacts' in table.item(i, 3).toolTip() for i in range(2))
-        assert 'ineligible' in table.item(2, 3).text()
-        assert 'No independent intended contact' in table.item(2, 3).toolTip()
+        assert all('Conflicting intended contacts' in _diagnostic_cell(window, i, 3) for i in range(2))
+        assert 'Conditions for repeat comparison are not met' in table.item(2, 3).text()
+        assert 'No independent intended contact' in _diagnostic_cell(window, 2, 3)
         monkeypatch.setattr(QFileDialog, 'getOpenFileNames', lambda *a, **kw: ([], ''))
         QTest.mouseClick(window.control_panel.btn_add_files, Qt.LeftButton)
         assert table.rowCount() == 3

@@ -83,6 +83,7 @@ class CompareMainWindow(QMainWindow):
         self.control_panel.remove_file_requested.connect(self._on_remove_file)
         self.control_panel.baseline_changed.connect(self._on_baseline_changed)
         self.table_panel.resolution_details_changed.connect(self._on_resolution_details)
+        self.table_panel.metric_context_changed.connect(self.control_panel.set_metric_context)
         self.table_panel.display_rows_changed.connect(self._on_summary_rows_changed)
         self.graph_panel.plot_target_changed.connect(self._on_plot_target_changed)
         self.control_panel.view_changed.connect(self._on_view_changed)
@@ -188,6 +189,7 @@ class CompareMainWindow(QMainWindow):
 
     def _on_view_changed(self):
         self.model.max_gap_sec = self.control_panel.gap_limit.value()
+        self.table_panel.set_selected_file(self.control_panel.selected_file)
         self.playback_panel.set_view(self.control_panel.cb_view.currentData(), self.control_panel.selected_file)
         self._on_plot_target_changed(self.graph_panel.cb_plot_target.currentData())
         self._update_view_status()
@@ -229,13 +231,10 @@ class CompareMainWindow(QMainWindow):
         self.warning_label.setText(self._summary_status + ('   ' + tr('Mixed sources') if mixed else ''))
         reasons = list(dict.fromkeys([timeline.reason for timeline in self.model.timelines.values() if timeline.reason]
                                     + self._owner_exclusion_reasons))
-        summary = '; '.join(tr(reason) for reason in reasons[:2])
-        if len(reasons) > 2:
-            summary += '; ' + tr('{} more reasons; see File details.').format(len(reasons) - 2)
+        summary = tr('Some files need alignment or comparison evidence. Open Diagnostics for details.')
         self.alignment_label.setText(summary if reasons else
                                      tr('Actual-time alignment available') if self.model.datasets else tr('No results loaded.'))
-        self.alignment_label.setToolTip('\n'.join(
-            self.model.status_text(name) for name in self.model.datasets))
+        self.alignment_label.setToolTip(self.alignment_label.text())
 
     def _on_elapsed_changed(self, elapsed):
         if self.control_panel.cb_view.currentData() == 'aligned':
@@ -265,6 +264,7 @@ class CompareMainWindow(QMainWindow):
         # Update Table
         diff_data = self.model.get_summary_differences()
         was_empty = self._summary_empty
+        self.table_panel.set_selected_file(self.control_panel.selected_file)
         self.table_panel.update_table(diff_data, baseline, impact, self.model.get_contact_comparison(),
                                       self.model.get_posture_comparison())
         
@@ -281,6 +281,7 @@ class CompareMainWindow(QMainWindow):
             title = controls['title']
             display_name = file_labels[name]
             set_path_label(title, self.model.file_paths[name], display_name=display_name)
+            title.setToolTip(display_name)
             title.setText(title.fontMetrics().elidedText(display_name, Qt.ElideMiddle, 250))
         self.graph_panel.set_plot_targets(targets)
         self._on_view_changed()

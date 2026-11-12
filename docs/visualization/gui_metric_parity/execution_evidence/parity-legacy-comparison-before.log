@@ -1,0 +1,82 @@
+FFF                                                                      [100%]
+================================== FAILURES ===================================
+_____________ test_file_names_colours_selection_and_small_layout ______________
+tests\test_comparison_layout.py:80: in test_file_names_colours_selection_and_small_layout
+    assert [window.control_panel.detail_tabs.tabText(i) for i in range(2)] == ['File details', 'Playback settings']
+E   AssertionError: assert ['Experiment ...ack settings'] == ['File detail...ack settings']
+E
+E     At index 0 diff: 'Experiment info' != 'File details'
+E     Use -v to get more diff
+---------------------------- Captured stdout call -----------------------------
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\00_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\00_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\01_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\01_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\02_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\02_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\03_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\03_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\04_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\04_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\05_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\05_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\06_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\06_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\07_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\07_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\08_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_file_names_colours_select0\08_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_.proc
+  - Frames: 3
+  - Entities: 9
+___ test_missing_identity_is_neutral_and_mixed_aligned_sources_stay_visible ___
+tests\test_comparison_layout.py:312: in test_missing_identity_is_neutral_and_mixed_aligned_sources_stay_visible
+    assert 'ModelId: missing' in first.toolTip()
+E   AssertionError: assert 'ModelId: missing' in 'incomplete.proc\nNot comparable'
+E    +  where 'incomplete.proc\nNot comparable' = <built-in method toolTip of PySide6.QtWidgets.QListWidgetItem object at 0x00000206651537C0>()
+E    +    where <built-in method toolTip of PySide6.QtWidgets.QListWidgetItem object at 0x00000206651537C0> = <PySide6.QtWidgets.QListWidgetItem object at 0x00000206651537C0>.toolTip
+---------------------------- Captured stdout call -----------------------------
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_missing_identity_is_neutr0\incomplete.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_missing_identity_is_neutr0\incomplete.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_missing_identity_is_neutr0\other_source.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_missing_identity_is_neutr0\other_source.proc
+  - Frames: 3
+  - Entities: 9
+_________ test_calibration_badge_and_time_tooltip_follow_current_view _________
+tests\test_comparison_layout.py:347: in test_calibration_badge_and_time_tooltip_follow_current_view
+    assert time.text() == 'Sample 1'
+E   AssertionError: assert '1.000 s' == 'Sample 1'
+E
+E     - Sample 1
+E     + 1.000 s
+---------------------------- Captured stdout call -----------------------------
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_calibration_badge_and_tim0\recorded.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_calibration_badge_and_tim0\recorded.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_calibration_badge_and_tim0\no_time.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-826\test_calibration_badge_and_tim0\no_time.proc
+  - Frames: 3
+  - Entities: 9
+=========================== short test summary info ===========================
+FAILED tests/test_comparison_layout.py::test_file_names_colours_selection_and_small_layout
+FAILED tests/test_comparison_layout.py::test_missing_identity_is_neutral_and_mixed_aligned_sources_stay_visible
+FAILED tests/test_comparison_layout.py::test_calibration_badge_and_time_tooltip_follow_current_view
+3 failed in 7.44s

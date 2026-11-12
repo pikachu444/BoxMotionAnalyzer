@@ -1,0 +1,651 @@
+{
+  "recorded_utc": "2026-11-12T01:53:39.901347+00:00",
+  "source_revision": "28ff53a4c92f7897ae68e445228a820dbdf633a2",
+  "qt": "6.12.0",
+  "pyside": "6.12.0",
+  "platform": "windows",
+  "opengl": "desktop",
+  "scope": "Actual native-platform Qt/QTest selection routing using two handcrafted UI files. Real graph/playback widgets; no pipeline/optimizer/solver, externaldesktopclick,OS125 or human acceptance.",
+  "source_hashes": {
+    "src/analysis/compare/ui_panels.py": "3360ab8ff66e67cd7bfc2c4ed9bf95c80947078e7d46d01dff06e7b81fc106f8",
+    "src/analysis/compare/main_window.py": "806ee494b766e679137d3309ef392c3cd0a0e135dbdb13c2b0c0318f6d0c38e6"
+  },
+  "checks": [
+    {
+      "name": "initial canonical control/table",
+      "result": "pass",
+      "control": "A_recorded.proc",
+      "table_position": 1,
+      "expected": 1
+    },
+    {
+      "name": "initial typed context file",
+      "result": "pass",
+      "context": "A_recorded.proc"
+    },
+    {
+      "name": "initial actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "initial actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "initial actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "initial actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "initial playback source",
+      "result": "pass"
+    },
+    {
+      "name": "initial playback time identity",
+      "result": "pass",
+      "actual": "1.000 s",
+      "expected": "1.000 s"
+    },
+    {
+      "name": "Control selects no-time B canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 2,
+      "expected": 2
+    },
+    {
+      "name": "Control selects no-time B typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "Control selects no-time B actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects no-time B actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects no-time B actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects no-time B actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects no-time B playback source",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects no-time B playback time identity",
+      "result": "pass",
+      "actual": "Sample 1",
+      "expected": "Sample 1"
+    },
+    {
+      "name": "numeric table selects A canonical control/table",
+      "result": "pass",
+      "control": "A_recorded.proc",
+      "table_position": 1,
+      "expected": 1
+    },
+    {
+      "name": "numeric table selects A typed context file",
+      "result": "pass",
+      "context": "A_recorded.proc"
+    },
+    {
+      "name": "numeric table selects A actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects A actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects A actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects A actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects A playback source",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects A playback time identity",
+      "result": "pass",
+      "actual": "1.000 s",
+      "expected": "1.000 s"
+    },
+    {
+      "name": "numeric table selects no-time B canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 2,
+      "expected": 2
+    },
+    {
+      "name": "numeric table selects no-time B typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "numeric table selects no-time B actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects no-time B actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects no-time B actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects no-time B actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects no-time B playback source",
+      "result": "pass"
+    },
+    {
+      "name": "numeric table selects no-time B playback time identity",
+      "result": "pass",
+      "actual": "Sample 1",
+      "expected": "Sample 1"
+    },
+    {
+      "name": "B sample2 canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 2,
+      "expected": 2
+    },
+    {
+      "name": "B sample2 typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "B sample2 actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "B sample2 actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "B sample2 actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "B sample2 actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "B sample2 playback source",
+      "result": "pass"
+    },
+    {
+      "name": "B sample2 playback time identity",
+      "result": "pass",
+      "actual": "Sample 2",
+      "expected": "Sample 2"
+    },
+    {
+      "name": "Contact retains B canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 1,
+      "expected": 1
+    },
+    {
+      "name": "Contact retains B typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "Contact retains B actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "Contact retains B actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "Contact retains B actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "Contact retains B actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "Contact retains B playback source",
+      "result": "pass"
+    },
+    {
+      "name": "Contact retains B playback time identity",
+      "result": "pass",
+      "actual": "Sample 2",
+      "expected": "Sample 2"
+    },
+    {
+      "name": "Contact refresh retains B canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 1,
+      "expected": 1
+    },
+    {
+      "name": "Contact refresh retains B typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "Contact refresh retains B actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "Contact refresh retains B actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "Contact refresh retains B actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "Contact refresh retains B actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "Contact refresh retains B playback source",
+      "result": "pass"
+    },
+    {
+      "name": "Contact refresh retains B playback time identity",
+      "result": "pass",
+      "actual": "Sample 2",
+      "expected": "Sample 2"
+    },
+    {
+      "name": "Contact row selects A canonical control/table",
+      "result": "pass",
+      "control": "A_recorded.proc",
+      "table_position": 0,
+      "expected": 0
+    },
+    {
+      "name": "Contact row selects A typed context file",
+      "result": "pass",
+      "context": "A_recorded.proc"
+    },
+    {
+      "name": "Contact row selects A actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "Contact row selects A actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "Contact row selects A actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "Contact row selects A actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "Contact row selects A playback source",
+      "result": "pass"
+    },
+    {
+      "name": "Contact row selects A playback time identity",
+      "result": "pass",
+      "actual": "1.000 s",
+      "expected": "1.000 s"
+    },
+    {
+      "name": "Control selects B in Contact canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 1,
+      "expected": 1
+    },
+    {
+      "name": "Control selects B in Contact typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "Control selects B in Contact actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects B in Contact actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects B in Contact actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects B in Contact actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects B in Contact playback source",
+      "result": "pass"
+    },
+    {
+      "name": "Control selects B in Contact playback time identity",
+      "result": "pass",
+      "actual": "Sample 2",
+      "expected": "Sample 2"
+    },
+    {
+      "name": "baseline change retains B canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 1,
+      "expected": 1
+    },
+    {
+      "name": "baseline change retains B typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "baseline change retains B actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "baseline change retains B actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "baseline change retains B actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "baseline change retains B actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "baseline change retains B playback source",
+      "result": "pass"
+    },
+    {
+      "name": "baseline change retains B playback time identity",
+      "result": "pass",
+      "actual": "Sample 2",
+      "expected": "Sample 2"
+    },
+    {
+      "name": "numeric mode retains B canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 2,
+      "expected": 2
+    },
+    {
+      "name": "numeric mode retains B typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "numeric mode retains B actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "numeric mode retains B actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "numeric mode retains B actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "numeric mode retains B actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "numeric mode retains B playback source",
+      "result": "pass"
+    },
+    {
+      "name": "numeric mode retains B playback time identity",
+      "result": "pass",
+      "actual": "Sample 2",
+      "expected": "Sample 2"
+    },
+    {
+      "name": "remove A retains B canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 1,
+      "expected": 1
+    },
+    {
+      "name": "remove A retains B typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "remove A retains B actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "remove A retains B actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "remove A retains B actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "remove A retains B actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "remove A retains B playback source",
+      "result": "pass"
+    },
+    {
+      "name": "remove A retains B playback time identity",
+      "result": "pass",
+      "actual": "Sample 2",
+      "expected": "Sample 2"
+    },
+    {
+      "name": "reload A preserves B despite new order canonical control/table",
+      "result": "pass",
+      "control": "B_no_time.proc",
+      "table_position": 1,
+      "expected": 1
+    },
+    {
+      "name": "reload A preserves B despite new order typed context file",
+      "result": "pass",
+      "context": "B_no_time.proc"
+    },
+    {
+      "name": "reload A preserves B despite new order actual model metadata",
+      "result": "pass"
+    },
+    {
+      "name": "reload A preserves B despite new order actual graph source",
+      "result": "pass"
+    },
+    {
+      "name": "reload A preserves B despite new order actual graph payload",
+      "result": "pass"
+    },
+    {
+      "name": "reload A preserves B despite new order actual graph clock",
+      "result": "pass"
+    },
+    {
+      "name": "reload A preserves B despite new order playback source",
+      "result": "pass"
+    },
+    {
+      "name": "reload A preserves B despite new order playback time identity",
+      "result": "pass",
+      "actual": "Sample 2",
+      "expected": "Sample 2"
+    },
+    {
+      "name": "source bytes unchanged",
+      "result": "pass"
+    },
+    {
+      "name": "no asynchronous Qt callback errors",
+      "result": "pass",
+      "errors": []
+    }
+  ],
+  "states": [
+    {
+      "stage": "initial",
+      "selected": "A_recorded.proc",
+      "mode": 0,
+      "table_position": 1,
+      "time": "1.000 s",
+      "graph_labels": [
+        "A_recorded.proc"
+      ]
+    },
+    {
+      "stage": "Control selects no-time B",
+      "selected": "B_no_time.proc",
+      "mode": 0,
+      "table_position": 2,
+      "time": "Sample 1",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "numeric table selects A",
+      "selected": "A_recorded.proc",
+      "mode": 0,
+      "table_position": 1,
+      "time": "1.000 s",
+      "graph_labels": [
+        "A_recorded.proc"
+      ]
+    },
+    {
+      "stage": "numeric table selects no-time B",
+      "selected": "B_no_time.proc",
+      "mode": 0,
+      "table_position": 2,
+      "time": "Sample 1",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "B sample2",
+      "selected": "B_no_time.proc",
+      "mode": 0,
+      "table_position": 2,
+      "time": "Sample 2",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "Contact retains B",
+      "selected": "B_no_time.proc",
+      "mode": 3,
+      "table_position": 1,
+      "time": "Sample 2",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "Contact refresh retains B",
+      "selected": "B_no_time.proc",
+      "mode": 3,
+      "table_position": 1,
+      "time": "Sample 2",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "Contact row selects A",
+      "selected": "A_recorded.proc",
+      "mode": 3,
+      "table_position": 0,
+      "time": "1.000 s",
+      "graph_labels": [
+        "A_recorded.proc"
+      ]
+    },
+    {
+      "stage": "Control selects B in Contact",
+      "selected": "B_no_time.proc",
+      "mode": 3,
+      "table_position": 1,
+      "time": "Sample 2",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "baseline change retains B",
+      "selected": "B_no_time.proc",
+      "mode": 3,
+      "table_position": 1,
+      "time": "Sample 2",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "numeric mode retains B",
+      "selected": "B_no_time.proc",
+      "mode": 0,
+      "table_position": 2,
+      "time": "Sample 2",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "remove A retains B",
+      "selected": "B_no_time.proc",
+      "mode": 0,
+      "table_position": 1,
+      "time": "Sample 2",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    },
+    {
+      "stage": "reload A preserves B despite new order",
+      "selected": "B_no_time.proc",
+      "mode": 0,
+      "table_position": 1,
+      "time": "Sample 2",
+      "graph_labels": [
+        "B_no_time.proc"
+      ]
+    }
+  ],
+  "failures": []
+}

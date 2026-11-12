@@ -1,0 +1,119 @@
+..........F..........F..................                                 [100%]
+================================== FAILURES ===================================
+_________ test_fixed_groups_action_bars_scroll_and_toolbar[size2-en] __________
+
+app = <PySide6.QtWidgets.QApplication(0x2a4ba887ed0) at 0x000002A4C1212E80>
+slice_path = WindowsPath('C:/Users/pikac/AppData/Local/Temp/pytest-of-pikac/pytest-822/test_fixed_groups_action_bars_4/public_long_processing_input.slice')
+language = 'en', size = (820, 600)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002A4C3039B80>
+
+    @pytest.mark.parametrize('language', ['en', 'ko'])
+    @pytest.mark.parametrize('size', [(1510, 800), (1100, 720), (820, 600)])
+    def test_fixed_groups_action_bars_scroll_and_toolbar(app, slice_path, language, size, monkeypatch):
+        monkeypatch.setattr(ui_language, 'preferred_language', lambda: language)
+        ui_language.configure_language(app)
+        widget = WidgetSliceProcessing(DataLoader(), Parser(FACE_PREFIX_TO_INFO))
+        try:
+            assert widget.load_slice_file(str(slice_path))
+            widget.show()
+            widget.resize(*size)
+            app.processEvents()
+            assert (widget.width(), widget.height()) == size
+            assert not any(type(child).__name__ == 'CollapsibleSection' for child in widget.findChildren(QWidget))
+            assert all(isinstance(group, QGroupBox) for group in (
+                widget.method_controls, widget.resampling_group, widget.log_group,
+                widget.box_dims_group, widget.slice_summary_group))
+            assert widget.toolbar.orientation() == Qt.Vertical
+            assert widget.toolbar.iconSize().width() == 16
+            assert widget.toolbar.x() > widget.canvas.x()
+            assert widget.plot_manager.ax.xaxis.label.get_fontsize() == 9
+            assert widget.plot_manager.ax.yaxis.label.get_fontsize() == 9
+            expected_xlim = widget.plot_manager.ax.get_xlim()
+            for index, active, inactive in (
+                (0, (widget.run_button, widget.save_proc_button, widget.save_view_button),
+                 (widget.run_batch_button, widget.view_batch_button)),
+                (1, (widget.run_batch_button, widget.view_batch_button),
+                 (widget.run_button, widget.save_proc_button, widget.save_view_button)),
+                (0, (widget.run_button, widget.save_proc_button, widget.save_view_button),
+                 (widget.run_batch_button, widget.view_batch_button))):
+                widget.input_mode_combo.setCurrentIndex(index)
+                app.processEvents()
+                assert fully_visible(widget.input_mode_combo)
+                assert widget.input_stack.currentIndex() == widget.preview_stack.currentIndex() == widget.action_stack.currentIndex() == index
+                assert all(fully_visible(button) for button in active)
+                assert all(not button.isVisible() for button in inactive)
+                assert widget.box_dims_group.isHidden() == bool(index)
+                assert widget.slice_summary_group.isHidden() == bool(index)
+            # A small window reaches settings through their own explicit scroll.
+            widget.rb_processing_advanced.setChecked(True)
+            for field in (widget.le_resampling_range_end, widget.processing_settings_button):
+                widget.settings_scroll.ensureWidgetVisible(field)
+                app.processEvents()
+                assert fully_visible(field)
+            widget.context_scroll.ensureWidgetVisible(widget.le_box_h)
+            app.processEvents()
+            assert fully_visible(widget.le_box_h)
+            assert widget.slice_path_label.toolTip() == str(slice_path)
+            assert widget.plot_manager.ax.get_xlim() == expected_xlim
+            # Neither a mode switch nor a file change resets a user's splitter sizes.
+            widget.workflow_splitter.setSizes([300, 200])
+            widget.context_splitter.setSizes([500, 260])
+            app.processEvents()
+            splits = (widget.workflow_splitter.sizes(), widget.context_splitter.sizes())
+            widget.input_mode_combo.setCurrentIndex(1)
+            widget.input_mode_combo.setCurrentIndex(0)
+            assert widget.load_slice_file(str(slice_path))
+            app.processEvents()
+>           assert (widget.workflow_splitter.sizes(), widget.context_splitter.sizes()) == splits
+E           assert ([319, 212], [464, 340]) == ([319, 212], [438, 366])
+E
+E             At index 1 diff: [464, 340] != [438, 366]
+E             Use -v to get more diff
+
+tests\test_gui177_processing.py:117: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+[DataLoader INFO] CSV loaded. Headers parsed, and 601 data rows prepared for Parser.
+---------------------------- Captured stdout call -----------------------------
+[DataLoader INFO] CSV loaded. Headers parsed, and 61 data rows prepared for Parser.
+[DataLoader INFO] CSV loaded. Headers parsed, and 61 data rows prepared for Parser.
+___________________ test_r02_fixed_buttons_and_real_export ____________________
+
+page = <src.analysis.ui.widget_results_analyzer.WidgetResultsAnalyzer(0x2a4c7764840) at 0x000002A4C83752C0>
+tmp_path = WindowsPath('C:/Users/pikac/AppData/Local/Temp/pytest-of-pikac/pytest-822/test_r02_fixed_buttons_and_rea0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002A4C84EC830>
+
+    def test_r02_fixed_buttons_and_real_export(page, tmp_path, monkeypatch):
+        source = tmp_path / 'source.proc'
+        write_result(source, {BETA: [1., 2., 3.]})
+        assert page.load_result_file(str(source))
+        page.on_result_plot_click(SimpleNamespace(inaxes=page.plot_manager.ax, xdata=.1))
+        page.tool_tabs.setCurrentIndex(1)
+        QApplication.processEvents()
+        scroll = page.tool_tabs.currentWidget().findChild(QScrollArea)
+        assert scroll is not None
+        assert not scroll.isAncestorOf(page.export_scenario_button)
+        assert page.export_scenario_button.isVisible()
+        assert page.rect().contains(page.export_scenario_button.mapTo(page, page.export_scenario_button.rect().bottomRight()))
+        for field in (*page.offset_combos, *page.manual_height_inputs,
+                      page.le_run_time, page.le_time_step, page.le_scene_name):
+            scroll.ensureWidgetVisible(field)
+            QApplication.processEvents()
+            top_left = field.mapTo(scroll.viewport(), field.rect().topLeft())
+            bottom_right = field.mapTo(scroll.viewport(), field.rect().bottomRight())
+            assert scroll.viewport().rect().contains(top_left)
+>           assert scroll.viewport().rect().contains(bottom_right)
+E           assert False
+E            +  where False = <built-in method contains of PySide6.QtCore.QRect object at 0x000002A4C6DE5B80>(PySide6.QtCore.QPoint(359, 90))
+E            +    where <built-in method contains of PySide6.QtCore.QRect object at 0x000002A4C6DE5B80> = PySide6.QtCore.QRect(0, 0, 254, 192).contains
+E            +      where PySide6.QtCore.QRect(0, 0, 254, 192) = <built-in method rect of PySide6.QtWidgets.QWidget object at 0x000002A4C8217CC0>()
+E            +        where <built-in method rect of PySide6.QtWidgets.QWidget object at 0x000002A4C8217CC0> = <PySide6.QtWidgets.QWidget(0x2a4c752a1d0, name="qt_scrollarea_viewport") at 0x000002A4C8217CC0>.rect
+E            +          where <PySide6.QtWidgets.QWidget(0x2a4c752a1d0, name="qt_scrollarea_viewport") at 0x000002A4C8217CC0> = <built-in method viewport of PySide6.QtWidgets.QScrollArea object at 0x000002A4C81EB880>()
+E            +            where <built-in method viewport of PySide6.QtWidgets.QScrollArea object at 0x000002A4C81EB880> = <PySide6.QtWidgets.QScrollArea(0x2a4c084ede0) at 0x000002A4C81EB880>.viewport
+
+tests\test_gui177_results.py:85: AssertionError
+---------------------------- Captured stdout call -----------------------------
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-822\test_r02_fixed_buttons_and_rea0\source.proc
+=========================== short test summary info ===========================
+FAILED tests/test_gui177_processing.py::test_fixed_groups_action_bars_scroll_and_toolbar[size2-en]
+FAILED tests/test_gui177_results.py::test_r02_fixed_buttons_and_real_export
+2 failed, 38 passed in 33.50s

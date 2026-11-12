@@ -20,7 +20,7 @@ from .corruption_export import write_observations
 from .marker_fixtures import example_profile, validate_profile
 from src.utils.marker_profile_identity import profile_identity
 
-VERSION = 'public-analytic-corpus-v2'
+VERSION = 'public-analytic-corpus-v3'
 SEED = 135001
 CASES = ('two_drops', 'supported_H', 'handling_only', 'tracking_OFF', 'partial', 'two_flips')
 # Frozen, reviewed detector boundaries are preservation expectations only. They
@@ -45,6 +45,40 @@ TOLERANCE = dict(version='public-analytic-corpus-v1', approval=APPROVAL,
     bounds={k: dict(absolute=v, relative=0.) for k, v in dict(center_mm=.1, rotation_deg=.1,
         corner_mm=.35, height_mm=.35, time_s=1e-8, velocity_m_s=.005, angular_rad_s=.01,
         diagnostic_deg=.1, diagnostic_mm=.35).items()})
+
+# Retain the historical migration verbatim; v3 changes only the newly produced
+# FinalFace availability, never the prior numeric/first-contact contracts.
+BASELINE_MIGRATION_HISTORY = [dict(previous_version='public-analytic-corpus-v1',
+    old=dict(first_contact='{C1,C2,C5,C6}'),
+    new=dict(observed_first_contact='{C1,C2,C5,C6}', first_contact='unavailable'),
+    cause='Separate recorded geometric contact from censored Compare first-event eligibility',
+    impact='No pose, numeric expectation, tolerance, raw or scene-boundary changes',
+    review=dict(reviewer='requirements_review', date='2026-10-02', status='approved'),
+    preservation='v1 assets and failed full_01 are retained as immutable local execution evidence')]
+FINAL_FACE_MIGRATION_REVIEW = dict(status='approved', reviewer='GPT-6.1 Sol', reasoning_effort='xhigh',
+    date='2026-11-12',
+    basis='Independent analytic review of declared center/rotation/corner formulas and P01 stable-tail '
+          'FinalFace before fresh v3 execution. Existing CI artifacts were inspected read-only to '
+          'identify the obsolete availability expectation, not copied as the oracle.',
+    scope='Only final_face availability for two_drops-scene-0, two_drops-scene-1 and supported_H-scene-0.',
+    qualification='Public synthetic software-oracle review; no physical calibration, experimental or ISTA approval.')
+BASELINE_MIGRATION = dict(previous_version='public-analytic-corpus-v2', next_version=VERSION,
+    old=dict(final_face='unavailable in all analytic scenes before a FinalFace producer existed'),
+    new=dict(final_face={'two_drops-scene-0': 'BOTTOM', 'two_drops-scene-1': 'BOTTOM',
+                         'supported_H-scene-0': 'BOTTOM'}, other_scenes='unavailable'),
+    cause='P01 now publishes the independently defined stable-height-tail six-face rotation-mean diagnostic.',
+    impact='Only those three final_face status/value pairs change. All other metric expectations, '
+           'tolerances, raw observations, trajectories, clocks, approvals and scene intervals are preserved.',
+    analytic_basis=dict(
+        two_drops='Each 80-row scene has 28 tail samples with center Y=60, minimum corner Y=0 and R=I. '
+                  'Smoothed tail height and gradient are zero; the unique rotation mean is I and BOTTOM scores 1.',
+        supported_H='Center Y=100*sin(theta)+60*cos(theta) cancels the minimum local-corner height. '
+                    'The 28 tail rotations have theta in [0,0.18] rad; their unique chordal mean is '
+                    'Rz(atan2(sum(sin(theta)),sum(cos(theta)))) within that interval. BOTTOM is uniquely nearest down.',
+        diagnostic_limit='A stable height plateau does not prove rotational rest.'),
+    review=FINAL_FACE_MIGRATION_REVIEW,
+    preservation='v1/v2 assets and failed reports, including CI 43140730694, remain immutable. Generate new v3 assets only.')
+FINAL_FACE_BOTTOM_INTERVALS = {'two_drops': ((0, 80), (100, 180)), 'supported_H': ((0, 80),)}
 
 
 def specified_case(case):
@@ -143,7 +177,10 @@ def independent_metrics(case, times, center, rotations, start, end):
     # Unknown/unconfirmed test item and absent COM applicability never become
     # an equivalent-height value. Missing kinematics are not numerical zeros.
     result['equivalent_height'] = metric(status='unavailable')
-    result['final_face'] = metric(status='unavailable')
+    # The explicit intervals above have a proved zero-height plateau and a
+    # unique BOTTOM rotation mean; no production reducer supplies this oracle.
+    result['final_face'] = (metric('BOTTOM') if (start, end) in FINAL_FACE_BOTTOM_INTERVALS.get(case, ())
+                            else metric(status='unavailable'))
     if case != 'two_drops':
         for key in ('vertical_velocity', 'horizontal_speed', 'angular_speed', 'first_contact', 'contact_confidence'):
             result[key] = metric(status='unavailable')
@@ -206,6 +243,7 @@ def build_corpus(output):
         raw_hash = file_digest(raw_path)
         ref = envelope('TrajectoryReference', raw_sha256=raw_hash, geometry=geometry, approval=APPROVAL,
             generator=VERSION, seed=SEED, sample_count=len(times), scenes=references,
+            semantic_migration_review=FINAL_FACE_MIGRATION_REVIEW,
             basis='Explicit analytic center/rotation and C1..C8 corner formulas; tracking OFF uses specified observed constraints')
         ref_path = directory / 'reference.json'
         write_new_json(ref_path, ref)
@@ -226,13 +264,8 @@ def build_corpus(output):
         write_new_json(directory / 'review.json', fixture)
         entries.append(dict(case_id=case, fixture=f'{case}/review.json'))
     manifest = envelope('CaptureCorpus', version=VERSION, cases=entries, approved_scene_ids=approved_ids,
-        baseline_migration=dict(previous_version='public-analytic-corpus-v1',
-            old=dict(first_contact='{C1,C2,C5,C6}'),
-            new=dict(observed_first_contact='{C1,C2,C5,C6}', first_contact='unavailable'),
-            cause='Separate recorded geometric contact from censored Compare first-event eligibility',
-            impact='No pose, numeric expectation, tolerance, raw or scene-boundary changes',
-            review=dict(reviewer='requirements_review', date='2026-10-02', status='approved'),
-            preservation='v1 assets and failed full_01 are retained as immutable local execution evidence'),
+        baseline_migration=copy.deepcopy(BASELINE_MIGRATION),
+        baseline_migration_history=copy.deepcopy(BASELINE_MIGRATION_HISTORY),
         approval=APPROVAL, measured_data_status='unavailable', calibration_status='pending',
         source_kind='public handcrafted analytic synthetic; not experimental data')
     write_new_json(root / 'corpus.json', manifest)

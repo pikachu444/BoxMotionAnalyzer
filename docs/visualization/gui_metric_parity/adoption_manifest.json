@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "source_revision": "97f92df772e0f7776d37a6b41bf7f3469fe7fc0f",
+  "baseline_revision": "20dd4ce53a6d401fd6e219d6086b7600dba35ad7",
+  "files": [
+    {
+      "path": ".github/workflows/public-marker-validation.yml",
+      "sha256": "a23f9803c0f6070a66fc773df43ab163030db1517dd40bc0c132ce19d4f4251d",
+      "validated_checkout_sha256": "881c99a4d92c859c8c838115e58a985c1c13623174241ba09fa8b085ee33c7f9"
+    },
+    {
+      "path": "build.py",
+      "sha256": "6e662f86ec91ff73baf942deba0afd65b216939e26686fdd5d5536963369ccba",
+      "validated_checkout_sha256": "b05a4ccce54ee0d27090ff4280b630a944a99cc5fbd910711dd1609e29d36806"
+    },
+    {
+      "path": "scripts/build_gui_metric_parity_manifest.py",
+      "sha256": "fd1179d294270741678c03eef083661c1660962dedc2c5de16aee114557055e7",
+      "validated_checkout_sha256": "fd1179d294270741678c03eef083661c1660962dedc2c5de16aee114557055e7"
+    },
+    {
+      "path": "scripts/generate_metric_guide_diagrams.py",
+      "sha256": "a75a84fe97f49e38a2d4bf380bbe7aeda24f4ad98978ef9e8b949dc61053d28b",
+      "validated_checkout_sha256": "d7f4ddd752a1e5aa0ff00be0244ad77c743b3829a5ef37a0eb04a16f83f67903"
+    },
+    {
+      "path": "scripts/gui_metric_parity_product_check.py",
+      "sha256": "e5b94beec8c5abf15568152f2efed2333e4e2fa67dfd094b54c7e2252aa12c07",
+      "validated_checkout_sha256": "0e31cca092024e1d8d826e048c710c47801535eca12dd9fbe2d5c74de0cfe83b"
+    },
+    {
+      "path": "scripts/gui_metric_parity_prototype.py",
+      "sha256": "18b13cf66a9faf2cc2b382aa485821513b0c67cdeef50bfd712c8ab833098082",
+      "validated_checkout_sha256": "5f2655bd451c9252224a5b5148c68a42657a85aabd9e09badcef8f4c6025972f"
+    },
+    {
+      "path": "scripts/gui_metric_parity_series_check.py",
+      "sha256": "06420c0b30ac416c8b030ef5d4d0589fe225326c1c2d573e14321a8961a9bc22",
+      "validated_checkout_sha256": "06420c0b30ac416c8b030ef5d4d0589fe225326c1c2d573e14321a8961a9bc22"
+    },
+    {
+      "path": "src/analysis/compare/main_window.py",
+      "sha256": "80c844790810f8129bb67198de075a13afb2b58abaa10a542282b465279f048c",
+      "validated_checkout_sha256": "61b6fe84224760c1575aeb3a6f165babfecd52137636d50323d3576ddcf7b51d"
+    },
+    {
+      "path": "src/analysis/compare/metric_guide.py",
+      "sha256": "86fb3293b30ae673278b9543d0da68bb837fbacca4b2ac6898138ef433b9d3e1",
+      "validated_checkout_sha256": "5fcc1b234afda7bd91767769c4cc27c6909e4e32b16601fbdc05a876c5aad0df"
+    },
+    {
+      "path": "src/analysis/compare/playback_panel.py",
+      "sha256": "03c08d76688f7fd6d85a556f126d4266cbf6912abc20d3b8d46bda0c5dbeb3e5",
+      "validated_checkout_sha256": "4466f6ad2b3378719faaaeb640f855fee32be31715a07153db6472c547fb4f3c"
+    },
+    {
+      "path": "src/analysis/compare/summary_metrics.py",
+      "sha256": "a12fe9ed6418d9b53b06a93fd6b43b312b7e8d08be7285384a627b381be345ae",
+      "validated_checkout_sha256": "a12fe9ed6418d9b53b06a93fd6b43b312b7e8d08be7285384a627b381be345ae"
+    },
+    {
+      "path": "src/analysis/compare/ui_panels.py",
+      "sha256": "c62f9900847f9e2eb26872b3b2a52b3c9c1da4096c2701629dbb498487a4bab1",
+      "validated_checkout_sha256": "1395f8edcf2dbe4d8254490e195cfa50102100ebdf2020b6c488f1f0814416fa"
+    },
+    {
+      "path": "src/analysis/pipeline/contact_reducers.py",
+      "sha256": "170b3919b3b9b97e896edaf03264aeffe90732f86b94ddb81e2c767264742e91",
+      "validated_checkout_sha256": "170b3919b3b9b97e896edaf03264aeffe90732f86b94ddb81e2c767264742e91"
+    },
+    {
+      "path": "src/analysis/pipeline/drop_posture_post_processor.py",
+      "sha256": "e150c291dc4d64265f0aa905654e0209a5b559b26c2f358f1b7097ff17dee926",
+      "validated_checkout_sha256": "9eb0fa45046cbbf4bf369241e424865e163dc3741e31eb6d68744e5d3902188f"
+    },
+    {
+      "path": "src/analysis/pipeline/scenario_export.py",
+      "sha256": "094102423b54243170cab6bdc28aa7726d9cb9218282ebac7b0265c61f25b9b1",
+      "validated_checkout_sha256": "0723224d907172ae09bd6dcf2746dd47a499c4dbeb93b3010456641705aad46e"
+    },
+    {
+      "path": "src/analysis/regression/evidence.py",
+      "sha256": "ff2be41cc77fd72c4a3ef4059c578b1264e3ed25ac0eda2562ee5c7e7150c521",
+      "validated_checkout_sha256": "b5c221bdf59475086a7e349b5f87af68277021573300195ca582f342223c1ca2"
+    },
+    {
+      "path": "src/analysis/ui/assets/guide_contact.png",
+      "sha256": "51c3545addb225ddf2ba6546c990b41cd6609a5971dbec91796c6ac363da2ec7",
+      "validated_checkout_sha256": "51c3545addb225ddf2ba6546c990b41cd6609a5971dbec91796c6ac363da2ec7"
+    },
+    {
+      "path": "src/analysis/ui/assets/guide_impact.png",
+      "sha256": "5e8696642cbe78fae22b5bfcc3b2975b40b82ab9f1dd76439f1112b95c550d6e",
+      "validated_checkout_sha256": "5e8696642cbe78fae22b5bfcc3b2975b40b82ab9f1dd76439f1112b95c550d6e"
+    },
+    {
+      "path": "src/analysis/ui/assets/guide_posture.png",
+      "sha256": "ce7ad24c715ce1bef9f4fcf2e875ccd86824faeb742dc1ea78d3e47660ed750a",
+      "validated_checkout_sha256": "ce7ad24c715ce1bef9f4fcf2e875ccd86824faeb742dc1ea78d3e47660ed750a"
+    },
+    {
+      "path": "src/analysis/ui/dialog_marker_flip_review.py",
+      "sha256": "715263c4f6dd86fffbae4c63171e10f8e48259df8bc7e4de24d0680e0d846003",
+      "validated_checkout_sha256": "fd7619a977a7610c9c463fc4b6f9e0aed75c2a8231d4e4f8ccfeca0cfdec6d27"
+    },
+    {
+      "path": "src/analysis/ui/dialog_metric_guide.py",
+      "sha256": "5f3dcb26da73254213ca3c919322fd7b4131725079034c4a59750cef8d760408",
+      "validated_checkout_sha256": "073d6180ee22295106a854c3130b7ddcd2a2ae0637af9a02cf611345335ebdf0"
+    },
+    {
+      "path": "src/analysis/ui/plot_manager.py",
+      "sha256": "9ef86995970c34efaa56969305d6d04349e9db11ae56a6a0bcc07a7cfae20386",
+      "validated_checkout_sha256": "646a12b58c19081977a088fa1933a6403f6f1871b30349036b5e235613bf0640"
+    },
+    {
+      "path": "src/analysis/ui/shared_metric_guide.py",
+      "sha256": "cb82e5570fc2f59517dbcc24e1d3ff7a54b2b82da32af1a3d20717cbbbfeb7bd",
+      "validated_checkout_sha256": "b61a3cdb6fd2f789dbb98707abd134024dd0ec786279aa093a7b61cde7ba7409"
+    },
+    {
+      "path": "src/analysis/ui/widget_raw_data_processing.py",
+      "sha256": "c2b78cbbbf2d90833cd0b91520ecd9f31529cf9007a5d6cc4a952f9f150acf97",
+      "validated_checkout_sha256": "c612fe4654287e6bda6c85521da96cbe0795a58742f2328009fbf6a45064dd7f"
+    },
+    {
+      "path": "src/analysis/ui/widget_results_analyzer.py",
+      "sha256": "c5620ff74ace8e7ab29aa7dd6c47d5d01aea56d959253ad7a64bd023a7d7bcb7",
+      "validated_checkout_sha256": "e68798422a1331f409693229da013d7dad1a52c3f3f35d044b6fe2360a52a5e6"
+    },
+    {
+      "path": "src/analysis/ui/widget_slice_processing.py",
+      "sha256": "4e64976470e5f767adb9137b1ace04a2ea8bbd372d31ac0195d1ac419e071d95",
+      "validated_checkout_sha256": "4334b8c94113ab62275eca1974e97f4261ffd1ce48b6e66dcbae5ec9ded411f3"
+    },
+    {
+      "path": "src/config/data_columns.py",
+      "sha256": "c646b56d4265932b0549057e7ca4f749dedcfe6f93f2d74682f66f27be477dd5",
+      "validated_checkout_sha256": "b47a6c9e1295e1157f7868eaf9cd2fe85a3e7ac9dd3b7d4fcd74d5bf9076d562"
+    },
+    {
+      "path": "src/config/metric_interpretation.py",
+      "sha256": "a4d40a3c1fe044bb5cb7481db882505dcb31b689663a3d9130669801f6e3a5a0",
+      "validated_checkout_sha256": "b9b8347953d7f388e981278f21b9d987af32c21807c14fb802615903013a29b3"
+    },
+    {
+      "path": "src/config/result_metric_descriptors.py",
+      "sha256": "d248f1c323ea0570e32db6f62a50d4d397d517f50a07ac48e91abd18e8559e5e",
+      "validated_checkout_sha256": "f5d54c2ed9d125c4b3a1fb6e3901bc91bea8036c069913acde688912a2d63e0f"
+    },
+    {
+      "path": "src/config/summary_metric_definitions.py",
+      "sha256": "d76ee2b0883c6643614c9b7bbf95ca0843cbba21c462150b95ff79681ae9e5dd",
+      "validated_checkout_sha256": "3cd69f577b61429fc513ab33ad4ce8f1788745486928ffceaaaf4804c5e87da0"
+    },
+    {
+      "path": "src/simulation/capture_corpus.py",
+      "sha256": "33a7e4ac2bbb037fd7bf8bb649eb4765a5bd9eb9bfecfe9bae62da143324f990",
+      "validated_checkout_sha256": "275bb2cd9176e1b71cde025b06730417c398021e4da223e9e53f08872dbd4dbd"
+    },
+    {
+      "path": "src/utils/header_converter.py",
+      "sha256": "977d6ad0feb9a6f9d10bbdbac57f3b57b6931a16d39aefee273da42918da528b",
+      "validated_checkout_sha256": "641bf513fbd49e06b56dcda1219dcbc423ad88a763cbd2a06de6017be080707d"
+    },
+    {
+      "path": "src/utils/ui_text_ko.py",
+      "sha256": "443a3949c4c6a5f53be28366f8fa607ff669d6a0b175272629a564a65da9e04e",
+      "validated_checkout_sha256": "7769171e74126a5753540e8bf001a09df31d2b581f79fd96d71e923b1cc88f0f"
+    },
+    {
+      "path": "tests/gui_metric_parity_fixtures.py",
+      "sha256": "b7e217051062976350d96e3a9885236948de9fa48cc653d02e4658f027d4646c",
+      "validated_checkout_sha256": "b7e217051062976350d96e3a9885236948de9fa48cc653d02e4658f027d4646c"
+    },
+    {
+      "path": "tests/public_ci_inventory.json",
+      "sha256": "fe1a382b2bb350f264c8076968d26c71074be20134934747305701c837329841",
+      "validated_checkout_sha256": "7bfe07a40a146eb3773666e07330bc052c4f3e01551ae4a2ce50566f54cff8ca"
+    },
+    {
+      "path": "tests/test_comparison_gui.py",
+      "sha256": "1c717e7916b9cca36b4adcc9e9bf7a3f0ca53f15180ad5911114cf94927e252c",
+      "validated_checkout_sha256": "4d4b29d987c885fcf5c17b65079df880f4c35629f19e25caa1dc75c129a00826"
+    },
+    {
+      "path": "tests/test_comparison_layout.py",
+      "sha256": "f8f80d14c0ccbd6beead536f6e38f88581341964a8a219f5c943552c6bbdc79e",
+      "validated_checkout_sha256": "101635d799e5088a0b7d546ad5c0c3dfa516e50c6e1fedc72c5fa5977a92b693"
+    },
+    {
+      "path": "tests/test_comparison_reference_gui.py",
+      "sha256": "cd28a68747c6be7e108a805bf82c884f35aef5a5b005bdc6492d1c116eb42261",
+      "validated_checkout_sha256": "99f7e448222b4c87da077a0173fc48574d84ac1d509fa9223d4fe19a3cd7bafd"
+    },
+    {
+      "path": "tests/test_contact_comparison_gui.py",
+      "sha256": "5f440fe32edc7860ca557fa112ef01f46b098b994a930c11542f0f65c1237b52",
+      "validated_checkout_sha256": "a911637b4ff17d3f89b775e0528031a8d9b224185c1acbbc4aa4087ba36388e5"
+    },
+    {
+      "path": "tests/test_gui177_compare.py",
+      "sha256": "e7fbadd84a26a22cb772ca3e278edeb37f6fb9a0aed3cecf2bc96dca5294a4c3",
+      "validated_checkout_sha256": "835c1e7d9a669063aa5f744cde74d89569e6653f1d9df93444224af80cd5f132"
+    },
+    {
+      "path": "tests/test_gui177_processing.py",
+      "sha256": "7834e9b852bdab8e7cdc35b4a8542ba908a435e2aaa437038ae51efd5b8bf652",
+      "validated_checkout_sha256": "ff3cd43de378380342e02f86e0a247c6c4f3369b2eda0fd1c5d2d5a757cacab8"
+    },
+    {
+      "path": "tests/test_gui_metric_parity_contract.py",
+      "sha256": "c4cb2ffea088e51b8bc7edb96cce2ad42be7fd409d207f2d2169b77985ca5aee",
+      "validated_checkout_sha256": "c4cb2ffea088e51b8bc7edb96cce2ad42be7fd409d207f2d2169b77985ca5aee"
+    },
+    {
+      "path": "tests/test_gui_metric_parity_exports.py",
+      "sha256": "32422ba163382d2df8a67ecf1793b84735908475057ba5c2aa3179dbd80634e1",
+      "validated_checkout_sha256": "32422ba163382d2df8a67ecf1793b84735908475057ba5c2aa3179dbd80634e1"
+    },
+    {
+      "path": "tests/test_gui_metric_parity_workflows.py",
+      "sha256": "c4f846f14f847fbd64e0189ca255a422805bec0f634f86dedba668e8027e9de3",
+      "validated_checkout_sha256": "de1c11c23db2c65f360e7f1fe6a53d0a2eba13babbc463edc6cef27160fcd26e"
+    },
+    {
+      "path": "tests/test_impact_comparison_gui.py",
+      "sha256": "ae2cb93402ff24d643dcdb6c21aa83a09fd9c1dfcb8475511704d65e04fbbae5",
+      "validated_checkout_sha256": "b728ff0736267841f38d895a4913c1d19b9fb88aa45b22ac65e0200074d67cb7"
+    },
+    {
+      "path": "tests/test_metric_variants_gui.py",
+      "sha256": "85310b25bd64f13d36a575246649965d67fae9e00a2a4dc2683cbe18e640875a",
+      "validated_checkout_sha256": "5c7c8456a6868236c402536a58e86e18a3adb4d5e425c9a06c9d2a87e51a00cb"
+    },
+    {
+      "path": "tests/test_results_analyzer_experiment_summary.py",
+      "sha256": "26eb7fd39043a10a60a807cc2fa1f5bb0e7ec9173ab700328467938a025aa533",
+      "validated_checkout_sha256": "de3798f9dba657a08cc63c3d279473da02c6f20a436ef07e4764f3402934e7b3"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "numpy",
+      "observed_version": "2.3.5",
+      "license_metadata": "Copyright (c) 2005-2025, NumPy Developers."
+    },
+    {
+      "name": "pandas",
+      "observed_version": "2.3.3",
+      "license_metadata": "BSD 3-Clause License"
+    },
+    {
+      "name": "scipy",
+      "observed_version": "1.16.3",
+      "license_metadata": "Copyright (c) 2001-2002 Enthought, Inc. 2003, SciPy Developers."
+    },
+    {
+      "name": "PySide6",
+      "observed_version": "6.12.0",
+      "license_metadata": "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+    },
+    {
+      "name": "matplotlib",
+      "observed_version": "3.10.7",
+      "license_metadata": "License agreement for matplotlib versions 1.3.0 and later"
+    },
+    {
+      "name": "pyvista",
+      "observed_version": "0.46.4",
+      "license_metadata": "MIT"
+    },
+    {
+      "name": "pyvistaqt",
+      "observed_version": "0.11.3",
+      "license_metadata": "MIT"
+    },
+    {
+      "name": "pytest",
+      "observed_version": "9.0.3",
+      "license_metadata": "MIT"
+    },
+    {
+      "name": "mujoco",
+      "observed_version": "3.6.0",
+      "license_metadata": "Apache-2.0"
+    },
+    {
+      "name": "pyinstaller",
+      "observed_version": "6.19.0",
+      "license_metadata": "GPLv2-or-later with a special exception which allows to use PyInstaller to build and distribute non-free programs (including commercial ones)"
+    }
+  ],
+  "runtime": {
+    "python": "3.13.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "gui_environment": "See validation_report.md for the task-local Qt environment and failed runtime controls; no dependency pin added"
+  },
+  "hash_policy": "sha256 covers committed Git blob bytes; validated_checkout_sha256 records actual tested checkout bytes, including local newline conversion",
+  "repository_license_files": [],
+  "license_scope": "Repository owner same-source adoption; no new dependency or license grant is introduced. Dependencies retain upstream terms.",
+  "entry_points": {
+    "processing": "src.analysis.ui.widget_slice_processing.WidgetSliceProcessing",
+    "results": "src.analysis.ui.widget_results_analyzer.WidgetResultsAnalyzer",
+    "comparison": "src.analysis.compare.main_window.CompareMainWindow",
+    "guide": "src.analysis.ui.shared_metric_guide.SharedMetricGuideDialog",
+    "resolved_summary": "src.analysis.compare.summary_metrics.resolve_summary_metrics",
+    "target_context": "src.analysis.compare.summary_metrics.calculate_target_posture_error",
+    "cae_serializer": "src.analysis.pipeline.scenario_export.scenario_text"
+  },
+  "signals": {
+    "processing_requested": "existing PipelineController binding",
+    "results_ready": "only successfully saved paths",
+    "metric_context_changed": "typed selected owner result",
+    "resolution_details_changed": "read-only diagnostics text"
+  },
+  "defaults": {
+    "input": "Single",
+    "processing": "Raw",
+    "resampling": false,
+    "factor": 2,
+    "overwrite": false,
+    "manual_offset": false,
+    "manual_height": false,
+    "selected_time_velocities": false,
+    "runtime": "0.1",
+    "timestep": "1e-7",
+    "scene_name": "",
+    "display_playback_max_gap_sec": 0.1
+  },
+  "formats": {
+    "proc": "existing three-level headers; additive FinalFace producer",
+    "target_context": "optional memory argument; no new SceneReview/CSV target schema",
+    "point": "entire selected recorded row; original columns and UTF-8 pandas behavior",
+    "cae": "legacy runtime encoding/newline, six analysis-frame components; atomic replace"
+  },
+  "verification_commands": [
+    "python -m pytest tests/test_gui_metric_parity_contract.py tests/test_gui_metric_parity_exports.py tests/test_gui_metric_parity_workflows.py tests/test_gui177_processing.py",
+    "python scripts/gui_metric_parity_product_check.py",
+    "python scripts/gui_metric_parity_series_check.py",
+    "python scripts/generate_metric_guide_diagrams.py"
+  ],
+  "limitations": [
+    "Synthetic analytic fixtures are not measured experiment truth.",
+    "Actual OS125 and human acceptance are separate, not claimed.",
+    "External native-input activation failed; actual Qt Customize interaction was verified separately.",
+    "Raw producer-hop validation uses the user-approved bounded actual 11 fits per case (22 per successful run).",
+    "Private integration, real capture and CAE regression remain consumer work."
+  ]
+}

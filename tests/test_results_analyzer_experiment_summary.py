@@ -68,11 +68,11 @@ class TestResultsAnalyzerExperimentSummary(unittest.TestCase):
             self.widget.experiment_summary_table.item(row, 0).text()
             for row in range(self.widget.experiment_summary_table.rowCount())
         ]
-        self.assertEqual(first_column_texts[0], "Posture")
+        self.assertEqual(first_column_texts[0], "Core metrics")
         self.assertIn("Pre-contact face tilt", first_column_texts)
         self.assertIn("Reference face", first_column_texts)
-        self.assertLess(first_column_texts.index("Posture"), first_column_texts.index("Impact"))
-        self.assertLess(first_column_texts.index("Impact"), first_column_texts.index("Contact"))
+        self.assertLess(first_column_texts.index("Core metrics"), first_column_texts.index("Supporting metrics"))
+        self.assertLess(first_column_texts.index("Supporting metrics"), first_column_texts.index("Diagnostics"))
 
     def test_t1_based_summary_values_show_na_when_t1_is_not_detected(self):
         columns = pd.MultiIndex.from_tuples(
@@ -97,9 +97,10 @@ class TestResultsAnalyzerExperimentSummary(unittest.TestCase):
             if metric_item is not None and value_item is not None:
                 values_by_metric[metric_item.text()] = value_item.text()
 
-        self.assertEqual(values_by_metric["Pre-contact face tilt"], "N/A")
-        self.assertEqual(values_by_metric["Pre-contact sample time"], "N/A")
-        self.assertEqual(values_by_metric["Contact state"], "NoContact")
+        self.assertEqual(values_by_metric["Pre-contact face tilt"], "Unavailable")
+        self.assertEqual(values_by_metric["Pre-contact sample time"], "Unavailable")
+        self.assertEqual(values_by_metric["Contact state"], "Unavailable")
+        self.assertTrue(self.widget.resolved_summary["ContactState"].reason)
 
     def test_summary_tooltip_comes_from_descriptor(self):
         column = self._summary_column(HeaderL3.DROP_BETA_AT_T1_MINUS_DEG)
@@ -119,7 +120,8 @@ class TestResultsAnalyzerExperimentSummary(unittest.TestCase):
         for row in range(self.widget.experiment_summary_table.rowCount()):
             item = self.widget.experiment_summary_table.item(row, 0)
             if item is not None and item.text() == descriptor.display_name:
-                self.assertEqual(item.toolTip(), descriptor.short_description)
+                self.assertIn(descriptor.long_description, item.toolTip())
+                self.assertTrue(self.widget.resolved_summary[descriptor.column[2]].reason)
                 return
         self.fail("Descriptor-backed summary row was not found.")
 

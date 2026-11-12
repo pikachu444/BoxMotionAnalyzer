@@ -1,0 +1,16 @@
+.......E
+=================================== ERRORS ====================================
+_ ERROR at setup of test_real_cae_missing_velocity_and_bad_height_preserve_destination _
+tests\test_gui_metric_parity_workflows.py:43: in results
+    app.processEvents()
+..\BoxMotionAnalyzer\.venv\Lib\site-packages\matplotlib\backends\backend_qt.py:266: in eventFilter
+    if event.type() == QtCore.QEvent.Type.DevicePixelRatioChange:
+       ^^^^^^^^^^^^
+..\BoxMotionAnalyzer\.venv\Lib\site-packages\matplotlib\transforms.py:196: in <lambda>
+    self, lambda _, pop=child._parents.pop, k=id_self: pop(k))
+                                                       ^^^^^^
+E   TypeError: Error calling Python override of QWidget::eventFilter(): Error calling Python override of QWidget::paintEvent(): 'PySide6.QtGui.QPaintEvent' object is not callable
+=========================== short test summary info ===========================
+ERROR tests/test_gui_metric_parity_workflows.py::test_real_cae_missing_velocity_and_bad_height_preserve_destination
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+7 passed, 1 error in 9.05s

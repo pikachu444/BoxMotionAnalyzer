@@ -1,0 +1,44 @@
+{
+  "review_date": "2026-11-12",
+  "source_revision_short": "593c669",
+  "runtime": "tmp/issue188-qt612/Scripts/python.exe; PySide6 6.12.0 / Qt 6.12.0",
+  "scope": "Read-only Qt layout and execution-platform diagnosis. No source/test assertion changes, optimizer, solver, external desktop click, OS125 or human acceptance.",
+  "collection_side_effect": {
+    "file": "tests/test_results_analyzer_experiment_summary.py",
+    "operation": "os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')",
+    "effect": "When QPA is unset, pytest collection selects offscreen before QApplication exists; QT_OPENGL=desktop alone does not select the Windows QPA."
+  },
+  "offscreen_plot_only_probe": {
+    "QT_QPA_PLATFORM": "offscreen",
+    "QT_OPENGL": "desktop",
+    "observed_platform": "offscreen",
+    "observed_font_family": "Sans Serif",
+    "observed_font_point_size": 9,
+    "processing_before": {"split_sizes": [438, 366], "explicit_context_min_width": 366, "content_min_hint": 266},
+    "processing_after_batch_single_reload": {"split_sizes": [464, 340], "explicit_context_min_width": 296, "content_min_hint": 266},
+    "cae": {"viewport_width": 254, "content_width": 360, "content_min_hint": 360, "velocity_checkbox_min_hint": 360},
+    "note": "Matches both reported narrow-layout assertions. This probe instantiated only plot-based processing/results widgets, not VTK viewers."
+  },
+  "native_plot_only_probe": {
+    "QT_QPA_PLATFORM": "windows",
+    "QT_OPENGL": "desktop",
+    "observed_platform": "windows",
+    "font": "Existing native Windows default, 9pt",
+    "processing_explicit_context_min_width": 240,
+    "processing_split_before_after": [[528, 275], [528, 275]],
+    "cae": {"viewport_width": 241, "content_width": 241, "content_min_hint": 180, "velocity_checkbox_min_hint": 180}
+  },
+  "controlled_native_unchanged_suite": {
+    "QT_QPA_PLATFORM": "windows",
+    "QT_OPENGL": "desktop",
+    "observed_platform_before_pytest": "windows",
+    "files_in_order": ["tests/test_gui177_common.py", "tests/test_gui177_processing.py", "tests/test_gui177_results.py", "tests/test_gui177_compare.py", "tests/test_results_analyzer_experiment_summary.py"],
+    "pytest_arguments": "-q --junitxml=tmp/parity-affected-windows-control.xml",
+    "passed": 40,
+    "failed": 0,
+    "duration_seconds_reported_by_pytest": 53.98,
+    "exit_code": 0,
+    "note": "QApplication was created before pytest.main to print the actual QPA/font; tests and product source were unchanged."
+  },
+  "conclusion": "The two failures were reproduced by the unintended offscreen configuration and were absent in the controlled declared native Windows configuration. No product change or weakened assertion was applied. The checker GUI process exited before handoff."
+}

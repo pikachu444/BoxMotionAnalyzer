@@ -1,0 +1,16 @@
+.......E
+=================================== ERRORS ====================================
+__________ ERROR at setup of test_r02_fixed_buttons_and_real_export ___________
+tests\test_gui177_results.py:26: in page
+    app.processEvents()
+..\..\..\BoxMotionAnalyzer\.venv\Lib\site-packages\matplotlib\backends\backend_qt.py:266: in eventFilter
+    if event.type() == QtCore.QEvent.Type.DevicePixelRatioChange:
+       ^^^^^^^^^^^^
+..\..\..\BoxMotionAnalyzer\.venv\Lib\site-packages\matplotlib\transforms.py:196: in <lambda>
+    self, lambda _, pop=child._parents.pop, k=id_self: pop(k))
+                                                       ^^^^^^
+E   TypeError: Error calling Python override of QWidget::eventFilter(): Error calling Python override of QWidget::paintEvent(): 'PySide6.QtGui.QPaintEvent' object is not callable
+=========================== short test summary info ===========================
+ERROR tests/test_gui177_results.py::test_r02_fixed_buttons_and_real_export - ...
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+7 passed, 1 error in 10.64s

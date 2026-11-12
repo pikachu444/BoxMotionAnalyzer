@@ -38,14 +38,14 @@ def test_reference_and_common_guide_in_all_actual_views(monkeypatch):
         assert dialog is not None and dialog.isVisible()
         assert 'geometric centre' in dialog.reading.toPlainText()
         assert 'not an automatic ISTA failure' in ' '.join(dialog.reading.toPlainText().split())
-        assert 'Lowest-corner uniqueness gap (mm)' in dialog.metrics.toPlainText()
-        assert 'not confidence' in dialog.metrics.toPlainText()
+        assert 'compare:corner_gap' in dialog.cards
+        assert 'not confidence' in next(e.long_description for e in dialog.entries if e.stable_id == 'compare:corner_gap')
         assert 'not a probability' in dialog.reading.toPlainText()
         return dialog
     def close_guide(dialog):
         QTest.mouseClick(dialog.buttons.button(QDialogButtonBox.Close), Qt.LeftButton)
         _events(app)
-        assert panel._metric_guide is None
+        assert panel._metric_guide is dialog and not dialog.isVisible()
     try:
         assert (window.width(), window.height(), window.devicePixelRatioF()) == (1510, 800, 1.25)
         report.update(logical_size=[1510,800], dpr=window.devicePixelRatioF())
@@ -91,7 +91,10 @@ def test_reference_and_common_guide_in_all_actual_views(monkeypatch):
                     for index, path in enumerate(paths):
                         item = table.horizontalHeaderItem(index+1)
                         assert item.text().startswith('Baseline (') == (index == baseline_index)
-                        assert str(path.resolve()) in item.toolTip()
+                        assert str(path.resolve()) not in item.toolTip()
+                        window.control_panel._open_diagnostics()
+                        # Explicit diagnostics retain source identity evidence.
+                        assert str(paths[0].resolve()) in window.control_panel.diagnostics_text.toPlainText()
                         filename = item.text().splitlines()[1 if index == baseline_index else 0]
                         assert filename.endswith(f'trial_{"ab"[index]}.proc') and '…' in filename
                     header = table.horizontalHeader()
@@ -104,18 +107,17 @@ def test_reference_and_common_guide_in_all_actual_views(monkeypatch):
                     table.scrollToItem(table.item(baseline_index, 0))
                     assert table.visualItemRect(table.item(baseline_index, 0)).left() == 0
                 else:
-                    assert str(paths[baseline_index].resolve()) in table.horizontalHeaderItem(7).toolTip()
-                    assert str(paths[baseline_index].resolve()) in panel.cohort_label.toolTip()
+                    assert str(paths[baseline_index].resolve()) not in table.horizontalHeaderItem(7).toolTip()
+                    assert str(paths[baseline_index].resolve()) not in panel.cohort_label.toolTip()
                     assert panel.cohort_label.width() > 80
                 assert panel.guide_button.isVisible()
                 assert panel.table.viewport().height() > 20
             capture(f'mode-{mode}.png')
             dialog = guide()
             if mode == 5:
-                dialog.tabs.setCurrentIndex(0)
-                capture('guide-reading.png', dialog)
                 dialog.tabs.setCurrentIndex(1)
-                dialog.metrics.scrollToAnchor('corner_gap')
+                capture('guide-reading.png', dialog)
+                dialog.focus_metric('compare:corner_gap')
                 capture('guide-gap.png', dialog)
             close_guide(dialog)
             assert panel.view_combo.currentIndex() == mode
@@ -147,7 +149,8 @@ def test_guide_reuses_live_comparison_descriptors(monkeypatch):
     from src.analysis.compare.posture_metrics import POSTURE_METRICS
     monkeypatch.setitem(METRICS['vertical_velocity'], 'tooltip', 'Changed upstream definition')
     entries = {key: (name, unit, description) for key, name, unit, description in metric_entries()}
-    assert entries['vertical_velocity'][2] == 'Changed upstream definition'
+    assert entries['vertical_velocity'][2].startswith('Changed upstream definition')
+    assert 'One-sided quadratic endpoint fit' in entries['vertical_velocity'][2]
     for key, descriptor in POSTURE_METRICS.items():
         assert entries[key] == (descriptor['label'], descriptor['unit'], descriptor['tooltip'])
-    assert 'coexist with an earlier impact' in entries['summary:SustainedContactDetected'][2]
+    assert 'coexist with a detected impact' in entries['summary:SustainedContactDetected'][2]

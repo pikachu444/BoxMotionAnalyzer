@@ -41,6 +41,8 @@ def get_conversion_rules() -> list:
     axis_to_vt = {"X": HeaderL3.V_TX, "Y": HeaderL3.V_TY, "Z": HeaderL3.V_TZ}
 
     rules = [
+        (re.compile(r'^DropPostureSummary_FinalFace$'),
+         lambda m: (HeaderL1.ANALYSIS, HeaderL2.DROP_POSTURE_SUMMARY, 'FinalFace')),
         (re.compile(r'^Source_OriginalRecordIndex$'),
          lambda m: ('Info', 'Source', 'OriginalRecordIndex')),
         (re.compile(r'^CaptureReplay_Json$'),

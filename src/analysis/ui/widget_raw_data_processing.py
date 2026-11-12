@@ -838,6 +838,7 @@ class WidgetRawDataProcessing(SceneReviewFlow, QWidget):
                 targets.insert(0, RigidBodyCols.BASE_NAME)
             dialog.set_observation_context(self.review_parsed_data, source_path=self.source_path or '',
                 units=(self.review_header_info or self.header_info or {}).get('export_metadata', {}).get('Length Units', ''),
+                coordinate_system=(self.review_header_info or self.header_info or {}).get('export_metadata', {}).get('Coordinate Space', ''),
                 preferred_target=targets[0] if targets else None)
         if identity is not None:
             dialog.setWindowTitle('Marker Review — ' + Path(self.source_path).name + ' — '

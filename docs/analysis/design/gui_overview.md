@@ -1,6 +1,8 @@
 # Box Motion Analyzer v2.2 GUI 구조 설명서
 
-Last Reviewed: 2026-11-11
+Last Reviewed: 2026-11-12
+
+#188 adds the shared validated metric summary and Guide, responsive five-card Step1.5 settings with a small upper-right Log, structured Experiment info with explicit Diagnostics, and transactional CAE export. Current public contracts, actual-widget evidence and verification limits are in [GUI/metric parity](../../visualization/gui_metric_parity/validation_report.md). P07 uses the user-approved real11-frame Raw optimization per generated input; its exact receipt and physical-validation limits remain separate.
 
 #177의 공개판 GUI 작업은 기존 위젯과 처리 경로를 유지하며 고정 그룹·탭·실행줄로 재배치한다. 현재 구현과 검증 범위, 같은 revision의 소비자 도입 경계는 [공개 GUI 기록](../../visualization/gui_public_177.md)에 구분해 기록한다. 아래의 #78/#106/#136/#137 캡처·실행 결과는 해당 당시 revision의 이력이며 #177의 새 화면 검증으로 재사용하지 않는다.
 

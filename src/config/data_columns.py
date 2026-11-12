@@ -171,6 +171,7 @@ class DropPostureCols:
 
 @dataclass(frozen=True)
 class DropPostureSummaryCols:
+    FINAL_FACE: str = "DropPostureSummary_FinalFace"
     BETA_AT_T1_MINUS_DEG: str = "DropPostureSummary_BetaAtT1MinusDeg"
     MAX_BETA_DEG: str = "DropPostureSummary_MaxBetaDeg"
     THETA_LONG_AT_T1_MINUS_DEG: str = "DropPostureSummary_ThetaLongAtT1MinusDeg"

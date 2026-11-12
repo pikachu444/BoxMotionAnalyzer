@@ -1,0 +1,731 @@
+{
+  "schema_version": 1,
+  "generator_version": "gui-metric-parity-raw-1",
+  "generator_source": "tests/gui_metric_parity_fixtures.py",
+  "seed": 74082,
+  "provenance": "Deterministic analytic public inputs; no capture or processed output used as truth.",
+  "evidence_level": "synthetic_integration",
+  "experimental_repeat_status": "not experimental repeats",
+  "calibration_status": "not measured",
+  "format": {
+    "raw_schema": "existing public Format Version 1.25 marker CSV",
+    "header_levels": [
+      "type",
+      "name",
+      "id",
+      "parent",
+      "category",
+      "component"
+    ],
+    "header_length_units": "Millimeters",
+    "header_coordinate_space": "Global",
+    "coordinate_policy": "world-y-up-box-local-fixed-center-v1",
+    "units": {
+      "position": "mm",
+      "time": "s",
+      "velocity": "mm/s",
+      "rotation": "rad"
+    },
+    "channels": [
+      "Rigid Body Marker solved constraints",
+      "Marker physical positions"
+    ],
+    "solved_marker_count": 18,
+    "physical_marker_count": 18,
+    "marker_profile": {
+      "profile_id": "public-asymmetric-example-18",
+      "profile_version": "1",
+      "units": "mm",
+      "origin": "box-geometric-center",
+      "dimension_policy": "absolute-mm",
+      "box_dims_mm": [
+        200.0,
+        120.0,
+        80.0
+      ],
+      "publication": "public-example-not-production-standard",
+      "source": "explicit handcrafted geometry; no capture-derived coordinates",
+      "license": "same as repository source code",
+      "markers": [
+        {
+          "id": "F1",
+          "face": "FRONT",
+          "xyz_mm": [
+            21,
+            12,
+            40
+          ]
+        },
+        {
+          "id": "F2",
+          "face": "FRONT",
+          "xyz_mm": [
+            -51,
+            19,
+            40
+          ]
+        },
+        {
+          "id": "F3",
+          "face": "FRONT",
+          "xyz_mm": [
+            30,
+            -35,
+            40
+          ]
+        },
+        {
+          "id": "F4",
+          "face": "FRONT",
+          "xyz_mm": [
+            -9,
+            -8,
+            40
+          ]
+        },
+        {
+          "id": "B1",
+          "face": "BACK",
+          "xyz_mm": [
+            17,
+            -31,
+            -40
+          ]
+        },
+        {
+          "id": "B2",
+          "face": "BACK",
+          "xyz_mm": [
+            -39,
+            23,
+            -40
+          ]
+        },
+        {
+          "id": "B3",
+          "face": "BACK",
+          "xyz_mm": [
+            42,
+            28,
+            -40
+          ]
+        },
+        {
+          "id": "R1",
+          "face": "RIGHT",
+          "xyz_mm": [
+            100,
+            12,
+            8
+          ]
+        },
+        {
+          "id": "R2",
+          "face": "RIGHT",
+          "xyz_mm": [
+            100,
+            -28,
+            19
+          ]
+        },
+        {
+          "id": "R3",
+          "face": "RIGHT",
+          "xyz_mm": [
+            100,
+            31,
+            -18
+          ]
+        },
+        {
+          "id": "L1",
+          "face": "LEFT",
+          "xyz_mm": [
+            -100,
+            -18,
+            7
+          ]
+        },
+        {
+          "id": "L2",
+          "face": "LEFT",
+          "xyz_mm": [
+            -100,
+            25,
+            21
+          ]
+        },
+        {
+          "id": "L3",
+          "face": "LEFT",
+          "xyz_mm": [
+            -100,
+            19,
+            -25
+          ]
+        },
+        {
+          "id": "T1",
+          "face": "TOP",
+          "xyz_mm": [
+            7,
+            60,
+            -9
+          ]
+        },
+        {
+          "id": "T2",
+          "face": "TOP",
+          "xyz_mm": [
+            -45,
+            60,
+            23
+          ]
+        },
+        {
+          "id": "T3",
+          "face": "TOP",
+          "xyz_mm": [
+            51,
+            60,
+            18
+          ]
+        },
+        {
+          "id": "M1",
+          "face": "BOTTOM",
+          "xyz_mm": [
+            -12,
+            -60,
+            25
+          ]
+        },
+        {
+          "id": "M2",
+          "face": "BOTTOM",
+          "xyz_mm": [
+            38,
+            -60,
+            -18
+          ]
+        }
+      ]
+    }
+  },
+  "input_clock": {
+    "count": 61,
+    "first_s": 0.0,
+    "last_s": 1.2,
+    "interval_s": 0.02,
+    "frame_first": 0,
+    "frame_last": 60
+  },
+  "processing_packet": {
+    "requested_mode": "Raw",
+    "raw_options_owner": "src.config.config_analysis_ui.get_raw_mode_options",
+    "slice_start_s": 0.1,
+    "slice_end_s": 0.3,
+    "inclusive_slice_frame_indices": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "slice_frame_count": 11,
+    "slice_padding_rows": 50,
+    "padded_saved_frame_count": 61,
+    "padding_reason": "Keep at least 50 parsed rows before the existing early trim; only 11 selected rows are fitted.",
+    "optimizer_calls_per_case": 11,
+    "optimizer_calls_total": 22,
+    "actual_optimizer_required": true,
+    "optimizer_result_mocking": false,
+    "accepted_scope": "User-approved bounded optimization of the 11 included frames per case; no full-capture campaign."
+  },
+  "numerical_limits": {
+    "position_max_component_error_mm": 0.05,
+    "orientation_geodesic_error_rad": 0.001,
+    "interior_velocity_component_error_mm_s": 2.5,
+    "whole_window_angle_error_deg": 0.1,
+    "fixed_face_height_range_error_mm": 0.25,
+    "arithmetic_rtol": 1e-09,
+    "arithmetic_atol": 1e-09,
+    "optimizer_options": {
+      "maxiter": 1500,
+      "xatol": 0.0001,
+      "fatol": 0.0001
+    },
+    "basis": "Predeclared numerical regression limits, not optimizer stopping guarantees or physical accuracy. For central differences at dt=0.02 s, |position error|<=0.05 mm contributes at most 0.05/0.02=2.5 mm/s to each interior velocity component. Boundary samples are excluded. Orientation error<=0.001 rad bounds a 200-by-80 mm face separation error by sqrt(200^2+80^2)*0.001<0.216 mm; the frozen range limit is 0.25 mm. The frozen 0.1 degree angle limit exceeds 0.001*180/pi degrees. Pure arithmetic/geometry cases retain rtol=atol=1e-9. No angular-velocity or acceleration error limit is inferred from these values.",
+    "failure_policy": "Investigate a failed fixed limit; never relax it after observing optimizer output."
+  },
+  "comparison_notes": [
+    "Each generated CSV is loaded and compared through existing public owners.",
+    "No reviewed scene window or actual first-impact event is supplied.",
+    "BOTTOM is not the maximum-area face of dimensions [200,120,80]; keep broad-face repeat restrictions.",
+    "Whole-window individual values remain distinct from eligibility for repeat statistics."
+  ],
+  "cases": [
+    {
+      "id": "affine_identity",
+      "observed_csv": "affine_identity/observed.csv",
+      "observed_sha256": "885b4cd47b04d1e2de584eb3a9c432ef704396ebb9ef9815557da6977a156c0a",
+      "producer_manifest": "affine_identity/observed.synthetic.json",
+      "analytic_input": {
+        "x_mm": "10+200*t",
+        "y_mm": "1000+100*t",
+        "z_mm": "0",
+        "fixed_world_rotation": "Rz",
+        "fixed_rotation_deg": 0.0,
+        "added_y_offset_mm": 0.0,
+        "noise": "none",
+        "faults": []
+      },
+      "expected": {
+        "raw_sample_count": 61,
+        "raw_times_s": [
+          0.0,
+          0.02,
+          0.04,
+          0.06,
+          0.08,
+          0.1,
+          0.12,
+          0.14,
+          0.16,
+          0.18,
+          0.2,
+          0.22,
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32,
+          0.34,
+          0.36,
+          0.38,
+          0.4,
+          0.42,
+          0.44,
+          0.46,
+          0.48,
+          0.5,
+          0.52,
+          0.54,
+          0.56,
+          0.58,
+          0.6,
+          0.62,
+          0.64,
+          0.66,
+          0.68,
+          0.7000000000000001,
+          0.72,
+          0.74,
+          0.76,
+          0.78,
+          0.8,
+          0.8200000000000001,
+          0.84,
+          0.86,
+          0.88,
+          0.9,
+          0.92,
+          0.9400000000000001,
+          0.96,
+          0.98,
+          1.0,
+          1.02,
+          1.04,
+          1.06,
+          1.08,
+          1.1,
+          1.12,
+          1.1400000000000001,
+          1.16,
+          1.18,
+          1.2
+        ],
+        "slice_times_s": [
+          0.1,
+          0.12,
+          0.14,
+          0.16,
+          0.18,
+          0.2,
+          0.22,
+          0.24,
+          0.26,
+          0.28,
+          0.3
+        ],
+        "slice_frames": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "slice_positions_mm": [
+          [
+            30.0,
+            1010.0,
+            0.0
+          ],
+          [
+            34.0,
+            1012.0,
+            0.0
+          ],
+          [
+            38.0,
+            1014.0,
+            0.0
+          ],
+          [
+            42.0,
+            1016.0,
+            0.0
+          ],
+          [
+            46.0,
+            1018.0,
+            0.0
+          ],
+          [
+            50.0,
+            1020.0,
+            0.0
+          ],
+          [
+            54.0,
+            1022.0,
+            0.0
+          ],
+          [
+            58.0,
+            1024.0,
+            0.0
+          ],
+          [
+            62.0,
+            1026.0,
+            0.0
+          ],
+          [
+            66.0,
+            1028.0,
+            0.0
+          ],
+          [
+            70.0,
+            1030.0,
+            0.0
+          ]
+        ],
+        "rotation_matrix": [
+          [
+            1.0,
+            -0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "rotation_vector_rad": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "world_velocity_mm_s": [
+          200.0,
+          100.0,
+          0.0
+        ],
+        "angular_speed_rad_s": 0.0,
+        "position_at_0_2_s_mm": [
+          50.0,
+          1020.0,
+          0.0
+        ],
+        "posture": {
+          "ReferenceFace": "BOTTOM",
+          "MaxBetaDeg": 0.0,
+          "MaxAbsThetaLongDeg": 0.0,
+          "MaxAbsThetaShortDeg": 0.0,
+          "MaxDeltaH_mm": 0.0
+        },
+        "contact": {
+          "ContactState": "NoContact",
+          "ImpactDetected": false,
+          "T1Detected": false,
+          "SustainedContactDetected": false,
+          "ImpactEventCount": 0,
+          "ContactConfidence": 0.0,
+          "ContactDetectionMethod": "none",
+          "ImpactSequence": "",
+          "FirstImpactTimeSec": null,
+          "FirstImpactContact": ""
+        },
+        "t1_metric_availability": "unavailable: no actual first-impact event",
+        "final_face_availability": "unavailable: only four tail samples after int(0.65*11)",
+        "repeat_eligibility": "not inferred: missing reviewed window and non-maximum-area reference face",
+        "artifact": {
+          "SourceKind": "handcrafted_dummy",
+          "ModelId": "public-asymmetric-example-18",
+          "ScenarioKind": "synthetic_trajectory",
+          "IstaType": "not_applicable",
+          "CoordinatePolicy": "world-y-up-box-local-fixed-center-v1",
+          "UnitsPolicy": "bma-mm-s-rotvec-rad-summary-deg-v1"
+        }
+      }
+    },
+    {
+      "id": "affine_offset_tilt",
+      "observed_csv": "affine_offset_tilt/observed.csv",
+      "observed_sha256": "db031a878758c8d5a7262cdaed7f2807fd154de3df4c64f5bf7ca71967000759",
+      "producer_manifest": "affine_offset_tilt/observed.synthetic.json",
+      "analytic_input": {
+        "x_mm": "10+200*t",
+        "y_mm": "2000+100*t",
+        "z_mm": "0",
+        "fixed_world_rotation": "Rz",
+        "fixed_rotation_deg": 30.0,
+        "added_y_offset_mm": 1000.0,
+        "noise": "none",
+        "faults": []
+      },
+      "expected": {
+        "raw_sample_count": 61,
+        "raw_times_s": [
+          0.0,
+          0.02,
+          0.04,
+          0.06,
+          0.08,
+          0.1,
+          0.12,
+          0.14,
+          0.16,
+          0.18,
+          0.2,
+          0.22,
+          0.24,
+          0.26,
+          0.28,
+          0.3,
+          0.32,
+          0.34,
+          0.36,
+          0.38,
+          0.4,
+          0.42,
+          0.44,
+          0.46,
+          0.48,
+          0.5,
+          0.52,
+          0.54,
+          0.56,
+          0.58,
+          0.6,
+          0.62,
+          0.64,
+          0.66,
+          0.68,
+          0.7000000000000001,
+          0.72,
+          0.74,
+          0.76,
+          0.78,
+          0.8,
+          0.8200000000000001,
+          0.84,
+          0.86,
+          0.88,
+          0.9,
+          0.92,
+          0.9400000000000001,
+          0.96,
+          0.98,
+          1.0,
+          1.02,
+          1.04,
+          1.06,
+          1.08,
+          1.1,
+          1.12,
+          1.1400000000000001,
+          1.16,
+          1.18,
+          1.2
+        ],
+        "slice_times_s": [
+          0.1,
+          0.12,
+          0.14,
+          0.16,
+          0.18,
+          0.2,
+          0.22,
+          0.24,
+          0.26,
+          0.28,
+          0.3
+        ],
+        "slice_frames": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "slice_positions_mm": [
+          [
+            30.0,
+            2010.0,
+            0.0
+          ],
+          [
+            34.0,
+            2012.0,
+            0.0
+          ],
+          [
+            38.0,
+            2014.0,
+            0.0
+          ],
+          [
+            42.0,
+            2016.0,
+            0.0
+          ],
+          [
+            46.0,
+            2018.0,
+            0.0
+          ],
+          [
+            50.0,
+            2020.0,
+            0.0
+          ],
+          [
+            54.0,
+            2022.0,
+            0.0
+          ],
+          [
+            58.0,
+            2024.0,
+            0.0
+          ],
+          [
+            62.0,
+            2026.0,
+            0.0
+          ],
+          [
+            66.0,
+            2028.0,
+            0.0
+          ],
+          [
+            70.0,
+            2030.0,
+            0.0
+          ]
+        ],
+        "rotation_matrix": [
+          [
+            0.8660254037844386,
+            -0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.8660254037844386,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "rotation_vector_rad": [
+          0.0,
+          0.0,
+          0.5235987755982988
+        ],
+        "world_velocity_mm_s": [
+          200.0,
+          100.0,
+          0.0
+        ],
+        "angular_speed_rad_s": 0.0,
+        "position_at_0_2_s_mm": [
+          50.0,
+          2020.0,
+          0.0
+        ],
+        "posture": {
+          "ReferenceFace": "BOTTOM",
+          "MaxBetaDeg": 30.0,
+          "MaxAbsThetaLongDeg": 30.0,
+          "MaxAbsThetaShortDeg": 0.0,
+          "MaxDeltaH_mm": 100.0
+        },
+        "contact": {
+          "ContactState": "NoContact",
+          "ImpactDetected": false,
+          "T1Detected": false,
+          "SustainedContactDetected": false,
+          "ImpactEventCount": 0,
+          "ContactConfidence": 0.0,
+          "ContactDetectionMethod": "none",
+          "ImpactSequence": "",
+          "FirstImpactTimeSec": null,
+          "FirstImpactContact": ""
+        },
+        "t1_metric_availability": "unavailable: no actual first-impact event",
+        "final_face_availability": "unavailable: only four tail samples after int(0.65*11)",
+        "repeat_eligibility": "not inferred: missing reviewed window and non-maximum-area reference face",
+        "artifact": {
+          "SourceKind": "handcrafted_dummy",
+          "ModelId": "public-asymmetric-example-18",
+          "ScenarioKind": "synthetic_trajectory",
+          "IstaType": "not_applicable",
+          "CoordinatePolicy": "world-y-up-box-local-fixed-center-v1",
+          "UnitsPolicy": "bma-mm-s-rotvec-rad-summary-deg-v1"
+        }
+      }
+    }
+  ]
+}

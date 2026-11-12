@@ -1,0 +1,158 @@
+{
+  "scope": "Focused KO normal comparison labels and diagnostics reinspection after translation fixes; same constructed fixture; no solver/optimizer/native desktop input/OS125/human acceptance",
+  "captures": [
+    {
+      "name": "product-compare-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-compare-ko-1100x720.png"
+    },
+    {
+      "name": "product-compare-aligned-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-compare-aligned-ko-820x600.png"
+    },
+    {
+      "name": "product-diagnostics-ko",
+      "requested_client": [
+        800,
+        600
+      ],
+      "actual_client": [
+        800,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagnostics-ko.png"
+    }
+  ],
+  "checks": [
+    {
+      "name": "product-compare-ko-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "ko actual VTK box actor 0",
+      "result": "pass",
+      "bounds": [
+        -100.0,
+        100.0,
+        31.381280000000004,
+        151.38128,
+        -40.0,
+        40.0
+      ]
+    },
+    {
+      "name": "ko actual VTK rendered scene 0",
+      "result": "pass",
+      "pixel_shape": [
+        131,
+        747,
+        3
+      ],
+      "pixel_std": 25.287206728953795,
+      "camera_scope": "Display camera fitted to loaded box actor; no geometry or calculation change"
+    },
+    {
+      "name": "ko actual VTK box actor 1",
+      "result": "pass",
+      "bounds": [
+        -100.0,
+        100.0,
+        31.381280000000004,
+        151.38128,
+        -40.0,
+        40.0
+      ]
+    },
+    {
+      "name": "ko actual VTK rendered scene 1",
+      "result": "pass",
+      "pixel_shape": [
+        30,
+        100,
+        3
+      ],
+      "pixel_std": 64.5293136258607,
+      "camera_scope": "Display camera fitted to loaded box actor; no geometry or calculation change"
+    },
+    {
+      "name": "ko diagnostics initially closed",
+      "result": "pass"
+    },
+    {
+      "name": "ko basic details omit raw provenance",
+      "result": "pass"
+    },
+    {
+      "name": "ko synthetic label explicit",
+      "result": "pass"
+    },
+    {
+      "name": "ko actual 3D viewers created",
+      "result": "pass",
+      "viewers": 2
+    },
+    {
+      "name": "ko supported comparison graph populated",
+      "result": "pass",
+      "targets": 1
+    },
+    {
+      "name": "product-compare-aligned-ko-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "product-diagnostics-ko: exact client",
+      "result": "pass",
+      "actual": [
+        800,
+        600
+      ],
+      "requested": [
+        800,
+        600
+      ]
+    },
+    {
+      "name": "ko diagnostics keep raw evidence",
+      "result": "pass"
+    }
+  ],
+  "findings": []
+}

@@ -1,6 +1,8 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-10-06
+Last Reviewed: 2026-11-12
+
+#188 adds a producer-owned `Analysis / DropPostureSummary / FinalFace` field with the existing three-level format. It uses the public stable-height tail and equal-weight rotation mean; missing legacy fields stay unavailable. The remaining new snapshot/target/path values are resolved in memory with method, reference, time, reason and independent evidence/calibration status. Existing COM-fit IDs and intended-contact API enums are preserved. [Contract and verification](../../visualization/gui_metric_parity/validation_report.md).
 
 PUB06 backend adds optional `Info / Artifact / SimulationMetadataJson` for
 sealed public mode/settings/source/time/frame declarations. Full release pose,

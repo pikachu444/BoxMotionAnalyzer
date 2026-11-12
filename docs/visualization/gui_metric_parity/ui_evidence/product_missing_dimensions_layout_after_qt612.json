@@ -1,0 +1,232 @@
+{
+  "recorded_utc": "2026-11-12T03:54:58.825764+00:00",
+  "qt": "6.12.0",
+  "pyside": "6.12.0",
+  "platform": "windows",
+  "opengl": "desktop",
+  "source_sha256": "4334b8c94113ab62275eca1974e97f4261ffd1ce48b6e66dcbae5ec9ded411f3",
+  "scope": "Same-reviewer correction recheck: product-only reveal after legitimate load/modal/show flow; no test-side ensureWidgetVisible, forced Apply show, splitter reset, optimizer/solver/native external click/OS125/human acceptance.",
+  "checks": [
+    {
+      "name": "load-before-show load accepted",
+      "result": "pass"
+    },
+    {
+      "name": "load-before-show no forced show",
+      "result": "pass"
+    },
+    {
+      "name": "load-before-show exact one expected warning",
+      "result": "pass"
+    },
+    {
+      "name": "load-before-show current Single mode",
+      "result": "pass"
+    },
+    {
+      "name": "load-before-show Apply fully visible",
+      "result": "pass"
+    },
+    {
+      "name": "load-before-show editable input and Run gate",
+      "result": "pass"
+    },
+    {
+      "name": "load-before-show exact client",
+      "result": "pass"
+    },
+    {
+      "name": "load-before-show Batch guard no forced display/scroll",
+      "result": "pass"
+    },
+    {
+      "name": "shown-user-splits load accepted",
+      "result": "pass"
+    },
+    {
+      "name": "shown-user-splits exact one expected warning",
+      "result": "pass"
+    },
+    {
+      "name": "shown-user-splits current Single mode",
+      "result": "pass"
+    },
+    {
+      "name": "shown-user-splits Apply fully visible",
+      "result": "pass"
+    },
+    {
+      "name": "shown-user-splits editable input and Run gate",
+      "result": "pass"
+    },
+    {
+      "name": "shown-user-splits exact client",
+      "result": "pass"
+    },
+    {
+      "name": "shown-user-splits user splits unchanged",
+      "result": "pass",
+      "before": [
+        [
+          346,
+          384
+        ],
+        [
+          768,
+          415
+        ]
+      ],
+      "after": [
+        [
+          346,
+          384
+        ],
+        [
+          768,
+          415
+        ]
+      ]
+    },
+    {
+      "name": "shown-user-splits Batch guard no forced display/scroll",
+      "result": "pass"
+    },
+    {
+      "name": "batch-load-user-splits load accepted",
+      "result": "pass"
+    },
+    {
+      "name": "batch-load-user-splits exact one expected warning",
+      "result": "pass"
+    },
+    {
+      "name": "batch-load-user-splits current Single mode",
+      "result": "pass"
+    },
+    {
+      "name": "batch-load-user-splits Apply fully visible",
+      "result": "pass"
+    },
+    {
+      "name": "batch-load-user-splits editable input and Run gate",
+      "result": "pass"
+    },
+    {
+      "name": "batch-load-user-splits exact client",
+      "result": "pass"
+    },
+    {
+      "name": "batch-load-user-splits user splits unchanged",
+      "result": "pass",
+      "before": [
+        [
+          346,
+          384
+        ],
+        [
+          768,
+          415
+        ]
+      ],
+      "after": [
+        [
+          346,
+          384
+        ],
+        [
+          768,
+          415
+        ]
+      ]
+    },
+    {
+      "name": "batch-load-user-splits Batch guard no forced display/scroll",
+      "result": "pass"
+    },
+    {
+      "name": "input file bytes unchanged",
+      "result": "pass"
+    }
+  ],
+  "states": [
+    {
+      "case": "load-before-show",
+      "workflow_split": [
+        343,
+        387
+      ],
+      "context_split": [
+        884,
+        299
+      ],
+      "viewport": [
+        269,
+        183
+      ],
+      "scroll": 190,
+      "scroll_max": 190,
+      "button_xy": [
+        9,
+        148
+      ],
+      "button_wh": [
+        251,
+        26
+      ],
+      "button_fully_visible": true
+    },
+    {
+      "case": "shown-user-splits",
+      "workflow_split": [
+        346,
+        384
+      ],
+      "context_split": [
+        768,
+        415
+      ],
+      "viewport": [
+        385,
+        186
+      ],
+      "scroll": 187,
+      "scroll_max": 187,
+      "button_xy": [
+        9,
+        151
+      ],
+      "button_wh": [
+        367,
+        26
+      ],
+      "button_fully_visible": true
+    },
+    {
+      "case": "batch-load-user-splits",
+      "workflow_split": [
+        346,
+        384
+      ],
+      "context_split": [
+        768,
+        415
+      ],
+      "viewport": [
+        385,
+        186
+      ],
+      "scroll": 187,
+      "scroll_max": 187,
+      "button_xy": [
+        9,
+        151
+      ],
+      "button_wh": [
+        367,
+        26
+      ],
+      "button_fully_visible": true
+    }
+  ],
+  "failures": []
+}

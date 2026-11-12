@@ -1,0 +1,22 @@
+.....F....................................                               [100%]
+================================== FAILURES ===================================
+_________ test_calibration_badge_and_time_tooltip_follow_current_view _________
+tests\test_comparison_layout.py:350: in test_calibration_badge_and_time_tooltip_follow_current_view
+    assert window.table_panel.table.currentColumn() == 2
+E   assert 0 == 2
+E    +  where 0 = <built-in method currentColumn of PySide6.QtWidgets.QTableWidget object at 0x00000213189AAA00>()
+E    +    where <built-in method currentColumn of PySide6.QtWidgets.QTableWidget object at 0x00000213189AAA00> = <PySide6.QtWidgets.QTableWidget(0x2130f720410) at 0x00000213189AAA00>.currentColumn
+E    +      where <PySide6.QtWidgets.QTableWidget(0x2130f720410) at 0x00000213189AAA00> = <src.analysis.compare.ui_panels.CompareTablePanel(0x213143031a0) at 0x0000021318B050C0>.table
+E    +        where <src.analysis.compare.ui_panels.CompareTablePanel(0x213143031a0) at 0x0000021318B050C0> = <src.analysis.compare.main_window.CompareMainWindow(0x213193b57f0) at 0x0000021318AE0A80>.table_panel
+---------------------------- Captured stdout call -----------------------------
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-827\test_calibration_badge_and_tim0\recorded.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-827\test_calibration_badge_and_tim0\recorded.proc
+  - Frames: 3
+  - Entities: 9
+[DataLoader INFO] Result file loaded successfully from C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-827\test_calibration_badge_and_tim0\no_time.proc
+Successfully loaded analysis result: C:\Users\pikac\AppData\Local\Temp\pytest-of-pikac\pytest-827\test_calibration_badge_and_tim0\no_time.proc
+  - Frames: 3
+  - Entities: 9
+=========================== short test summary info ===========================
+FAILED tests/test_comparison_layout.py::test_calibration_badge_and_time_tooltip_follow_current_view
+1 failed, 41 passed in 102.09s (0:01:42)

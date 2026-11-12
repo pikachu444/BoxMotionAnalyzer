@@ -1,0 +1,11 @@
+{
+  "x_font": 13.0,
+  "y_font": 14.0,
+  "x_label": "Time (s)",
+  "y_label": "World velocity X (mm/s)",
+  "client": [
+    1100,
+    720
+  ],
+  "dpr": 1.0
+}

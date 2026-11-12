@@ -1,0 +1,1811 @@
+{
+  "platform": "windows",
+  "qt": "6.10.1",
+  "scope": "Native-platform Qt render buffers and QTest/widget input; no native desktop input, OS125 or human approval",
+  "source_hashes": {
+    "src/analysis/ui/widget_slice_processing.py": "d9650982379d14e18dfbe764cdcbb4a6a62f6a717d79c15bb5e332bb34340c99",
+    "src/analysis/ui/widget_results_analyzer.py": "7acbc0133d47803817e7fdd99510cf8dca12e4b7263c0eddf3d0e90308ab8374",
+    "src/analysis/ui/shared_metric_guide.py": "2e20a8d487edc4c9106506456514e2198cc87f95a8f4389ba417f3bb9296827d",
+    "src/analysis/compare/ui_panels.py": "cdb30d6abfd29c9d3ecff2d412e3579898dd848fd8e4bc460e1b2c44dba32453"
+  },
+  "captures": [
+    {
+      "name": "product-process-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-en-1510x800.png",
+      "settings_viewport": [
+        1498,
+        243
+      ],
+      "card_columns": 5,
+      "top_height": 487,
+      "right_width": 329,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-en-1510x800.png",
+      "settings_viewport": [
+        1498,
+        263
+      ],
+      "card_columns": 5,
+      "top_height": 467,
+      "right_width": 329,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-results-en-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-results-en-1510x800.png"
+    },
+    {
+      "name": "product-process-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-en-1100x720.png",
+      "settings_viewport": [
+        1076,
+        217
+      ],
+      "card_columns": 3,
+      "top_height": 433,
+      "right_width": 299,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-en-1100x720.png",
+      "settings_viewport": [
+        1076,
+        237
+      ],
+      "card_columns": 3,
+      "top_height": 413,
+      "right_width": 299,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-results-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-results-en-1100x720.png"
+    },
+    {
+      "name": "product-process-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-en-820x600.png",
+      "settings_viewport": [
+        796,
+        177
+      ],
+      "card_columns": 2,
+      "top_height": 353,
+      "right_width": 268,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-en-820x600.png",
+      "settings_viewport": [
+        796,
+        197
+      ],
+      "card_columns": 2,
+      "top_height": 333,
+      "right_width": 268,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-results-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-results-en-820x600.png"
+    },
+    {
+      "name": "product-results-selected-en",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-results-selected-en.png"
+    },
+    {
+      "name": "product-customize-dialog",
+      "requested_client": [
+        356,
+        496
+      ],
+      "actual_client": [
+        356,
+        496
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-customize-dialog.png"
+    },
+    {
+      "name": "product-guide-en-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-en-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-diagram-en-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-diagram-en-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-en-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-en-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-diagram-en-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-diagram-en-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-keyboard-en",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-keyboard-en.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:TargetPostureError_deg",
+      "entries": 61
+    },
+    {
+      "name": "product-compare-en-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-compare-en-1100x720.png"
+    },
+    {
+      "name": "product-compare-aligned-en-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-compare-aligned-en-820x600.png"
+    },
+    {
+      "name": "product-diagnostics-en",
+      "requested_client": [
+        800,
+        600
+      ],
+      "actual_client": [
+        800,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagnostics-en.png"
+    },
+    {
+      "name": "product-process-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-ko-1510x800.png",
+      "settings_viewport": [
+        1498,
+        243
+      ],
+      "card_columns": 5,
+      "top_height": 487,
+      "right_width": 329,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-ko-1510x800.png",
+      "settings_viewport": [
+        1498,
+        263
+      ],
+      "card_columns": 5,
+      "top_height": 467,
+      "right_width": 329,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-results-ko-1510x800",
+      "requested_client": [
+        1510,
+        800
+      ],
+      "actual_client": [
+        1510,
+        800
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-results-ko-1510x800.png"
+    },
+    {
+      "name": "product-process-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-ko-1100x720.png",
+      "settings_viewport": [
+        1076,
+        217
+      ],
+      "card_columns": 3,
+      "top_height": 433,
+      "right_width": 299,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-ko-1100x720.png",
+      "settings_viewport": [
+        1076,
+        237
+      ],
+      "card_columns": 3,
+      "top_height": 413,
+      "right_width": 299,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-results-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-results-ko-1100x720.png"
+    },
+    {
+      "name": "product-process-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-ko-820x600.png",
+      "settings_viewport": [
+        796,
+        177
+      ],
+      "card_columns": 2,
+      "top_height": 353,
+      "right_width": 268,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-process-batch-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-process-batch-ko-820x600.png",
+      "settings_viewport": [
+        796,
+        197
+      ],
+      "card_columns": 2,
+      "top_height": 333,
+      "right_width": 268,
+      "log_height": 104,
+      "footer_height": 48,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-results-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-results-ko-820x600.png"
+    },
+    {
+      "name": "product-results-selected-ko",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-results-selected-ko.png"
+    },
+    {
+      "name": "product-guide-ko-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-ko-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-diagram-ko-1100x760",
+      "requested_client": [
+        1100,
+        760
+      ],
+      "actual_client": [
+        1100,
+        760
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-diagram-ko-1100x760.png",
+      "content_width": 1056,
+      "columns": 2,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-ko-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-ko-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-diagram-ko-640x480",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-diagram-ko-640x480.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:BetaAtT1MinusDeg",
+      "entries": 61
+    },
+    {
+      "name": "product-guide-keyboard-ko",
+      "requested_client": [
+        640,
+        480
+      ],
+      "actual_client": [
+        640,
+        480
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-guide-keyboard-ko.png",
+      "content_width": 596,
+      "columns": 1,
+      "focused_metric": "step2:summary:TargetPostureError_deg",
+      "entries": 61
+    },
+    {
+      "name": "product-compare-ko-1100x720",
+      "requested_client": [
+        1100,
+        720
+      ],
+      "actual_client": [
+        1100,
+        720
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-compare-ko-1100x720.png"
+    },
+    {
+      "name": "product-compare-aligned-ko-820x600",
+      "requested_client": [
+        820,
+        600
+      ],
+      "actual_client": [
+        820,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-compare-aligned-ko-820x600.png"
+    },
+    {
+      "name": "product-diagnostics-ko",
+      "requested_client": [
+        800,
+        600
+      ],
+      "actual_client": [
+        800,
+        600
+      ],
+      "font": "맑은 고딕,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1",
+      "device_pixel_ratio": 1.0,
+      "path": "docs/visualization/gui_metric_parity/ui_evidence/product-diagnostics-ko.png"
+    }
+  ],
+  "checks": [
+    {
+      "name": "en processing slice load (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-en-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "en processing card columns (1510, 800)",
+      "result": "pass",
+      "columns": 5,
+      "expected": 5
+    },
+    {
+      "name": "en processing fixed footer (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing no horizontal settings scroll (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing Advanced settings reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing range field reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en batch disables plot controls (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-en-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "en mode switch preserves splitter (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en moved controls remain locked (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en result saved proc load (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-results-en-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "en result export footer reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en result default velocity option OFF (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en option enabled in manual height (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en option reset when leaving manual height (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en core target row retained (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing slice load (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-en-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "en processing card columns (1100, 720)",
+      "result": "pass",
+      "columns": 3,
+      "expected": 3
+    },
+    {
+      "name": "en processing fixed footer (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing no horizontal settings scroll (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing Advanced settings reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing range field reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en batch disables plot controls (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-en-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "en mode switch preserves splitter (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en moved controls remain locked (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en result saved proc load (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-results-en-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "en result export footer reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en result default velocity option OFF (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en option enabled in manual height (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en option reset when leaving manual height (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en core target row retained (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing slice load (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-en-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "en processing card columns (820, 600)",
+      "result": "pass",
+      "columns": 2,
+      "expected": 2
+    },
+    {
+      "name": "en processing fixed footer (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing no horizontal settings scroll (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing Advanced settings reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en processing range field reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en batch disables plot controls (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-en-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "en mode switch preserves splitter (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en moved controls remain locked (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en result saved proc load (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-results-en-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "en result export footer reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en result default velocity option OFF (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en option enabled in manual height (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-results-selected-en: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "en option reset when leaving manual height (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "en core target row retained (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "Actual Matplotlib Customize dialog opened",
+      "result": "pass"
+    },
+    {
+      "name": "Actual Customize Apply executed",
+      "result": "pass"
+    },
+    {
+      "name": "product-customize-dialog: exact client",
+      "result": "pass",
+      "actual": [
+        356,
+        496
+      ],
+      "requested": [
+        356,
+        496
+      ]
+    },
+    {
+      "name": "Text font choices survive actual Customize Apply and redraw",
+      "result": "pass",
+      "limitation": "Installed Customize does not expose axis-label font size; 13/14 were set on actual Text objects before opening it."
+    },
+    {
+      "name": "en compare wrapper shared renderer",
+      "result": "pass"
+    },
+    {
+      "name": "en Step2 wrapper shared renderer",
+      "result": "pass"
+    },
+    {
+      "name": "product-guide-en-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "product-guide-diagram-en-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "product-guide-en-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "product-guide-diagram-en-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "en Guide actual width thresholds",
+      "result": "pass",
+      "cases": [
+        {
+          "content_width": 999,
+          "columns": 1
+        },
+        {
+          "content_width": 1000,
+          "columns": 2
+        },
+        {
+          "content_width": 1001,
+          "columns": 2
+        }
+      ]
+    },
+    {
+      "name": "en hidden target revealed",
+      "result": "pass"
+    },
+    {
+      "name": "en all Guide entries keyboard reachable",
+      "result": "pass",
+      "visited": 61,
+      "expected": 61
+    },
+    {
+      "name": "en Guide keyboard headings scroll into view",
+      "result": "pass",
+      "outside": []
+    },
+    {
+      "name": "en Guide fixed Close keyboard reachable",
+      "result": "pass"
+    },
+    {
+      "name": "en Guide content fits viewport after threshold reflows",
+      "result": "pass",
+      "viewport": 596,
+      "content": 596,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-guide-keyboard-en: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "en Guide empty filter message",
+      "result": "pass"
+    },
+    {
+      "name": "en unknown target Interpretation top",
+      "result": "pass"
+    },
+    {
+      "name": "en Guide Escape hides",
+      "result": "pass"
+    },
+    {
+      "name": "en Guide same instance reopen context",
+      "result": "pass"
+    },
+    {
+      "name": "en missing diagram text alternative",
+      "result": "pass"
+    },
+    {
+      "name": "product-compare-en-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "en actual VTK box actor 0",
+      "result": "pass",
+      "bounds": [
+        -100.0,
+        100.0,
+        31.381280000000004,
+        151.38128,
+        -40.0,
+        40.0
+      ]
+    },
+    {
+      "name": "en actual VTK rendered scene 0",
+      "result": "pass",
+      "pixel_shape": [
+        131,
+        747,
+        3
+      ],
+      "pixel_std": 25.287206728953795,
+      "camera_scope": "Display camera fitted to loaded box actor; no geometry or calculation change"
+    },
+    {
+      "name": "en actual VTK box actor 1",
+      "result": "pass",
+      "bounds": [
+        -100.0,
+        100.0,
+        31.381280000000004,
+        151.38128,
+        -40.0,
+        40.0
+      ]
+    },
+    {
+      "name": "en actual VTK rendered scene 1",
+      "result": "pass",
+      "pixel_shape": [
+        30,
+        100,
+        3
+      ],
+      "pixel_std": 64.5293136258607,
+      "camera_scope": "Display camera fitted to loaded box actor; no geometry or calculation change"
+    },
+    {
+      "name": "en diagnostics initially closed",
+      "result": "pass"
+    },
+    {
+      "name": "en basic details omit raw provenance",
+      "result": "pass"
+    },
+    {
+      "name": "en synthetic label explicit",
+      "result": "pass"
+    },
+    {
+      "name": "en actual 3D viewers created",
+      "result": "pass",
+      "viewers": 2
+    },
+    {
+      "name": "en supported comparison graph populated",
+      "result": "pass",
+      "targets": 1
+    },
+    {
+      "name": "product-compare-aligned-en-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "product-diagnostics-en: exact client",
+      "result": "pass",
+      "actual": [
+        800,
+        600
+      ],
+      "requested": [
+        800,
+        600
+      ]
+    },
+    {
+      "name": "en diagnostics keep raw evidence",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing slice load (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-ko-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "ko processing card columns (1510, 800)",
+      "result": "pass",
+      "columns": 5,
+      "expected": 5
+    },
+    {
+      "name": "ko processing fixed footer (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing no horizontal settings scroll (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing Advanced settings reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing range field reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko batch disables plot controls (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-ko-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "ko mode switch preserves splitter (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko moved controls remain locked (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko result saved proc load (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "product-results-ko-1510x800: exact client",
+      "result": "pass",
+      "actual": [
+        1510,
+        800
+      ],
+      "requested": [
+        1510,
+        800
+      ]
+    },
+    {
+      "name": "ko result export footer reachable (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko result default velocity option OFF (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko option enabled in manual height (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko option reset when leaving manual height (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko core target row retained (1510, 800)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing slice load (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-ko-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "ko processing card columns (1100, 720)",
+      "result": "pass",
+      "columns": 3,
+      "expected": 3
+    },
+    {
+      "name": "ko processing fixed footer (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing no horizontal settings scroll (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing Advanced settings reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing range field reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko batch disables plot controls (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-ko-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "ko mode switch preserves splitter (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko moved controls remain locked (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko result saved proc load (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "product-results-ko-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "ko result export footer reachable (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko result default velocity option OFF (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko option enabled in manual height (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko option reset when leaving manual height (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko core target row retained (1100, 720)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing slice load (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-ko-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "ko processing card columns (820, 600)",
+      "result": "pass",
+      "columns": 2,
+      "expected": 2
+    },
+    {
+      "name": "ko processing fixed footer (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing no horizontal settings scroll (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing Advanced settings reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko processing range field reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko batch disables plot controls (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-process-batch-ko-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "ko mode switch preserves splitter (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko moved controls remain locked (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko result saved proc load (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-results-ko-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "ko result export footer reachable (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko result default velocity option OFF (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko option enabled in manual height (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "product-results-selected-ko: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "ko option reset when leaving manual height (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko core target row retained (820, 600)",
+      "result": "pass"
+    },
+    {
+      "name": "ko compare wrapper shared renderer",
+      "result": "pass"
+    },
+    {
+      "name": "ko Step2 wrapper shared renderer",
+      "result": "pass"
+    },
+    {
+      "name": "product-guide-ko-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "product-guide-diagram-ko-1100x760: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        760
+      ],
+      "requested": [
+        1100,
+        760
+      ]
+    },
+    {
+      "name": "product-guide-ko-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "product-guide-diagram-ko-640x480: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "ko Guide actual width thresholds",
+      "result": "pass",
+      "cases": [
+        {
+          "content_width": 999,
+          "columns": 1
+        },
+        {
+          "content_width": 1000,
+          "columns": 2
+        },
+        {
+          "content_width": 1001,
+          "columns": 2
+        }
+      ]
+    },
+    {
+      "name": "ko hidden target revealed",
+      "result": "pass"
+    },
+    {
+      "name": "ko all Guide entries keyboard reachable",
+      "result": "pass",
+      "visited": 61,
+      "expected": 61
+    },
+    {
+      "name": "ko Guide keyboard headings scroll into view",
+      "result": "pass",
+      "outside": []
+    },
+    {
+      "name": "ko Guide fixed Close keyboard reachable",
+      "result": "pass"
+    },
+    {
+      "name": "ko Guide content fits viewport after threshold reflows",
+      "result": "pass",
+      "viewport": 596,
+      "content": 596,
+      "horizontal_scroll_max": 0
+    },
+    {
+      "name": "product-guide-keyboard-ko: exact client",
+      "result": "pass",
+      "actual": [
+        640,
+        480
+      ],
+      "requested": [
+        640,
+        480
+      ]
+    },
+    {
+      "name": "ko Guide empty filter message",
+      "result": "pass"
+    },
+    {
+      "name": "ko unknown target Interpretation top",
+      "result": "pass"
+    },
+    {
+      "name": "ko Guide Escape hides",
+      "result": "pass"
+    },
+    {
+      "name": "ko Guide same instance reopen context",
+      "result": "pass"
+    },
+    {
+      "name": "ko missing diagram text alternative",
+      "result": "pass"
+    },
+    {
+      "name": "product-compare-ko-1100x720: exact client",
+      "result": "pass",
+      "actual": [
+        1100,
+        720
+      ],
+      "requested": [
+        1100,
+        720
+      ]
+    },
+    {
+      "name": "ko actual VTK box actor 0",
+      "result": "pass",
+      "bounds": [
+        -100.0,
+        100.0,
+        31.381280000000004,
+        151.38128,
+        -40.0,
+        40.0
+      ]
+    },
+    {
+      "name": "ko actual VTK rendered scene 0",
+      "result": "pass",
+      "pixel_shape": [
+        131,
+        747,
+        3
+      ],
+      "pixel_std": 25.287206728953795,
+      "camera_scope": "Display camera fitted to loaded box actor; no geometry or calculation change"
+    },
+    {
+      "name": "ko actual VTK box actor 1",
+      "result": "pass",
+      "bounds": [
+        -100.0,
+        100.0,
+        31.381280000000004,
+        151.38128,
+        -40.0,
+        40.0
+      ]
+    },
+    {
+      "name": "ko actual VTK rendered scene 1",
+      "result": "pass",
+      "pixel_shape": [
+        30,
+        100,
+        3
+      ],
+      "pixel_std": 64.5293136258607,
+      "camera_scope": "Display camera fitted to loaded box actor; no geometry or calculation change"
+    },
+    {
+      "name": "ko diagnostics initially closed",
+      "result": "pass"
+    },
+    {
+      "name": "ko basic details omit raw provenance",
+      "result": "pass"
+    },
+    {
+      "name": "ko synthetic label explicit",
+      "result": "pass"
+    },
+    {
+      "name": "ko actual 3D viewers created",
+      "result": "pass",
+      "viewers": 2
+    },
+    {
+      "name": "ko supported comparison graph populated",
+      "result": "pass",
+      "targets": 1
+    },
+    {
+      "name": "product-compare-aligned-ko-820x600: exact client",
+      "result": "pass",
+      "actual": [
+        820,
+        600
+      ],
+      "requested": [
+        820,
+        600
+      ]
+    },
+    {
+      "name": "product-diagnostics-ko: exact client",
+      "result": "pass",
+      "actual": [
+        800,
+        600
+      ],
+      "requested": [
+        800,
+        600
+      ]
+    },
+    {
+      "name": "ko diagnostics keep raw evidence",
+      "result": "pass"
+    }
+  ],
+  "findings": []
+}

@@ -11,7 +11,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from test_contact_comparison import contact_frame
-from test_impact_comparison_gui import _load, _events, _metric_row
+from test_impact_comparison_gui import _load, _events, _metric_row, _diagnostic_cell
 from src.analysis.compare.main_window import CompareMainWindow
 
 
@@ -66,8 +66,10 @@ def test_variant_resolution_in_real_comparison_at_125_percent(monkeypatch):
         assert panel.table.rowHeight(row) <= panel.table.viewport().height()
         capture('01_repeats.png')
         panel.view_combo.setCurrentIndex(3)
-        assert 'invalid' in panel.table.item(0, 3).text()
-        assert 'equivalent' in panel.table.item(1, 3).text()
+        assert 'Required evidence for this metric is unavailable' in panel.table.item(0, 3).text()
+        assert 'Same trial; counted once' in panel.table.item(1, 3).text()
+        assert 'invalid' in _diagnostic_cell(window, 0, 3)
+        assert 'equivalent' in _diagnostic_cell(window, 1, 3)
         capture('02_contact.png')
         conflict = out / 'conflict.proc'
         contact_frame(observed='{C1,C5}', rotation=Rotation.from_euler('z', 30, degrees=True)).to_csv(conflict, index=False)
@@ -75,7 +77,8 @@ def test_variant_resolution_in_real_comparison_at_125_percent(monkeypatch):
         _load(window, [conflict], monkeypatch, app)
         assert window.model.get_contact_comparison()['statistics']['n'] == 0
         assert window.model.get_contact_comparison()['statistics']['conflicts'] == 1
-        assert 'conflict' in panel.table.item(1, 3).text()
+        assert 'Results for this trial disagree' in panel.table.item(1, 3).text()
+        assert 'conflict' in _diagnostic_cell(window, 1, 3)
         capture('03_contact_conflict.png')
         panel.view_combo.setCurrentIndex(1)
         row = _metric_row(panel.table, 'First contact')
@@ -83,7 +86,7 @@ def test_variant_resolution_in_real_comparison_at_125_percent(monkeypatch):
         panel.table.scrollToItem(panel.table.item(row, 0))
         assert panel.table.item(row, 1).text() == '0 (low)'
         assert 'Conflict 1' in panel.resolution_label.text()
-        assert 'Conflicting valid variants' in window.control_panel.details.toPlainText()
+        assert 'Conflicting valid variants' in window.control_panel.diagnostics_text.toPlainText()
         capture('04_categorical_conflict.png')
         window.control_panel.file_list.setCurrentRow(1)
         _events(app)

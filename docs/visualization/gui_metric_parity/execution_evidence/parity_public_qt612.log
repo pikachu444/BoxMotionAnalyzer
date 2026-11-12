@@ -1,0 +1,22 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 10%]
+.................F
+================================== FAILURES ===================================
+_________ test_f03_real_missing_data_and_reused_nonmodal_evidence[1] __________
+tests\test_gui177_flip.py:129: in test_f03_real_missing_data_and_reused_nonmodal_evidence
+    assert QApplication.clipboard().text() == dialog.evidence_text.toPlainText()
+E   AssertionError: assert '' == 'ui-0\n10.200...it error 0 mm'
+E
+E     - ui-0
+E     - 10.200000 s
+E     - rotation jump 180.0��
+E     - Insufficient comparison samples.
+E     - Coverage is observed marker coverage, not flip probability.
+E     - Marker coverage  100%...
+E
+E     ...Full output truncated (4 lines hidden), use '-vv' to show
+=========================== short test summary info ===========================
+FAILED tests/test_gui177_flip.py::test_f03_real_missing_data_and_reused_nonmodal_evidence[1]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+Config file (config.py) loaded. BOX_DIMS: [1578.  930.  142.], Floor plot half-extents: (3945.0, 2325.0)

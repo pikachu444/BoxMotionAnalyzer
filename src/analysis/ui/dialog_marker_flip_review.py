@@ -428,7 +428,8 @@ class MarkerFlipReviewDialog(QDialog):
             times = np.asarray(self._context_data.index, dtype=float)
             for component, color in zip('XYZ', ('#c62828', '#2e7d32', '#1565c0')):
                 values = pd.to_numeric(self._context_data[target + '_' + component], errors='coerce').to_numpy(float)
-                axis.plot(times, values, label=component, color=color)
+                # No trusted cadence is supplied here; show the original observations.
+                axis.plot(times, values, label=component, color=color, linestyle='None', marker='.', markersize=4)
                 available |= bool(np.any(np.isfinite(times) & np.isfinite(values)))
         if not available:
             axis.text(.5, .5, tr('Original trajectories unavailable'), transform=axis.transAxes, ha='center')

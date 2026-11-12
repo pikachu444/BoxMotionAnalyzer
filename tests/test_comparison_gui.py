@@ -114,8 +114,11 @@ def test_actual_comparison_file_loading_and_time_states(tmp_path, monkeypatch):
         assert any(pd.isna(line.get_ydata()).any() for line in curves if len(line.get_ydata()) > 2)
         window.grab().save(str(evidence / 'gap_unavailable.png'))
         window.control_panel.file_list.setCurrentRow(2)
-        assert 'unknown_legacy' in window.control_panel.details.toPlainText()
-        assert 'ModelId: missing' in window.control_panel.details.toPlainText()
+        assert 'unknown_legacy' not in window.control_panel.details.toPlainText()
+        assert 'ModelId: missing' not in window.control_panel.details.toPlainText()
+        window.control_panel._open_diagnostics()
+        assert 'unknown_legacy' in window.control_panel.diagnostics_text.toPlainText()
+        assert 'ModelId: missing' in window.control_panel.diagnostics_text.toPlainText()
         window.control_panel.cb_view.setCurrentIndex(window.control_panel.cb_view.findData('individual'))
         assert window.graph_panel.plot_manager.ax.get_xlabel() == 'Sample'
         panel.master_slider.setValue(1)
