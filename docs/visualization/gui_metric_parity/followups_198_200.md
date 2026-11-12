@@ -102,3 +102,22 @@ solver campaign, measured calibration or private consumer adoption is required
 for these bounded local checks. Final PR required CI is a separate publication gate.
 Local implementation is ready for publication; final-head CI/merge status belongs
 to the live PR and linked issue completion records, rather than this pre-CI record.
+
+## Hosted inventory correction
+
+The first [PR #201 public run](https://github.com/pikachu444/BoxMotionAnalyzer/actions/runs/43215868516)
+on `ec17027` failed before test execution: the workflow/test additions had not
+also been added to `tests/public_ci_inventory.json`. The original 1995 public-job
+nodes are retained in order, with exactly 19 additions (15 canvas/lifecycle,
+2 detector-timing and 2 FinalFace characterization cases), for 2014 nodes.
+Other jobs and all required step IDs are unchanged. The gate remains enforced;
+this correction does not remove tests, lower thresholds or replace assertions.
+The first Shared core run succeeded; final-head required runs must both succeed
+again after the inventory correction.
+
+Local `python -m src.simulation.ci_evidence prepare --output
+tmp/followups-ci-preflight` succeeded for all 12 collection jobs. The independent
+reviewer compared all 2014 actually collected public node IDs to the updated
+sequence and confirmed zero deletions, duplicates or old-node reordering, with
+all 12 jobs, 24 step IDs and metadata preserved. No product source changed in
+this correction.
