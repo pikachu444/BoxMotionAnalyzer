@@ -202,6 +202,7 @@
       "tests/test_gui_metric_parity_contract.py::test_a02_declared_raw_units_are_preserved_by_parser_and_metres_are_rejected_at_scene_boundary[Millimeters-1.0-70.0]",
       "tests/test_gui_metric_parity_contract.py::test_a02_declared_raw_units_are_preserved_by_parser_and_metres_are_rejected_at_scene_boundary[Meters-0.001-0.07]",
       "tests/test_gui_metric_parity_contract.py::test_a02_unsupported_saved_metres_policy_cannot_be_reported_as_mm_snapshot",
+      "tests/test_gui_metric_parity_contract.py::test_capture_corpus_v3_final_face_availability_is_analytic_and_rejects_old_unavailable",
       "tests/test_gui_metric_parity_contract.py::test_selected_series_identity_uses_full_tuple_without_mutating_fixed_registry",
       "tests/test_gui_metric_parity_contract.py::test_selected_series_units_and_localized_headings_describe_saved_rows[column0-\\xb0]",
       "tests/test_gui_metric_parity_contract.py::test_selected_series_units_and_localized_headings_describe_saved_rows[column1-mm]",

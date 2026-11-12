@@ -435,7 +435,7 @@ def test_final_face_uses_all_six_faces_and_is_quaternion_sign_invariant():
 
 def test_final_face_rotation_mean_crosses_rotvec_branch_without_arithmetic_cancellation():
     angles = np.resize([179., -179.], 16)
-    times, rotations, corners, dims = settled_inputs(rotation=Rotation.from_euler('z', angles, degrees=True))
+    times, rotations, corners, dims = settled_inputs(rotation=Rotation.from_euler('z', angles[:, None], degrees=True))
     result = final_face(times, rotations, corners, dims, floor=0., threshold=1.)
     assert result.value == 'TOP', result.reason
 
@@ -779,6 +779,92 @@ def test_a02_unsupported_saved_metres_policy_cannot_be_reported_as_mm_snapshot()
     result = resolve_summary_metrics(frame)
     unavailable(result['VerticalVelAtT1Minus_mm_s'])
     unavailable(result['EquivalentFreeFallHeight_mm'])
+
+
+def test_capture_corpus_v3_final_face_availability_is_analytic_and_rejects_old_unavailable(tmp_path):
+    from src.analysis.regression.contracts import metric
+    from src.analysis.regression.signatures import compare_metrics
+    from src.simulation.capture_corpus import (
+        VERSION, CASES, BASELINE_MIGRATION, BASELINE_MIGRATION_HISTORY,
+        FINAL_FACE_MIGRATION_REVIEW, TOLERANCE, specified_case, independent_metrics,
+    )
+
+    assert VERSION == 'public-analytic-corpus-v3'
+    assert BASELINE_MIGRATION['previous_version'] == 'public-analytic-corpus-v2'
+    assert BASELINE_MIGRATION['next_version'] == VERSION
+    assert BASELINE_MIGRATION_HISTORY[0]['previous_version'] == 'public-analytic-corpus-v1'
+    assert BASELINE_MIGRATION_HISTORY[0]['old'] == dict(first_contact='{C1,C2,C5,C6}')
+    assert BASELINE_MIGRATION_HISTORY[0]['new'] == dict(
+        observed_first_contact='{C1,C2,C5,C6}', first_contact='unavailable')
+    assert FINAL_FACE_MIGRATION_REVIEW['reviewer'] == 'GPT-6.1 Sol'
+    assert FINAL_FACE_MIGRATION_REVIEW['reasoning_effort'] == 'xhigh'
+    assert FINAL_FACE_MIGRATION_REVIEW['date'] == '2026-11-12'
+
+    literal_bottom = {('two_drops', 0), ('two_drops', 1), ('supported_H', 0)}
+    local = np.array([
+        [-100., -60., -40.], [100., -60., -40.], [100., 60., -40.], [-100., 60., -40.],
+        [-100., -60., 40.], [100., -60., 40.], [100., 60., 40.], [-100., 60., 40.],
+    ])
+    checked_bottom = set()
+    for case in CASES:
+        times, center, rotations, valid, _, _, intervals = specified_case(case)
+        # The excluded-only handling input also retains unavailable comparison
+        # FinalFace; it is not silently added to the approved scene population.
+        for ordinal, (start, end) in enumerate(intervals or [(0, len(times))]):
+            expected = 'BOTTOM' if (case, ordinal) in literal_bottom else None
+            oracle = independent_metrics(case, times, center, rotations, start, end)['final_face']
+            assert oracle == (metric('BOTTOM') if expected else metric(status='unavailable'))
+            corners = np.einsum('nij,kj->nki', rotations[start:end], local) + center[start:end, None, :]
+            corners[~valid[start:end]] = np.nan
+            reduced = final_face(times[start:end], Rotation.from_matrix(rotations[start:end]),
+                                 corners, [200., 120., 80.], floor=0., threshold=1.)
+            if expected is None:
+                assert reduced.value not in FACE_DEFINITIONS
+                continue
+            checked_bottom.add((case, ordinal))
+            assert end - start == 80
+            tail = start + 52
+            theta = np.arctan2(rotations[tail:end, 1, 0], rotations[tail:end, 1, 1])
+            # For these declared nonnegative Rz angles, the minimum corner is
+            # center_Y - 100*sin(theta) - 60*cos(theta), identically zero.
+            minimum = center[tail:end, 1] - 100. * np.sin(theta) - 60. * np.cos(theta)
+            np.testing.assert_allclose(minimum, 0., rtol=1e-9, atol=1e-9)
+            assert len(theta) == 28 and theta.min() >= 0. and theta.max() <= .18 + 1e-9
+            # The rotation mean angle is the phase of sum(exp(i*theta)); its
+            # quaternion outer-product eigenvalue is unique for positive cosine sum.
+            assert np.cos(theta).sum() > 0.
+            mean_theta = np.arctan2(np.sin(theta).sum(), np.cos(theta).sum())
+            assert np.cos(mean_theta) > abs(np.sin(mean_theta))
+            assert reduced.value == 'BOTTOM', reduced.reason
+            actual = {'final_face': metric(reduced.value)}
+            assert compare_metrics({'final_face': oracle}, actual, TOLERANCE)['final_face']['status'] == 'pass'
+            old = {'final_face': metric(status='unavailable')}
+            assert compare_metrics(old, actual, TOLERANCE)['final_face']['status'] == 'fail'
+            assert compare_metrics({'final_face': oracle}, old, TOLERANCE)['final_face']['status'] == 'fail'
+    assert checked_bottom == literal_bottom
+
+    from src.analysis.regression.evidence import capture_protocol, source_state, environment
+    from src.analysis.regression.contracts import file_digest
+    from src.simulation.capture_corpus import build_corpus
+    root = tmp_path / 'new-v3-assets'
+    manifest = json.loads(build_corpus(root).read_text(encoding='utf-8'))
+    code, runtime = source_state(), environment()
+    protocol = capture_protocol(manifest, root, 'fast', None, code, runtime)
+    assert protocol['adapter'] == VERSION
+    missing_review = deepcopy(manifest)
+    missing_review['baseline_migration'].pop('review')
+    with pytest.raises(ValueError, match='semantic migration review is missing'):
+        capture_protocol(missing_review, root, 'fast', None, code, runtime)
+    fixture_path = root / manifest['cases'][0]['fixture']
+    fixture = json.loads(fixture_path.read_text(encoding='utf-8'))
+    reference_path = root / fixture['reference']['relative_path']
+    reference = json.loads(reference_path.read_text(encoding='utf-8'))
+    reference['semantic_migration_review']['basis'] += ' changed'
+    reference_path.write_text(json.dumps(reference), encoding='utf-8')
+    fixture['reference']['sha256'] = file_digest(reference_path)
+    fixture_path.write_text(json.dumps(fixture), encoding='utf-8')
+    with pytest.raises(ValueError, match='reference semantic migration review differs'):
+        capture_protocol(manifest, root, 'fast', None, code, runtime)
 
 
 def test_selected_series_identity_uses_full_tuple_without_mutating_fixed_registry():

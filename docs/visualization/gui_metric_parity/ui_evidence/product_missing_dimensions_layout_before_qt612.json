@@ -1,0 +1,370 @@
+{
+  "source_revision": "1da5ce5",
+  "qt": "6.12.0",
+  "pyside": "6.12.0",
+  "platform": "windows",
+  "scope": "Read-only timing instrumentation of exact missing-dimensions flow. No extra reveal, forced button show or splitter adjustment.",
+  "load_returned": true,
+  "states": [
+    {
+      "stage": "after-show-before-load",
+      "elapsed_ms": 685,
+      "top_height": 498,
+      "context_split": [
+        895,
+        288
+      ],
+      "viewport": [
+        270,
+        324
+      ],
+      "content": [
+        270,
+        342
+      ],
+      "scroll_value": 0,
+      "scroll_max": 18,
+      "button_xy": [
+        0,
+        199
+      ],
+      "button_wh": [
+        640,
+        480
+      ],
+      "button_hidden": true,
+      "visible_region_empty": true,
+      "modal": null
+    },
+    {
+      "stage": "before-enter-missing",
+      "elapsed_ms": 768,
+      "top_height": 498,
+      "context_split": [
+        895,
+        288
+      ],
+      "viewport": [
+        270,
+        324
+      ],
+      "content": [
+        270,
+        342
+      ],
+      "scroll_value": 0,
+      "scroll_max": 18,
+      "button_xy": [
+        0,
+        199
+      ],
+      "button_wh": [
+        640,
+        480
+      ],
+      "button_hidden": true,
+      "visible_region_empty": true,
+      "modal": null
+    },
+    {
+      "stage": "before-synchronous-ensure",
+      "elapsed_ms": 769,
+      "top_height": 498,
+      "context_split": [
+        895,
+        288
+      ],
+      "viewport": [
+        270,
+        324
+      ],
+      "content": [
+        270,
+        342
+      ],
+      "scroll_value": 0,
+      "scroll_max": 18,
+      "button_xy": [
+        9,
+        314
+      ],
+      "button_wh": [
+        252,
+        20
+      ],
+      "button_hidden": false,
+      "visible_region_empty": false,
+      "modal": null
+    },
+    {
+      "stage": "scroll-value-change",
+      "elapsed_ms": 769,
+      "top_height": 498,
+      "context_split": [
+        895,
+        288
+      ],
+      "viewport": [
+        270,
+        324
+      ],
+      "content": [
+        270,
+        342
+      ],
+      "scroll_value": 18,
+      "scroll_max": 18,
+      "button_xy": [
+        9,
+        296
+      ],
+      "button_wh": [
+        252,
+        20
+      ],
+      "button_hidden": false,
+      "visible_region_empty": false,
+      "modal": null
+    },
+    {
+      "stage": "after-synchronous-ensure",
+      "elapsed_ms": 769,
+      "top_height": 498,
+      "context_split": [
+        895,
+        288
+      ],
+      "viewport": [
+        270,
+        324
+      ],
+      "content": [
+        270,
+        342
+      ],
+      "scroll_value": 18,
+      "scroll_max": 18,
+      "button_xy": [
+        9,
+        296
+      ],
+      "button_wh": [
+        252,
+        20
+      ],
+      "button_hidden": false,
+      "visible_region_empty": false,
+      "modal": null
+    },
+    {
+      "stage": "after-enter-missing",
+      "elapsed_ms": 769,
+      "top_height": 498,
+      "context_split": [
+        895,
+        288
+      ],
+      "viewport": [
+        270,
+        324
+      ],
+      "content": [
+        270,
+        342
+      ],
+      "scroll_value": 18,
+      "scroll_max": 18,
+      "button_xy": [
+        9,
+        296
+      ],
+      "button_wh": [
+        252,
+        20
+      ],
+      "button_hidden": false,
+      "visible_region_empty": false,
+      "modal": null
+    },
+    {
+      "stage": "before-queued-initial-split",
+      "elapsed_ms": 970,
+      "top_height": 498,
+      "context_split": [
+        895,
+        288
+      ],
+      "viewport": [
+        258,
+        324
+      ],
+      "content": [
+        258,
+        373
+      ],
+      "scroll_value": 18,
+      "scroll_max": 49,
+      "button_xy": [
+        9,
+        320
+      ],
+      "button_wh": [
+        240,
+        26
+      ],
+      "button_hidden": false,
+      "visible_region_empty": false,
+      "modal": "QMessageBox"
+    },
+    {
+      "stage": "after-queued-initial-split",
+      "elapsed_ms": 990,
+      "top_height": 343,
+      "context_split": [
+        884,
+        299
+      ],
+      "viewport": [
+        269,
+        183
+      ],
+      "content": [
+        269,
+        373
+      ],
+      "scroll_value": 18,
+      "scroll_max": 190,
+      "button_xy": [
+        9,
+        320
+      ],
+      "button_wh": [
+        251,
+        26
+      ],
+      "button_hidden": false,
+      "visible_region_empty": true,
+      "modal": "QMessageBox"
+    },
+    {
+      "stage": "warning-before-accept",
+      "elapsed_ms": 1029,
+      "top_height": 343,
+      "context_split": [
+        884,
+        299
+      ],
+      "viewport": [
+        269,
+        183
+      ],
+      "content": [
+        269,
+        373
+      ],
+      "scroll_value": 18,
+      "scroll_max": 190,
+      "button_xy": [
+        9,
+        320
+      ],
+      "button_wh": [
+        251,
+        26
+      ],
+      "button_hidden": false,
+      "visible_region_empty": true,
+      "modal": "QMessageBox"
+    },
+    {
+      "stage": "warning-after-accept",
+      "elapsed_ms": 1034,
+      "top_height": 343,
+      "context_split": [
+        884,
+        299
+      ],
+      "viewport": [
+        269,
+        183
+      ],
+      "content": [
+        269,
+        373
+      ],
+      "scroll_value": 18,
+      "scroll_max": 190,
+      "button_xy": [
+        9,
+        320
+      ],
+      "button_wh": [
+        251,
+        26
+      ],
+      "button_hidden": false,
+      "visible_region_empty": true,
+      "modal": null
+    },
+    {
+      "stage": "load-returned",
+      "elapsed_ms": 1035,
+      "top_height": 343,
+      "context_split": [
+        884,
+        299
+      ],
+      "viewport": [
+        269,
+        183
+      ],
+      "content": [
+        269,
+        373
+      ],
+      "scroll_value": 18,
+      "scroll_max": 190,
+      "button_xy": [
+        9,
+        320
+      ],
+      "button_wh": [
+        251,
+        26
+      ],
+      "button_hidden": false,
+      "visible_region_empty": true,
+      "modal": null
+    },
+    {
+      "stage": "after-required-100ms-wait",
+      "elapsed_ms": 1540,
+      "top_height": 343,
+      "context_split": [
+        884,
+        299
+      ],
+      "viewport": [
+        269,
+        183
+      ],
+      "content": [
+        269,
+        373
+      ],
+      "scroll_value": 18,
+      "scroll_max": 190,
+      "button_xy": [
+        9,
+        320
+      ],
+      "button_wh": [
+        251,
+        26
+      ],
+      "button_hidden": false,
+      "visible_region_empty": true,
+      "modal": null
+    }
+  ]
+}

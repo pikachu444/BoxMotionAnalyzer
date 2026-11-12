@@ -259,3 +259,35 @@ The GUI process exited and ownership was returned before the main agent resumed
 its GUI work. No product/script changes, external desktop clicks, OS125 or human
 acceptance are claimed by this recheck. No blocking selection defect remains in
 the checked scope.
+
+## Missing-dimension reveal timing correction
+
+The hosted missing-dimension GUI failure was reproduced locally with the unchanged
+strict assertion on native Windows Qt/PySide6 6.12.0: the exact node failed once
+before correction. Read-only timing instrumentation showed the synchronous reveal
+using a 324px viewport, followed by the queued initial splitter shrinking it to
+183px. The Apply button then remained at y320 with an empty visible region even
+after the warning closed and the existing 100ms wait. The measured failed state is
+preserved in `product_missing_dimensions_layout_before_qt612.json` and its PNG.
+
+The implementer added the guarded `_reveal_missing_box_dimensions` helper after
+the one-time initial splitter work and after load/warning/Single-mode completion.
+The helper activates the current content layout and scrolls only when the current
+slice still lacks dimensions and the Single-mode Apply action is visible/enabled.
+It does not force button visibility or reset a user's splitter positions.
+
+The same reviewer reran the exact node
+`tests/test_slice_dimension_provenance_gui.py::test_existing_slice_dimension_patch_rejects_conflict_before_save`:
+**1 passed in 3.62s**, exit code 0. A bounded native Qt check then passed **25 UI
+conditions, zero failures**, covering load-before-show, shown-window loading with
+user splitter choices, and loading from Batch into Single. Apply was fully visible
+without a test-side reveal: y148 with height26 in a 183px viewport in the first
+case. The two user-layout cases preserved their exact splitter positions. Input
+fields remained editable, Run remained blocked, the Batch guard did not force
+display/scroll, and the input file bytes remained unchanged.
+
+The corrected source hash and actual states are in
+`product_missing_dimensions_layout_after_qt612.json`, with three after-captures.
+The unchanged assertion was not weakened, and no arbitrary delay was added to the
+product. The reviewer changed only evidence, and its GUI processes exited before
+handoff. No blocking reveal-timing defect remains in this checked scope.

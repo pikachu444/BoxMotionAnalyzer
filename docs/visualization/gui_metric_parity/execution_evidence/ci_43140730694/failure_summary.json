@@ -1,0 +1,91 @@
+{
+  "run_id": 43140730694,
+  "job_id": 130926780065,
+  "public_head": "8bbfc22c749cbd2e69d0250099b98aacae45dcac",
+  "status": "failure",
+  "node_results": {
+    "passed": 1989,
+    "failed": 5,
+    "skipped": 0,
+    "passed_subtests": 11
+  },
+  "failures": [
+    {
+      "name": "test_final_face_rotation_mean_crosses_rotvec_branch_without_arithmetic_cancellation",
+      "classname": "tests.test_gui_metric_parity_contract",
+      "message": "ValueError: Expected last dimension of `angles` to match number of sequence axes specified, got 16.",
+      "details": "def test_final_face_rotation_mean_crosses_rotvec_branch_without_arithmetic_cancellation():\n        angles = np.resize([179., -179.], 16)\n>       times, rotations, corners, dims = settled_inputs(rotation=Rotation.from_euler('z', angles, degrees=True))\n                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ntests\\test_gui_metric_parity_contract.py:438: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\nC:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\Lib\\site-packages\\scipy\\spatial\\transform\\_rotation.py:814: in from_euler\n    quat = backend.from_euler(seq, angles, degrees=degrees)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\n>   ???\nE   ValueError: Expected last dimension of `angles` to match number of sequence axes specified, got 16.\n\nscipy/spatial/transform/_rotation_cy.pyx:454: ValueError"
+    },
+    {
+      "name": "test_existing_slice_dimension_patch_rejects_conflict_before_save",
+      "classname": "tests.test_slice_dimension_provenance_gui",
+      "message": "assert False\n +  where False = <built-in method isEmpty of PySide6.QtGui.QRegion object at 0x0000019E96127300>()\n +    where <built-in method isEmpty of PySide6.QtGui.QRegion object at 0x0000019E96127300> = <PySide6.QtGui.QRegion(0,0 251x26) at 0x0000019E96127300>.isEmpty\n +      where <PySide6.QtGui.QRegion(0,0 251x26) at 0x0000019E96127300> = <built-in method subtracted of PySide6.QtGui.QRegion object at 0x0000019E96188600>(<PySide6.QtGui.QRegion(null) at 0x0000019E15C3EEC0>)\n[+8 more lines; full report in element text]",
+      "details": "tmp_path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/pytest-of-runneradmin/pytest-1/test_existing_slice_dimension_0')\n\n    def test_existing_slice_dimension_patch_rejects_conflict_before_save(tmp_path):\n        app = QApplication.instance() or QApplication([])\n        header, raw = _raw_bundle()\n        header['artifact_metadata'] = dict(BoxLengthMm=200.,BoxWidthMm=120.,BoxHeightMm=80.)\n        path = tmp_path/'missing_box.slice'\n        save_slice_file(filepath=str(path),header_info=header,raw_data=raw,source_path='unit.csv',\n                        full_start=0,full_end=5,user_start=0,user_end=5,box_dims=None,pad_rows=0)\n        original = path.read_bytes()\n        with pytest.raises(ValueError,match='dimensions conflict'):\n            update_slice_box_dimensions(str(path),(300.,120.,80.))\n        assert path.read_bytes() == original\n        widget = WidgetSliceProcessing(DataLoader(), Parser(FACE_PREFIX_TO_INFO))\n        widget.resize(1200,800)\n        widget.show()\n        evidence=Path('tmp/issue83_gui')\n        evidence.mkdir(parents=True,exist_ok=True)\n        messages=[]\n        watcher=QTimer()\n        def close_warning():\n            dialog=app.activeModalWidget()\n            if isinstance(dialog,QMessageBox):\n                messages.append(dialog.text())\n                dialog.grab().save(str(evidence/'dimension_rejection.png'))\n                dialog.accept()\n        watcher.timeout.connect(close_warning)\n        watcher.start(100)\n        try:\n            widget.load_slice_file(str(path))\n            QTest.qWait(100)\n            assert messages == ['Enter the missing box dimensions to run.']\n            assert widget.box_dims_group.isVisible() and not widget.box_dims_group.isCheckable()\n>           assert QRegion(widget.apply_box_dims_button.rect()).subtracted(widget.apply_box_dims_button.visibleRegion()).isEmpty()\nE           assert False\nE            +  where False = <built-in method isEmpty of PySide6.QtGui.QRegion object at 0x0000019E96127300>()\nE            +    where <built-in method isEmpty of PySide6.QtGui.QRegion object at 0x0000019E96127300> = <PySide6.QtGui.QRegion(0,0 251x26) at 0x0000019E96127300>.isEmpty\nE            +      where <PySide6.QtGui.QRegion(0,0 251x26) at 0x0000019E96127300> = <built-in method subtracted of PySide6.QtGui.QRegion object at 0x0000019E96188600>(<PySide6.QtGui.QRegion(null) at 0x0000019E15C3EEC0>)\nE            +        where <built-in method subtracted of PySide6.QtGui.QRegion object at 0x0000019E96188600> = <PySide6.QtGui.QRegion(0,0 251x26) at 0x0000019E96188600>.subtracted\nE            +          where <PySide6.QtGui.QRegion(0,0 251x26) at 0x0000019E96188600> = QRegion(PySide6.QtCore.QRect(0, 0, 251, 26))\nE            +            where PySide6.QtCore.QRect(0, 0, 251, 26) = <built-in method rect of PySide6.QtWidgets.QPushButton object at 0x0000019E95A3EE40>()\nE            +              where <built-in method rect of PySide6.QtWidgets.QPushButton object at 0x0000019E95A3EE40> = <PySide6.QtWidgets.QPushButton(0x19e8dbafcf0) at 0x0000019E95A3EE40>.rect\nE            +                where <PySide6.QtWidgets.QPushButton(0x19e8dbafcf0) at 0x0000019E95A3EE40> = <src.analysis.ui.widget_slice_processing.WidgetSliceProcessing(0x19e98632c70) at 0x0000019E15C8D5C0>.apply_box_dims_button\nE            +        and   <PySide6.QtGui.QRegion(null) at 0x0000019E15C3EEC0> = <built-in method visibleRegion of PySide6.QtWidgets.QPushButton object at 0x0000019E95A3EE40>()\nE            +          where <built-in method visibleRegion of PySide6.QtWidgets.QPushButton object at 0x0000019E95A3EE40> = <PySide6.QtWidgets.QPushButton(0x19e8dbafcf0) at 0x0000019E95A3EE40>.visibleRegion\nE            +            where <PySide6.QtWidgets.QPushButton(0x19e8dbafcf0) at 0x0000019E95A3EE40> = <src.analysis.ui.widget_slice_processing.WidgetSliceProcessing(0x19e98632c70) at 0x0000019E15C8D5C0>.apply_box_dims_button\n\ntests\\test_slice_dimension_provenance_gui.py:47: AssertionError"
+    },
+    {
+      "name": "test_fresh_full_capture_pipeline_preserves_every_approved_scene",
+      "classname": "tests.test_capture_regression",
+      "message": "AssertionError: tmp\\issue135\\pytest_69dec2ad1dca4b39932d53b56bea2c71\\full\\run_report.json\nassert 'fail' == 'pass'\n  \n  - pass\n  + fail",
+      "details": "fresh_full = (WindowsPath('tmp/issue135/pytest_69dec2ad1dca4b39932d53b56bea2c71'), WindowsPath('tmp/issue135/pytest_69dec2ad1dca4b3...c71\\\\assets\\\\handling_only\\\\reference.json': '8243c2d64a744d9db146b04bfe2a64383639912e959b6d16b5da7323c5f98392', ...}})\n\n    def test_fresh_full_capture_pipeline_preserves_every_approved_scene(fresh_full):\n        root,source,report,isolation=fresh_full\n>       assert report['status']=='pass',str(root/'full/run_report.json')\nE       AssertionError: tmp\\issue135\\pytest_69dec2ad1dca4b39932d53b56bea2c71\\full\\run_report.json\nE       assert 'fail' == 'pass'\nE         \nE         - pass\nE         + fail\n\ntests\\test_capture_regression.py:471: AssertionError"
+    },
+    {
+      "name": "test_actual_step2_compare_and_scenario_export_reuse_fresh_results",
+      "classname": "tests.test_capture_regression",
+      "message": "AssertionError: assert 'fail' == 'pass'\n  \n  - pass\n  + fail",
+      "details": "fresh_full = (WindowsPath('tmp/issue135/pytest_69dec2ad1dca4b39932d53b56bea2c71'), WindowsPath('tmp/issue135/pytest_69dec2ad1dca4b3...c71\\\\assets\\\\handling_only\\\\reference.json': '8243c2d64a744d9db146b04bfe2a64383639912e959b6d16b5da7323c5f98392', ...}})\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019ED004D2B0>\n\n    def test_actual_step2_compare_and_scenario_export_reuse_fresh_results(fresh_full,monkeypatch):\n        from PySide6.QtCore import Qt\n        from PySide6.QtTest import QTest\n        from PySide6.QtWidgets import QApplication,QFileDialog\n        from src.analysis.app.main_window import MainApp\n        root,_,report,_=fresh_full\n>       assert report['status']=='pass'\nE       AssertionError: assert 'fail' == 'pass'\nE         \nE         - pass\nE         + fail\n\ntests\\test_capture_regression.py:535: AssertionError"
+    },
+    {
+      "name": "test_one_shot_cancel_keeps_successful_checkpoint_and_explicit_resume",
+      "classname": "tests.test_regression_evidence",
+      "message": "assert 1 == 0",
+      "details": "corpus = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/pytest-of-runneradmin/pytest-1/pub110/assets')\ntmp_path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/pytest-of-runneradmin/pytest-1/test_one_shot_cancel_keeps_suc0')\n\n    def test_one_shot_cancel_keeps_successful_checkpoint_and_explicit_resume(corpus,tmp_path):\n        selected=['two_drops-scene-0','two_drops-scene-1'];calls=[]\n        def cancelled():\n            calls.append(True);return len(calls)==2\n        first=run_corpus(corpus/'corpus.json',corpus,tmp_path/'interrupted',select=selected,cancel=cancelled)\n        assert len(calls)==2 and first['exit_code']==1\n>       assert first['coverage']['fresh']==first['coverage']['completed']==1\nE       assert 1 == 0\n\ntests\\test_regression_evidence.py:196: AssertionError"
+    }
+  ],
+  "explanation": "continue-on-error masks step conclusions; the final gate correctly uses raw outcomes. Initial progress claims of all-pass were incorrect and corrected.",
+  "immutable_files": {
+    "full_run_report.json": "b8e398ea00d5b180b57facd28f945ea76c98c4eac29d2db83b155b2b7d09f177",
+    "gate_run_report.json": "c279af12e5cb05c82356d7c9c4556ed559377b1c36844b2c12644ddbf5443e77",
+    "corpus_v2_assets/corpus.json": "47ba5cac0ac266e3989ea12920f8e47d745e5ae058b3188e1cbb6e771f55771d",
+    "corpus_v2_assets/handling_only/observed.csv": "459b3322998e405eeded6c298e25dcb985cb4f5f6107d152b718bd6fbbc409b2",
+    "corpus_v2_assets/handling_only/observed.synthetic.json": "5f3b80609a8d6edb38979d61ee807e02613c810743c330bf2582c131399af003",
+    "corpus_v2_assets/handling_only/reference.json": "8243c2d64a744d9db146b04bfe2a64383639912e959b6d16b5da7323c5f98392",
+    "corpus_v2_assets/handling_only/review.json": "df6d3a94fb5e0e832fb535a785bbf96338a81f124209322413dab80549552083",
+    "corpus_v2_assets/handling_only/truth_markers.csv": "20cce9c34c8010b3a8c1c32e22cd81479ca1136b2ad0e0aa4d8640c60d7a8ecd",
+    "corpus_v2_assets/handling_only/truth_pose.csv": "3387ae9b1ed17563e08f5dab09ca3d0836c87a26efe16a257c105fe945533e3d",
+    "corpus_v2_assets/partial/observed.csv": "2aad98e58c359c7cc255678751f4fbebbd3f32894b4860023a920f35e3eb2c09",
+    "corpus_v2_assets/partial/observed.synthetic.json": "6f2be471b3e60815f94b3e3ce098d6d6707d9e99211875dcd723f4cfbe44a582",
+    "corpus_v2_assets/partial/reference.json": "8b0bc9d1dc28a0e7572171d32cd939730f380050f39c3b682a8542f71cf11fc6",
+    "corpus_v2_assets/partial/review.json": "1b63b1921e6e5d8d3e6909adabcc10921e7b6a677600856d34d16c45236919c9",
+    "corpus_v2_assets/partial/truth_markers.csv": "0f2ea2814af6ddcae979ebe5bb9d2307608a9799781f49e12ea7d20a2a1f5cbb",
+    "corpus_v2_assets/partial/truth_pose.csv": "0e8d8db20f7fc25ced5be1fe7d17a2f24a247c3de48cd7482b3f3f48655988a2",
+    "corpus_v2_assets/supported_H/observed.csv": "ed721146ccbee66360003d16e53ceb800f6e22ea1bbb7e54334f0b4a3c5ec1c5",
+    "corpus_v2_assets/supported_H/observed.synthetic.json": "4ca22bed49f4be36e444dbd70fa9fd94512fbf9ffebbdf61f166aeffafe1b3ae",
+    "corpus_v2_assets/supported_H/reference.json": "4854eef5ac53c772b57cefd5becd0f79b333287425b06bbcc7cba9d9891aca71",
+    "corpus_v2_assets/supported_H/review.json": "0c0e3db22252dcc1df972ff908395d1723ba4c85eb8525e5d92e8e8bd85f1e63",
+    "corpus_v2_assets/supported_H/truth_markers.csv": "eb163c152e5f4006804c6729d56ee232468e4fc479bec77a56ecf6779e8dd371",
+    "corpus_v2_assets/supported_H/truth_pose.csv": "644d8a5396695eeaa8005f5aaf823d757964c60180748e1ecef04a541a2f7582",
+    "corpus_v2_assets/tracking_OFF/observed.csv": "490e54049dc10a592e5637265d0954e8c948bffeb503b914a5f0372de886a02f",
+    "corpus_v2_assets/tracking_OFF/observed.synthetic.json": "3e5bcfc3ae3256409ff5c0cd72f43854db7cbef031a16ed51bf03069998c2252",
+    "corpus_v2_assets/tracking_OFF/reference.json": "a3d30ac6df3c7d5635aa5c02ea540fc14159a74a875f10611a0e7ba95b332a14",
+    "corpus_v2_assets/tracking_OFF/review.json": "b3110639906c1059f2de941bd67f94432c11fe496e3f53094936a1f62de37b71",
+    "corpus_v2_assets/tracking_OFF/truth_markers.csv": "0053478c213db36e223705eab152221d6f8f34446784fcb855be77460ab8f957",
+    "corpus_v2_assets/tracking_OFF/truth_pose.csv": "18f0dd0f665a875d94d6b30e3fafdd5d19b8341182e5828e12d6d9c1831c9c87",
+    "corpus_v2_assets/two_drops/observed.csv": "ea153230fbdb1cd212fbe2e50a1d2b48e94c7ece8fd8862a0bed5d1941ca69aa",
+    "corpus_v2_assets/two_drops/observed.synthetic.json": "d3420080fcecb256cd70f355a26d1ff31576a60ea0acb73112a17d5737f67b14",
+    "corpus_v2_assets/two_drops/reference.json": "32084fce8e49073eaf9bf3dba5320d7a3ee9c5cdd2d105f6d5a4642dba1b070a",
+    "corpus_v2_assets/two_drops/review.json": "df6ed020abbabf4b16049b6329a9e6077334276edb73700479d3b20ac7bfc943",
+    "corpus_v2_assets/two_drops/truth_markers.csv": "92720aa2d9760559a984e8f39dc3d4a8247d63de48d7f2e79195b081ec477fc4",
+    "corpus_v2_assets/two_drops/truth_pose.csv": "ff2cae1dad039498312a3601b9b42db33662de407617a0bdd8c258b3e381b599",
+    "corpus_v2_assets/two_flips/observed.csv": "dd52655b098aa0c112ae8c8fbcf5ae12ef22f687145346855a8313a8778ed93e",
+    "corpus_v2_assets/two_flips/observed.synthetic.json": "c416319e6264d8eee0c3f40a0acbb23bbaa5243fdbe9f67d1a4465eab2ce1409",
+    "corpus_v2_assets/two_flips/reference.json": "a1c8819ac879a76791512b09332517be8f90b15d11f03055c915dc858d0ee9aa",
+    "corpus_v2_assets/two_flips/review.json": "cc76ac1f0541841a8a96f21ea75a46138a4fe569eabfd4a681797a450a67e796",
+    "corpus_v2_assets/two_flips/truth_markers.csv": "9f4358a6e62ca49b018a129e74a36cb991dcc7cf7786504814c799be95f06dc8",
+    "corpus_v2_assets/two_flips/truth_pose.csv": "4c9f862aeee89be21734d7c09df79f3727b2620863acf78d74f4dd80d4358eb3"
+  },
+  "original_archive": {
+    "file": "original_v2_assets_and_reports.zip",
+    "sha256": "a791f1322b697574f48f347f23a4c7cf059cca2d416d81a736db27c1ab82c0de",
+    "entries": 39
+  }
+}

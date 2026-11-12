@@ -340,6 +340,7 @@ class WidgetSliceProcessing(QWidget):
         self.log_group.setMaximumHeight(104 if self.width() >= 1300 else 90 if self.width() >= 950 else 80)
         right = 330 if self.width() >= 1300 else 300 if self.width() >= 950 else 270
         self.context_splitter.setSizes([max(280, self.context_splitter.width() - right), right])
+        QTimer.singleShot(0, self, self._reveal_missing_box_dimensions)
 
     def _reflow_settings(self):
         width = self.settings_scroll.viewport().width()
@@ -610,7 +611,13 @@ class WidgetSliceProcessing(QWidget):
         # The visible checkbox and button must fit the platform's actual font.
         self._update_context_minimum_width()
         self.layout().activate()
-        self.context_scroll.ensureWidgetVisible(self.apply_box_dims_button)
+
+    def _reveal_missing_box_dimensions(self):
+        if (self.slice_metadata is not None and not self._metadata_has_box_dimensions(self.slice_metadata)
+                and self.input_mode_combo.currentIndex() == 0
+                and self.apply_box_dims_button.isVisible() and self.apply_box_dims_button.isEnabled()):
+            self.context_scroll.widget().layout().activate()
+            self.context_scroll.ensureWidgetVisible(self.apply_box_dims_button)
 
 
     def _read_box_dimensions_from_inputs(self) -> tuple[float, float, float]:
@@ -792,6 +799,7 @@ class WidgetSliceProcessing(QWidget):
                 )
             self.append_log("[INFO] Slice parsed and ready for processing.")
             self.input_mode_combo.setCurrentIndex(0)
+            QTimer.singleShot(0, self, self._reveal_missing_box_dimensions)
             self.status_message.emit(self.result_status_label.text())
             return True
         except Exception as e:

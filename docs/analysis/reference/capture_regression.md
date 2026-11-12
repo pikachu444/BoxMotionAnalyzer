@@ -1,6 +1,6 @@
 # Capture regression (#135)
 
-Last Reviewed: 2026-10-13
+Last Reviewed: 2026-11-12
 
 PUB11 adds frozen required-case/tier protocols, explicit representative resume with verified identity/artifacts, common JUnit/JSON/summary and required CI inventories. Existing PUB02 baseline/tolerance and production guards remain. [Tier/CI contract](regression_evidence.md).
 
@@ -17,9 +17,9 @@ PUB11 adds frozen required-case/tier protocols, explicit representative resume w
 Run from the repository root on Windows:
 
 ```powershell
-.venv/Scripts/python.exe -m src.simulation.capture_corpus --output tmp/capture-assets-v2
-.venv/Scripts/python.exe -m src.analysis.regression.runner --manifest tmp/capture-assets-v2/corpus.json --asset-root tmp/capture-assets-v2 --output tmp/capture-full --tier full
-.venv/Scripts/python.exe -m src.analysis.regression.runner --manifest tmp/capture-assets-v2/corpus.json --asset-root tmp/capture-assets-v2 --output tmp/capture-one --tier representative --scene two_drops-scene-0
+.venv/Scripts/python.exe -m src.simulation.capture_corpus --output tmp/capture-assets-v3
+.venv/Scripts/python.exe -m src.analysis.regression.runner --manifest tmp/capture-assets-v3/corpus.json --asset-root tmp/capture-assets-v3 --output tmp/capture-full --tier full
+.venv/Scripts/python.exe -m src.analysis.regression.runner --manifest tmp/capture-assets-v3/corpus.json --asset-root tmp/capture-assets-v3 --output tmp/capture-one --tier representative --scene two_drops-scene-0
 .venv/Scripts/python.exe -m pytest tests/test_capture_regression.py -q --junitxml=tmp/capture-tests.xml
 ```
 
@@ -29,7 +29,7 @@ Approvals bind raw SHA256, original record bounds, raw time and neighboring obse
 
 ## Independent public corpus
 
-Immutable `public-analytic-corpus-v2`, seed 135001, has six captures/552 Raw records and six included scenes/452 result records. The public example uses 18 asymmetric markers and a 200×120×80 mm box. It is not an experimental standard. Floor is world Y=0 mm, rotations map local to world. Time=`10+0.01*record` seconds; Frame=`1000+3*record` cannot substitute for time or identity.
+Current `public-analytic-corpus-v3` (retaining immutable v1/v2 history), seed 135001, has six captures/552 Raw records and six included scenes/452 result records. The public example uses 18 asymmetric markers and a 200×120×80 mm box. It is not an experimental standard. Floor is world Y=0 mm, rotations map local to world. Time=`10+0.01*record` seconds; Frame=`1000+3*record` cannot substitute for time or identity.
 
 | Capture | Raw records | Included [start,end) | Independent motion |
 | --- | ---: | --- | --- |
@@ -75,3 +75,11 @@ Failure controls cover scene deletion, candidate split/merge/missing/ambiguity, 
 Initial production/scenario preservation:212passed. Independent Loader/artifact/correction/Compare/workspace/header rerun:109passed. Required public CI retains existing GUI/collision/continuity checks and adds new full integration, truth isolation and failure tests.
 
 Implementation, independent software review and source-head required CI are complete; PR #146 is merged. See [current publication and pending scope](pub_delivery_status.md). Actual Qt MainApp Step2 loads six fresh outputs, selects a sample, clicks the actual scenario export button and opens Compare; bytes/source hashes agree. GUI reuses6 proc/fresh0. Reviewed local screen2560×1440/DPR1.0/window1510×800. New-corpus native Step1/1.5 fresh processing and native save chooser remain pending. The local 3-D viewport was black, with cause unconfirmed, so visual playback is pending too. Existing GUI preservation evidence has separate scope. Experimental accuracy/physical calibration remains #104 pending.
+
+## #188 FinalFace availability migration
+
+The new producer supplies the existing stable-height-tail six-face rotation-mean diagnostic. Historical v2 expected this field to be unavailable because no producer emitted it. Version3 explicitly changes only `final_face` from unavailable to `BOTTOM` for `two_drops-scene-0`, `two_drops-scene-1` and `supported_H-scene-0`.
+
+Independent GPT-6.1 Sol/xhigh review derived the values from the declared analytic motion before fresh v3 execution. Each two_drops scene has28 identity rotations at zero minimum height. The supported_H edge pivot also has zero minimum height, while its tail angles lie in[0,.18]rad; their unique mean remains nearest BOTTOM. Height stability does not establish rotational rest. All raw CSV hashes, trajectories, other metric expectations, approvals, intervals and tolerance bounds are preserved. The v1→v2 migration remains in history.
+
+V3 preflight requires the separately approved semantic migration and matching review records in its references. V2 remains readable with its original expected values; it is not silently upgraded. New assets use a new directory. The failed hosted v2 attempt and original assets are retained under [the #188 execution record](../../visualization/gui_metric_parity/execution_evidence/ci_43140730694/README.md). This is synthetic software-oracle maintenance, not measured calibration or a new physical acceptance limit.

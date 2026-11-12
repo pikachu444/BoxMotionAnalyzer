@@ -68,15 +68,25 @@ def cache_identity(fixture, corpus, code, runtime):
 
 
 def capture_protocol(manifest, root, tier, select, code, runtime, loads=None):
-    """Explicit adapter for PUB02 v2. Unsupported inventories need a reviewed protocol."""
+    """Explicit adapters for reviewed PUB02 v2/v3 with unchanged required populations."""
     from .runner import approval_check, validate_tolerance, ReferenceMissing
-    if manifest['version'] != 'public-analytic-corpus-v2':
+    if manifest['version'] not in ('public-analytic-corpus-v2', 'public-analytic-corpus-v3'):
         raise ValueError('No approved required-case adapter for corpus version.')
     if sorted(c['case_id'] for c in manifest['cases']) != sorted(CAPTURE_CASES):
         raise ValueError('Required capture case population differs, including excluded-only files.')
     if sorted(manifest['approved_scene_ids']) != sorted(CAPTURE_SCENES):
         raise ValueError('Required approved scene population differs.')
     approval_check(manifest['approval'], 'Corpus')
+    migration_review = None
+    if manifest['version'] == 'public-analytic-corpus-v3':
+        migration = manifest.get('baseline_migration', {})
+        if (migration.get('previous_version') != 'public-analytic-corpus-v2'
+                or migration.get('next_version') != manifest['version']):
+            raise ValueError('FinalFace semantic migration version differs.')
+        migration_review = migration.get('review')
+        if not isinstance(migration_review, dict):
+            raise ValueError('FinalFace semantic migration review is missing.')
+        approval_check(migration_review, 'FinalFace semantic migration')
     specs = []
     for entry in manifest['cases']:
         path = Path(entry['fixture'])
@@ -129,6 +139,8 @@ def capture_protocol(manifest, root, tier, select, code, runtime, loads=None):
                 type(reference['sample_count']) is not int or reference['sample_count']!=len(raw)):
             raise ValueError('Required baseline generator/seed/source sample population differs.')
         approval_check(reference['approval'], 'Reference')
+        if migration_review is not None and digest(reference.get('semantic_migration_review')) != digest(migration_review):
+            raise ValueError('FinalFace reference semantic migration review differs.')
         if reference['raw_sha256'] != fixture['raw_sha256'] or digest(reference['geometry']) != digest(fixture['geometry']):
             raise ValueError('Reference source/frame/geometry mismatch.')
         scenes = [d for d in fixture['scene_decisions'] if d['decision'] == 'include']
@@ -155,7 +167,7 @@ def capture_protocol(manifest, root, tier, select, code, runtime, loads=None):
                 and (not select or d['review_id'] in select), expected=reference['scenes'][d['review_id']]['metrics']) for d in scenes]))
     if sorted(s['review_id'] for c in specs for s in c['scenes']) != sorted(CAPTURE_SCENES):
         raise ValueError('Corpus/fixture approved scene set mismatch (deletion/addition).')
-    return envelope('EvaluationProtocol', version='pub11-capture-scope-v1', adapter='public-analytic-corpus-v2',
+    return envelope('EvaluationProtocol', version='pub11-capture-scope-v1', adapter=manifest['version'],
                     tier=tier, required_cases=list(CAPTURE_CASES), approved_scene_ids=list(CAPTURE_SCENES),
                     selected_scene_ids=list(select or CAPTURE_SCENES) if tier not in ('fast', 'capture') else [],
                     cases=specs, numeric_comparisons_required=tier not in ('fast', 'capture'))
