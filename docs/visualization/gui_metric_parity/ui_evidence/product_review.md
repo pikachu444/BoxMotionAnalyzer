@@ -199,3 +199,34 @@ These repeated UI conditions are not 434 independent physical or numerical cases
 This late check ran no pipeline, optimizer or solver, did not perform an external
 desktop click, and adds no OS125 or human-acceptance claim. No blocking defect was
 observed in this late Selected series scope.
+
+## Controlled Qt platform diagnosis
+
+Two later narrow-window assertions failed in a 40-test run which specified
+`QT_OPENGL=desktop` but did not specify the Qt platform. Collection imports
+`tests/test_results_analyzer_experiment_summary.py`, whose existing module-level
+`os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')` selects offscreen before
+QApplication is created. Desktop OpenGL alone does not select the Windows platform.
+
+The read-only Qt 6.12 probe measured actual platform **offscreen**, Sans Serif 9pt:
+the processing split changed `[438,366]` to `[464,340]` after mode/reload and its
+live content-derived explicit minimum changed 366 to 296. The CAE scroll viewport
+was 254px while content and the new checkbox minimum were 360px. These reproduce
+both reported assertions. No VTK viewer was created by this offscreen probe.
+
+The same plot-only probe on actual platform **windows**, with the existing native
+9pt font, retained processing split `[528,275]`; its explicit minimum was 240px.
+CAE viewport/content were both 241px and the checkbox minimum was 180px. The exact
+two assertion nodes also passed independently in the controlled Windows setting.
+
+The full unchanged five-file, 40-test order was then run on source `593c669` with
+both `QT_QPA_PLATFORM=windows` and `QT_OPENGL=desktop`. The actual QApplication
+platform was printed as **windows** before `pytest.main`. Result: **40 passed,
+zero failed in 53.98s**, exit code 0. The JUnit output is
+`tmp/parity-affected-windows-control.xml`; the persistent measured evidence and
+exact file order are in `product_qpa_control_qt612.json`.
+
+No product correction, font/OS change, test edit or weakened assertion was used.
+This result establishes the controlled declared native Windows Qt configuration;
+it does not relabel the failed offscreen run as passing. The checker process exited
+before GUI ownership was handed back to the main agent.
