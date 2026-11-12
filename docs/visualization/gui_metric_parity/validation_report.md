@@ -6,7 +6,7 @@ This record covers public software behavior and generated analytic inputs. It do
 
 ## Source and environment
 
-The implementation started from public main `20dd4ce53a6d401fd6e219d6086b7600dba35ad7` (PR #186), the exact #188 baseline. The fixed implementation revision is `28ff53a4c92f7897ae68e445228a820dbdf633a2`; its file hashes are recorded in `adoption_manifest.json`; required definitions and actual producer identities are recorded in `metric_contract.json`. Local verification uses Windows, Python3.13 and the declared project dependencies. Exact observed versions and final command receipts are added below before publication.
+The implementation started from public main `20dd4ce53a6d401fd6e219d6086b7600dba35ad7` (PR #186), the exact #188 baseline. The fixed implementation revision is `1da5ce51833daf0e9f8946141972124765220870`; its file hashes are recorded in `adoption_manifest.json`; required definitions and actual producer identities are recorded in `metric_contract.json`. Local verification uses Windows, Python3.13 and the declared project dependencies. Exact observed versions and final command receipts are added below before publication.
 
 ## Independent verification and corrections
 
@@ -81,7 +81,7 @@ The independent UI reviewer reproduced both affected-layout failures exactly und
 
 The unchanged affected40-test native Windows control passed40/40 in53.98s (exit0). The measured platform/font/geometry comparison is in `ui_evidence/product_qpa_control_qt612.json`; `execution_evidence/parity-affected-windows-control.xml` retains JUnit execution. No source or test assertion was changed for this correction of the execution configuration. Diagnostic logs normalize trailing blank spacing only.
 
-Publication is tracked in [PR #197](https://github.com/pikachu444/BoxMotionAnalyzer/pull/197). Both complete required hosted workflows must succeed on the same final head before merge. The final source pin28ff53a includes the subsequent comparison-selection correction; earlier593c669 UI/numerical evidence retains its historical scope; immutable workflow receipts and merge lifecycle are maintained on that PR.
+Publication is tracked in [PR #197](https://github.com/pikachu444/BoxMotionAnalyzer/pull/197). Both complete required hosted workflows must succeed on the same final head before merge. The final source pin1da5ce5 includes the comparison-selection and Diagnostics corrections; earlier593c669 and28ff53a UI/numerical evidence retains its historical scope; immutable workflow receipts and merge lifecycle are maintained on that PR.
 
 ## Broader comparison selection correction
 
@@ -92,3 +92,20 @@ The final correction synchronizes the numeric file column or Contact file row be
 The GPT-6.1 Sol xhigh auditor found no product blocker. It caught an added assertion that assumed a numeric column while Contact mode was active; the test was corrected to assert the Contact row and then explicitly switch modes. The42-case correction execution had41 passes and only that assertion failure; final targeted verification is recorded below. Failed/interrupted diagnostic text is retained in `execution_evidence/parity-check02-native-final.log`, `parity-legacy-comparison-before.log` and `parity-comparison-correction.log`. The pre-correction hosted public run43136164166 was canceled; it is not counted as a successful gate.
 
 Final corrected targeted command: `QT_QPA_PLATFORM=windows QT_OPENGL=desktop python -m pytest tests/test_comparison_layout.py::test_calibration_badge_and_time_tooltip_follow_current_view -q` passed1/1 in4.09s, exit0. The same UI reviewer then passed106/106 native Qt/QTest conditions on fixed source28ff53a with real graph/playback widgets: both selection directions, Contact/numeric modes, distinct graph payload, missing-clock Sample state, baseline, removal and reordered reload. See `ui_evidence/product_selection_sync_qt612.json` and the two final captures. No optimizer/solver was run by this bounded UI check; no async Qt error or source drift occurred. The42-case correction run's real22-call Raw receipt was also byte-equivalent as parsed JSON to the independent saved-artifact receipt.
+
+## Complete comparison diagnostic migration
+
+A final caller search and independent audit found additional legacy tests expecting raw reasons in Experiment info or default tooltips. Their numerical/count/category oracles remain unchanged; assertions now open Diagnostics and verify the original evidence there, while requiring the raw text to be absent from defaults. No test node was removed or replaced by a skip.
+
+The audit also identified source omissions: raw selected-cell details had been stored for tooltips but were not forwarded to Diagnostics in every mode, graph/playback title tooltips still exposed full paths, and top/playback alignment tooltips directly displayed untyped reason strings. The final source forwards original selected-cell text to read-only Diagnostics, keeps paths in internal properties/explicit Diagnostics, and uses short names and localized general explanations in default views. It does not parse those explanations into eligibility or change model values, status, count, gap or source-time policy. Cell-specific tests isolate the Selected table cell block and exclude the all-metric owner dump, so another metric cannot satisfy an assertion.
+
+The same GPT-6.1 Sol xhigh auditor rechecked these corrections and found no remaining material blocker in the scoped migration. Actual execution:
+
+| Native Windows command (QT_OPENGL=desktop) | Result |
+|---|---|
+| `python -m pytest tests/test_gui177_compare.py tests/test_comparison_layout.py tests/test_impact_comparison_gui.py tests/test_contact_comparison_gui.py tests/test_comparison_gui.py tests/test_gui_metric_parity_workflows.py -q` |51/51 passed,0 failed/skipped,196.46s,exit0 |
+| `QT_SCALE_FACTOR=1.25 python -m pytest tests/test_impact_comparison_gui.py tests/test_contact_comparison_gui.py tests/test_comparison_gui.py tests/test_metric_variants_gui.py tests/test_comparison_reference_gui.py tests/test_gui177_compare.py::test_c02_owner_alignment_exclusion_is_visible_and_not_pooled -q` |13/13 passed,0 failed/skipped,139.32s,exit0; final strict cell-block checks and final playback tooltip correction |
+
+Both commands explicitly set `QT_QPA_PLATFORM=windows`. JUnit receipts are in `execution_evidence/parity-all-comparison-final.xml` and `parity-diagnostics-scaled-final.xml`. The13-case run includes actual retained Qt/VTK screenshots and unchanged baseline/repeat/conflict arithmetic. Source1da5ce5 changes presentation and tests; numerical producers/reducers and their independently checked inputs/tolerances remain unchanged. Pre-correction hosted public run43137843387 was canceled rather than reported as a successful gate.
+
+Final source collection gate: `python -m src.simulation.ci_evidence prepare --output tmp/issue188-final-publication-freeze` completed with exit0; all12 jobs still exactly match the frozen inventory, including1,994 check02 nodes. This confirms population preservation, not whole-suite execution.

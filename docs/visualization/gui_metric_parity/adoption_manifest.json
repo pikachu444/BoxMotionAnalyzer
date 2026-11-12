@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_revision": "28ff53a4c92f7897ae68e445228a820dbdf633a2",
+  "source_revision": "1da5ce51833daf0e9f8946141972124765220870",
   "baseline_revision": "20dd4ce53a6d401fd6e219d6086b7600dba35ad7",
   "files": [
     {
@@ -40,13 +40,18 @@
     },
     {
       "path": "src/analysis/compare/main_window.py",
-      "sha256": "5b093c313dc3b53b87e5cfd6a72114b2b291fe9dbe164df279c2ed4e4f17e2d0",
-      "validated_checkout_sha256": "806ee494b766e679137d3309ef392c3cd0a0e135dbdb13c2b0c0318f6d0c38e6"
+      "sha256": "80c844790810f8129bb67198de075a13afb2b58abaa10a542282b465279f048c",
+      "validated_checkout_sha256": "61b6fe84224760c1575aeb3a6f165babfecd52137636d50323d3576ddcf7b51d"
     },
     {
       "path": "src/analysis/compare/metric_guide.py",
       "sha256": "86fb3293b30ae673278b9543d0da68bb837fbacca4b2ac6898138ef433b9d3e1",
       "validated_checkout_sha256": "5fcc1b234afda7bd91767769c4cc27c6909e4e32b16601fbdc05a876c5aad0df"
+    },
+    {
+      "path": "src/analysis/compare/playback_panel.py",
+      "sha256": "03c08d76688f7fd6d85a556f126d4266cbf6912abc20d3b8d46bda0c5dbeb3e5",
+      "validated_checkout_sha256": "4466f6ad2b3378719faaaeb640f855fee32be31715a07153db6472c547fb4f3c"
     },
     {
       "path": "src/analysis/compare/summary_metrics.py",
@@ -55,8 +60,8 @@
     },
     {
       "path": "src/analysis/compare/ui_panels.py",
-      "sha256": "c2b7aa8815184f552e9de01a1a7a057ea8321ee5057abeea46e8b64b4ea4a50b",
-      "validated_checkout_sha256": "3360ab8ff66e67cd7bfc2c4ed9bf95c80947078e7d46d01dff06e7b81fc106f8"
+      "sha256": "c62f9900847f9e2eb26872b3b2a52b3c9c1da4096c2701629dbb498487a4bab1",
+      "validated_checkout_sha256": "1395f8edcf2dbe4d8254490e195cfa50102100ebdf2020b6c488f1f0814416fa"
     },
     {
       "path": "src/analysis/pipeline/contact_reducers.py",
@@ -150,8 +155,8 @@
     },
     {
       "path": "src/utils/ui_text_ko.py",
-      "sha256": "d3290470659b12fbf6d658704d1ecc67fe231b8db41c8f114046235757f22f90",
-      "validated_checkout_sha256": "04a5bb6c695e216d91b215d6ac8fe09f6b87ee1e2f44ebf29f827b95c38dd295"
+      "sha256": "443a3949c4c6a5f53be28366f8fa607ff669d6a0b175272629a564a65da9e04e",
+      "validated_checkout_sha256": "7769171e74126a5753540e8bf001a09df31d2b581f79fd96d71e923b1cc88f0f"
     },
     {
       "path": "tests/gui_metric_parity_fixtures.py",
@@ -164,9 +169,14 @@
       "validated_checkout_sha256": "5e6de739b641dbbfd5f5bc8b8b82bf407cd9625bcd38fd7b3b534761dc6e9a49"
     },
     {
+      "path": "tests/test_comparison_gui.py",
+      "sha256": "1c717e7916b9cca36b4adcc9e9bf7a3f0ca53f15180ad5911114cf94927e252c",
+      "validated_checkout_sha256": "4d4b29d987c885fcf5c17b65079df880f4c35629f19e25caa1dc75c129a00826"
+    },
+    {
       "path": "tests/test_comparison_layout.py",
-      "sha256": "fd86f906043d7b6dc1cf726377481b348fb40a30aa929363dc975bcc58e6997c",
-      "validated_checkout_sha256": "e14310090a373aec1eb28f3ae0ead6dbb0343fbc18ab2f57aed2236bdeb240d8"
+      "sha256": "f8f80d14c0ccbd6beead536f6e38f88581341964a8a219f5c943552c6bbdc79e",
+      "validated_checkout_sha256": "101635d799e5088a0b7d546ad5c0c3dfa516e50c6e1fedc72c5fa5977a92b693"
     },
     {
       "path": "tests/test_comparison_reference_gui.py",
@@ -174,9 +184,14 @@
       "validated_checkout_sha256": "99f7e448222b4c87da077a0173fc48574d84ac1d509fa9223d4fe19a3cd7bafd"
     },
     {
+      "path": "tests/test_contact_comparison_gui.py",
+      "sha256": "5f440fe32edc7860ca557fa112ef01f46b098b994a930c11542f0f65c1237b52",
+      "validated_checkout_sha256": "a911637b4ff17d3f89b775e0528031a8d9b224185c1acbbc4aa4087ba36388e5"
+    },
+    {
       "path": "tests/test_gui177_compare.py",
-      "sha256": "44795fbdd7769c0e5b1d554048c8f59efcda0b2d37ea0381616d83beb8cc42d9",
-      "validated_checkout_sha256": "899dce686136b82332ec74b6ab40417e845beafed03214b1d30e6ad2d33cce69"
+      "sha256": "e7fbadd84a26a22cb772ca3e278edeb37f6fb9a0aed3cecf2bc96dca5294a4c3",
+      "validated_checkout_sha256": "835c1e7d9a669063aa5f744cde74d89569e6653f1d9df93444224af80cd5f132"
     },
     {
       "path": "tests/test_gui177_processing.py",
@@ -197,6 +212,16 @@
       "path": "tests/test_gui_metric_parity_workflows.py",
       "sha256": "c4f846f14f847fbd64e0189ca255a422805bec0f634f86dedba668e8027e9de3",
       "validated_checkout_sha256": "de1c11c23db2c65f360e7f1fe6a53d0a2eba13babbc463edc6cef27160fcd26e"
+    },
+    {
+      "path": "tests/test_impact_comparison_gui.py",
+      "sha256": "ae2cb93402ff24d643dcdb6c21aa83a09fd9c1dfcb8475511704d65e04fbbae5",
+      "validated_checkout_sha256": "b728ff0736267841f38d895a4913c1d19b9fb88aa45b22ac65e0200074d67cb7"
+    },
+    {
+      "path": "tests/test_metric_variants_gui.py",
+      "sha256": "85310b25bd64f13d36a575246649965d67fae9e00a2a4dc2683cbe18e640875a",
+      "validated_checkout_sha256": "5c7c8456a6868236c402536a58e86e18a3adb4d5e425c9a06c9d2a87e51a00cb"
     },
     {
       "path": "tests/test_results_analyzer_experiment_summary.py",
