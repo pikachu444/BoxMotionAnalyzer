@@ -1,6 +1,14 @@
 # Public follow-ups #198–#200
 
-Last Reviewed: 2026-11-12
+Last Reviewed: 2026-11-16
+
+## Current status (2026-11-16)
+
+#198/#199 are resolved by PR #201. #200 closed on 2026-11-16 with the existing processed-row FinalFace policy retained. No original-five observation gate or new numerical policy is requested. #104 closed as unperformed; independently measured accuracy remains unverified.
+
+## Historical implementation and CI record (2026-11-12 checkpoint)
+
+All sections below preserve the original intake, local checks and hosted-inventory correction. Statements that #200 remains open or final CI/merge is pending describe those checkpoints, not current action items. Counts, failures and source-bound results are unchanged.
 
 Baseline: main `fc1a624dd66fc24a12bf5a35901991d23d5dc194`, PR #197.
 The open issues were checked against the current remote main and open PRs;

@@ -1,6 +1,6 @@
 # 소프트웨어 설계 문서 (현재 기준): Box Motion Analyzer GUI
 
-Last Reviewed: 2026-11-12
+Last Reviewed: 2026-11-16
 
 #188 keeps numeric validity in existing producers and comparison owners. `compare.summary_metrics` resolves context-qualified display values, `contact_reducers` supplies stable-tail/net-path reducers, and `shared_metric_guide` renders one registry for both hosts. UI typed context is separate from raw Diagnostics. [Public contracts and same-source adoption](../../visualization/gui_metric_parity/adoption_readme.md).
 
@@ -225,7 +225,7 @@ canonical-exact-v1은 유한 float와 정규화된 범주를 정확히 비교한
   - `ImpactEvent`가 없으면 `t1-` 기반 summary는 만들지 않고, 접촉 없는 구간도 frame metric과 max summary는 유지한다.
 - `result_metric_descriptors`
   - Drop Posture summary UI label, tooltip, metric guide 설명, visual guide id를 정의한다.
-  - Step 2 `3. Drop/Impact Summary`와 향후 compare window가 같은 설명 기준을 재사용하게 한다.
+  - Step 2와 Compare의 `Metric guide`는 `shared_metric_guide.SharedMetricGuideDialog`와 공통 지표 registry를 재사용한다. 화면별 context에 맞는 항목을 표시하며, Drop Posture summary와 tooltip의 설명은 공통 descriptor를 따른다.
   - `ReferenceFace` descriptor는 접근(Approach) 자세 기준면임을 명시한다. 실제 충격 코너는 `FirstImpactContact`가 별도 기록한다.
   - `SustainedContact` 상태는 UI에서 `Stable floor contact`로 표시한다.
 

@@ -1,6 +1,12 @@
 # PUB01–PUB12 delivery and evidence status
 
-Last Reviewed: 2026-10-13
+Last Reviewed: 2026-11-16
+
+## Reading this record
+
+The current-status section below incorporates later scoped completion records in [the analysis handoff](../design/implementation_todo.md). All other audit descriptions, issue labels, source hashes, CI results and completion rules retain the historical 2026-10-13 checkpoint and its fixed source. They are not a current OPEN-issue list or a new execution claim.
+
+## Historical PUB12 audit (2026-10-13)
 
 Plan Spec: `ISTA6A-PLAN-20261001-v1`. This is the PUB12 audit for
 [#134](https://github.com/pikachu444/BoxMotionAnalyzer/issues/134) and
@@ -115,22 +121,29 @@ must be new. Representative without `--scene`, fast/capture with selection,
 missing required input and experimental without measured sources return nonzero.
 No new migration, baseline/tolerance or contact-parameter promotion is performed.
 
-## Remaining acceptance and completion rule
+## Current status (2026-11-16)
 
 | Follow-up | Status, reason and required input/environment |
 | --- | --- |
-| PUB02 native GUI | New-corpus Step1/1.5 fresh processing, native chooser and 3D visibility pending; earlier local black viewport cause unconfirmed. Interactive Windows screen/activation and actual input needed. #135 software closure does not close this scope. |
-| #136–#139 native | Issues remain OPEN. Black captures/activation failures prevented external screen/input acceptance; #139 GetCursorPos access denied. Widget grabs, QTest and Qt process1.25 do not verify actual Windows OS125. Repeat declared minimum/FHD/target states and save/cancel/retry on an accessible interactive desktop. |
-| #140 native/numerical | Issue remains OPEN. Native viewer/input/OS125 and additional diagnostic bound promotion pending. Virtual operational controls were confirmed; further numerical/baseline/trial approval requires explicit review. |
-| PUB08–10 numerical/model | Software issues CLOSED; proposed event/solver/noise thresholds, camera/contact calibration and measured accuracy pending. Chronological t2, PUB09 missed endpoints, PUB10 ambiguous/unavailable remain unchanged. |
-| [#104](https://github.com/pikachu444/BoxMotionAnalyzer/issues/104) | OPEN: independently calibrated dimensions/frames, measured contact/trajectory, labels and synchronized evidence required. No validated measured dataset here; experimental tier blocked. Private captures/video/measurements are not published. |
-| #113 / [#152](https://github.com/pikachu444/BoxMotionAnalyzer/issues/152) | #113 excluded, not completed. #152 language selection separate and deferred, not a child/completion condition of #134. |
+| PUB02 native GUI | The later handoff still separates fresh Step1/1.5 native processing, chooser and 3D inspection from reused-output checks. No new completion claim is made here; #135 software closure is not exhaustive native acceptance. |
+| #136–#138 native | Read each issue's scoped follow-up in [the handoff](../design/implementation_todo.md). Earlier OPEN labels and activation failures are historical; this summary does not establish current issue state or completion of every native scenario. |
+| #139 / PUB06 native | Follow-up records actual Windows input at 100% for mode switching and at 125% on 2560×1440 for the selected/excluded preview, Apply, Run/Marker CSV enablement and live viewer. This is the documented scope, not exhaustive minimum/FHD/save/cancel/retry or human acceptance. |
+| #140 / PUB07 native/numerical | Follow-up records the live viewer and selected G export at Windows 2560×1440/125%. Focused sequence checks are separate from native coverage. No blanket native-pending claim remains; numerical/baseline promotion and measured physical accuracy are not established. |
+| PUB08–10 numerical/model | Delivered software does not approve proposed event/solver/noise thresholds or establish measured camera/contact accuracy. Historical missed/ambiguous/unavailable outcomes remain evidence, not newly successful results. |
+| #104 | CLOSED as unperformed: independent measured references were unavailable. Real calibration and measured accuracy remain unverified. Closure does not create a measured-validation success or an outstanding software obligation. |
+| #113 / #152 | #113 registration remains excluded by user decision. #152 language selection is implemented: Options stores English/한국어 for next start; Apply/Cancel preserve current work. It remains independent of #134/#140, not a deferred dependency. |
 
-PUB12 can complete after accurate mapping, link/CLI/schema validation, independent
-read-only audit corrections and final-commit required CI/merge. Those conditions
-do not require converting the above waits into success. #134 remains OPEN.
-Publication, final commit CI, merge/main CI and #145 closure are updated in #145
-after they happen; this document does not predict them or create a commit loop.
+Historical failures (2026-10-13): PUB02 black-viewport cause was unconfirmed; #136–139 had black captures/activation failures, including #139 GetCursorPos access denied. These records remain historical evidence.
+
+## Historical PUB12 completion rule (2026-10-13)
+
+The rule and issue states below belong to that checkpoint, not current status:
+
+> PUB12 can complete after accurate mapping, link/CLI/schema validation, independent
+> read-only audit corrections and final-commit required CI/merge. Those conditions
+> do not require converting the above waits into success. #134 remains OPEN.
+> Publication, final commit CI, merge/main CI and #145 closure are updated in #145
+> after they happen; this document does not predict them or create a commit loop.
 
 Main requested GPT-6.1 Sol/high; the running session has no authoritative model/
 effort introspection, so actual routing is **unverified**. Independent review is

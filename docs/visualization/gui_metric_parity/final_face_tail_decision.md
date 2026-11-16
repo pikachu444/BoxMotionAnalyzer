@@ -1,6 +1,14 @@
 # FinalFace tail support decision record (#200)
 
-Last Reviewed: 2026-11-12
+Last Reviewed: 2026-11-16
+
+## Current decision (2026-11-16)
+
+#200 is closed. Retain the existing processed-row FinalFace policy: the final processed tail requires five usable processed rows, which may include interpolated rows. They are not five independent observations and do not establish physical settling or experimental acceptance. No original-observation-support gate, new threshold or product change is requested. #104 closed as unperformed; measured accuracy remains unverified.
+
+## Historical characterization and alternatives (2026-11-12)
+
+The awaiting-decision wording, recommendations and alternatives below are retained as decision history. They are not the current policy or a request to reopen either option.
 
 Status: **Awaiting user policy decision.** This record characterizes current
 behavior; it does not approve a new numerical policy or close #200.
