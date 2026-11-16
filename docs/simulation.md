@@ -1,6 +1,6 @@
 # 박스 낙하 시뮬레이션 문서
 
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-11-16
 
 #140 backend development introduces opt-in `RobotSequenceEngine` and explicit
 `RobotExecutionPlan` profiles; existing config-only plans remain blocked. One
@@ -75,6 +75,14 @@ GUI의 Run과 Run all presets는 `.proc`를 직접 내보낸다. `Marker CSV…`
 
 공통 history adapter는 실제 `data.time`과 월드 변환 `A @ R`을 사용하고 로컬 축·body origin·COM을 구분한다. 로컬 Qt 실행은 생성 창 1000×700, Step 1 1510×800, DPR 1.25에서 정상·누락·반회전 63표본을 열고 정답 파일 접근 차단, 배치 변경 후 이전 출력 열기, 기존 창 보존, 취소·오류·덮어쓰기 거부를 확인했다. 좌표 기대값은 선언한 배치와 변환에서 독립적으로 구했다. 관련 25개 검사와 기존 직접 export 41개가 통과했다. [작은 배치안](visualization/synthetic_marker_export_layout.md)을 사전 검토한 뒤 구현했다. 독립 리뷰와 최종 CI 상태는 #114 PR에서 기록한다. 합성 검증이며 실측 교정은 #104에 남는다.
 
+### 고급 초기조건·접촉·관측 프로필 (API/CLI)
+
+기존 GUI 기본값과 별개로, API/CLI에서는 명시적 초기 위치·자세·속도와 접촉·관성 프로필을 사용할 수 있다. 제한된 접촉 프로필 적합과 holdout 평가의 사용법·제약은 [초기조건·접촉 교정 안내](analysis/reference/contact_calibration_contract.md)를 따른다. 임의 초기조건·관성·접촉 프로필을 편집하는 새 GUI가 추가된 것은 아니다.
+
+고급 [가상 관측 모델](analysis/reference/observation_model_contract.md)은 정적 직교 카메라·면 가시성, 그룹 단위 가림, 실제 시간 간격을 사용하는 stationary OU 잡음을 선택적으로 지원한다. 프로필을 API/CLI로 작성·선택한 뒤 저장한 설정은 기존 `Open settings` → `Use in Simulation` → `Marker CSV` → `Open in Step 1` 흐름에도 연결된다. 새 카메라·OU 전용 GUI 편집기나 기본 자동 선택은 없다. API와 CLI 명령은 연결된 안내를 따른다.
+
+기본 `physical_only`의 가시성 마스크는 물리 `Marker` 채널에 적용되며 분석이 소비하는 `Rigid Body Marker`에는 전파되지 않는다. 명시적 `visibility-mask-to-solved-v1`만 새 마스크를 solved 채널로 전달한다. OU 잡음은 별도로 채널을 지정한다. 이 모델은 미교정 가상 관측이며 OptiTrack 광학계나 Motive solver의 응답 모델이 아니다.
+
 ### 오류 구간을 지정한 관측 생성 (#82)
 
 `python -m src.simulation.corruption_export --trajectory tmp/trajectory.json --spec tmp/faults.json --example 18 --seed 42 --output tmp/new_observation`은 독립 시간·자세 궤적에 지정한 가림, 정지, 재연결 점프, 노이즈, ID 교환과 강체 추정의 반회전을 적용한다. 기존 고정 예제 밖의 오류 구간을 재현할 때 사용한다. 입력 형식과 연산 순서는 [fixture 계약](analysis/reference/marker_flip_fixture_contract.md#general-observation-specification-82)에 있다.
@@ -111,7 +119,7 @@ Step 1에서 `observed.csv`를 열고 사용한 profile의 `box_dims_mm`를 `Box
 ### 2.2 표준 낙하 시나리오 (`src/simulation/scenarios.py`)
 국제 포장 화물 테스트 규격(예: ISTA, ASTM 등)을 참고하여 다양한 낙하 자세(Orientation)를 쿼터니언(Quaternion) 형식으로 제공합니다.
 
-현재 목록이 ISTA 절차를 재현한다고 검증된 것은 아니다. Type H의 지지·기울임·해제 동작은 구현되지 않았고, Type G 17번에는 hazard block 형상이 없다. 편심 COM을 넣은 박스의 표준 접촉 자세도 별도 검토가 필요하다. 아래 목록은 현재 제공하는 자세 기능을 설명한다.
+아래 Single drop 목록은 낙하 자세 프리셋이며, 완전한 ISTA 절차를 재현한다고 검증된 것은 아니다. 이 목록의 Type H 자세만으로 지지·기울임·해제 절차가 실행되는 것은 아니다. 별도 Robot sequence의 `floor_supported` 가상 template에는 바닥 지지점을 둔 기울임과 지지 확인 후 해제가 구현돼 있다. 이는 실제 Type H 장치·절차의 재현이나 적합성 보증이 아니다. Type G 17번 hazard block은 미지원이며, 편심 COM 박스의 표준 접촉 자세도 별도 검토가 필요하다. [Robot sequence의 범위와 제한](analysis/reference/robot_sequence_contract.md)을 참고한다.
 
 - **면 낙하 (Face Drop):**
   - 바닥(Bottom), 상단(Top), 전면(Front), 후면(Back), 좌측면(Left), 우측면(Right)
@@ -132,19 +140,19 @@ Step 1에서 `observed.csv`를 열고 사용한 profile의 `box_dims_mm`를 `Box
 > - Public excerpt used for sequence / orientation cross-checks:
 >   https://d39w7f4ix9f5s9.cloudfront.net/32/98/c52dd6b841f18bcb8af679b1f1ac/9.TESTING_thumbnail_ISTA%20Project%206-Amazon.com-SIOC%2018-18.pdf
 >
-> 관련 로컬 경로:
-> - [simulation_external_reference_notes.md](/root/BoxMotionAnalyzer/docs/simulation_external_reference_notes.md)
-> - [ISTA_6_AMAZON_SIOC_REFERENCE.md](/root/BoxMotionAnalyzer/docs/ISTA_6_AMAZON_SIOC_REFERENCE.md)
-> - [scenarios.py](/root/BoxMotionAnalyzer/src/simulation/scenarios.py)
+> 관련 저장소 문서·코드:
+> - [simulation_external_reference_notes.md](simulation_external_reference_notes.md)
+> - [ISTA_6_AMAZON_SIOC_REFERENCE.md](ISTA_6_AMAZON_SIOC_REFERENCE.md)
+> - [scenarios.py](../src/simulation/scenarios.py)
 >
 > 참고한 외부 URL:
 > - ANSI storefront: https://webstore.ansi.org/standards/ansi/istaprojectamazonsioc2018
 > - Public excerpt used for cross-checking: https://d39w7f4ix9f5s9.cloudfront.net/32/98/c52dd6b841f18bcb8af679b1f1ac/9.TESTING_thumbnail_ISTA%20Project%206-Amazon.com-SIOC%2018-18.pdf
 >
-> 관련 로컬 문서/코드 경로:
-> - `/root/BoxMotionAnalyzer/docs/simulation_external_reference_notes.md`
-> - `/root/BoxMotionAnalyzer/docs/ISTA_6_AMAZON_SIOC_REFERENCE.md`
-> - `/root/BoxMotionAnalyzer/src/simulation/scenarios.py`
+> 관련 저장소 경로 (이 문서 기준):
+> - `simulation_external_reference_notes.md`
+> - `ISTA_6_AMAZON_SIOC_REFERENCE.md`
+> - `../src/simulation/scenarios.py`
 
 ### 2.3 데이터 익스포터 (Digital Twin Data Pipeline) (`src/simulation/data_exporter.py`)
 Exporter `simulation-pose-actual-time-v1`은 엔진의 기록을 변경하지 않고 `.proc`를 만든다. 같은 history를 같은 exporter 또는 새 exporter로 반복 저장한 무노이즈 결과는 동일하다.
@@ -164,15 +172,15 @@ Exporter `simulation-pose-actual-time-v1`은 엔진의 기록을 변경하지 �
 정확한 tuple/type/결측 및 소비자 정책은 [결과 스키마](analysis/reference/result_schema_notes.md)의 Simulation 항목을 따른다. 수학/필드 근거: [SciPy rotation vector](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.as_rotvec.html), [Euler convention and singularity](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.as_euler.html), [MuJoCo mjData의 xpos/xipos/xquat](https://mujoco.readthedocs.io/en/stable/APIreference/APItypes.html#mjdata).
 
 ### 2.4 시뮬레이션 GUI (`src/simulation/ui/main_window.py`)
-런처의 **Simulation** 버튼은 별도 실험용 창을 연다. Box에서 로컬 X/Y/Z 치수와 질량을 입력하고 Scenario에서 Type과 Preset을 고른다. Initial clearance는 회전된 박스의 가장 낮은 꼭짓점과 바닥 사이 거리이며 중심 높이가 아니다. 프리뷰의 강조 표시는 선택한 프리셋의 면·모서리·꼭짓점이고, 수동 회전 뒤의 실제 접촉 예측은 아니다.
+런처의 **Simulation** 버튼은 별도 실험용 창을 연다. 기본 모드는 `Single drop`이다. 이 모드에서 Box의 로컬 X/Y/Z 치수·질량과 Scenario의 Type·Preset을 고른다. Initial clearance는 회전된 박스의 가장 낮은 꼭짓점과 바닥 사이 거리이며 중심 높이가 아니다. 프리뷰의 강조 표시는 선택한 프리셋의 면·모서리·꼭짓점이고 수동 회전 뒤의 실제 접촉 예측은 아니다. `Robot sequence`는 별도 모드로, 적용 가능한 실행 계획을 Preview하고 명시적으로 적용한 뒤 연속 실행한다. 설정만 있고 실행 계획이 없으면 실행할 수 없다.
 
-Physics에는 마찰·접촉 감쇠·질량 중심 오프셋, Noise에는 꼭짓점 좌표 잡음, Rotation에는 기하학적 중심 기준 고정 월드 XYZ 회전이 있다. 이 항목들은 기본적으로 접혀 있으며 접어도 입력값은 유지된다. 프리뷰 박스와 축 표시는 같은 Z-up 투영을 쓴다. Type G/H와 읽기 쉬운 프리셋 이름은 화면 표시이며 내부 category·sequence ID와 기존 Batch 파일명은 유지한다.
+`Settings…`에서 모드별 Sequence·Physics·Markers and noise를 확인하고 `Use in Simulation`으로 적용한다. 마찰·접촉 감쇠·COM 오프셋, 직접 `.proc`의 꼭짓점 잡음, 초기 회전은 서로 다른 입력이다. 프리뷰 박스와 축은 Z-up이며 Rotation의 고정 월드 XYZ 회전은 기하학적 중심 기준이다. Single drop의 Type G/H 이름과 프리셋 표시를 Robot sequence의 지원 동작 범위로 해석하지 않는다. 모드별 적용 설정은 유지되며 [모드 안내](analysis/reference/simulation_mode_contract.md)를 따른다.
 
 기록 시간과 3D viewer 사용 여부를 정한 뒤 고정 하단의 **Run**을 눌러 저장 파일을 선택한다. viewer를 끄면 백그라운드에서 실행·저장하고, 켜면 MuJoCo viewer를 사용한다. **Run all presets**는 현재 Type의 기존 프리셋 목록을 실행하며 완전한 ISTA 시험 절차를 뜻하지 않는다. 저장한 `.proc`는 결과·비교·3D 창에서 열 수 있다.
 
 파일/폴더 선택을 취소하면 시뮬레이션을 시작하지 않는다. 단일 실행과 Batch 모두 실행 중에는 두 실행 버튼을 잠그고 완료·오류 뒤 복구한다. viewer 경로는 설정한 기록 시간이 끝나도 viewer를 닫은 뒤에 저장한다. Batch는 파일마다 교체를 완료한 후 다음 항목으로 넘어가며, 실패한 항목에서 중단한다. 그 전에 완료한 파일은 유지한다. Batch 전체를 한꺼번에 되돌리는 저장 방식은 아니다.
 
-프리셋이나 치수·질량을 바꾸면 기존 계산식으로 초기 거리와 회전을 채운다. 이후 직접 바꾼 값은 Custom 상태로 표시한다. GUI 기본값은 치수 1578×930×142 mm, 질량 25 kg, COM Y −200 mm, 마찰 0.5, 감쇠 제어 0.15, Noise OFF(표준편차 1 mm), viewer ON, 기록 2초다. 기본값은 제품 실측값이나 시험 적합성 보장이 아니다.
+Single drop에서 프리셋이나 치수·질량을 바꾸면 기존 계산식으로 초기 거리와 회전을 채운다. 이후 직접 바꾼 값은 Custom 상태로 표시한다. 프로필을 별도로 적용하지 않은 Single drop GUI 기본값은 치수 1578×930×142 mm, 질량 25 kg, COM Y −200 mm, 마찰 0.5, 감쇠 제어 0.15, Noise OFF(표준편차 1 mm), viewer ON, 기록 2초다. 이 기본값을 Robot sequence의 실행 계획이나 명시적 API/CLI 프로필의 설정으로 일반화하지 않는다. 기본값은 제품 실측값이나 시험 적합성 보장이 아니다.
 
 ## 3. 박스 모델링 방법론 (Box Modeling)
 
@@ -191,7 +199,7 @@ Physics에는 마찰·접촉 감쇠·질량 중심 오프셋, Noise에는 꼭짓
   - **좌표계 기준:** CoM 오프셋은 위에서 설명한 박스의 **로컬 좌표계(X=Width, Y=Height, Z=Depth)**를 기준으로 합니다. 즉, 박스의 기하학적 정중앙이 `(0, 0, 0)`이며, 입력한 값(mm)만큼 질량 중심이 내부적으로 이동합니다.
   - GUI의 기존 Y 오프셋 기본값 `-200 mm`는 모델 가정이며 실제 제품의 측정값이 아니다. 회전 발생 여부는 접촉력의 작용선과 초기 상태에도 의존하므로, 텀블링에 비영점 COM 오프셋이 항상 필요한 것은 아니다. 공개 충돌 fixture는 COM 오프셋 0을 사용한다.
 - **관성 텐서 (Inertia Tensor):**
-  - 엔진은 `size`와 `mass`로 균일 직육면체의 주관성 모멘트를 계산해 지정 COM에 명시한다. COM을 이동해도 관성값을 그대로 쓰는 가정은 편심 제품의 실측 질량 분포를 재현하지 않는다.
+  - 명시적 관성 프로필이 없는 기본 경로에서는 `size`와 `mass`로 균일 직육면체의 주관성 모멘트를 계산해 지정 COM에 명시한다. COM을 이동해도 같은 관성값을 사용하는 기본 가정은 편심 제품의 실측 질량 분포를 재현하지 않는다. 선택형 API/CLI 접촉 프로필은 명시적 주관성 모멘트와 관성 좌표계 회전을 지정할 수 있다. [초기조건·접촉 프로필 안내](analysis/reference/contact_calibration_contract.md)를 참고한다. 프로필 입력 가능 여부와 실제 제품 관성의 측정·검증 여부는 구분한다.
 
 ## 4. 시뮬레이션 관찰과 검증 한계
 아래 항목은 모델에서 관찰할 운동의 예이며, 실제 충돌의 정확도를 검증한 결과로 사용하지 않는다:
@@ -203,7 +211,7 @@ Physics에는 마찰·접촉 감쇠·질량 중심 오프셋, Noise에는 꼭짓
 (해당 검증 그래프는 `docs/images/proposal_tv_velocity_corner.png`에서 확인할 수 있습니다.)
 
 ## 5. 접촉 모델과 현재 검증 범위
-`condim=4`는 법선·접선 마찰과 비틀림 마찰을 포함하지만 구름 마찰은 포함하지 않는다. box margin 5 mm는 접촉 활성 거리이며 둥근 모서리 반경이 아니다. 연성 접촉에서는 기하학적 관통이 발생할 수 있다. 설정과 의미는 [MuJoCo contact 모델](https://mujoco.readthedocs.io/en/stable/computation/index.html#contact)과 [solref](https://mujoco.readthedocs.io/en/stable/modeling.html#solver-parameters)를 따른다.
+명시적 접촉 프로필이나 Robot sequence 실행 계획으로 덮어쓰지 않은 Single drop 기본 경로는 `condim=4`, box margin 5 mm를 사용한다. `condim=4`는 법선·접선 마찰과 비틀림 마찰을 포함하지만 구름 마찰은 포함하지 않는다. box margin은 접촉 활성 거리이며 둥근 모서리 반경이 아니다. 선택형 [API/CLI 접촉 프로필](analysis/reference/contact_calibration_contract.md)은 condim·마찰·margin 등을 명시하며, `condim=6`은 구름 마찰도 포함한다. [Robot sequence](analysis/reference/robot_sequence_contract.md)는 실행 계획의 접촉 margin을 적용하므로 기본 5 mm를 모든 실행에 적용하지 않는다. 실제 적용값은 해당 프로필·계획으로 확인한다. 연성 접촉에서는 기하학적 관통이 발생할 수 있다. 설정과 의미는 [MuJoCo contact 모델](https://mujoco.readthedocs.io/en/stable/computation/index.html#contact)과 [solref](https://mujoco.readthedocs.io/en/stable/modeling.html#solver-parameters)를 따른다.
 
 공개 fixture는 관측 오류와 분석 흐름의 합성 검증용이다. 실제 포장재 변형·충격 내구성·ISTA 합격 여부를 예측하는 검증된 디지털 트윈으로 취급하지 않는다. 구체적인 입력과 결과는 위 fixture 계약과 조사 결과에 기록한다.
 

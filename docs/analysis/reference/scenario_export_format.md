@@ -1,6 +1,6 @@
 # Export Analysis Scenario 형식 설명서
 
-Last Reviewed: 2026-11-12
+Last Reviewed: 2026-11-16
 
 #188 preserves the seven-line bytes for valid legacy inputs. Manual Offset+Manual Height defaults to six declared rest velocities; `Use selected-time velocities` explicitly selects six finite sampled analysis-frame components instead. Leaving manual-height mode resets that option OFF. Missing/nonfinite measured components, invalid heights/runtime/timestep and delimiter-containing scene names are rejected before opening the destination. The complete text is strictly encoded with the runtime encoding/newline policy, written to a same-directory temporary file and replaced only on success. Point CSV retains pandas UTF-8 behavior. [Literal goldens and verification](../../visualization/gui_metric_parity/validation_report.md).
 
@@ -61,10 +61,13 @@ cat,Corner_Drop_2nd,drop_name,Scene01,...,run_time,0.1,tmin,1e-7
   - `TRA_VEL_Y`
   - `TRA_VEL_Z`
 
-속도 값은 현재 선택된 시점 row의 CoM velocity 컬럼에서 읽는다.
+속도는 다음 분기에 따라 정한다. 높이입력과 속도 선택은 구분한다.
 
-주의:
-- `Manual Offset`과 `Manual Height`가 모두 켜진 경우, 구현상 높이값은 수동 입력을 사용하고 속도값은 `0.0`으로 채운다.
+- `Manual Offset`과 `Manual Height`가 모두 켜져 있고 `Use selected-time velocities`가 OFF이면, 높이는 수동 입력값을 사용하고 6개 속도 성분은 모두 `0.0`으로 저장한다. 이것이 수동 높이 모드의 기본 동작이다.
+- 같은 조건에서 `Use selected-time velocities`를 명시적으로 ON으로 바꾸면, 선택한 결과 행의 `Velocity / CoM`에 저장된 분석 좌표계 각속도 3성분과 병진속도 3성분을 사용한다. 어느 성분이든 없거나 유한하지 않으면 내보내기를 거부한다.
+- 수동 높이 모드를 벗어나면 해당 옵션은 OFF로 초기화된다. 수동 높이 모드가 아닌 경우에도 선택한 결과 행의 6개 유효 속도 성분을 사용한다.
+
+선택 행은 사용자가 고른 시점이다. 이 옵션이 자동으로 충돌 직전 시점을 고르거나 별도로 교정된 관성 질량중심 속도를 계산하는 것은 아니다. 기존 7줄 구조와 필드 순서는 유지한다.
 
 ## 6. 기타 고정 값
 - `variable_11..13`

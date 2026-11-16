@@ -1,204 +1,177 @@
 # Box Motion Analyzer
 
-Last Reviewed: 2026-11-12
+Last Reviewed: 2026-11-16
 
-#188의 공개 지표·GUI 후속은 하나의 지표 registry/Guide, 검증된 요약 adapter, Step1.5 설정 카드, 비교창 실험 정보·진단 분리와 원자적 CAE 저장을 연결합니다. [계약·실행·검수·도입 범위](docs/visualization/gui_metric_parity/validation_report.md)를 참고하세요. P07은 사용자 승인에 따라 입력별11프레임의 실제 최적화를 계측하며, 합성 소프트웨어 검증과 실측 정확도 승인을 구분합니다.
+모션 캡처로 기록한 박스 낙하 시험을 살펴보는 데스크톱 프로그램입니다. 긴 촬영 기록에서 시험 구간을 선택하고, 필요한 마커 보정을 검토한 뒤 움직임과 충돌 직전 상태를 분석합니다. 회차 결과 비교, 3D 재생, CAE 초기조건 CSV 저장을 지원합니다. 촬영 CSV가 없어도 MuJoCo로 가상 낙하 결과를 만들어 재생하거나, 합성 마커 관측을 생성해 분석 흐름을 사용해 볼 수 있습니다.
 
-PUB02–11 소프트웨어는 병합·필수 CI를 마쳤습니다. [PUB별 구현·원본 증거·완료와 대기](docs/analysis/reference/pub_delivery_status.md)를 참고하세요. #104는 독립 실측 자료를 확보할 수 없어 미실시로 종료했고, #113 등록 기능은 사용자 결정으로 제외했습니다.
+A desktop application for reviewing box-drop motion captures: select trial intervals, review optional marker-face corrections, inspect motion and pre-impact results, compare trials, replay motion in 3D, and export CAE initial conditions. MuJoCo can generate synthetic motion and marker observations without a measured capture.
 
-**Box Motion Analyzer**는 모션 캡처 데이터(CSV)를 기반으로 박스와 마커의 움직임을 정밀하게 분석하고, 이를 3D 환경에서 시각화하는 통합 GUI 애플리케이션입니다.
+분석값은 입력 관측과 설정에 따른 계산 결과입니다. 실제 포장재의 변형·반발·텀블링, 실제 로봇 동작과 카메라 오차에 대한 독립 실측 정확도는 확인되지 않았습니다. 가상 데이터의 소프트웨어 검사가 실측 정확도나 ISTA 적합성을 보증하지 않습니다.
 
-## 🚀 주요 기능
+## 설치와 실행 / Install and run
 
-### 1. 시뮬레이션 (Simulation) - *New!*
-*   **선택형 관측 모델 (PUB10):** 가상 camera/face visibility, 그룹 가림과 실제 시간 간격을 사용하는 stationary OU noise를 물리 궤적 이후에 적용합니다. Profile API/CLI와 기존 settings/export/Step 1 흐름을 사용하며 기본 관측과 보정 OFF 정책은 유지합니다. [사용·채널·검증 계약](docs/analysis/reference/observation_model_contract.md)을 참고하세요. 실측 camera/noise 교정은 #104에서 별도로 확인합니다.
-*   **초기조건·제한 교정 (PUB09):** 명시적 위치·자세·선속도·각속도와 접촉 profile을 API/CLI로 실행하고, 수렴 진단 뒤 fit과 별도 holdout을 평가합니다. `python -m src.simulation.calibration_cli demo --output tmp/issue142/new-demo`를 사용합니다. [사용·저장·평가 계약](docs/analysis/reference/contact_calibration_contract.md)에 따라 합성 자기 일관성 검증과 실측 교정을 구분하며 기본 설정은 유지합니다.
-*   **MuJoCo 기반 디지털 트윈:** 실제 실험 데이터(CSV)가 없더라도, MuJoCo 물리 엔진을 통해 가상의 상자 낙하 데이터를 시뮬레이션할 수 있습니다.
-*   **낙하 자세 시뮬레이션:** 면(Face), 꼭짓점(Corner), 모서리 선(Edge) 자세와 강체 접촉을 생성합니다. 실제 포장재의 충돌·반발·텀블링 정확도는 검증되지 않았습니다.
-*   **데이터 내보내기:** 실제 시뮬레이션 시간·자세·질량중심을 `.proc`로 저장합니다. 마커 오류 검증은 별도로 생성한 관측 CSV를 분석 파이프라인에 넣고 독립 정답과 비교합니다. (자세한 내용은 [`docs/simulation.md`](docs/simulation.md) 참조)
-*   **충돌 사건 평가 (PUB08):** 선택적으로 실제 timestep 접촉을 별도 기록하고 첫 충돌·후속 충돌·반등과 지지 전환을 기존 관측 분석 결과와 비교합니다. `python -m src.simulation.contact_validation --output tmp/issue141/fresh-contacts`로 공개 기능 검증을 실행합니다. [사건/승인/실행 계약](docs/analysis/reference/contact_evaluation_contract.md)에 따라 합성 사건 정책과 실측 정확도 판정을 구분합니다.
-
-### 2. 데이터 분석 (Data Analysis)
-*   **분석 파이프라인 (Analysis Pipeline):** 원본 모션 데이터를 로드하여 전처리(스무딩), 자세 최적화(Pose Optimization), 속도 계산 등의 과정을 자동으로 수행합니다.
-*   **결과 검증:** 분석된 데이터의 무결성을 검증하고, 필수 데이터(Rigid Body Pose 등)의 존재 여부를 확인합니다.
-*   **시나리오 내보내기 (Scenario Export):** 분석 결과를 표준화된 포맷의 CSV 파일로 내보냅니다. 이 파일은 시각화 툴에서 바로 로드할 수 있습니다.
-    *   **자동/수동 오프셋:** 코너 높이를 기반으로 가장 낮은 3개 코너를 자동 선택하거나 수동으로 지정하여 분석 시나리오를 생성할 수 있습니다.
-
-### 3. 3D 시각화 (3D Visualization)
-*   **실시간 렌더링:** 분석된 박스와 마커의 움직임을 PyVista 기반의 3D 뷰포트에서 재생합니다.
-*   **인터랙티브 제어:** 재생/일시정지, 프레임 슬라이더 이동, 시점 제어 등이 가능합니다.
-*   **데이터 플로팅:** 선택한 객체의 위치, 속도, 가속도, velocity norm 시계열을 2D 그래프로 확인하고 비교할 수 있습니다.
-*   **심층 분석:** 프레임 구간 필터와 상세 플롯 팝업을 제공하며, 팝업에서는 마우스 오버로 정확한 수치를 확인할 수 있습니다.
-*   **다중 창 비교:** 런처에서 3D Visualization 버튼을 다시 누르거나 시각화 창의 `File > New Visualization Window`를 사용해 독립적인 viewer 창을 여러 개 열 수 있습니다.
-
-### 4. 비교 분석 (Experiment Comparison) - *New!*
-*   **다중 실험 비교:** 여러 개의 `.proc` 실험 결과를 한 번에 불러와 기준(Baseline) 실험 대비 편차와 주요 낙하 지표(Drop Angle, Corner Height 등)를 한눈에 비교할 수 있습니다.
-*   **동기화된 분석 환경:** 여러 결과의 저장 시간에서 첫 접촉 직전 표본 `t1−`을 기준으로 그래프와 3D 표본을 맞춥니다. 시간·출처가 불명확하거나 구간이 끊긴 결과는 해당 시점의 동기화에서 제외하고 개별로 확인할 수 있습니다. 같은 관측 파일을 복사해 열어도 반복 횟수가 늘어나지 않습니다.
-
----
-
-## 📂 프로젝트 구조
-
-이 프로젝트는 유지보수와 확장성을 위해 다음과 같이 모듈화된 폴더 구조를 갖습니다.
-
-*   **`src/`**: 소스 코드 루트
-    *   **`main.py`**: 프로그램의 통합 진입점. Launcher를 실행합니다.
-    *   **`launcher.py`**: 분석 GUI와 3D 시각화 GUI를 여는 런처 윈도우입니다.
-    *   **`simulation/`**: MuJoCo 물리 엔진 기반 가상 낙하 시뮬레이션 관련 핵심 로직 및 UI
-        *   `engine/`: MuJoCo 물리 환경(Box, Drop setup) 구축 및 시뮬레이션 실행 (`mujoco_engine.py`)
-        *   `ui/`: 시뮬레이션 설정(크기, 질량, 시나리오 등)을 위한 GUI (`main_window.py`)
-        *   `scenarios.py`: 면, 모서리, 모서리 선 등 국제 규격의 낙하 자세 사전 정의
-        *   `data_exporter.py`: 실제 시간과 자세를 유지해 시뮬레이션 결과를 `.proc`로 저장
-    *   **`analysis/`**: 데이터 분석 관련 핵심 로직 및 UI.
-        *   `app/`: 분석 메인 윈도우(`MainApp`)와 상위 UI 조립 코드
-        *   `pipeline/`: parser, slicer, smoother, pose optimizer, velocity calculator, frame analyzer 등 분석 파이프라인
-        *   `ui/`: Step 1/Step 2 위젯, 플롯, 대화상자
-    *   **`visualization/`**: 3D 시각화 관련 코드(PyVista, Qt 위젯, 결과 로더)
-    *   **`config/`**: 설정 파일, 컬럼 정의, 아이콘/이미지 리소스
-    *   **`utils/`**: 공용 유틸리티 스크립트.
-*   **`docs/`**: 개발 문서 및 참고 자료.
-*   **`data/`**: 데이터 입출력 폴더 (테스트 데이터 포함).
-*   **`tests/`**: 통합 테스트 및 구조 검증 스크립트.
-
-### 현재 GUI 흐름
-
-*   **Launcher**
-    *   `src/main.py` -> `src/launcher.py`
-*   **Simulation**
-    *   `src/simulation/ui/main_window.py`
-    *   사용자 입력(박스 크기/질량, 낙하 시나리오 등)을 받아 MuJoCo로 시뮬레이션 후 `.proc` 형식으로 가상 낙하 데이터 추출
-*   **Data Analysis**
-    *   `src/analysis/app/main_window.py`
-    *   Step 1: 촬영 CSV를 열고 자동 검출한 운동 구간을 검토합니다. 필요하면 마커 보정과 독립 시험 기록을 연결하고, 확정한 포함 구간을 `.slice`로 저장합니다. 기록된 시험 항목과 관측 결과는 따로 유지합니다.
-    *   Step 1.5: `.slice`의 선택 범위와 보정 상태를 확인하고 Raw 처리한 `.proc`를 저장합니다.
-    *   Step 2: 저장된 `.proc`의 자세·운동 결과와 그래프를 확인합니다.
-    *   Step 1/Step 2의 메인 플롯은 창 크기 변화에 따라 더 크게 확장되도록 조정되어 있으며, 세로 splitter로 높이를 수동 조절할 수 있습니다.
-*   **Experiment Comparison**
-    *   `src/analysis/compare/main_window.py`
-    *   여러 개의 분석 결과(`.proc`)를 하나의 윈도우에서 요약표, 동기화된 3D 뷰어, 비교 그래프를 통해 통합 분석합니다.
-*   **3D Visualization**
-    *   `src/visualization/main_window.py`
-    *   입력은 Data Analysis나 Simulation에서 생성된 multi-header `.proc` 결과 파일입니다.
-
----
-
-## 📘 문서 안내
-
-문서 목적에 따라 아래 경로를 우선 참고하세요.
-
-*   **루트 `README.md`**: 프로젝트 개요, 실행 방법, 빌드/테스트 안내
-*   **`docs/documentation_index.md`**: `docs/` 폴더 전체 안내
-*   **`docs/analysis/`**: 분석 기능 설계 문서와 참조 문서
-*   **`docs/visualization/`**: 3D visualization 가이드와 레이아웃 설계 문서
-*   **`docs/launcher/`**: 런처 관련 레이아웃 스케치와 메모
-*   **`docs/simulation.md`**: 새로 추가된 MuJoCo 기반 시뮬레이션 기능에 대한 세부 문서
-
----
-
-## 🛠️ 실행 방법
-
-### 1. 필수 라이브러리 설치
-프로젝트 실행을 위해 `requirements.txt`에 명시된 의존성 패키지를 설치해야 합니다.
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2. 애플리케이션 실행
-프로젝트 루트 디렉토리에서 아래 명령어를 입력하여 실행합니다.
-
-```bash
-python src/main.py
-```
-실행 시 **Launcher Window**가 열리며, 여기서 아래 네 가지 흐름 중 하나를 시작할 수 있습니다.
-
-*   **Simulation**: MuJoCo를 활용하여 박스 크기/질량/낙하 조건을 설정하고 가상의 낙하 실험 데이터를 `.proc`로 생성
-*   **Data Processing**: 실제 원본 모션 캡처 데이터(CSV)를 불러와 분석하고, 필요 시 최종 결과를 시간축에서 보간한 `.proc` 중심 workflow로 저장
-*   **Experiment Comparison**: 이미 처리된 여러 개의 `.proc` 파일들을 비교 분석하여 요약, 동기화된 재생 및 비교 플롯 확인
-*   **3D Visualization**: 시뮬레이션에서 생성되거나 데이터 분석에서 추출된 `.proc` 결과 파일을 열어 3D/2D로 탐색
-    *   런처 버튼을 반복 클릭하면 새 시각화 창이 추가로 열립니다.
-    *   시각화 창 안에서는 `File > New Visualization Window`로 새 창을 바로 만들 수 있습니다.
-
-런처의 **Options / 설정**에서 `English` 또는 `한국어`를 선택할 수 있습니다. 기본값은 영어입니다. **Apply / 적용**으로 저장한 언어는 다음 실행부터 표시되며, 열린 창과 진행 중인 작업은 현재 언어로 계속 사용할 수 있습니다. 파일명, 단위, 저장 형식과 수치 계산은 언어 설정의 영향을 받지 않습니다. Windows 파일 선택 창의 공통 문구는 Windows 언어를 따르며, Matplotlib의 세부 그래프 편집 창은 라이브러리 문구를 표시합니다.
-
-### 공개 합성 capture 회귀 (#135 / #144)
-
-전체 Raw의 승인 씬을 현재 production pipeline으로 새로 처리하고 slice/proc 재열기,
-Compare 및 scenario export를 검사하는 CLI를 제공합니다. 독립 수식·기하 기대값을 가진
-공개 합성 corpus를 사용하며 실측 정확도와 물리 교정은 #104의 별도 대기 항목입니다.
+Windows에서 Python 3.13을 설치하고 저장소를 내려받은 뒤, **저장소 루트**의 PowerShell에서 실행합니다. Python 3.13은 [공개 Windows CI](.github/workflows/public-marker-validation.yml)에서 사용하는 버전이며, 다른 버전의 지원 범위를 뜻하지 않습니다.
 
 ```powershell
-.venv/Scripts/python.exe -m src.simulation.capture_corpus --output tmp/capture-assets-v2
-.venv/Scripts/python.exe -m src.analysis.regression.runner --manifest tmp/capture-assets-v2/corpus.json --asset-root tmp/capture-assets-v2 --output tmp/capture-full --tier full
-.venv/Scripts/python.exe -m pytest tests/test_capture_regression.py -q
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe src/main.py
 ```
 
-출력 폴더는 매번 새로 지정해야 합니다. full은 모든 승인 씬의 fresh 처리를 요구하며,
-일부 선택은 representative로 보고합니다. 원본·기준값·승인 누락과 처리·저장 실패는
-통과하지 않습니다. [계약·기대값·검증 범위](docs/analysis/reference/capture_regression.md)를 참고하세요.
+설치와 실행에 같은 가상환경 인터프리터를 사용하므로 별도 활성화는 필요하지 않습니다. 테스트용 추가 설치는 아래 개발 검사에서 안내합니다.
 
-PUB11은 fast/capture/representative/full 범위, 검증된 representative 재개, RunReport/JUnit/JSON/summary와 필수 CI 누락 검사를 연결합니다. [실행·재개·증거 계약](docs/analysis/reference/regression_evidence.md)을 참고하세요. Native GUI·수치 승인·실측 대기는 별도입니다.
+런처에서 작업을 선택합니다. 아래 버튼명은 기본 언어인 영어 기준입니다.
 
-### 3. 분석 결과 export와 visualization의 관계
+| 버튼 | 시작할 작업 |
+| --- | --- |
+| `Data Processing` | 촬영 CSV에서 구간을 검토하고 `.slice`를 처리해 `.proc` 저장 |
+| `Compare Results` | 여러 `.proc`의 요약표, 기준 실험 대비 차이, 동기화 재생과 그래프 확인 |
+| `3D Visualization` | 저장한 `.proc`의 박스·마커 움직임과 시계열 탐색 |
+| `Simulation` | 단일 낙하 또는 가상 로봇 계획 실행, `.proc`나 합성 관측 CSV 생성 |
 
-시각화 창은 원본 raw CSV를 직접 읽지 않습니다.  
-분석 GUI에서 export한 **multi-header `.proc` 결과 파일**을 입력으로 사용합니다.
-UI 기준으로는 `.proc`만 노출합니다.
+`Options`에서 `English` 또는 `한국어`를 선택하고 `Apply`로 저장하면 **다음 실행부터** 적용됩니다. 열린 창과 진행 중인 작업은 현재 언어를 유지합니다. 언어 설정은 파일 형식·단위·수치 계산을 바꾸지 않습니다. Windows 파일 선택 창과 일부 그래프 편집 창의 문구는 운영체제·라이브러리를 따릅니다.
 
----
+## 입력 준비와 파일 역할 / Inputs and files
 
-## 🏗️ 빌드 방법 (배포용 실행 파일 생성)
+원본 입력은 현재 파서가 읽는 **여러 헤더 행을 가진 모션 캡처 CSV**입니다. 처음 두 행의 메타데이터와 뒤의 Type/Name/ID/Parent/Category/Component 헤더, Frame/Time과 마커 XYZ 구조를 유지해야 합니다. 분석은 `Rigid Body Marker`의 강체 추정 좌표를 사용하며, 물리 `Marker` 관측 채널과 구분합니다. 마커 이름과 면 배정도 현재 입력 규칙에 맞아야 합니다. 임의의 XYZ 표를 CSV로 저장한 것만으로 같은 입력이 되지는 않습니다.
 
-이 프로젝트는 **Windows 배포**를 기준으로 `PyInstaller`를 사용해 독립 실행형(`.exe`) 파일을 생성합니다.
+[작은 공개 형식 예제](data/testdata_box_marker.csv)로 헤더 구조를 확인하고, [분석 GUI 안내](docs/analysis/design/gui_overview.md)와 [입력 파서](src/analysis/pipeline/parser.py)를 참고하세요. 이 예제는 형식 확인용이며 실측 정확도나 완전한 낙하 시험을 보증하는 기준 자료가 아닙니다.
 
-### 1. `build.bat` 사용 (Windows 권장)
-`build.bat` 파일을 더블 클릭하거나 명령 프롬프트에서 실행한 후, 원하는 모드를 선택하세요.
-*   **1 (Folder):** 폴더 형태(`dist/BoxMotionAnalyzer/`)로 빌드. (빠른 실행, 개발용)
-*   **2 (Single File):** 단일 파일(`dist/BoxMotionAnalyzer.exe`)로 빌드. (배포용)
+촬영한 박스의 **치수(mm)**를 확인하고 화면의 축 정의에 맞춰 입력하세요. 길이는 mm, 시간은 s를 기준으로 사용합니다. 기본으로 표시된 치수를 자신의 시험 치수로 간주하지 마세요. 마커 검토와 자세 계산에 사용할 치수는 사용자가 확인해야 합니다.
 
-### 2. `python build.py` 직접 실행
-```bash
-# 폴더 방식 (onedir)
-python build.py onedir
+| 파일 | 내용과 사용하는 곳 |
+| --- | --- |
+| 촬영 `.csv` | 원본 관측. `Data Processing`의 Step 1에서 열기 |
+| corrected `.csv` | 승인한 마커 검토 결정을 포함한 별도 관측 파일. 원본을 보존하고 후속 구간 저장에 사용 |
+| `.slice` | 검토한 관측 구간과 치수·범위·보정 등 메타데이터. Step 1.5의 처리 입력 |
+| `.proc` | 분석 결과 또는 시뮬레이션 운동을 담는 다중 헤더 결과. Step 2, 비교창, 3D 시각화 입력 |
+| CAE 시나리오 `.csv` | 선택한 시점 또는 수동 조건으로 만드는 별도 초기조건. 운동 재생용 `.proc`와 다른 파일 |
+| Point `.csv` | 선택한 시점의 값 저장. 운동 전체의 재생 파일과 구분 |
 
-# 단일 파일 방식 (onefile)
-python build.py onefile
-```
+## 첫 분석 / First capture analysis
 
-### 3. 아이콘/리소스 포함
+1. **촬영 열기와 치수 확인:** 런처의 `Data Processing` → Step 1의 `Open capture...`로 호환되는 CSV를 엽니다. 박스 치수(mm)와 마커 표시를 확인합니다.
+2. **필요한 경우에만 마커 검토:** `Review`에서 불연속 후보와 면 배정 보정을 검토합니다. 적용할 결정은 명시적으로 승인하고 `Save corrected`로 별도 파일에 저장합니다. 현재 면 배정 보정은 이름·ID·측정 XYZ를 보존합니다. 검토나 저장이 자동 승인을 뜻하지 않습니다.
+3. **시험 구간 선택:** `Detect scenes`로 후보를 찾고 범위와 `Include`/`Exclude`를 확인합니다. 수동 범위 추가·조정도 가능합니다. 보정 입력이 바뀌었다면 저장할 구간을 다시 확인합니다. 필요하면 `Test record...`로 독립 시험 기록을 연결하되 기록된 시험 항목과 관측 결과를 구분합니다.
+4. **처리 입력 전달:** `Save and Process`로 선택한 구간을 `.slice`로 저장해 Step 1.5로 넘깁니다. **이 버튼은 계산을 자동 시작하지 않습니다.** 한 파일은 Single, 여러 파일은 Batch로 준비됩니다. 저장 취소·부분 실패 시 처리 화면으로 넘기지 않습니다. `.slice`를 따로 저장해 나중에 `Open slice...`나 `Open folder...`로 여는 방법도 있습니다.
+5. **방법을 확인하고 실행:** 치수·선택 구간·처리 방법을 확인합니다. Single은 `Run` 뒤 `Save and View`로 `.proc`를 저장하고 엽니다. Batch는 `Run batch` 후 이번에 저장 성공한 결과를 `View Results`로 엽니다. 실패·건너뛴 항목의 상태는 별도로 확인합니다.
+6. **결과 읽기:** Step 2에서 자세·코너 높이·속도·가속도와 접촉 전후 그래프를 확인합니다. `Metric guide`에서 지표의 뜻·단위·유효 상태를 읽고, 여러 회차는 `Compare Results`에서 비교합니다.
 
-빌드 시 실행 파일 아이콘과 런처/창 아이콘에 필요한 리소스는 `src/config/images/` 아래 파일을 사용합니다.
-Windows에서 최종 아이콘 확인 시에는 아래를 함께 점검하세요.
+| 처리 방법 | 선택할 때 알아둘 점 |
+| --- | --- |
+| `Raw` — 기본값 | 처리를 최소화하며 속도·가속도에 잡음이 더 드러날 수 있음 |
+| `Smoothing` | 스무딩·필터를 적용하는 처리 방법 |
+| `Advanced` | 처리 단계의 설정을 직접 조절하는 방법 |
 
-*   탐색기에서 보이는 `.exe` 아이콘
-*   실행 후 창 좌상단 아이콘
-*   작업표시줄 아이콘
+Raw가 유일한 방법은 아닙니다. 기본 결과 재샘플링은 OFF이며, 선택적으로 처리 후 시간축 보간을 적용할 수 있습니다. 이는 새 측정 표본을 얻는 것과 다릅니다. 기존 `.slice`에 치수가 없으면 Step 1.5에서 치수를 입력하고 `Apply dimensions`를 누른 뒤 처리합니다. 정상적으로 저장한 구간의 치수와 범위는 파일에서 확인할 수 있습니다.
 
----
+자세한 Single/Batch 연결과 저장 규칙은 [작업 흐름](docs/analysis/design/workflow.txt), 화면별 설명은 [GUI 안내](docs/analysis/design/gui_overview.md)를 참고하세요.
 
-## 🧪 테스트 실행
+## 결과 해석·비교·3D 재생 / Read, compare and replay
 
-변경된 구조에서 전체 데이터 흐름(분석 -> 저장 -> 시각화)이 정상 동작하는지 검증하려면 통합 테스트를 실행하세요.
+`Compare Results`에서 여러 `.proc`를 추가하고 기준(Baseline) 결과를 선택해 요약값과 차이를 확인합니다. 낙하 자세·코너 높이·접촉 상태·속도 등의 정의는 Step 2와 비교창의 공통 `Metric guide`에서 확인할 수 있습니다.
 
-```bash
-python -m unittest tests/test_pipeline_integration.py
-```
+동기화의 기준인 `t1−`는 **추정된 첫 접촉 직전의 기록 표본**입니다. 시간·출처가 불명확하거나 해당 구간이 끊긴 결과는 그 시점의 동기화에서 제외하고 개별로 확인할 수 있습니다. 값이 없으면 결측·제외 사유를 함께 확인하세요. 같은 관측 파일을 복사해 추가해도 독립 반복 횟수가 늘어나지 않습니다.
 
-GUI 없이 진입점 로직만 빠르게 검증하려면:
-```bash
-python -m unittest tests/test_launch_headless.py
-```
+`3D Visualization`은 `.proc`를 열어 박스와 마커를 재생합니다. 재생·일시정지, 프레임 이동, 시점 회전·확대·이동, 구간 선택과 상세 그래프 탐색을 지원합니다. 위치·속도·가속도와 속력 그래프를 보고 필요한 객체를 비교할 수 있습니다. 원본 촬영 CSV나 CAE 초기조건 CSV를 직접 재생하는 창은 아닙니다.
 
-공개 필수 검사는 [Windows CI](.github/workflows/public-marker-validation.yml)의 명령을 기준으로 실행합니다. 단위 계약과 합성 데이터 연결 결과는 구분하며, 이 검사는 실측 정확도나 ISTA 적합성을 확인하지 않습니다. 작은 공개 형식 예제 `data/testdata_box_marker.csv`는 유지하고, 촬영 원본과 생성 결과는 `TestSets/Input/`, `TestSets/Output/`, `tmp/` 등 Git에서 제외한 로컬 경로에 둡니다.
+런처의 `3D Visualization`을 다시 누르거나 시각화 창의 `File > New Visualization Window`로 독립 창을 추가할 수 있습니다. 자세한 조작은 [3D 시각화 가이드](docs/visualization/guide.md)를 참고하세요.
 
-기존 VDTest 원본·부분 파일과 파생 결과는 Git 추적만 해제했으며 작업 PC의 파일은 보존했습니다. 과거 Git 이력까지 제거한 것은 아닙니다. 새로 받은 저장소에서 공개 검사를 실행할 때 이 자료는 필요하지 않습니다.
+## CAE 초기조건 CSV / CAE initial conditions
 
-기존 VDTest 자료의 일관성 검사를 별도로 실행하려면 해당 파일 경로를 명시합니다. 지정하지 않으면 실측 검사는 미실행으로 남으며 공개 필수 검사에 포함되지 않습니다. 잘못 지정한 경로는 실패로 표시합니다.
+Step 2의 `CAE export`에서 `Export Scenario CSV`로 별도 초기조건을 저장합니다. 자동 오프셋은 선택 시점의 코너 높이로 세 코너를 정하고, 수동 오프셋은 지정한 코너를 사용합니다.
+
+`Manual Offset`과 `Manual Height`를 모두 켜면 수동 높이와 **기본 정지 조건(속도 6개가 0)**을 사용합니다. `Use selected-time velocities`를 명시적으로 켜면 선택 행의 유효한 선속도·각속도 6개를 사용합니다. 다른 모드에서는 선택 행의 속도를 사용합니다. 수동 높이 모드에서 벗어나면 이 선택은 OFF로 돌아갑니다.
+
+선택 시점은 자동으로 `t1−`가 되는 것이 아닙니다. 내보내는 값은 선택 표본의 분석 좌표계 성분이며, 별도 교정된 관성 COM 속도라는 보증도 아닙니다. 7행 파일 구조·단위·입력 제한은 [시나리오 형식](docs/analysis/reference/scenario_export_format.md)을 참고하세요.
+
+## 촬영 없이 사용하기 / Simulation
+
+`Simulation`은 강체 낙하와 가상 취급 동작을 생성합니다. 박스 치수·질량·질량중심 오프셋·마찰과 접촉 설정을 확인하고 목적에 맞는 경로를 선택하세요.
+
+### 직접 운동 결과 생성
+
+- **`Single drop`:** 면·모서리 선·꼭짓점 등의 프리셋 또는 초기 회전을 선택하고 `Run`으로 실행해 `.proc`를 저장합니다. 저장한 파일은 `3D Visualization`에서 열 수 있습니다.
+- **`Run all presets`:** 선택한 종류의 기존 자유낙하 프리셋을 각각 실행합니다. 하나의 연속 로봇 계획이나 검증된 완전한 ISTA 시험 절차를 뜻하지 않습니다.
+- **`Robot sequence`:** 설정에서 취급 방식·부착면·순서·위치·자세와 실행 범위를 확인하고 `Preview sequence` → `Use in Simulation`으로 실행 계획을 적용한 뒤 `Run`을 누릅니다. 실행 가능한 계획이 없거나 변경 후 다시 확인하지 않은 계획은 실행을 차단합니다. 로봇 모드에서는 `Run all presets` 대신 연속 계획 하나를 `Run`으로 실행합니다.
+
+`Settings…`에서 설정을 확인하고 `Open settings…`/`Save settings…`로 파일을 읽거나 저장할 수 있습니다. 설정을 적용하는 동작은 `Use in Simulation`입니다. 기본 Single drop의 자유낙하 프리셋과 Robot sequence의 가상 지지·회전 동작은 서로 다른 범위입니다. G17 hazard block은 지원하지 않으며 Type H의 가상 지지 동작을 실제 장치나 규격 적합성으로 해석하지 않습니다.
+
+직접 `.proc` 저장은 엔진이 기록한 운동을 내보내는 경로로, 마커 관측을 자세 분석기로 처리한 결과와 구분합니다. Simulation 월드의 위쪽은 Z, 분석 월드의 위쪽은 Y입니다. 생성 경로의 좌표 변환과 파일 설명은 [시뮬레이션 안내](docs/simulation.md), 모드·실행 계획은 [모드 계약](docs/analysis/reference/simulation_mode_contract.md)과 [로봇 실행 계약](docs/analysis/reference/robot_sequence_contract.md)을 참고하세요.
+
+### 합성 마커 관측으로 분석 흐름 사용
+
+`Marker CSV…`에서 공개 예제 또는 JSON 마커 배치를 선택하고 관측을 생성할 수 있습니다. 배치 좌표는 mm이며 박스 치수에 자동 확대되지 않습니다. 치수가 다르면 `Use layout box`로 배치 치수를 사용합니다. 생성된 `observed.csv`를 `Open in Step 1`로 열어 위 분석 절차를 진행하세요. 표시된 치수와 보정 결정은 사용자가 확인합니다.
+
+누락·반회전·잡음 옵션은 관측 오류를 시험하기 위한 합성 설정입니다. 기본 Faults는 None입니다. 실제 카메라의 오차 분포를 교정한 모델은 아닙니다. 물리 마커 채널만 바꾼 오류가 분석에 쓰는 강체 추정 채널까지 바꾸는 것은 아닙니다. 같은 폴더의 정답 파일은 평가용이며 분석 입력으로 함께 넣지 않습니다.
+
+### 고급 API/CLI
+
+다음 기능은 기존 API/CLI와 명시적인 입력 파일을 사용하는 고급 경로입니다. 모든 항목을 편집하는 GUI가 있다는 뜻은 아닙니다.
+
+| 목적 | 안내 |
+| --- | --- |
+| 카메라 가시성·가림·시간 상관 잡음을 관측에 적용 | [관측 모델](docs/analysis/reference/observation_model_contract.md) |
+| 초기 위치·자세·선속도·각속도와 접촉 설정, 수렴 진단·제한된 fit/holdout 평가 | [초기조건과 제한 교정](docs/analysis/reference/contact_calibration_contract.md) |
+| 실제 엔진 timestep 접촉 기록과 관측의 첫·후속 충돌, 반등·지지 전환 대조 | [접촉 사건 평가](docs/analysis/reference/contact_evaluation_contract.md) |
+| 오류 구간을 지정한 합성 관측 및 연속 촬영 예제 | [관측 생성 계약](docs/analysis/reference/marker_flip_fixture_contract.md), [시뮬레이션 안내](docs/simulation.md) |
+
+합성 자료의 일관성 평가와 실제 제품의 물리 교정은 다른 작업입니다. 독립 실측 검증은 자료 미확보로 미실시 종료됐으며 실제 정확도가 확인된 상태가 아닙니다.
+
+## 개발 검사 / Developer checks
+
+앱을 실행하는 데 pytest 설치나 전체 회귀 실행은 필요하지 않습니다. 검사를 실행하려면 같은 가상환경에 테스트 도구를 추가합니다. 공개 CI의 Python 3.13·MuJoCo 3.6.0 지정을 맞추려면 다음과 같이 설치하세요.
 
 ```powershell
-$env:BMA_REAL_CAPTURE = 'C:\LocalCaptures\VDTest_S5_001.csv'
-python -m pytest -q tests/test_real_data_flow.py tests/test_real_drop_posture_physics.py
-Remove-Item Env:BMA_REAL_CAPTURE
+.\.venv\Scripts\python.exe -m pip install pytest "mujoco==3.6.0"
 ```
 
-이 검사는 기존 자료와 추정 치수의 일관성만 확인합니다. 독립 교정·정답이 필요한 실제 실험 검증은 [#104](https://github.com/pikachu444/BoxMotionAnalyzer/issues/104)에 별도로 남아 있습니다. 공개·가상 검증의 완료는 실측 정확도나 ISTA 적합성 확인을 뜻하지 않습니다.
+이는 CI의 Python·MuJoCo 지정에 맞추는 절차입니다. 전체 의존성 잠금이나 Windows 화면·Qt/OpenGL 환경까지 같아진다는 뜻은 아닙니다. CI의 화면 설정과 필수 검사 목록은 [Windows CI](.github/workflows/public-marker-validation.yml)를 기준으로 확인합니다.
+
+먼저 파일 역할과 슬라이스 치수 저장의 작은 연결 검사를 실행할 수 있습니다.
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q tests/test_artifact_io_filters.py
+```
+
+분석→저장→시각화 로더 연결과 런처 진입점 검사는 별도로 실행할 수 있습니다. 아래 검사는 Qt 환경을 사용합니다. 진입점 검사는 일부 호출을 모의하므로 실제 창의 사용성까지 증명하지 않습니다.
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q tests/test_pipeline_integration.py tests/test_launch_headless.py
+```
+
+이 작은 검사들은 전체 캡처 회귀나 실측 정확도 검증이 아닙니다. 전체 Raw를 새로 처리하는 `full` 실행은 오래 걸릴 수 있으므로 첫 실행 절차와 분리합니다. 합성 corpus 생성, representative/full 실행과 재개 조건은 [캡처 회귀 안내](docs/analysis/reference/capture_regression.md)와 [회귀 단계·실행 기록](docs/analysis/reference/regression_evidence.md)을 참고하세요. 생성 명령의 출력 폴더는 매번 새 경로를 사용합니다. 공개 소프트웨어 검사에는 비공개 촬영 자료가 필요하지 않습니다.
+
+## Windows 실행 파일 빌드 / Build
+
+저장소 루트에서 같은 가상환경으로 실행합니다.
+
+```powershell
+.\.venv\Scripts\python.exe build.py onedir
+.\.venv\Scripts\python.exe build.py onefile
+```
+
+| 모드 | 결과 경로 |
+| --- | --- |
+| `onedir` | `dist/onedir/BoxMotionAnalyzer/` — 폴더 전체를 배포 |
+| `onefile` | `dist/onefile/BoxMotionAnalyzer.exe` |
+
+`build.bat`를 실행해 1(Folder) 또는 2(Single File)를 선택할 수도 있습니다. 이 스크립트는 루트 `.venv`, 없으면 상위 `.venv`를 먼저 찾으므로 의도한 환경을 사용하는지 확인하세요. 아이콘·이미지는 `src/config/images/`를 사용합니다. 배포 확인에는 실행 파일·창·작업표시줄 아이콘과 실제 실행을 포함합니다.
+
+## 구조와 더 읽을 문서 / Structure and guides
+
+| 경로 | 역할 |
+| --- | --- |
+| `src/main.py`, `src/launcher.py` | 앱 시작과 런처 |
+| `src/analysis/` | CSV 처리, 구간·마커 검토, Single/Batch 분석, 결과·비교 GUI |
+| `src/visualization/` | `.proc` 로더, 3D 재생과 그래프 |
+| `src/simulation/` | MuJoCo, 관측 생성, 가상 로봇 계획과 고급 CLI |
+| `src/config/`, `src/utils/` | 설정·컬럼 정의·리소스와 공용 기능 |
+| `tests/`, `data/` | 검사와 공개 형식 예제 |
+
+- 사용자 절차: [분석 GUI](docs/analysis/design/gui_overview.md), [작업 흐름](docs/analysis/design/workflow.txt), [3D 시각화](docs/visualization/guide.md), [시뮬레이션](docs/simulation.md)
+- 저장 형식: [결과 스키마](docs/analysis/reference/csv_multi_header_schema.md), [결과 필드](docs/analysis/reference/result_schema_notes.md), [CAE 초기조건](docs/analysis/reference/scenario_export_format.md)
+- 개발 안내: [저장소 작업 규칙](AGENTS.md), [현재 설계](docs/analysis/design/system_design.md), [GUI 지표의 구현·검증 범위](docs/visualization/gui_metric_parity/validation_report.md)
+- 전체 탐색과 전달 기록: [문서 인덱스](docs/documentation_index.md), [공개 기능·실행 근거](docs/analysis/reference/pub_delivery_status.md)
+
+현재 사용 안내와 과거 실행 기록은 구분해서 읽으세요. 과거 기록의 날짜·버전·실패 이력은 해당 실행의 범위를 나타내며, 현재 소프트웨어의 존재 여부나 독립 실측 정확도를 대신하지 않습니다.

@@ -1,6 +1,6 @@
 # Code Structure Notes (Current)
 
-Last Reviewed: 2026-11-12
+Last Reviewed: 2026-11-16
 
 #188 adds a producer-owned `Analysis / DropPostureSummary / FinalFace` field with the existing three-level format. It uses the public stable-height tail and equal-weight rotation mean; missing legacy fields stay unavailable. The remaining new snapshot/target/path values are resolved in memory with method, reference, time, reason and independent evidence/calibration status. Existing COM-fit IDs and intended-contact API enums are preserved. [Contract and verification](../../visualization/gui_metric_parity/validation_report.md).
 
@@ -335,7 +335,7 @@ or locking the GUI; a rejected value preserves the original bytes and editable i
   - `DISPLAY_RESULT_COLUMNS`: Results Analyzer 표시 스펙
 - `src/config/result_metric_descriptors.py`
   - Drop Posture summary의 UI 표시명, group, 단위, tooltip, metric guide 설명, visual guide id
-  - Step 2 `Experiment Summary`, Data Selection tooltip, 향후 compare window 설명의 공통 기준
+  - Step 2의 summary·Data Selection tooltip과 Compare의 공통 지표 설명 기준. 두 화면의 `Metric guide`는 `shared_metric_guide.SharedMetricGuideDialog`와 공통 지표 registry를 사용하고 화면별 context에 맞는 항목을 표시한다.
 - `src/config/config_visualization.py`
   - visualization 내부 metric 키와 UI metric metadata 정의
   - `DF_*` metric 상수는 `HeaderL3` export 키를 직접 재사용
